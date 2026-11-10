@@ -1,5 +1,13 @@
-<!-- BEGIN:database-guardrails -->
+<!-- BEGIN:project-context -->
+## Contexto del Proyecto
+- Somos un sistema empresarial basado en Party Model.
+- Backend en Go, Clean Architecture, TDD, Gin y Ent.
+- Para tareas de negocio, consulta `.dsh/skills/domain-party-model/SKILL.md`.
+- Para tareas de código, consulta `.dsh/skills/backend-go-ent/SKILL.md`.
+<!-- END:project-context -->
 
+
+<!-- BEGIN:database-guardrails -->
 ## Base de Datos y Auditoría
 - Para cualquier tarea relacionada con **auditoría de datos** (creación de
   tablas de logs, triggers de seguimiento, preguntas sobre trazabilidad),
@@ -19,11 +27,16 @@
   DDL, las políticas y las restricciones.
 
 ## Sesiones y Multitenencia
-- Para cualquier tarea relacionada con **sesiones de usuario**, diseño de la tabla `app.sessions`, políticas de RLS o autenticación multitenencia, carga y sigue estrictamente el skill `session-multitenancy`.
+- Para cualquier tarea relacionada con **sesiones de usuario**, diseño de la tabla `tenants.sessions`, políticas de RLS o autenticación multitenencia, carga y sigue estrictamente el skill `session-multitenancy`.
 - Consulta el archivo `.dsh/skills/session-multitenancy/SKILL.md` para el DDL, las políticas y las restricciones.
 
 ## Reglas Obligatorias de Base de Datos (CRÍTICO)
 - **SIEMPRE** que vayas a generar DDL, migraciones, triggers, políticas RLS o código SQL, DEBES cargar y aplicar el skill `project-guardrails`.
 - Este skill contiene las restricciones innegociables del proyecto (RLS forzado, `timestamptz`, soft delete, Party Model, etc.).
 
+## Arquitectura de Datos (Regla de Oro)
+- Las tablas de catálogo (`role_types`) son globales (sin `tenant_id`).
+- Las tablas de identidad (`parties`, `people`, `organizations`, `party_roles`, etc.) viven en el esquema `tenants` y **SIEMPRE** llevan `tenant_id` con RLS aplicado.
+- La tabla `subscriptions` vive en el esquema `global` y representa a los Tenants.
+- Un empleado que trabaja en dos tenants diferentes tendrá dos filas separadas en `parties`, una por cada `tenant_id`.
 <!-- END:database-guardrails -->

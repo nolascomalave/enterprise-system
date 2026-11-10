@@ -29,10 +29,24 @@ description: >-
   se eliminan.
 
 ## 3. DDL y función de trigger
-(Incluir aquí el DDL completo y la función `audit.fn_log_change()` que se
-acordaron, o una referencia al archivo `ddl/audit_log.sql` del repositorio).
+(El DDL completo, la tabla `audit.change_log` y la función
+`audit.fn_log_change()` viven en `migrations/0003_audit_change_log.sql`).
 
-## 4. Antipatrones prohibidos
+## 4. Redacción de campos sensibles
+`audit.fn_log_change()` acepta nombres de columnas en `TG_ARGV` y elimina esas
+claves de `old_data`, `new_data` y `changed_fields`. Úsalo para secretos:
+
+```sql
+CREATE TRIGGER user_credentials_audit_trg
+  AFTER INSERT OR UPDATE OR DELETE ON tenants.user_credentials
+  FOR EACH ROW EXECUTE FUNCTION audit.fn_log_change(
+    'password_hash', 'totp_secret', 'backup_codes_hash'
+  );
+```
+
+Nunca audites tokens, hashes de refresh tokens, contraseñas ni secretos TOTP.
+
+## 5. Antipatrones prohibidos
 - ❌ `session_id` con FK y `ON DELETE SET NULL`.
 - ❌ Tabla de auditoría sin particionado.
 - ❌ Permitir `UPDATE`/`DELETE` sobre la tabla de logs.

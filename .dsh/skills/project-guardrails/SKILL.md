@@ -12,7 +12,7 @@ description: >-
 Estas reglas son de obligado cumplimiento. **Nunca** generes una estructura de base de datos que viole estos principios.
 
 ## 1. Multitenencia y RLS
-- Toda tabla de negocio **debe** tener `tenant_id uuid NOT NULL` con FK a `app.tenants(tenant_id) ON DELETE RESTRICT`.
+- Toda tabla de negocio **debe** tener `tenant_id uuid NOT NULL` con FK a `global.subscriptions(id) ON DELETE RESTRICT`.
 - **Obligatorio** habilitar y forzar RLS: `ENABLE` + `FORCE ROW LEVEL SECURITY`.
 - La política de aislamiento **debe** usar `NULLIF(current_setting('app.current_tenant_id', true), '')::uuid` (comportamiento fail-closed).
 - Los índices de tablas con RLS **deben** comenzar por `tenant_id`.

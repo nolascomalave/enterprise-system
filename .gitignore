@@ -1,2 +1,8 @@
 # env files (can opt-in for committing if needed)
 .env*
+
+# local Go build/module cache (sandbox writable)
+.gocache/
+
+# macOS metadata
+.DS_Store

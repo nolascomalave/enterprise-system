@@ -11,10 +11,10 @@ description: >-
 ## 1. Patrón arquitectónico
 - **Esquema compartido con columna `tenant_id`** como discriminador.
 - Toda tabla de negocio debe incluir `tenant_id uuid NOT NULL` con FK a
-  `app.tenants(tenant_id) ON DELETE RESTRICT`.
+  `global.subscriptions(id) ON DELETE RESTRICT`.
 
 ## 2. Estructura de tablas
-- **Tabla de tenants** (`app.tenants`): catálogo global, sin RLS.
+- **Tabla de tenants** (`global.subscriptions`): catálogo global, sin RLS.
 - **Tablas de negocio**: cada una con `tenant_id`, campos de auditoría
   (`created_at`, `updated_at`, `deleted_at` como `timestamptz`) e índices
   que comiencen por `tenant_id`.
