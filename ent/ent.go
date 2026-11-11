@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
@@ -91,6 +92,7 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			address.Table:               address.ValidColumn,
+			attacheddocument.Table:      attacheddocument.ValidColumn,
 			contactmechanism.Table:      contactmechanism.ValidColumn,
 			department.Table:            department.ValidColumn,
 			employee.Table:              employee.ValidColumn,

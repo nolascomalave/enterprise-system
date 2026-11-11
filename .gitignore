@@ -6,3 +6,6 @@
 
 # macOS metadata
 .DS_Store
+
+# local document storage (content-addressed files)
+/data/

@@ -18,6 +18,7 @@ type Dependencies struct {
 	OnboardingUseCase   OnboardingUseCase
 	OrgStructureUseCase OrgStructureUseCase
 	MergePartiesUseCase MergePartiesUseCase
+	DocumentUseCase     DocumentUseCase
 	TokenManager        *auth.Manager
 
 	CookieSecure   bool
@@ -65,6 +66,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	onboardingHandler := NewOnboardingHandler(deps.OnboardingUseCase)
 	orgHandler := NewOrgHandler(deps.OrgStructureUseCase)
 	mergeHandler := NewMergeHandler(deps.MergePartiesUseCase)
+	documentHandler := NewDocumentHandler(deps.DocumentUseCase)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -98,6 +100,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.GET("/departments", orgHandler.ListDepartments)
 		protected.POST("/employees", orgHandler.CreateEmployee)
 		protected.GET("/employees", orgHandler.ListEmployees)
+		protected.POST("/documents", documentHandler.Create)
 		protected.POST("/auth/change-password", accountHandler.ChangePassword)
 	}
 

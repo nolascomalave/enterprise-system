@@ -16,6 +16,8 @@ type Tx struct {
 	config
 	// Address is the client for interacting with the Address builders.
 	Address *AddressClient
+	// AttachedDocument is the client for interacting with the AttachedDocument builders.
+	AttachedDocument *AttachedDocumentClient
 	// ContactMechanism is the client for interacting with the ContactMechanism builders.
 	ContactMechanism *ContactMechanismClient
 	// Department is the client for interacting with the Department builders.
@@ -182,6 +184,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Address = NewAddressClient(tx.config)
+	tx.AttachedDocument = NewAttachedDocumentClient(tx.config)
 	tx.ContactMechanism = NewContactMechanismClient(tx.config)
 	tx.Department = NewDepartmentClient(tx.config)
 	tx.Employee = NewEmployeeClient(tx.config)

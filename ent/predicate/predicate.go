@@ -9,6 +9,9 @@ import (
 // Address is the predicate function for address builders.
 type Address func(*sql.Selector)
 
+// AttachedDocument is the predicate function for attacheddocument builders.
+type AttachedDocument func(*sql.Selector)
+
 // ContactMechanism is the predicate function for contactmechanism builders.
 type ContactMechanism func(*sql.Selector)
 

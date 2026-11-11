@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -338,6 +339,21 @@ func (_u *SubscriptionUpdate) AddPasswordResetTokens(v ...*PasswordResetToken) *
 	return _u.AddPasswordResetTokenIDs(ids...)
 }
 
+// AddAttachedDocumentIDs adds the "attached_documents" edge to the AttachedDocument entity by IDs.
+func (_u *SubscriptionUpdate) AddAttachedDocumentIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddAttachedDocumentIDs(ids...)
+	return _u
+}
+
+// AddAttachedDocuments adds the "attached_documents" edges to the AttachedDocument entity.
+func (_u *SubscriptionUpdate) AddAttachedDocuments(v ...*AttachedDocument) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttachedDocumentIDs(ids...)
+}
+
 // Mutation returns the SubscriptionMutation object of the builder.
 func (_u *SubscriptionUpdate) Mutation() *SubscriptionMutation {
 	return _u.mutation
@@ -656,6 +672,27 @@ func (_u *SubscriptionUpdate) RemovePasswordResetTokens(v ...*PasswordResetToken
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePasswordResetTokenIDs(ids...)
+}
+
+// ClearAttachedDocuments clears all "attached_documents" edges to the AttachedDocument entity.
+func (_u *SubscriptionUpdate) ClearAttachedDocuments() *SubscriptionUpdate {
+	_u.mutation.ClearAttachedDocuments()
+	return _u
+}
+
+// RemoveAttachedDocumentIDs removes the "attached_documents" edge to AttachedDocument entities by IDs.
+func (_u *SubscriptionUpdate) RemoveAttachedDocumentIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveAttachedDocumentIDs(ids...)
+	return _u
+}
+
+// RemoveAttachedDocuments removes "attached_documents" edges to AttachedDocument entities.
+func (_u *SubscriptionUpdate) RemoveAttachedDocuments(v ...*AttachedDocument) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttachedDocumentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1464,6 +1501,54 @@ func (_u *SubscriptionUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AttachedDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AttachedDocumentsTable,
+			Columns: []string{subscription.AttachedDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attacheddocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AttachedDocument
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttachedDocumentsIDs(); len(nodes) > 0 && !_u.mutation.AttachedDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AttachedDocumentsTable,
+			Columns: []string{subscription.AttachedDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attacheddocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AttachedDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttachedDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AttachedDocumentsTable,
+			Columns: []string{subscription.AttachedDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attacheddocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AttachedDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Subscription
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -1777,6 +1862,21 @@ func (_u *SubscriptionUpdateOne) AddPasswordResetTokens(v ...*PasswordResetToken
 		ids[i] = v[i].ID
 	}
 	return _u.AddPasswordResetTokenIDs(ids...)
+}
+
+// AddAttachedDocumentIDs adds the "attached_documents" edge to the AttachedDocument entity by IDs.
+func (_u *SubscriptionUpdateOne) AddAttachedDocumentIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddAttachedDocumentIDs(ids...)
+	return _u
+}
+
+// AddAttachedDocuments adds the "attached_documents" edges to the AttachedDocument entity.
+func (_u *SubscriptionUpdateOne) AddAttachedDocuments(v ...*AttachedDocument) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAttachedDocumentIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -2097,6 +2197,27 @@ func (_u *SubscriptionUpdateOne) RemovePasswordResetTokens(v ...*PasswordResetTo
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePasswordResetTokenIDs(ids...)
+}
+
+// ClearAttachedDocuments clears all "attached_documents" edges to the AttachedDocument entity.
+func (_u *SubscriptionUpdateOne) ClearAttachedDocuments() *SubscriptionUpdateOne {
+	_u.mutation.ClearAttachedDocuments()
+	return _u
+}
+
+// RemoveAttachedDocumentIDs removes the "attached_documents" edge to AttachedDocument entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveAttachedDocumentIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveAttachedDocumentIDs(ids...)
+	return _u
+}
+
+// RemoveAttachedDocuments removes "attached_documents" edges to AttachedDocument entities.
+func (_u *SubscriptionUpdateOne) RemoveAttachedDocuments(v ...*AttachedDocument) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAttachedDocumentIDs(ids...)
 }
 
 // Where appends a list predicates to the SubscriptionUpdate builder.
@@ -2930,6 +3051,54 @@ func (_u *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscripti
 			},
 		}
 		edge.Schema = _u.schemaConfig.PasswordResetToken
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AttachedDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AttachedDocumentsTable,
+			Columns: []string{subscription.AttachedDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attacheddocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AttachedDocument
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAttachedDocumentsIDs(); len(nodes) > 0 && !_u.mutation.AttachedDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AttachedDocumentsTable,
+			Columns: []string{subscription.AttachedDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attacheddocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AttachedDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AttachedDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AttachedDocumentsTable,
+			Columns: []string{subscription.AttachedDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attacheddocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AttachedDocument
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

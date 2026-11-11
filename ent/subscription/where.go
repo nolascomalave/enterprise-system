@@ -797,6 +797,35 @@ func HasPasswordResetTokensWith(preds ...predicate.PasswordResetToken) predicate
 	})
 }
 
+// HasAttachedDocuments applies the HasEdge predicate on the "attached_documents" edge.
+func HasAttachedDocuments() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AttachedDocumentsTable, AttachedDocumentsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.AttachedDocument
+		step.Edge.Schema = schemaConfig.AttachedDocument
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAttachedDocumentsWith applies the HasEdge predicate on the "attached_documents" edge with a given conditions (other predicates).
+func HasAttachedDocumentsWith(preds ...predicate.AttachedDocument) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newAttachedDocumentsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.AttachedDocument
+		step.Edge.Schema = schemaConfig.AttachedDocument
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Subscription) predicate.Subscription {
 	return predicate.Subscription(sql.AndPredicates(predicates...))

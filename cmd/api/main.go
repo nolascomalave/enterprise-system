@@ -25,6 +25,7 @@ import (
 	emailinfra "enterprise-system/internal/infrastructure/email"
 	"enterprise-system/internal/infrastructure/enttenant"
 	"enterprise-system/internal/infrastructure/repository"
+	"enterprise-system/internal/infrastructure/storage/local"
 	"enterprise-system/internal/infrastructure/transaction"
 	"enterprise-system/internal/usecase"
 	_ "github.com/lib/pq"
@@ -90,6 +91,20 @@ func main() {
 	orgService := usecase.NewOrgStructure(repository.NewOrgStructureRepository(client), txManager, time.Now)
 	mergeService := usecase.NewMergeParties(txManager, repository.NewPartyMergeRepository(client), time.Now, nil)
 
+	storageDir := strings.TrimSpace(os.Getenv("DOCUMENT_STORAGE_DIR"))
+	if storageDir == "" {
+		storageDir = "./data/documents"
+	}
+	documentStorage, err := local.New(storageDir)
+	if err != nil {
+		log.Fatalf("configure document storage: %v", err)
+	}
+	documentService := usecase.NewDocumentService(
+		documentStorage,
+		repository.NewAttachedDocumentRepository(client),
+		txManager, "local", time.Now,
+	)
+
 	allowedOrigins := splitCSV(os.Getenv("CORS_ALLOWED_ORIGINS"))
 	if len(allowedOrigins) == 0 {
 		allowedOrigins = []string{"http://localhost:3000"}
@@ -102,6 +117,7 @@ func main() {
 		OnboardingUseCase:   onboardingService,
 		OrgStructureUseCase: orgService,
 		MergePartiesUseCase: mergeService,
+		DocumentUseCase:     documentService,
 		TokenManager:        tokenManager,
 		CookieSecure:        os.Getenv("COOKIE_SECURE") != "false",
 		RefreshTTL:          30 * 24 * time.Hour,

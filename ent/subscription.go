@@ -69,9 +69,11 @@ type SubscriptionEdges struct {
 	UserCredentials []*UserCredentials `json:"user_credentials,omitempty"`
 	// PasswordResetTokens holds the value of the password_reset_tokens edge.
 	PasswordResetTokens []*PasswordResetToken `json:"password_reset_tokens,omitempty"`
+	// AttachedDocuments holds the value of the attached_documents edge.
+	AttachedDocuments []*AttachedDocument `json:"attached_documents,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [15]bool
+	loadedTypes [16]bool
 }
 
 // PartiesOrErr returns the Parties value or an error if the edge
@@ -207,6 +209,15 @@ func (e SubscriptionEdges) PasswordResetTokensOrErr() ([]*PasswordResetToken, er
 		return e.PasswordResetTokens, nil
 	}
 	return nil, &NotLoadedError{edge: "password_reset_tokens"}
+}
+
+// AttachedDocumentsOrErr returns the AttachedDocuments value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) AttachedDocumentsOrErr() ([]*AttachedDocument, error) {
+	if e.loadedTypes[15] {
+		return e.AttachedDocuments, nil
+	}
+	return nil, &NotLoadedError{edge: "attached_documents"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -364,6 +375,11 @@ func (_m *Subscription) QueryUserCredentials() *UserCredentialsQuery {
 // QueryPasswordResetTokens queries the "password_reset_tokens" edge of the Subscription entity.
 func (_m *Subscription) QueryPasswordResetTokens() *PasswordResetTokenQuery {
 	return NewSubscriptionClient(_m.config).QueryPasswordResetTokens(_m)
+}
+
+// QueryAttachedDocuments queries the "attached_documents" edge of the Subscription entity.
+func (_m *Subscription) QueryAttachedDocuments() *AttachedDocumentQuery {
+	return NewSubscriptionClient(_m.config).QueryAttachedDocuments(_m)
 }
 
 // Update returns a builder for updating this Subscription.

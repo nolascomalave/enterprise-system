@@ -58,6 +58,8 @@ const (
 	EdgeUserCredentials = "user_credentials"
 	// EdgePasswordResetTokens holds the string denoting the password_reset_tokens edge name in mutations.
 	EdgePasswordResetTokens = "password_reset_tokens"
+	// EdgeAttachedDocuments holds the string denoting the attached_documents edge name in mutations.
+	EdgeAttachedDocuments = "attached_documents"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the subscription in the database.
@@ -167,6 +169,13 @@ const (
 	PasswordResetTokensInverseTable = "password_reset_tokens"
 	// PasswordResetTokensColumn is the table column denoting the password_reset_tokens relation/edge.
 	PasswordResetTokensColumn = "tenant_id"
+	// AttachedDocumentsTable is the table that holds the attached_documents relation/edge.
+	AttachedDocumentsTable = "attached_documents"
+	// AttachedDocumentsInverseTable is the table name for the AttachedDocument entity.
+	// It exists in this package in order to avoid circular dependency with the "attacheddocument" package.
+	AttachedDocumentsInverseTable = "attached_documents"
+	// AttachedDocumentsColumn is the table column denoting the attached_documents relation/edge.
+	AttachedDocumentsColumn = "tenant_id"
 )
 
 // Columns holds all SQL columns for subscription fields.
@@ -479,6 +488,20 @@ func ByPasswordResetTokens(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newPasswordResetTokensStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAttachedDocumentsCount orders the results by attached_documents count.
+func ByAttachedDocumentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAttachedDocumentsStep(), opts...)
+	}
+}
+
+// ByAttachedDocuments orders the results by attached_documents terms.
+func ByAttachedDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAttachedDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPartiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -582,5 +605,12 @@ func newPasswordResetTokensStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PasswordResetTokensInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PasswordResetTokensTable, PasswordResetTokensColumn),
+	)
+}
+func newAttachedDocumentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AttachedDocumentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AttachedDocumentsTable, AttachedDocumentsColumn),
 	)
 }

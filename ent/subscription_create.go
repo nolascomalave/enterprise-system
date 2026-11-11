@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -344,6 +345,21 @@ func (_c *SubscriptionCreate) AddPasswordResetTokens(v ...*PasswordResetToken) *
 		ids[i] = v[i].ID
 	}
 	return _c.AddPasswordResetTokenIDs(ids...)
+}
+
+// AddAttachedDocumentIDs adds the "attached_documents" edge to the AttachedDocument entity by IDs.
+func (_c *SubscriptionCreate) AddAttachedDocumentIDs(ids ...uuid.UUID) *SubscriptionCreate {
+	_c.mutation.AddAttachedDocumentIDs(ids...)
+	return _c
+}
+
+// AddAttachedDocuments adds the "attached_documents" edges to the AttachedDocument entity.
+func (_c *SubscriptionCreate) AddAttachedDocuments(v ...*AttachedDocument) *SubscriptionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAttachedDocumentIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -736,6 +752,23 @@ func (_c *SubscriptionCreate) createSpec() (*Subscription, *sqlgraph.CreateSpec)
 			},
 		}
 		edge.Schema = _c.schemaConfig.PasswordResetToken
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AttachedDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AttachedDocumentsTable,
+			Columns: []string{subscription.AttachedDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(attacheddocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.AttachedDocument
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

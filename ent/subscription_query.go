@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -55,6 +56,7 @@ type SubscriptionQuery struct {
 	withSessions               *SessionQuery
 	withUserCredentials        *UserCredentialsQuery
 	withPasswordResetTokens    *PasswordResetTokenQuery
+	withAttachedDocuments      *AttachedDocumentQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -466,6 +468,31 @@ func (_q *SubscriptionQuery) QueryPasswordResetTokens() *PasswordResetTokenQuery
 	return query
 }
 
+// QueryAttachedDocuments chains the current query on the "attached_documents" edge.
+func (_q *SubscriptionQuery) QueryAttachedDocuments() *AttachedDocumentQuery {
+	query := (&AttachedDocumentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(attacheddocument.Table, attacheddocument.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.AttachedDocumentsTable, subscription.AttachedDocumentsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.AttachedDocument
+		step.Edge.Schema = schemaConfig.AttachedDocument
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Subscription entity from the query.
 // Returns a *NotFoundError when no Subscription was found.
 func (_q *SubscriptionQuery) First(ctx context.Context) (*Subscription, error) {
@@ -673,6 +700,7 @@ func (_q *SubscriptionQuery) Clone() *SubscriptionQuery {
 		withSessions:               _q.withSessions.Clone(),
 		withUserCredentials:        _q.withUserCredentials.Clone(),
 		withPasswordResetTokens:    _q.withPasswordResetTokens.Clone(),
+		withAttachedDocuments:      _q.withAttachedDocuments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -844,6 +872,17 @@ func (_q *SubscriptionQuery) WithPasswordResetTokens(opts ...func(*PasswordReset
 	return _q
 }
 
+// WithAttachedDocuments tells the query-builder to eager-load the nodes that are connected to
+// the "attached_documents" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithAttachedDocuments(opts ...func(*AttachedDocumentQuery)) *SubscriptionQuery {
+	query := (&AttachedDocumentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAttachedDocuments = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -922,7 +961,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Subscription{}
 		_spec       = _q.querySpec()
-		loadedTypes = [15]bool{
+		loadedTypes = [16]bool{
 			_q.withParties != nil,
 			_q.withPersonProfiles != nil,
 			_q.withOrganizationProfiles != nil,
@@ -938,6 +977,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withSessions != nil,
 			_q.withUserCredentials != nil,
 			_q.withPasswordResetTokens != nil,
+			_q.withAttachedDocuments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1071,6 +1111,15 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Subscription) { n.Edges.PasswordResetTokens = []*PasswordResetToken{} },
 			func(n *Subscription, e *PasswordResetToken) {
 				n.Edges.PasswordResetTokens = append(n.Edges.PasswordResetTokens, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAttachedDocuments; query != nil {
+		if err := _q.loadAttachedDocuments(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.AttachedDocuments = []*AttachedDocument{} },
+			func(n *Subscription, e *AttachedDocument) {
+				n.Edges.AttachedDocuments = append(n.Edges.AttachedDocuments, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1513,6 +1562,36 @@ func (_q *SubscriptionQuery) loadPasswordResetTokens(ctx context.Context, query 
 	}
 	query.Where(predicate.PasswordResetToken(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(subscription.PasswordResetTokensColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadAttachedDocuments(ctx context.Context, query *AttachedDocumentQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *AttachedDocument)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(attacheddocument.FieldTenantID)
+	}
+	query.Where(predicate.AttachedDocument(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.AttachedDocumentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

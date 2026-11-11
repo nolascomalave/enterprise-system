@@ -31,4 +31,8 @@ var (
 	ErrTenantSlugTaken               = errors.New("tenant slug already exists")
 	ErrTenantAdminEmailTaken         = errors.New("tenant admin email already exists")
 	ErrRoleTypeNotFound              = errors.New("role type not found")
+	ErrInvalidAttachedDocument       = errors.New("invalid attached document")
+	ErrAttachedDocumentNotFound      = errors.New("attached document not found")
+	ErrInvalidFileKey                = errors.New("invalid file storage key")
+	ErrFileNotFound                  = errors.New("file not found")
 )

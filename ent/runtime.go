@@ -4,6 +4,7 @@ package ent
 
 import (
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
@@ -77,6 +78,50 @@ func init() {
 	addressDescID := addressFields[0].Descriptor()
 	// address.DefaultID holds the default value on creation for the id field.
 	address.DefaultID = addressDescID.Default.(func() uuid.UUID)
+	attacheddocumentFields := schema.AttachedDocument{}.Fields()
+	_ = attacheddocumentFields
+	// attacheddocumentDescOriginTable is the schema descriptor for origin_table field.
+	attacheddocumentDescOriginTable := attacheddocumentFields[2].Descriptor()
+	// attacheddocument.OriginTableValidator is a validator for the "origin_table" field. It is called by the builders before save.
+	attacheddocument.OriginTableValidator = attacheddocumentDescOriginTable.Validators[0].(func(string) error)
+	// attacheddocumentDescOriginalName is the schema descriptor for original_name field.
+	attacheddocumentDescOriginalName := attacheddocumentFields[4].Descriptor()
+	// attacheddocument.OriginalNameValidator is a validator for the "original_name" field. It is called by the builders before save.
+	attacheddocument.OriginalNameValidator = attacheddocumentDescOriginalName.Validators[0].(func(string) error)
+	// attacheddocumentDescStorageKey is the schema descriptor for storage_key field.
+	attacheddocumentDescStorageKey := attacheddocumentFields[5].Descriptor()
+	// attacheddocument.StorageKeyValidator is a validator for the "storage_key" field. It is called by the builders before save.
+	attacheddocument.StorageKeyValidator = attacheddocumentDescStorageKey.Validators[0].(func(string) error)
+	// attacheddocumentDescStorageProvider is the schema descriptor for storage_provider field.
+	attacheddocumentDescStorageProvider := attacheddocumentFields[6].Descriptor()
+	// attacheddocument.StorageProviderValidator is a validator for the "storage_provider" field. It is called by the builders before save.
+	attacheddocument.StorageProviderValidator = attacheddocumentDescStorageProvider.Validators[0].(func(string) error)
+	// attacheddocumentDescMimeType is the schema descriptor for mime_type field.
+	attacheddocumentDescMimeType := attacheddocumentFields[7].Descriptor()
+	// attacheddocument.MimeTypeValidator is a validator for the "mime_type" field. It is called by the builders before save.
+	attacheddocument.MimeTypeValidator = attacheddocumentDescMimeType.Validators[0].(func(string) error)
+	// attacheddocumentDescSizeBytes is the schema descriptor for size_bytes field.
+	attacheddocumentDescSizeBytes := attacheddocumentFields[8].Descriptor()
+	// attacheddocument.SizeBytesValidator is a validator for the "size_bytes" field. It is called by the builders before save.
+	attacheddocument.SizeBytesValidator = attacheddocumentDescSizeBytes.Validators[0].(func(int64) error)
+	// attacheddocumentDescDocumentHash is the schema descriptor for document_hash field.
+	attacheddocumentDescDocumentHash := attacheddocumentFields[9].Descriptor()
+	// attacheddocument.DocumentHashValidator is a validator for the "document_hash" field. It is called by the builders before save.
+	attacheddocument.DocumentHashValidator = attacheddocumentDescDocumentHash.Validators[0].(func([]byte) error)
+	// attacheddocumentDescCreatedAt is the schema descriptor for created_at field.
+	attacheddocumentDescCreatedAt := attacheddocumentFields[11].Descriptor()
+	// attacheddocument.DefaultCreatedAt holds the default value on creation for the created_at field.
+	attacheddocument.DefaultCreatedAt = attacheddocumentDescCreatedAt.Default.(func() time.Time)
+	// attacheddocumentDescUpdatedAt is the schema descriptor for updated_at field.
+	attacheddocumentDescUpdatedAt := attacheddocumentFields[12].Descriptor()
+	// attacheddocument.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	attacheddocument.DefaultUpdatedAt = attacheddocumentDescUpdatedAt.Default.(func() time.Time)
+	// attacheddocument.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	attacheddocument.UpdateDefaultUpdatedAt = attacheddocumentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// attacheddocumentDescID is the schema descriptor for id field.
+	attacheddocumentDescID := attacheddocumentFields[0].Descriptor()
+	// attacheddocument.DefaultID holds the default value on creation for the id field.
+	attacheddocument.DefaultID = attacheddocumentDescID.Default.(func() uuid.UUID)
 	contactmechanismFields := schema.ContactMechanism{}.Fields()
 	_ = contactmechanismFields
 	// contactmechanismDescValue is the schema descriptor for value field.

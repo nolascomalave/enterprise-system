@@ -8,6 +8,7 @@ import "context"
 // that can be passed at runtime.
 type SchemaConfig struct {
 	Address               string // Address table.
+	AttachedDocument      string // AttachedDocument table.
 	ContactMechanism      string // ContactMechanism table.
 	Department            string // Department table.
 	Employee              string // Employee table.

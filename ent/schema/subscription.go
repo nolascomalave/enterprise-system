@@ -87,6 +87,8 @@ func (Subscription) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("password_reset_tokens", PasswordResetToken.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("attached_documents", AttachedDocument.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

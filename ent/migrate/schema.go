@@ -80,6 +80,55 @@ var (
 			},
 		},
 	}
+	// AttachedDocumentsColumns holds the columns for the "attached_documents" table.
+	AttachedDocumentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "origin_table", Type: field.TypeString},
+		{Name: "origin_id", Type: field.TypeUUID},
+		{Name: "original_name", Type: field.TypeString},
+		{Name: "storage_key", Type: field.TypeString},
+		{Name: "storage_provider", Type: field.TypeString},
+		{Name: "mime_type", Type: field.TypeString},
+		{Name: "size_bytes", Type: field.TypeInt64},
+		{Name: "document_hash", Type: field.TypeBytes},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// AttachedDocumentsTable holds the schema information for the "attached_documents" table.
+	AttachedDocumentsTable = &schema.Table{
+		Name:       "attached_documents",
+		Columns:    AttachedDocumentsColumns,
+		PrimaryKey: []*schema.Column{AttachedDocumentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "attached_documents_subscriptions_attached_documents",
+				Columns:    []*schema.Column{AttachedDocumentsColumns[13]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "attacheddocument_tenant_id_origin_table_origin_id",
+				Unique:  false,
+				Columns: []*schema.Column{AttachedDocumentsColumns[13], AttachedDocumentsColumns[1], AttachedDocumentsColumns[2]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "attacheddocument_tenant_id_document_hash",
+				Unique:  false,
+				Columns: []*schema.Column{AttachedDocumentsColumns[13], AttachedDocumentsColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
 	// ContactMechanismsColumns holds the columns for the "contact_mechanisms" table.
 	ContactMechanismsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -937,6 +986,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AddressesTable,
+		AttachedDocumentsTable,
 		ContactMechanismsTable,
 		DepartmentsTable,
 		EmployeesTable,
@@ -962,6 +1012,10 @@ func init() {
 	AddressesTable.ForeignKeys[1].RefTable = SubscriptionsTable
 	AddressesTable.Annotation = &entsql.Annotation{
 		Table: "addresses",
+	}
+	AttachedDocumentsTable.ForeignKeys[0].RefTable = SubscriptionsTable
+	AttachedDocumentsTable.Annotation = &entsql.Annotation{
+		Table: "attached_documents",
 	}
 	ContactMechanismsTable.Annotation = &entsql.Annotation{
 		Table: "contact_mechanisms",

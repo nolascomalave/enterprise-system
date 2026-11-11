@@ -12,6 +12,7 @@ import (
 	"enterprise-system/ent/migrate"
 
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
@@ -47,6 +48,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Address is the client for interacting with the Address builders.
 	Address *AddressClient
+	// AttachedDocument is the client for interacting with the AttachedDocument builders.
+	AttachedDocument *AttachedDocumentClient
 	// ContactMechanism is the client for interacting with the ContactMechanism builders.
 	ContactMechanism *ContactMechanismClient
 	// Department is the client for interacting with the Department builders.
@@ -93,6 +96,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Address = NewAddressClient(c.config)
+	c.AttachedDocument = NewAttachedDocumentClient(c.config)
 	c.ContactMechanism = NewContactMechanismClient(c.config)
 	c.Department = NewDepartmentClient(c.config)
 	c.Employee = NewEmployeeClient(c.config)
@@ -206,6 +210,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                   ctx,
 		config:                cfg,
 		Address:               NewAddressClient(cfg),
+		AttachedDocument:      NewAttachedDocumentClient(cfg),
 		ContactMechanism:      NewContactMechanismClient(cfg),
 		Department:            NewDepartmentClient(cfg),
 		Employee:              NewEmployeeClient(cfg),
@@ -243,6 +248,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                   ctx,
 		config:                cfg,
 		Address:               NewAddressClient(cfg),
+		AttachedDocument:      NewAttachedDocumentClient(cfg),
 		ContactMechanism:      NewContactMechanismClient(cfg),
 		Department:            NewDepartmentClient(cfg),
 		Employee:              NewEmployeeClient(cfg),
@@ -289,10 +295,10 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Address, c.ContactMechanism, c.Department, c.Employee, c.EmployeeAssignment,
-		c.Job, c.JobFamily, c.OrganizationProfile, c.Party, c.PartyContactMechanism,
-		c.PartyMergeLog, c.PartyRole, c.PasswordResetToken, c.PersonProfile,
-		c.RoleType, c.Session, c.Subscription, c.UserCredentials,
+		c.Address, c.AttachedDocument, c.ContactMechanism, c.Department, c.Employee,
+		c.EmployeeAssignment, c.Job, c.JobFamily, c.OrganizationProfile, c.Party,
+		c.PartyContactMechanism, c.PartyMergeLog, c.PartyRole, c.PasswordResetToken,
+		c.PersonProfile, c.RoleType, c.Session, c.Subscription, c.UserCredentials,
 	} {
 		n.Use(hooks...)
 	}
@@ -302,10 +308,10 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Address, c.ContactMechanism, c.Department, c.Employee, c.EmployeeAssignment,
-		c.Job, c.JobFamily, c.OrganizationProfile, c.Party, c.PartyContactMechanism,
-		c.PartyMergeLog, c.PartyRole, c.PasswordResetToken, c.PersonProfile,
-		c.RoleType, c.Session, c.Subscription, c.UserCredentials,
+		c.Address, c.AttachedDocument, c.ContactMechanism, c.Department, c.Employee,
+		c.EmployeeAssignment, c.Job, c.JobFamily, c.OrganizationProfile, c.Party,
+		c.PartyContactMechanism, c.PartyMergeLog, c.PartyRole, c.PasswordResetToken,
+		c.PersonProfile, c.RoleType, c.Session, c.Subscription, c.UserCredentials,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -316,6 +322,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AddressMutation:
 		return c.Address.mutate(ctx, m)
+	case *AttachedDocumentMutation:
+		return c.AttachedDocument.mutate(ctx, m)
 	case *ContactMechanismMutation:
 		return c.ContactMechanism.mutate(ctx, m)
 	case *DepartmentMutation:
@@ -523,6 +531,158 @@ func (c *AddressClient) mutate(ctx context.Context, m *AddressMutation) (Value, 
 		return (&AddressDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Address mutation op: %q", m.Op())
+	}
+}
+
+// AttachedDocumentClient is a client for the AttachedDocument schema.
+type AttachedDocumentClient struct {
+	config
+}
+
+// NewAttachedDocumentClient returns a client for the AttachedDocument from the given config.
+func NewAttachedDocumentClient(c config) *AttachedDocumentClient {
+	return &AttachedDocumentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `attacheddocument.Hooks(f(g(h())))`.
+func (c *AttachedDocumentClient) Use(hooks ...Hook) {
+	c.hooks.AttachedDocument = append(c.hooks.AttachedDocument, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `attacheddocument.Intercept(f(g(h())))`.
+func (c *AttachedDocumentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AttachedDocument = append(c.inters.AttachedDocument, interceptors...)
+}
+
+// Create returns a builder for creating a AttachedDocument entity.
+func (c *AttachedDocumentClient) Create() *AttachedDocumentCreate {
+	mutation := newAttachedDocumentMutation(c.config, OpCreate)
+	return &AttachedDocumentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AttachedDocument entities.
+func (c *AttachedDocumentClient) CreateBulk(builders ...*AttachedDocumentCreate) *AttachedDocumentCreateBulk {
+	return &AttachedDocumentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AttachedDocumentClient) MapCreateBulk(slice any, setFunc func(*AttachedDocumentCreate, int)) *AttachedDocumentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AttachedDocumentCreateBulk{err: fmt.Errorf("calling to AttachedDocumentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AttachedDocumentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AttachedDocumentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AttachedDocument.
+func (c *AttachedDocumentClient) Update() *AttachedDocumentUpdate {
+	mutation := newAttachedDocumentMutation(c.config, OpUpdate)
+	return &AttachedDocumentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AttachedDocumentClient) UpdateOne(_m *AttachedDocument) *AttachedDocumentUpdateOne {
+	mutation := newAttachedDocumentMutation(c.config, OpUpdateOne, withAttachedDocument(_m))
+	return &AttachedDocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AttachedDocumentClient) UpdateOneID(id uuid.UUID) *AttachedDocumentUpdateOne {
+	mutation := newAttachedDocumentMutation(c.config, OpUpdateOne, withAttachedDocumentID(id))
+	return &AttachedDocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AttachedDocument.
+func (c *AttachedDocumentClient) Delete() *AttachedDocumentDelete {
+	mutation := newAttachedDocumentMutation(c.config, OpDelete)
+	return &AttachedDocumentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AttachedDocumentClient) DeleteOne(_m *AttachedDocument) *AttachedDocumentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AttachedDocumentClient) DeleteOneID(id uuid.UUID) *AttachedDocumentDeleteOne {
+	builder := c.Delete().Where(attacheddocument.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AttachedDocumentDeleteOne{builder}
+}
+
+// Query returns a query builder for AttachedDocument.
+func (c *AttachedDocumentClient) Query() *AttachedDocumentQuery {
+	return &AttachedDocumentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAttachedDocument},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AttachedDocument entity by its id.
+func (c *AttachedDocumentClient) Get(ctx context.Context, id uuid.UUID) (*AttachedDocument, error) {
+	return c.Query().Where(attacheddocument.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AttachedDocumentClient) GetX(ctx context.Context, id uuid.UUID) *AttachedDocument {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a AttachedDocument.
+func (c *AttachedDocumentClient) QueryTenant(_m *AttachedDocument) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(attacheddocument.Table, attacheddocument.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, attacheddocument.TenantTable, attacheddocument.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.AttachedDocument
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AttachedDocumentClient) Hooks() []Hook {
+	return c.hooks.AttachedDocument
+}
+
+// Interceptors returns the client interceptors.
+func (c *AttachedDocumentClient) Interceptors() []Interceptor {
+	return c.inters.AttachedDocument
+}
+
+func (c *AttachedDocumentClient) mutate(ctx context.Context, m *AttachedDocumentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AttachedDocumentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AttachedDocumentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AttachedDocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AttachedDocumentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AttachedDocument mutation op: %q", m.Op())
 	}
 }
 
@@ -3978,6 +4138,25 @@ func (c *SubscriptionClient) QueryPasswordResetTokens(_m *Subscription) *Passwor
 	return query
 }
 
+// QueryAttachedDocuments queries the attached_documents edge of a Subscription.
+func (c *SubscriptionClient) QueryAttachedDocuments(_m *Subscription) *AttachedDocumentQuery {
+	query := (&AttachedDocumentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(attacheddocument.Table, attacheddocument.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.AttachedDocumentsTable, subscription.AttachedDocumentsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.AttachedDocument
+		step.Edge.Schema = schemaConfig.AttachedDocument
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SubscriptionClient) Hooks() []Hook {
 	return c.hooks.Subscription
@@ -4196,15 +4375,16 @@ func (c *UserCredentialsClient) mutate(ctx context.Context, m *UserCredentialsMu
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Address, ContactMechanism, Department, Employee, EmployeeAssignment, Job,
-		JobFamily, OrganizationProfile, Party, PartyContactMechanism, PartyMergeLog,
-		PartyRole, PasswordResetToken, PersonProfile, RoleType, Session, Subscription,
-		UserCredentials []ent.Hook
+		Address, AttachedDocument, ContactMechanism, Department, Employee,
+		EmployeeAssignment, Job, JobFamily, OrganizationProfile, Party,
+		PartyContactMechanism, PartyMergeLog, PartyRole, PasswordResetToken,
+		PersonProfile, RoleType, Session, Subscription, UserCredentials []ent.Hook
 	}
 	inters struct {
-		Address, ContactMechanism, Department, Employee, EmployeeAssignment, Job,
-		JobFamily, OrganizationProfile, Party, PartyContactMechanism, PartyMergeLog,
-		PartyRole, PasswordResetToken, PersonProfile, RoleType, Session, Subscription,
+		Address, AttachedDocument, ContactMechanism, Department, Employee,
+		EmployeeAssignment, Job, JobFamily, OrganizationProfile, Party,
+		PartyContactMechanism, PartyMergeLog, PartyRole, PasswordResetToken,
+		PersonProfile, RoleType, Session, Subscription,
 		UserCredentials []ent.Interceptor
 	}
 )
@@ -4213,6 +4393,7 @@ var (
 	// DefaultSchemaConfig represents the default schema names for all tables as defined in ent/schema.
 	DefaultSchemaConfig = SchemaConfig{
 		Address:               tableSchemas[1],
+		AttachedDocument:      tableSchemas[1],
 		ContactMechanism:      tableSchemas[0],
 		Department:            tableSchemas[1],
 		Employee:              tableSchemas[1],
