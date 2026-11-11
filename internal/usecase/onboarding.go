@@ -65,7 +65,7 @@ func NewRegisterTenantService(
 
 func (s *RegisterTenantService) RegisterTenant(ctx context.Context, in RegisterTenantInput) (*RegisterTenantResult, error) {
 	if s == nil || s.tx == nil || s.store == nil {
-		return nil, errors.New("register tenant: nil dependencies")
+		return nil, internalError(errors.New("register tenant: nil dependencies"))
 	}
 	companyName := strings.TrimSpace(in.CompanyName)
 	taxID := strings.TrimSpace(in.TaxID)
@@ -73,43 +73,45 @@ func (s *RegisterTenantService) RegisterTenant(ctx context.Context, in RegisterT
 	adminLastName := strings.TrimSpace(in.AdminLastName)
 	adminEmail := strings.ToLower(strings.TrimSpace(in.AdminEmail))
 	if companyName == "" || taxID == "" || adminFirstName == "" || adminLastName == "" || adminEmail == "" || in.AdminPassword == "" {
-		return nil, fmt.Errorf("%w: company, tax_id, admin name/email and password are required", domain.ErrInvalidTenantRegistration)
+		return nil, validationError("invalid_tenant_registration",
+			"company, tax_id, admin name/email and password are required", domain.ErrInvalidTenantRegistration)
 	}
 	parsedEmail, err := mail.ParseAddress(adminEmail)
 	if err != nil || !strings.EqualFold(parsedEmail.Address, adminEmail) {
-		return nil, fmt.Errorf("%w: invalid admin email", domain.ErrInvalidTenantRegistration)
+		return nil, validationError("invalid_tenant_registration", "invalid admin email",
+			errors.Join(domain.ErrInvalidTenantRegistration, err))
 	}
 
 	now := s.now().UTC()
 	subscription, err := domain.NewSubscription(companyName, in.Slug, now)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", domain.ErrInvalidTenantRegistration, err)
+		return nil, validationError("invalid_tenant_registration", "invalid tenant registration", err)
 	}
 	tenantID := subscription.ID
 
 	organizationParty, err := domain.NewParty(tenantID, domain.PartyTypeOrganization, companyName, now)
 	if err != nil {
-		return nil, err
+		return nil, validationError("invalid_tenant_registration", "invalid organization party", err)
 	}
 	organizationProfile, err := domain.NewOrganizationProfile(tenantID, organizationParty.ID, companyName, "", taxID, now)
 	if err != nil {
-		return nil, err
+		return nil, validationError("invalid_tenant_registration", "invalid organization profile", err)
 	}
 	adminParty, err := domain.NewParty(tenantID, domain.PartyTypeIndividual, adminFirstName+" "+adminLastName, now)
 	if err != nil {
-		return nil, err
+		return nil, validationError("invalid_tenant_registration", "invalid admin party", err)
 	}
 	personProfile, err := domain.NewPersonProfile(tenantID, adminParty.ID, adminFirstName, "", adminLastName, "", nil, now)
 	if err != nil {
-		return nil, err
+		return nil, validationError("invalid_tenant_registration", "invalid admin profile", err)
 	}
 	passwordHash, err := s.manager.HashPassword(in.AdminPassword)
 	if err != nil {
-		return nil, err
+		return nil, internalError(fmt.Errorf("hash admin password: %w", err))
 	}
 	credentialsID, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("generate credentials id: %w", err)
+		return nil, internalError(fmt.Errorf("generate credentials id: %w", err))
 	}
 
 	var result *RegisterTenantResult
@@ -134,7 +136,7 @@ func (s *RegisterTenantService) RegisterTenant(ctx context.Context, in RegisterT
 		}
 		tenantRole, err := domain.NewPartyRole(tenantID, organizationParty.ID, tenantRoleID, now)
 		if err != nil {
-			return err
+			return validationError("invalid_tenant_registration", "invalid tenant role", err)
 		}
 		if err := s.store.CreatePartyRole(tenantCtx, tenantRole); err != nil {
 			return fmt.Errorf("assign TENANT role: %w", err)
@@ -153,7 +155,7 @@ func (s *RegisterTenantService) RegisterTenant(ctx context.Context, in RegisterT
 		}
 		adminRole, err := domain.NewPartyRole(tenantID, adminParty.ID, adminRoleID, now)
 		if err != nil {
-			return err
+			return validationError("invalid_tenant_registration", "invalid admin role", err)
 		}
 		if err := s.store.CreatePartyRole(adminCtx, adminRole); err != nil {
 			return fmt.Errorf("assign ADMIN role: %w", err)
@@ -167,7 +169,7 @@ func (s *RegisterTenantService) RegisterTenant(ctx context.Context, in RegisterT
 			tenantID, adminParty.ID, contact.ID, true, false, 1, now, nil, now,
 		)
 		if err != nil {
-			return err
+			return validationError("invalid_tenant_registration", "invalid admin contact relation", err)
 		}
 		if err := s.store.CreatePartyContactMechanism(adminCtx, relation); err != nil {
 			return fmt.Errorf("create admin contact relation: %w", err)

@@ -14,6 +14,19 @@
   es para bloques aislados tipo *try/catch*.
 - Nunca abras `client.Tx` fuera del `TransactionManager`. Las lecturas con RLS
   también van dentro de una transacción.
+
+## Manejo de Errores (OBLIGATORIO)
+- Carga y aplica `.opencode/rules/error-handling-guardrails.md` y el skill
+  `.opencode/skills/error-handling/SKILL.md` siempre que crees o modifiques
+  código que pueda producir errores.
+- Los handlers solo llaman a `c.Error(err)`; el `ErrorMiddleware` es el único
+  lugar que mapea errores a códigos HTTP.
+- Nunca devuelvas `err.Error()` ni detalles técnicos en una respuesta HTTP.
+  Los errores internos se loguean completos y el cliente recibe un 500
+  genérico.
+- Usa `internal/common/apperror`: centinelas en dominio, `NewNotFound`/
+  `NewValidation`/`NewUnauthorized` para errores de negocio y `NewInternal`
+  para fallos técnicos.
 <!-- END:project-context -->
 
 

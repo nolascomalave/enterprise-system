@@ -41,7 +41,7 @@ func (r *PartyRepository) CreateParty(
 			createParty.SetCanonicalPartyID(*p.CanonicalPartyID)
 		}
 		if _, err := createParty.Save(ctx); err != nil {
-			return fmt.Errorf("repository: create party: %w", err)
+			return repoError(fmt.Errorf("repository: create party: %w", err))
 		}
 
 		if person != nil {
@@ -63,7 +63,7 @@ func (r *PartyRepository) CreateParty(
 				createPerson.SetBirthDate(*person.BirthDate)
 			}
 			if _, err := createPerson.Save(ctx); err != nil {
-				return fmt.Errorf("repository: create person profile: %w", err)
+				return repoError(fmt.Errorf("repository: create person profile: %w", err))
 			}
 		}
 
@@ -80,7 +80,7 @@ func (r *PartyRepository) CreateParty(
 				createOrg.SetTradeName(organization.TradeName)
 			}
 			if _, err := createOrg.Save(ctx); err != nil {
-				return fmt.Errorf("repository: create organization profile: %w", err)
+				return repoError(fmt.Errorf("repository: create organization profile: %w", err))
 			}
 		}
 		return nil
@@ -101,7 +101,7 @@ func (r *PartyRepository) GetPartyDetail(ctx context.Context, tenantID, partyID 
 			if ent.IsNotFound(err) {
 				return domain.ErrPartyNotFound
 			}
-			return fmt.Errorf("repository: get party: %w", err)
+			return repoError(fmt.Errorf("repository: get party: %w", err))
 		}
 
 		detail = &domain.PartyDetail{Party: toDomainParty(row)}
@@ -113,7 +113,7 @@ func (r *PartyRepository) GetPartyDetail(ctx context.Context, tenantID, partyID 
 		case err == nil:
 			detail.PersonProfile = toDomainPersonProfile(person)
 		case !ent.IsNotFound(err):
-			return fmt.Errorf("repository: get person profile: %w", err)
+			return repoError(fmt.Errorf("repository: get person profile: %w", err))
 		}
 
 		organization, err := client.OrganizationProfile.Query().
@@ -123,7 +123,7 @@ func (r *PartyRepository) GetPartyDetail(ctx context.Context, tenantID, partyID 
 		case err == nil:
 			detail.OrganizationProfile = toDomainOrganizationProfile(organization)
 		case !ent.IsNotFound(err):
-			return fmt.Errorf("repository: get organization profile: %w", err)
+			return repoError(fmt.Errorf("repository: get organization profile: %w", err))
 		}
 		return nil
 	})
@@ -144,7 +144,7 @@ func (r *PartyRepository) ListParties(ctx context.Context, tenantID uuid.UUID) (
 			).
 			All(ctx)
 		if err != nil {
-			return fmt.Errorf("repository: list parties: %w", err)
+			return repoError(fmt.Errorf("repository: list parties: %w", err))
 		}
 		result = make([]*domain.Party, 0, len(rows))
 		for _, row := range rows {

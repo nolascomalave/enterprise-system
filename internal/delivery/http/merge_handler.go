@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"enterprise-system/internal/delivery/http/dto"
@@ -41,7 +40,7 @@ func NewMergeHandler(uc MergePartiesUseCase) *MergeHandler {
 func (h *MergeHandler) Merge(c *gin.Context) {
 	var request dto.MergePartiesRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 	sourceID, err := parseRequiredUUID(request.SourcePartyID, "source_party_id")

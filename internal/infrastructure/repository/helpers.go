@@ -26,7 +26,7 @@ func clientFromContext(ctx context.Context, client *ent.Client) (*ent.Client, er
 func execute(ctx context.Context, client *ent.Client, fn func(*ent.Client) error) error {
 	execClient, err := clientFromContext(ctx, client)
 	if err != nil {
-		return err
+		return repoError(err)
 	}
 	return fn(execClient)
 }

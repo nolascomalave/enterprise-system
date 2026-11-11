@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"enterprise-system/internal/delivery/http/dto"
@@ -41,13 +40,13 @@ func NewAccountHandler(uc AccountUseCase) *AccountHandler {
 func (h *AccountHandler) ChangePassword(c *gin.Context) {
 	sessionContext, ok := enttenant.SessionContextFrom(c.Request.Context())
 	if !ok {
-		c.Error(ErrUnauthorized)
+		c.Error(unauthorizedError(ErrUnauthorized))
 		return
 	}
 
 	var request dto.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 
@@ -77,12 +76,12 @@ func (h *AccountHandler) ChangePassword(c *gin.Context) {
 func (h *AccountHandler) ForgotPassword(c *gin.Context) {
 	var request dto.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 	tenantID, err := uuid.Parse(request.TenantID)
 	if err != nil {
-		c.Error(fmt.Errorf("%w: invalid tenant_id", ErrBadRequest))
+		c.Error(badRequestError(errInvalidTenantID))
 		return
 	}
 
@@ -113,7 +112,7 @@ func (h *AccountHandler) ForgotPassword(c *gin.Context) {
 func (h *AccountHandler) ResetPassword(c *gin.Context) {
 	var request dto.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 

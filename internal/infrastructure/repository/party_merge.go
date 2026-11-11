@@ -28,7 +28,7 @@ func (r *PartyMergeRepository) GetParty(ctx context.Context, partyID uuid.UUID) 
 	err := execute(ctx, r.client, func(client *ent.Client) error {
 		p, err := client.Party.Query().Where(party.ID(partyID)).Only(ctx)
 		if err != nil {
-			return fmt.Errorf("repository: get party %s: %w", partyID, err)
+			return repoError(fmt.Errorf("repository: get party %s: %w", partyID, err))
 		}
 		result = toDomainParty(p)
 		return nil
@@ -44,7 +44,7 @@ func (r *PartyMergeRepository) FindPartiesByCanonicalID(ctx context.Context, can
 	err := execute(ctx, r.client, func(client *ent.Client) error {
 		parties, err := client.Party.Query().Where(party.CanonicalPartyID(canonicalPartyID)).All(ctx)
 		if err != nil {
-			return fmt.Errorf("repository: find parties by canonical %s: %w", canonicalPartyID, err)
+			return repoError(fmt.Errorf("repository: find parties by canonical %s: %w", canonicalPartyID, err))
 		}
 		result = make([]*domain.Party, 0, len(parties))
 		for _, p := range parties {
@@ -79,7 +79,7 @@ func (r *PartyMergeRepository) UpdateParty(ctx context.Context, p *domain.Party)
 		}
 
 		if _, err := update.Save(ctx); err != nil {
-			return fmt.Errorf("repository: update party %s: %w", p.ID, err)
+			return repoError(fmt.Errorf("repository: update party %s: %w", p.ID, err))
 		}
 		return nil
 	})
@@ -102,7 +102,7 @@ func (r *PartyMergeRepository) CreatePartyMergeLog(ctx context.Context, entry *d
 		}
 
 		if _, err := create.Save(ctx); err != nil {
-			return fmt.Errorf("repository: create party merge log: %w", err)
+			return repoError(fmt.Errorf("repository: create party merge log: %w", err))
 		}
 		return nil
 	})

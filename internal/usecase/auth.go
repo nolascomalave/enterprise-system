@@ -83,7 +83,7 @@ type RefreshResult struct {
 
 func (s *AuthService) Login(ctx context.Context, in LoginInput) (*LoginResult, error) {
 	if in.TenantID == uuid.Nil || strings.TrimSpace(in.Email) == "" || in.Password == "" {
-		return nil, auth.ErrInvalidCredentials
+		return nil, invalidCredentialsError(auth.ErrInvalidCredentials)
 	}
 
 	ctx = s.binder.BindTenant(ctx, in.TenantID, uuid.Nil, uuid.Nil)
@@ -112,15 +112,15 @@ func (s *AuthService) Login(ctx context.Context, in LoginInput) (*LoginResult, e
 	}
 	if credentials.PartyID != relation.PartyID {
 		s.manager.DummyVerify(in.Password)
-		return nil, auth.ErrInvalidCredentials
+		return nil, invalidCredentialsError(auth.ErrInvalidCredentials)
 	}
 	if !s.manager.VerifyPassword(credentials.PasswordHash, in.Password) {
-		return nil, auth.ErrInvalidCredentials
+		return nil, invalidCredentialsError(auth.ErrInvalidCredentials)
 	}
 
 	if credentials.TOTPEnabled {
 		if credentials.TOTPSecret == "" {
-			return nil, auth.Err2FANotEnabled
+			return nil, twoFANotEnabledError(auth.Err2FANotEnabled)
 		}
 		tempToken, err := s.manager.IssueTempToken(in.TenantID, credentials.PartyID)
 		if err != nil {
@@ -145,7 +145,7 @@ func (s *AuthService) loginLookupError(err error, password string) error {
 		errors.Is(err, domain.ErrPartyContactNotFound),
 		errors.Is(err, auth.ErrNotFound):
 		s.manager.DummyVerify(password)
-		return auth.ErrInvalidCredentials
+		return invalidCredentialsError(auth.ErrInvalidCredentials)
 	default:
 		return fmt.Errorf("resolve login contact: %w", err)
 	}
@@ -157,11 +157,11 @@ func (s *AuthService) Verify2FA(ctx context.Context, in Verify2FAInput) (*LoginR
 	}
 	tenantID, err := uuid.Parse(claims.TenantID)
 	if err != nil {
-		return nil, auth.ErrInvalidToken
+		return nil, invalidTokenError(auth.ErrInvalidToken)
 	}
 	userID, err := uuid.Parse(claims.UserID)
 	if err != nil {
-		return nil, auth.ErrInvalidToken
+		return nil, invalidTokenError(auth.ErrInvalidToken)
 	}
 
 	ctx = s.binder.BindTenant(ctx, tenantID, userID, uuid.Nil)
@@ -171,18 +171,18 @@ func (s *AuthService) Verify2FA(ctx context.Context, in Verify2FAInput) (*LoginR
 		credentials, err := s.credentials.GetByPartyID(ctx, tenantID, userID)
 		if err != nil {
 			if errors.Is(err, auth.ErrNotFound) {
-				return auth.ErrInvalidCredentials
+				return invalidCredentialsError(auth.ErrInvalidCredentials)
 			}
 			return fmt.Errorf("find credentials: %w", err)
 		}
 		if !credentials.TOTPEnabled || credentials.TOTPSecret == "" {
-			return auth.Err2FANotEnabled
+			return twoFANotEnabledError(auth.Err2FANotEnabled)
 		}
 
 		if !s.manager.ValidateTOTP(credentials.TOTPSecret, in.Code) {
 			remaining, ok := s.manager.VerifyBackupCode(credentials.BackupCodesHash, in.Code)
 			if !ok {
-				return auth.ErrInvalidTOTP
+				return invalidTOTPError(auth.ErrInvalidTOTP)
 			}
 			// Optimistic update: the code is only consumed if nobody else
 			// modified the credentials since they were read. A concurrent
@@ -191,7 +191,7 @@ func (s *AuthService) Verify2FA(ctx context.Context, in Verify2FAInput) (*LoginR
 				ctx, tenantID, userID, credentials.UpdatedAt, remaining, s.now().UTC(),
 			); err != nil {
 				if errors.Is(err, auth.ErrConcurrentModification) {
-					return auth.ErrInvalidTOTP
+					return invalidTOTPError(auth.ErrInvalidTOTP)
 				}
 				return fmt.Errorf("consume backup code: %w", err)
 			}
@@ -213,7 +213,7 @@ func (s *AuthService) Verify2FA(ctx context.Context, in Verify2FAInput) (*LoginR
 func (s *AuthService) Refresh(ctx context.Context, refreshToken string, metadata map[string]any) (*RefreshResult, error) {
 	tenantID, sessionID, err := s.manager.ParseRefreshToken(refreshToken)
 	if err != nil {
-		return nil, auth.ErrInvalidToken
+		return nil, invalidTokenError(auth.ErrInvalidToken)
 	}
 
 	ctx = s.binder.BindTenant(ctx, tenantID, uuid.Nil, sessionID)
@@ -222,17 +222,17 @@ func (s *AuthService) Refresh(ctx context.Context, refreshToken string, metadata
 	err = s.withinTx(ctx, func(ctx context.Context) error {
 		session, err := s.sessions.GetByID(ctx, tenantID, sessionID)
 		if err != nil {
-			return auth.ErrInvalidToken
+			return invalidTokenError(auth.ErrInvalidToken)
 		}
 		if session.RevokedAt != nil {
-			return auth.ErrSessionRevoked
+			return sessionRevokedError(auth.ErrSessionRevoked)
 		}
 		now := s.now().UTC()
 		if !session.ExpiresAt.After(now) {
-			return auth.ErrSessionExpired
+			return sessionExpiredError(auth.ErrSessionExpired)
 		}
 		if !s.manager.RefreshTokenMatches(refreshToken, session.TokenHash) {
-			return auth.ErrInvalidToken
+			return invalidTokenError(auth.ErrInvalidToken)
 		}
 
 		credentials := &auth.Credentials{
@@ -264,7 +264,7 @@ func (s *AuthService) Refresh(ctx context.Context, refreshToken string, metadata
 func (s *AuthService) Logout(ctx context.Context, refreshToken string) error {
 	tenantID, sessionID, err := s.manager.ParseRefreshToken(refreshToken)
 	if err != nil {
-		return auth.ErrInvalidToken
+		return invalidTokenError(auth.ErrInvalidToken)
 	}
 	ctx = s.binder.BindTenant(ctx, tenantID, uuid.Nil, sessionID)
 	return s.withinTx(ctx, func(ctx context.Context) error {
@@ -276,7 +276,7 @@ func (s *AuthService) Logout(ctx context.Context, refreshToken string) error {
 			return fmt.Errorf("load session for logout: %w", err)
 		}
 		if !s.manager.RefreshTokenMatches(refreshToken, session.TokenHash) {
-			return auth.ErrInvalidToken
+			return invalidTokenError(auth.ErrInvalidToken)
 		}
 		if session.RevokedAt != nil {
 			return nil

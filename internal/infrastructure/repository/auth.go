@@ -36,7 +36,7 @@ func (r *CredentialRepository) FindByPartyContactID(ctx context.Context, tenantI
 			).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toAuthCredentials(row)
 		return nil
@@ -58,7 +58,7 @@ func (r *CredentialRepository) GetByPartyID(ctx context.Context, tenantID, party
 			).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toAuthCredentials(row)
 		return nil
@@ -88,10 +88,10 @@ func (r *CredentialRepository) UpdatePasswordIfCurrent(
 			SetPasswordHash(newHash).
 			SetUpdatedAt(at).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 	if err != nil {
-		return err
+		return repoError(err)
 	}
 	if affected == 0 {
 		return auth.ErrConcurrentModification
@@ -119,10 +119,10 @@ func (r *CredentialRepository) ConsumeBackupCodeIfUnchanged(
 			SetBackupCodesHash(remaining).
 			SetUpdatedAt(at).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 	if err != nil {
-		return err
+		return repoError(err)
 	}
 	if affected == 0 {
 		return auth.ErrConcurrentModification
@@ -153,7 +153,7 @@ func (r *SessionRepository) Create(ctx context.Context, s *auth.Session) error {
 			SetCreatedAt(s.CreatedAt).
 			SetUpdatedAt(s.UpdatedAt).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -168,7 +168,7 @@ func (r *SessionRepository) GetByID(ctx context.Context, tenantID, sessionID uui
 			).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toAuthSession(row)
 		return nil
@@ -200,10 +200,10 @@ func (r *SessionRepository) RevokeIfActive(
 			SetRevokedAt(at).
 			SetUpdatedAt(at).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 	if err != nil {
-		return err
+		return repoError(err)
 	}
 	if affected == 0 {
 		return auth.ErrSessionRevoked
@@ -232,7 +232,7 @@ func (r *SessionRepository) revokeAll(ctx context.Context, tenantID, userID, exc
 			query = query.Where(session.IDNEQ(exceptSessionID))
 		}
 		_, err := query.SetRevokedAt(at).SetUpdatedAt(at).Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 

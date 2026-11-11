@@ -73,16 +73,16 @@ func (s *AccountService) withinTx(ctx context.Context, fn func(context.Context) 
 
 func (s *AccountService) ChangePassword(ctx context.Context, in ChangePasswordInput) error {
 	if in.TenantID == uuid.Nil || in.PartyID == uuid.Nil || in.SessionID == uuid.Nil {
-		return auth.ErrInvalidCredentials
+		return invalidCredentialsError(auth.ErrInvalidCredentials)
 	}
 	if in.CurrentPassword == "" {
-		return auth.ErrInvalidCurrentPassword
+		return invalidCurrentPasswordError(auth.ErrInvalidCurrentPassword)
 	}
 	if in.NewPassword == "" {
-		return auth.ErrWeakPassword
+		return weakPasswordError(auth.ErrWeakPassword)
 	}
 	if in.CurrentPassword == in.NewPassword {
-		return auth.ErrSamePassword
+		return samePasswordError(auth.ErrSamePassword)
 	}
 	ctx = s.binder.BindTenant(ctx, in.TenantID, in.PartyID, in.SessionID)
 
@@ -90,12 +90,12 @@ func (s *AccountService) ChangePassword(ctx context.Context, in ChangePasswordIn
 		credentials, err := s.credentials.GetByPartyID(ctx, in.TenantID, in.PartyID)
 		if err != nil {
 			if errors.Is(err, auth.ErrNotFound) {
-				return auth.ErrInvalidCredentials
+				return invalidCredentialsError(auth.ErrInvalidCredentials)
 			}
 			return fmt.Errorf("get credentials: %w", err)
 		}
 		if !s.manager.VerifyPassword(credentials.PasswordHash, in.CurrentPassword) {
-			return auth.ErrInvalidCurrentPassword
+			return invalidCurrentPasswordError(auth.ErrInvalidCurrentPassword)
 		}
 		newHash, err := s.manager.HashPassword(in.NewPassword)
 		if err != nil {
@@ -127,7 +127,7 @@ func (s *AccountService) ChangePassword(ctx context.Context, in ChangePasswordIn
 // account enumeration.
 func (s *AccountService) ForgotPassword(ctx context.Context, in ForgotPasswordInput) error {
 	if in.TenantID == uuid.Nil || strings.TrimSpace(in.Email) == "" {
-		return auth.ErrInvalidCredentials
+		return invalidCredentialsError(auth.ErrInvalidCredentials)
 	}
 	ctx = s.binder.BindTenant(ctx, in.TenantID, uuid.Nil, uuid.Nil)
 	email := normalizeEmail(in.Email)
@@ -201,14 +201,14 @@ func (s *AccountService) ForgotPassword(ctx context.Context, in ForgotPasswordIn
 
 func (s *AccountService) ResetPassword(ctx context.Context, in ResetPasswordInput) error {
 	if strings.TrimSpace(in.Token) == "" {
-		return auth.ErrInvalidResetToken
+		return invalidResetTokenError(auth.ErrInvalidResetToken)
 	}
 	if in.NewPassword == "" {
-		return auth.ErrWeakPassword
+		return weakPasswordError(auth.ErrWeakPassword)
 	}
 	tenantID, partyID, err := s.manager.ParseResetToken(in.Token)
 	if err != nil {
-		return auth.ErrInvalidResetToken
+		return invalidResetTokenError(auth.ErrInvalidResetToken)
 	}
 	ctx = s.binder.BindTenant(ctx, tenantID, partyID, uuid.Nil)
 
@@ -217,23 +217,23 @@ func (s *AccountService) ResetPassword(ctx context.Context, in ResetPasswordInpu
 		consumed, err := s.resetTokens.Consume(ctx, tenantID, s.manager.HashResetToken(in.Token), now)
 		if err != nil {
 			if errors.Is(err, auth.ErrInvalidResetToken) {
-				return auth.ErrInvalidResetToken
+				return invalidResetTokenError(auth.ErrInvalidResetToken)
 			}
 			return fmt.Errorf("consume reset token: %w", err)
 		}
 		if consumed.PartyID != partyID {
-			return auth.ErrInvalidResetToken
+			return invalidResetTokenError(auth.ErrInvalidResetToken)
 		}
 
 		credentials, err := s.credentials.GetByPartyID(ctx, tenantID, partyID)
 		if err != nil {
 			if errors.Is(err, auth.ErrNotFound) {
-				return auth.ErrInvalidResetToken
+				return invalidResetTokenError(auth.ErrInvalidResetToken)
 			}
 			return fmt.Errorf("get credentials: %w", err)
 		}
 		if s.manager.VerifyPassword(credentials.PasswordHash, in.NewPassword) {
-			return auth.ErrSamePassword
+			return samePasswordError(auth.ErrSamePassword)
 		}
 		newHash, err := s.manager.HashPassword(in.NewPassword)
 		if err != nil {

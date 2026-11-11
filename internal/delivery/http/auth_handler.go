@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -51,12 +50,12 @@ func NewAuthHandler(uc AuthUseCase, secureCookie bool, refreshTTL time.Duration)
 func (h *AuthHandler) Login(c *gin.Context) {
 	var request dto.LoginRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 	tenantID, err := uuid.Parse(request.TenantID)
 	if err != nil {
-		c.Error(fmt.Errorf("%w: invalid tenant_id", ErrBadRequest))
+		c.Error(badRequestError(errInvalidTenantID))
 		return
 	}
 
@@ -101,7 +100,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Verify2FA(c *gin.Context) {
 	var request dto.Verify2FARequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 
@@ -134,7 +133,7 @@ func (h *AuthHandler) Verify2FA(c *gin.Context) {
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	refreshToken, err := c.Cookie(refreshTokenCookie)
 	if err != nil || refreshToken == "" {
-		c.Error(auth.ErrInvalidToken)
+		c.Error(unauthorizedError(auth.ErrInvalidToken))
 		return
 	}
 

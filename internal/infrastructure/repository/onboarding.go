@@ -51,7 +51,7 @@ func (s *TenantProvisioningStore) CreateSubscription(ctx context.Context, sub *d
 		if ent.IsConstraintError(err) {
 			return domain.ErrTenantSlugTaken
 		}
-		return err
+		return repoError(err)
 	})
 }
 
@@ -65,7 +65,7 @@ func (s *TenantProvisioningStore) FindRoleTypeID(ctx context.Context, code strin
 			return domain.ErrRoleTypeNotFound
 		}
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = row.ID
 		return nil
@@ -87,7 +87,7 @@ func (s *TenantProvisioningStore) CreateParty(ctx context.Context, p *domain.Par
 			SetCreatedAt(p.CreatedAt).
 			SetUpdatedAt(p.UpdatedAt).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -108,7 +108,7 @@ func (s *TenantProvisioningStore) CreateOrganizationProfile(ctx context.Context,
 			create.SetTradeName(p.TradeName)
 		}
 		_, err := create.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -135,7 +135,7 @@ func (s *TenantProvisioningStore) CreatePersonProfile(ctx context.Context, p *do
 			create.SetBirthDate(*p.BirthDate)
 		}
 		_, err := create.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -152,7 +152,7 @@ func (s *TenantProvisioningStore) CreatePartyRole(ctx context.Context, role *dom
 			SetCreatedAt(role.CreatedAt).
 			SetUpdatedAt(role.UpdatedAt).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -171,13 +171,13 @@ func (s *TenantProvisioningStore) FindOrCreateContactMechanism(ctx context.Conte
 			DoNothing().
 			Exec(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		row, err := client.ContactMechanism.Query().
 			Where(contactmechanism.TypeEQ(contactmechanism.Type(contactType)), contactmechanism.Value(value)).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = &domain.ContactMechanism{ID: row.ID, Type: domain.ContactType(row.Type), Value: row.Value}
 		return nil
@@ -208,7 +208,7 @@ func (s *TenantProvisioningStore) CreatePartyContactMechanism(ctx context.Contex
 			create.SetEndDate(*relation.EndDate)
 		}
 		_, err := create.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -231,6 +231,6 @@ func (s *TenantProvisioningStore) CreateUserCredentials(ctx context.Context, c *
 		if ent.IsConstraintError(err) {
 			return domain.ErrTenantAdminEmailTaken
 		}
-		return err
+		return repoError(err)
 	})
 }

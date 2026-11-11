@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -46,22 +47,22 @@ func NewPartyService(repo domain.PartyRepository, tx TransactionManager, now fun
 
 func (s *PartyService) Create(ctx context.Context, in CreatePartyInput) (*domain.PartyDetail, error) {
 	if s == nil || s.repo == nil || s.tx == nil {
-		return nil, fmt.Errorf("%w: nil dependencies", domain.ErrInvalidParty)
+		return nil, internalError(errors.New("party: nil dependencies"))
 	}
 	now := s.now()
 	party, err := domain.NewParty(in.TenantID, in.PartyType, in.DisplayName, now)
 	if err != nil {
-		return nil, err
+		return nil, validationError("invalid_party", "invalid party", err)
 	}
 
 	detail := &domain.PartyDetail{Party: party}
 	switch in.PartyType {
 	case domain.PartyTypeIndividual:
 		if in.Person == nil {
-			return nil, fmt.Errorf("%w: person_profile is required for INDIVIDUAL", domain.ErrInvalidParty)
+			return nil, validationError("invalid_party", "person_profile is required for INDIVIDUAL", domain.ErrInvalidParty)
 		}
 		if in.Organization != nil {
-			return nil, fmt.Errorf("%w: organization_profile is not valid for INDIVIDUAL", domain.ErrInvalidParty)
+			return nil, validationError("invalid_party", "organization_profile is not valid for INDIVIDUAL", domain.ErrInvalidParty)
 		}
 		profile, err := domain.NewPersonProfile(
 			in.TenantID, party.ID,
@@ -70,23 +71,23 @@ func (s *PartyService) Create(ctx context.Context, in CreatePartyInput) (*domain
 			in.Person.BirthDate, now,
 		)
 		if err != nil {
-			return nil, err
+			return nil, validationError("invalid_person_profile", "invalid person profile", err)
 		}
 		detail.PersonProfile = profile
 
 	case domain.PartyTypeOrganization:
 		if in.Organization == nil {
-			return nil, fmt.Errorf("%w: organization_profile is required for ORGANIZATION", domain.ErrInvalidParty)
+			return nil, validationError("invalid_party", "organization_profile is required for ORGANIZATION", domain.ErrInvalidParty)
 		}
 		if in.Person != nil {
-			return nil, fmt.Errorf("%w: person_profile is not valid for ORGANIZATION", domain.ErrInvalidParty)
+			return nil, validationError("invalid_party", "person_profile is not valid for ORGANIZATION", domain.ErrInvalidParty)
 		}
 		profile, err := domain.NewOrganizationProfile(
 			in.TenantID, party.ID,
 			in.Organization.LegalName, in.Organization.TradeName, in.Organization.TaxID, now,
 		)
 		if err != nil {
-			return nil, err
+			return nil, validationError("invalid_organization_profile", "invalid organization profile", err)
 		}
 		detail.OrganizationProfile = profile
 	}
@@ -104,7 +105,7 @@ func (s *PartyService) Create(ctx context.Context, in CreatePartyInput) (*domain
 
 func (s *PartyService) Get(ctx context.Context, tenantID, partyID uuid.UUID) (*domain.PartyDetail, error) {
 	if s == nil || s.repo == nil || s.tx == nil {
-		return nil, fmt.Errorf("%w: nil dependencies", domain.ErrInvalidParty)
+		return nil, internalError(errors.New("party: nil dependencies"))
 	}
 	var detail *domain.PartyDetail
 	err := s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
@@ -113,14 +114,17 @@ func (s *PartyService) Get(ctx context.Context, tenantID, partyID uuid.UUID) (*d
 		return err
 	})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, domain.ErrPartyNotFound) {
+			return nil, notFoundError("party_not_found", "party not found", err)
+		}
+		return nil, fmt.Errorf("get party: %w", err)
 	}
 	return detail, nil
 }
 
 func (s *PartyService) List(ctx context.Context, tenantID uuid.UUID) ([]*domain.Party, error) {
 	if s == nil || s.repo == nil || s.tx == nil {
-		return nil, fmt.Errorf("%w: nil dependencies", domain.ErrInvalidParty)
+		return nil, internalError(errors.New("party: nil dependencies"))
 	}
 	var parties []*domain.Party
 	err := s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
@@ -129,7 +133,7 @@ func (s *PartyService) List(ctx context.Context, tenantID uuid.UUID) ([]*domain.
 		return err
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list parties: %w", err)
 	}
 	return parties, nil
 }

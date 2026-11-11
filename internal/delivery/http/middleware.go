@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
 	"enterprise-system/internal/auth"
+	"enterprise-system/internal/common/apperror"
 	"enterprise-system/internal/domain"
 	"enterprise-system/internal/infrastructure/enttenant"
 	"github.com/gin-gonic/gin"
@@ -25,6 +27,8 @@ type APIError struct {
 }
 
 // ErrorMiddleware maps domain errors to a standard JSON error response.
+// It is the single place where errors become HTTP status codes; handlers only
+// call c.Error(err). Technical details are logged, never returned to clients.
 func ErrorMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
@@ -34,16 +38,37 @@ func ErrorMiddleware() gin.HandlerFunc {
 		}
 
 		err := c.Errors.Last().Err
-		status, code := mapError(err)
-		message := err.Error()
-		if status == http.StatusInternalServerError {
-			message = "internal server error"
-		}
+		status, code, message := mapError(err)
 		c.AbortWithStatusJSON(status, APIError{Error: message, Code: code})
 	}
 }
 
-func mapError(err error) (int, string) {
+func mapError(err error) (int, string, string) {
+	var appErr *apperror.AppError
+	if errors.As(err, &appErr) {
+		switch appErr.Type {
+		case apperror.TypeNotFound:
+			return http.StatusNotFound, fallback(appErr.Code, "not_found"), fallback(appErr.Message, "not found")
+		case apperror.TypeValidation:
+			return http.StatusBadRequest, fallback(appErr.Code, "bad_request"), fallback(appErr.Message, "bad request")
+		case apperror.TypeUnauthorized:
+			return http.StatusUnauthorized, fallback(appErr.Code, "unauthorized"), fallback(appErr.Message, "unauthorized")
+		default:
+			slog.Error("http: internal error", "error", err)
+			return http.StatusInternalServerError, "internal_error", "internal server error"
+		}
+	}
+
+	status, code := mapSentinelError(err)
+	if status == http.StatusInternalServerError {
+		slog.Error("http: unclassified error", "error", err)
+	}
+	return status, code, safeMessage(status)
+}
+
+// mapSentinelError is the compatibility layer for domain/auth sentinels that
+// have not been classified with apperror yet.
+func mapSentinelError(err error) (int, string) {
 	switch {
 	case errors.Is(err, ErrUnauthorized):
 		return http.StatusUnauthorized, "unauthorized"
@@ -57,7 +82,10 @@ func mapError(err error) (int, string) {
 		errors.Is(err, auth.ErrInvalidCurrentPassword),
 		errors.Is(err, auth.Err2FARequired):
 		return http.StatusUnauthorized, "unauthorized"
-	case errors.Is(err, domain.ErrPartyNotFound):
+	case errors.Is(err, domain.ErrPartyNotFound),
+		errors.Is(err, domain.ErrContactMechanismNotFound),
+		errors.Is(err, domain.ErrPartyContactNotFound),
+		errors.Is(err, domain.ErrRoleTypeNotFound):
 		return http.StatusNotFound, "not_found"
 	case errors.Is(err, context.DeadlineExceeded):
 		return http.StatusGatewayTimeout, "timeout"
@@ -98,6 +126,32 @@ func mapError(err error) (int, string) {
 	}
 }
 
+func fallback(value, defaultValue string) string {
+	if strings.TrimSpace(value) == "" {
+		return defaultValue
+	}
+	return value
+}
+
+func safeMessage(status int) string {
+	switch status {
+	case http.StatusBadRequest:
+		return "bad request"
+	case http.StatusUnauthorized:
+		return "unauthorized"
+	case http.StatusNotFound:
+		return "not found"
+	case http.StatusConflict:
+		return "conflict"
+	case http.StatusRequestTimeout:
+		return "request timed out"
+	case http.StatusGatewayTimeout:
+		return "timeout"
+	default:
+		return "internal server error"
+	}
+}
+
 // TenantMiddleware validates the Bearer access token and injects its tenant,
 // user and session claims into the request context. Requests without a valid
 // token are rejected before reaching any handler.
@@ -105,33 +159,33 @@ func TenantMiddleware(manager *auth.Manager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		raw := bearerToken(c.GetHeader("Authorization"))
 		if raw == "" || manager == nil {
-			c.Error(fmt.Errorf("%w: bearer access token is required", ErrUnauthorized))
+			c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("bearer access token is required")))
 			c.Abort()
 			return
 		}
 
 		claims, err := manager.ParseAccessToken(raw)
 		if err != nil {
-			c.Error(fmt.Errorf("%w: invalid access token", ErrUnauthorized))
+			c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid access token")))
 			c.Abort()
 			return
 		}
 
 		tenantID, err := uuid.Parse(claims.TenantID)
 		if err != nil {
-			c.Error(fmt.Errorf("%w: invalid tenant claim", ErrUnauthorized))
+			c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid tenant claim")))
 			c.Abort()
 			return
 		}
 		userID, err := uuid.Parse(claims.UserID)
 		if err != nil {
-			c.Error(fmt.Errorf("%w: invalid user claim", ErrUnauthorized))
+			c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid user claim")))
 			c.Abort()
 			return
 		}
 		sessionID, err := uuid.Parse(claims.SessionID)
 		if err != nil {
-			c.Error(fmt.Errorf("%w: invalid session claim", ErrUnauthorized))
+			c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid session claim")))
 			c.Abort()
 			return
 		}

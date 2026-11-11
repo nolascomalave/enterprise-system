@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -32,7 +33,7 @@ func NewMergeParties(
 
 func (uc *MergeParties) Execute(ctx context.Context, sourceID, targetID uuid.UUID) (*domain.MergeResult, error) {
 	if uc == nil || uc.tx == nil || uc.repo == nil {
-		return nil, fmt.Errorf("%w: nil dependencies", domain.ErrInvalidPartyMerge)
+		return nil, internalError(fmt.Errorf("merge parties: nil dependencies: %w", domain.ErrInvalidPartyMerge))
 	}
 
 	var result *domain.MergeResult
@@ -43,7 +44,10 @@ func (uc *MergeParties) Execute(ctx context.Context, sourceID, targetID uuid.UUI
 		return err
 	})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, domain.ErrInvalidPartyMerge) {
+			return nil, validationError("invalid_party_merge", "invalid party merge", err)
+		}
+		return nil, fmt.Errorf("merge parties: %w", err)
 	}
 	return result, nil
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"enterprise-system/internal/common/apperror"
 	"enterprise-system/internal/delivery/http/dto"
 	"enterprise-system/internal/domain"
 	"enterprise-system/internal/infrastructure/enttenant"
@@ -37,7 +38,7 @@ func NewOrgHandler(uc OrgStructureUseCase) *OrgHandler {
 func (h *OrgHandler) session(c *gin.Context) (enttenant.SessionContext, bool) {
 	sc, ok := enttenant.SessionContextFrom(c.Request.Context())
 	if !ok {
-		c.Error(ErrUnauthorized)
+		c.Error(unauthorizedError(ErrUnauthorized))
 		return enttenant.SessionContext{}, false
 	}
 	return sc, true
@@ -64,7 +65,7 @@ func (h *OrgHandler) CreateJob(c *gin.Context) {
 	}
 	var request dto.CreateJobRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 	familyID, err := parseRequiredUUID(request.JobFamilyID, "job_family_id")
@@ -141,7 +142,7 @@ func (h *OrgHandler) UpdateJob(c *gin.Context) {
 	}
 	var request dto.UpdateJobRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 	familyID, err := parseRequiredUUID(request.JobFamilyID, "job_family_id")
@@ -191,7 +192,7 @@ func (h *OrgHandler) CreateDepartment(c *gin.Context) {
 	}
 	var request dto.CreateDepartmentRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 	parentID, err := parseOptionalUUID(request.ParentDepartmentID, "parent_department_id")
@@ -257,7 +258,7 @@ func (h *OrgHandler) CreateEmployee(c *gin.Context) {
 	}
 	var request dto.CreateEmployeeRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 	partyID, err := parseRequiredUUID(request.PartyID, "party_id")
@@ -281,7 +282,7 @@ func (h *OrgHandler) CreateEmployee(c *gin.Context) {
 		return
 	}
 	if request.HireDate == nil {
-		c.Error(fmt.Errorf("%w: hire_date is required", ErrBadRequest))
+		c.Error(badRequestError(errHireDateRequired))
 		return
 	}
 	employee, err := h.uc.CreateEmployee(c.Request.Context(), usecase.CreateEmployeeInput{
@@ -320,7 +321,7 @@ func (h *OrgHandler) ListEmployees(c *gin.Context) {
 func parseRequiredUUID(value, field string) (uuid.UUID, error) {
 	id, err := uuid.Parse(strings.TrimSpace(value))
 	if err != nil || id == uuid.Nil {
-		return uuid.Nil, fmt.Errorf("%w: invalid %s", ErrBadRequest, field)
+		return uuid.Nil, apperror.NewValidation("bad_request", "bad request", fmt.Errorf("invalid %s", field))
 	}
 	return id, nil
 }
@@ -342,7 +343,7 @@ func parseOptionalMoney(value *string, field string) (*domain.Money, error) {
 	}
 	money, err := domain.ParseMoney(strings.TrimSpace(*value))
 	if err != nil {
-		return nil, fmt.Errorf("%w: invalid %s: %v", ErrBadRequest, field, err)
+		return nil, apperror.NewValidation("bad_request", "bad request", fmt.Errorf("invalid %s: %w", field, err))
 	}
 	return &money, nil
 }

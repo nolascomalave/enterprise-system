@@ -37,7 +37,7 @@ func (r *PartyContactRepository) FindContactMechanismByTypeValue(ctx context.Con
 			Where(contactmechanism.TypeEQ(contactmechanism.Type(contactType)), contactmechanism.Value(value)).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toDomainContactMechanism(row)
 		return nil
@@ -62,13 +62,13 @@ func (r *PartyContactRepository) FindOrCreateContactMechanism(ctx context.Contex
 			DoNothing().
 			Exec(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		row, err := client.ContactMechanism.Query().
 			Where(contactmechanism.TypeEQ(contactmechanism.Type(contact.Type)), contactmechanism.Value(contact.Value)).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toDomainContactMechanism(row)
 		return nil
@@ -96,7 +96,7 @@ func (r *PartyContactRepository) CreatePartyContactMechanism(ctx context.Context
 			create.SetEndDate(*relation.EndDate)
 		}
 		_, err := create.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -108,7 +108,7 @@ func (r *PartyContactRepository) GetPartyContact(ctx context.Context, tenantID, 
 			WithContactMechanism().
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = &domain.PartyContact{
 			Relation: toDomainPartyContactMechanism(row),
@@ -138,7 +138,7 @@ func (r *PartyContactRepository) ListPartyContacts(ctx context.Context, tenantID
 			).
 			All(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = make([]*domain.PartyContact, 0, len(rows))
 		for _, row := range rows {
@@ -169,7 +169,7 @@ func (r *PartyContactRepository) UpdatePartyContactMechanism(ctx context.Context
 			update.ClearEndDate()
 		}
 		_, err := update.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -186,7 +186,7 @@ func (r *PartyContactRepository) FindActivePartyContact(ctx context.Context, ten
 			Order(ent.Asc(partycontactmechanism.FieldContactMechanismOrder)).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toDomainPartyContactMechanism(row)
 		return nil
@@ -214,7 +214,7 @@ func (r *PartyContactRepository) CreateAddress(ctx context.Context, e *domain.Ad
 			SetCreatedAt(e.CreatedAt).
 			SetUpdatedAt(e.UpdatedAt).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -225,7 +225,7 @@ func (r *PartyContactRepository) GetAddress(ctx context.Context, id uuid.UUID) (
 			Where(address.ID(id), address.DeletedAtIsNil()).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toDomainAddress(e)
 		return nil
@@ -240,7 +240,7 @@ func (r *PartyContactRepository) ListAddresses(ctx context.Context, partyID uuid
 			Where(address.PartyID(partyID), address.DeletedAtIsNil()).
 			All(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = make([]*domain.Address, 0, len(rows))
 		for _, e := range rows {
@@ -269,7 +269,7 @@ func (r *PartyContactRepository) UpdateAddress(ctx context.Context, e *domain.Ad
 			update.ClearDeletedAt()
 		}
 		_, err := update.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 

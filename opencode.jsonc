@@ -1,7 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  // Reglas obligatorias del proyecto (transacciones, RLS, migraciones...).
-  "instructions": [".opencode/rules/*.md"],
+  // Reglas obligatorias del proyecto (transacciones, errores, RLS, ...).
+  "instructions": [
+    ".opencode/rules/transaction-guardrails.md",
+    ".opencode/rules/error-handling-guardrails.md"
+  ],
   "mcp": {
     "postgres": {
       "type": "local",

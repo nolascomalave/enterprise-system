@@ -2,9 +2,9 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
+	"enterprise-system/internal/common/apperror"
 	"enterprise-system/internal/delivery/http/dto"
 	"enterprise-system/internal/domain"
 	"enterprise-system/internal/infrastructure/enttenant"
@@ -44,13 +44,13 @@ func NewPartyHandler(uc PartyUseCase) *PartyHandler {
 func (h *PartyHandler) Create(c *gin.Context) {
 	var request dto.CreatePartyRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", domain.ErrInvalidParty, err))
+		c.Error(badRequestError(err))
 		return
 	}
 
 	sessionContext, ok := enttenant.SessionContextFrom(c.Request.Context())
 	if !ok {
-		c.Error(ErrUnauthorized)
+		c.Error(unauthorizedError(ErrUnauthorized))
 		return
 	}
 
@@ -100,13 +100,13 @@ func (h *PartyHandler) Create(c *gin.Context) {
 func (h *PartyHandler) GetByID(c *gin.Context) {
 	partyID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(fmt.Errorf("%w: invalid party id", domain.ErrInvalidParty))
+		c.Error(apperror.NewValidation("invalid_party_id", "invalid party id", err))
 		return
 	}
 
 	sessionContext, ok := enttenant.SessionContextFrom(c.Request.Context())
 	if !ok {
-		c.Error(ErrUnauthorized)
+		c.Error(unauthorizedError(ErrUnauthorized))
 		return
 	}
 
@@ -131,7 +131,7 @@ func (h *PartyHandler) GetByID(c *gin.Context) {
 func (h *PartyHandler) List(c *gin.Context) {
 	sessionContext, ok := enttenant.SessionContextFrom(c.Request.Context())
 	if !ok {
-		c.Error(ErrUnauthorized)
+		c.Error(unauthorizedError(ErrUnauthorized))
 		return
 	}
 

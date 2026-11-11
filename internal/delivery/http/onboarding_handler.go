@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"enterprise-system/internal/delivery/http/dto"
@@ -38,7 +37,7 @@ func NewOnboardingHandler(uc OnboardingUseCase) *OnboardingHandler {
 func (h *OnboardingHandler) Register(c *gin.Context) {
 	var request dto.RegisterTenantRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 

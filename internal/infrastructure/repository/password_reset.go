@@ -35,7 +35,7 @@ func (r *PasswordResetTokenRepository) Create(ctx context.Context, token *auth.P
 			SetCreatedAt(token.CreatedAt).
 			SetUpdatedAt(token.UpdatedAt).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -51,7 +51,7 @@ func (r *PasswordResetTokenRepository) InvalidateActive(ctx context.Context, ten
 			SetUsedAt(at).
 			SetUpdatedAt(at).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -70,7 +70,7 @@ func (r *PasswordResetTokenRepository) Consume(ctx context.Context, tenantID uui
 			if ent.IsNotFound(err) {
 				return auth.ErrInvalidResetToken
 			}
-			return err
+			return repoError(err)
 		}
 
 		affected, err := client.PasswordResetToken.Update().
@@ -83,7 +83,7 @@ func (r *PasswordResetTokenRepository) Consume(ctx context.Context, tenantID uui
 			SetUpdatedAt(now).
 			Save(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		if affected == 0 {
 			return auth.ErrInvalidResetToken

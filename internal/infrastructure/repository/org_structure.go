@@ -39,7 +39,7 @@ func (r *OrgStructureRepository) CreateJobFamily(ctx context.Context, e *domain.
 			SetCreatedAt(e.CreatedAt).
 			SetUpdatedAt(e.UpdatedAt).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -48,7 +48,7 @@ func (r *OrgStructureRepository) GetJobFamily(ctx context.Context, id uuid.UUID)
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		e, err := client.JobFamily.Get(ctx, id)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toDomainJobFamily(e)
 		return nil
@@ -61,7 +61,7 @@ func (r *OrgStructureRepository) ListJobFamilies(ctx context.Context) ([]*domain
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		rows, err := client.JobFamily.Query().All(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = make([]*domain.JobFamily, 0, len(rows))
 		for _, e := range rows {
@@ -85,7 +85,7 @@ func (r *OrgStructureRepository) UpdateJobFamily(ctx context.Context, e *domain.
 			update.ClearDeletedAt()
 		}
 		_, err := update.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -109,7 +109,7 @@ func (r *OrgStructureRepository) CreateJob(ctx context.Context, e *domain.Job) e
 			create.SetMaxSalary(e.MaxSalary)
 		}
 		_, err := create.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -118,7 +118,7 @@ func (r *OrgStructureRepository) GetJob(ctx context.Context, id uuid.UUID) (*dom
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		e, err := client.Job.Get(ctx, id)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toDomainJob(e)
 		return nil
@@ -131,7 +131,7 @@ func (r *OrgStructureRepository) ListJobs(ctx context.Context) ([]*domain.Job, e
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		rows, err := client.Job.Query().All(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = make([]*domain.Job, 0, len(rows))
 		for _, e := range rows {
@@ -166,7 +166,7 @@ func (r *OrgStructureRepository) UpdateJob(ctx context.Context, e *domain.Job) e
 			update.ClearDeletedAt()
 		}
 		_, err := update.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -188,7 +188,7 @@ func (r *OrgStructureRepository) CreateDepartment(ctx context.Context, e *domain
 			create.SetManagerPartyID(*e.ManagerPartyID)
 		}
 		_, err := create.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -197,7 +197,7 @@ func (r *OrgStructureRepository) GetDepartment(ctx context.Context, id uuid.UUID
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		e, err := client.Department.Get(ctx, id)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toDomainDepartment(e)
 		return nil
@@ -210,7 +210,7 @@ func (r *OrgStructureRepository) ListDepartments(ctx context.Context) ([]*domain
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		rows, err := client.Department.Query().All(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = make([]*domain.Department, 0, len(rows))
 		for _, e := range rows {
@@ -243,7 +243,7 @@ func (r *OrgStructureRepository) UpdateDepartment(ctx context.Context, e *domain
 			update.ClearDeletedAt()
 		}
 		_, err := update.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -265,7 +265,7 @@ func (r *OrgStructureRepository) CreateEmployee(ctx context.Context, e *domain.E
 			create.SetManagerPartyID(*e.ManagerPartyID)
 		}
 		_, err := create.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -274,7 +274,7 @@ func (r *OrgStructureRepository) GetEmployee(ctx context.Context, partyID uuid.U
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		e, err := client.Employee.Get(ctx, partyID)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toDomainEmployee(e)
 		return nil
@@ -287,7 +287,7 @@ func (r *OrgStructureRepository) ListEmployees(ctx context.Context) ([]*domain.E
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		rows, err := client.Employee.Query().All(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = make([]*domain.Employee, 0, len(rows))
 		for _, e := range rows {
@@ -318,7 +318,7 @@ func (r *OrgStructureRepository) UpdateEmployee(ctx context.Context, e *domain.E
 			update.ClearDeletedAt()
 		}
 		_, err := update.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -340,7 +340,7 @@ func (r *OrgStructureRepository) CreateEmployeeAssignment(ctx context.Context, e
 			create.SetEndDate(*e.EndDate)
 		}
 		_, err := create.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
@@ -349,7 +349,7 @@ func (r *OrgStructureRepository) GetEmployeeAssignment(ctx context.Context, id u
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		e, err := client.EmployeeAssignment.Get(ctx, id)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toDomainEmployeeAssignment(e)
 		return nil
@@ -362,7 +362,7 @@ func (r *OrgStructureRepository) ListEmployeeAssignments(ctx context.Context) ([
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		rows, err := client.EmployeeAssignment.Query().All(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = make([]*domain.EmployeeAssignment, 0, len(rows))
 		for _, e := range rows {
@@ -387,7 +387,7 @@ func (r *OrgStructureRepository) UpdateEmployeeAssignment(ctx context.Context, e
 			update.ClearEndDate()
 		}
 		_, err := update.Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
