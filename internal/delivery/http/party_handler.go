@@ -27,6 +27,20 @@ func NewPartyHandler(uc PartyUseCase) *PartyHandler {
 	return &PartyHandler{uc: uc}
 }
 
+// Create godoc
+// @Summary      Create a party
+// @Description  Creates an INDIVIDUAL or ORGANIZATION party with its required profile.
+// @Tags         Parties
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body dto.CreatePartyRequest true "Party and profile data"
+// @Success      201 {object} dto.PartyEnvelope
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      409 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /parties [post]
 func (h *PartyHandler) Create(c *gin.Context) {
 	var request dto.CreatePartyRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -70,6 +84,19 @@ func (h *PartyHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": dto.NewPartyResponse(detail)})
 }
 
+// GetByID godoc
+// @Summary      Get a party by ID
+// @Description  Returns the party and its profile inside the authenticated tenant.
+// @Tags         Parties
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path string true "Party UUID"
+// @Success      200 {object} dto.PartyEnvelope
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      404 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /parties/{id} [get]
 func (h *PartyHandler) GetByID(c *gin.Context) {
 	partyID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -91,6 +118,16 @@ func (h *PartyHandler) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": dto.NewPartyResponse(detail)})
 }
 
+// List godoc
+// @Summary      List active parties
+// @Description  Lists ACTIVE parties for the authenticated tenant.
+// @Tags         Parties
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} dto.PartyListEnvelope
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /parties [get]
 func (h *PartyHandler) List(c *gin.Context) {
 	sessionContext, ok := enttenant.SessionContextFrom(c.Request.Context())
 	if !ok {

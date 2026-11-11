@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type PasswordResetTokenCreate struct {
 	config
 	mutation *PasswordResetTokenMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTenantID sets the "tenant_id" field.
@@ -214,6 +217,7 @@ func (_c *PasswordResetTokenCreate) createSpec() (*PasswordResetToken, *sqlgraph
 		_spec = sqlgraph.NewCreateSpec(passwordresettoken.Table, sqlgraph.NewFieldSpec(passwordresettoken.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.PasswordResetToken
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -277,11 +281,319 @@ func (_c *PasswordResetTokenCreate) createSpec() (*PasswordResetToken, *sqlgraph
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PasswordResetToken.Create().
+//		SetTenantID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PasswordResetTokenUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PasswordResetTokenCreate) OnConflict(opts ...sql.ConflictOption) *PasswordResetTokenUpsertOne {
+	_c.conflict = opts
+	return &PasswordResetTokenUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PasswordResetToken.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PasswordResetTokenCreate) OnConflictColumns(columns ...string) *PasswordResetTokenUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PasswordResetTokenUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PasswordResetTokenUpsertOne is the builder for "upsert"-ing
+	//  one PasswordResetToken node.
+	PasswordResetTokenUpsertOne struct {
+		create *PasswordResetTokenCreate
+	}
+
+	// PasswordResetTokenUpsert is the "OnConflict" setter.
+	PasswordResetTokenUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PasswordResetTokenUpsert) SetTenantID(v uuid.UUID) *PasswordResetTokenUpsert {
+	u.Set(passwordresettoken.FieldTenantID, v)
+	return u
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsert) UpdateTenantID() *PasswordResetTokenUpsert {
+	u.SetExcluded(passwordresettoken.FieldTenantID)
+	return u
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *PasswordResetTokenUpsert) SetPartyID(v uuid.UUID) *PasswordResetTokenUpsert {
+	u.Set(passwordresettoken.FieldPartyID, v)
+	return u
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsert) UpdatePartyID() *PasswordResetTokenUpsert {
+	u.SetExcluded(passwordresettoken.FieldPartyID)
+	return u
+}
+
+// SetTokenHash sets the "token_hash" field.
+func (u *PasswordResetTokenUpsert) SetTokenHash(v []byte) *PasswordResetTokenUpsert {
+	u.Set(passwordresettoken.FieldTokenHash, v)
+	return u
+}
+
+// UpdateTokenHash sets the "token_hash" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsert) UpdateTokenHash() *PasswordResetTokenUpsert {
+	u.SetExcluded(passwordresettoken.FieldTokenHash)
+	return u
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *PasswordResetTokenUpsert) SetExpiresAt(v time.Time) *PasswordResetTokenUpsert {
+	u.Set(passwordresettoken.FieldExpiresAt, v)
+	return u
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsert) UpdateExpiresAt() *PasswordResetTokenUpsert {
+	u.SetExcluded(passwordresettoken.FieldExpiresAt)
+	return u
+}
+
+// SetUsedAt sets the "used_at" field.
+func (u *PasswordResetTokenUpsert) SetUsedAt(v time.Time) *PasswordResetTokenUpsert {
+	u.Set(passwordresettoken.FieldUsedAt, v)
+	return u
+}
+
+// UpdateUsedAt sets the "used_at" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsert) UpdateUsedAt() *PasswordResetTokenUpsert {
+	u.SetExcluded(passwordresettoken.FieldUsedAt)
+	return u
+}
+
+// ClearUsedAt clears the value of the "used_at" field.
+func (u *PasswordResetTokenUpsert) ClearUsedAt() *PasswordResetTokenUpsert {
+	u.SetNull(passwordresettoken.FieldUsedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PasswordResetTokenUpsert) SetUpdatedAt(v time.Time) *PasswordResetTokenUpsert {
+	u.Set(passwordresettoken.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsert) UpdateUpdatedAt() *PasswordResetTokenUpsert {
+	u.SetExcluded(passwordresettoken.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PasswordResetToken.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(passwordresettoken.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PasswordResetTokenUpsertOne) UpdateNewValues() *PasswordResetTokenUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(passwordresettoken.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(passwordresettoken.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PasswordResetToken.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PasswordResetTokenUpsertOne) Ignore() *PasswordResetTokenUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PasswordResetTokenUpsertOne) DoNothing() *PasswordResetTokenUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PasswordResetTokenCreate.OnConflict
+// documentation for more info.
+func (u *PasswordResetTokenUpsertOne) Update(set func(*PasswordResetTokenUpsert)) *PasswordResetTokenUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PasswordResetTokenUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PasswordResetTokenUpsertOne) SetTenantID(v uuid.UUID) *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertOne) UpdateTenantID() *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *PasswordResetTokenUpsertOne) SetPartyID(v uuid.UUID) *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertOne) UpdatePartyID() *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetTokenHash sets the "token_hash" field.
+func (u *PasswordResetTokenUpsertOne) SetTokenHash(v []byte) *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetTokenHash(v)
+	})
+}
+
+// UpdateTokenHash sets the "token_hash" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertOne) UpdateTokenHash() *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdateTokenHash()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *PasswordResetTokenUpsertOne) SetExpiresAt(v time.Time) *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertOne) UpdateExpiresAt() *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// SetUsedAt sets the "used_at" field.
+func (u *PasswordResetTokenUpsertOne) SetUsedAt(v time.Time) *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetUsedAt(v)
+	})
+}
+
+// UpdateUsedAt sets the "used_at" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertOne) UpdateUsedAt() *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdateUsedAt()
+	})
+}
+
+// ClearUsedAt clears the value of the "used_at" field.
+func (u *PasswordResetTokenUpsertOne) ClearUsedAt() *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.ClearUsedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PasswordResetTokenUpsertOne) SetUpdatedAt(v time.Time) *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertOne) UpdateUpdatedAt() *PasswordResetTokenUpsertOne {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PasswordResetTokenUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PasswordResetTokenCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PasswordResetTokenUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PasswordResetTokenUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PasswordResetTokenUpsertOne.ID is not supported by MySQL driver. Use PasswordResetTokenUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PasswordResetTokenUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PasswordResetTokenCreateBulk is the builder for creating many PasswordResetToken entities in bulk.
 type PasswordResetTokenCreateBulk struct {
 	config
 	err      error
 	builders []*PasswordResetTokenCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PasswordResetToken entities in the database.
@@ -311,6 +623,7 @@ func (_c *PasswordResetTokenCreateBulk) Save(ctx context.Context) ([]*PasswordRe
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -357,6 +670,214 @@ func (_c *PasswordResetTokenCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PasswordResetTokenCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PasswordResetToken.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PasswordResetTokenUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PasswordResetTokenCreateBulk) OnConflict(opts ...sql.ConflictOption) *PasswordResetTokenUpsertBulk {
+	_c.conflict = opts
+	return &PasswordResetTokenUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PasswordResetToken.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PasswordResetTokenCreateBulk) OnConflictColumns(columns ...string) *PasswordResetTokenUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PasswordResetTokenUpsertBulk{
+		create: _c,
+	}
+}
+
+// PasswordResetTokenUpsertBulk is the builder for "upsert"-ing
+// a bulk of PasswordResetToken nodes.
+type PasswordResetTokenUpsertBulk struct {
+	create *PasswordResetTokenCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PasswordResetToken.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(passwordresettoken.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PasswordResetTokenUpsertBulk) UpdateNewValues() *PasswordResetTokenUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(passwordresettoken.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(passwordresettoken.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PasswordResetToken.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PasswordResetTokenUpsertBulk) Ignore() *PasswordResetTokenUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PasswordResetTokenUpsertBulk) DoNothing() *PasswordResetTokenUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PasswordResetTokenCreateBulk.OnConflict
+// documentation for more info.
+func (u *PasswordResetTokenUpsertBulk) Update(set func(*PasswordResetTokenUpsert)) *PasswordResetTokenUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PasswordResetTokenUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PasswordResetTokenUpsertBulk) SetTenantID(v uuid.UUID) *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertBulk) UpdateTenantID() *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *PasswordResetTokenUpsertBulk) SetPartyID(v uuid.UUID) *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertBulk) UpdatePartyID() *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetTokenHash sets the "token_hash" field.
+func (u *PasswordResetTokenUpsertBulk) SetTokenHash(v []byte) *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetTokenHash(v)
+	})
+}
+
+// UpdateTokenHash sets the "token_hash" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertBulk) UpdateTokenHash() *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdateTokenHash()
+	})
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (u *PasswordResetTokenUpsertBulk) SetExpiresAt(v time.Time) *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetExpiresAt(v)
+	})
+}
+
+// UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertBulk) UpdateExpiresAt() *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdateExpiresAt()
+	})
+}
+
+// SetUsedAt sets the "used_at" field.
+func (u *PasswordResetTokenUpsertBulk) SetUsedAt(v time.Time) *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetUsedAt(v)
+	})
+}
+
+// UpdateUsedAt sets the "used_at" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertBulk) UpdateUsedAt() *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdateUsedAt()
+	})
+}
+
+// ClearUsedAt clears the value of the "used_at" field.
+func (u *PasswordResetTokenUpsertBulk) ClearUsedAt() *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.ClearUsedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PasswordResetTokenUpsertBulk) SetUpdatedAt(v time.Time) *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PasswordResetTokenUpsertBulk) UpdateUpdatedAt() *PasswordResetTokenUpsertBulk {
+	return u.Update(func(s *PasswordResetTokenUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PasswordResetTokenUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PasswordResetTokenCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PasswordResetTokenCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PasswordResetTokenUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

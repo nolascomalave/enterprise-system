@@ -14,8 +14,22 @@ description: >-
 - Al crear un tenant, se crea una `party` que lo representa.
 
 ## 2. Estructura de Esquemas PostgreSQL
-- Esquema `global` (Global): `role_types`, `subscriptions` (tenants).
-- Esquema `tenants` (Multi-tenant con RLS): `parties`, `person_profiles`, `organization_profiles`, `party_roles`, `party_merge_log`, `contact_mechanisms`, `addresses`.
+- Esquema `global` (Global): `role_types`, `subscriptions` (tenants), `contact_mechanisms` (master data).
+- Esquema `tenants` (Multi-tenant con RLS): `parties`, `person_profiles`, `organization_profiles`, `party_roles`, `party_merge_log`, `party_contact_mechanisms`, `addresses`, `user_credentials`, `sessions`, etc.
+
+## 2.1 Roles de sistema para onboarding
+- `migrations/0009_role_types_seed.sql` siembra `global.role_types` con:
+  - `TENANT`: la organización propietaria del tenant.
+  - `ADMIN`: el primer administrador del tenant.
+- El onboarding asigna `TENANT` a la party ORGANIZATION y `ADMIN` a la party
+  INDIVIDUAL del administrador, dentro de la misma transacción.
+
+## 2.2 Contact Master Data Management
+- `global.contact_mechanisms` es el maestro global: solo `id`, `type`, `value`; unique `(type, value)` con collation ICU.
+- `tenants.party_contact_mechanisms` relaciona una Party con un contacto global y guarda `is_primary`, `is_verified`, `contact_mechanism_order`, `start_date` y `end_date`.
+- La vigencia se expresa con `start_date`/`end_date`; un contacto global solo puede estar activo una vez por tenant.
+- `tenants.user_credentials` ya no guarda email: apunta a `party_contact_mechanism_id` (único) y mantiene solo el estado actual de seguridad.
+- El login resuelve: email global → relación activa (`end_date IS NULL` y `start_date <= now`) → credencial.
 
 ## 3. Modelado SIN Herencia (Composición 1:1)
 - No se permite que las tablas de perfil compartan la Primary Key (PK) de `parties`.

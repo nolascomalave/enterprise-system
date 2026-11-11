@@ -33,6 +33,9 @@ type OrganizationProfile func(*sql.Selector)
 // Party is the predicate function for party builders.
 type Party func(*sql.Selector)
 
+// PartyContactMechanism is the predicate function for partycontactmechanism builders.
+type PartyContactMechanism func(*sql.Selector)
+
 // PartyMergeLog is the predicate function for partymergelog builders.
 type PartyMergeLog func(*sql.Selector)
 

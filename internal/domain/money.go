@@ -17,6 +17,15 @@ func NewMoney(cents int64) Money {
 	return Money{Cents: cents}
 }
 
+// ParseMoney converts a decimal string (e.g. "1250.50") into exact cents.
+func ParseMoney(value string) (Money, error) {
+	cents, err := parseMoneyCents(value)
+	if err != nil {
+		return Money{}, err
+	}
+	return NewMoney(cents), nil
+}
+
 func (m Money) CentsValue() int64 {
 	return m.Cents
 }

@@ -7,23 +7,24 @@ import "context"
 // SchemaConfig represents alternative schema names for all tables
 // that can be passed at runtime.
 type SchemaConfig struct {
-	Address             string // Address table.
-	ContactMechanism    string // ContactMechanism table.
-	Department          string // Department table.
-	Employee            string // Employee table.
-	EmployeeAssignment  string // EmployeeAssignment table.
-	Job                 string // Job table.
-	JobFamily           string // JobFamily table.
-	OrganizationProfile string // OrganizationProfile table.
-	Party               string // Party table.
-	PartyMergeLog       string // PartyMergeLog table.
-	PartyRole           string // PartyRole table.
-	PasswordResetToken  string // PasswordResetToken table.
-	PersonProfile       string // PersonProfile table.
-	RoleType            string // RoleType table.
-	Session             string // Session table.
-	Subscription        string // Subscription table.
-	UserCredentials     string // UserCredentials table.
+	Address               string // Address table.
+	ContactMechanism      string // ContactMechanism table.
+	Department            string // Department table.
+	Employee              string // Employee table.
+	EmployeeAssignment    string // EmployeeAssignment table.
+	Job                   string // Job table.
+	JobFamily             string // JobFamily table.
+	OrganizationProfile   string // OrganizationProfile table.
+	Party                 string // Party table.
+	PartyContactMechanism string // PartyContactMechanism table.
+	PartyMergeLog         string // PartyMergeLog table.
+	PartyRole             string // PartyRole table.
+	PasswordResetToken    string // PasswordResetToken table.
+	PersonProfile         string // PersonProfile table.
+	RoleType              string // RoleType table.
+	Session               string // Session table.
+	Subscription          string // Subscription table.
+	UserCredentials       string // UserCredentials table.
 }
 
 type schemaCtxKey struct{}

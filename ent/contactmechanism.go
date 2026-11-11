@@ -4,11 +4,8 @@ package ent
 
 import (
 	"enterprise-system/ent/contactmechanism"
-	"enterprise-system/ent/party"
-	"enterprise-system/ent/subscription"
 	"fmt"
 	"strings"
-	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -20,24 +17,10 @@ type ContactMechanism struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Tenant discriminator; RLS key
-	TenantID uuid.UUID `json:"tenant_id,omitempty"`
-	// PartyID holds the value of the "party_id" field.
-	PartyID uuid.UUID `json:"party_id,omitempty"`
 	// Type holds the value of the "type" field.
 	Type contactmechanism.Type `json:"type,omitempty"`
 	// Value holds the value of the "value" field.
 	Value string `json:"value,omitempty"`
-	// IsPrimary holds the value of the "is_primary" field.
-	IsPrimary bool `json:"is_primary,omitempty"`
-	// IsVerified holds the value of the "is_verified" field.
-	IsVerified bool `json:"is_verified,omitempty"`
-	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// DeletedAt holds the value of the "deleted_at" field.
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ContactMechanismQuery when eager-loading is set.
 	Edges        ContactMechanismEdges `json:"edges"`
@@ -46,35 +29,20 @@ type ContactMechanism struct {
 
 // ContactMechanismEdges holds the relations/edges for other nodes in the graph.
 type ContactMechanismEdges struct {
-	// Tenant holds the value of the tenant edge.
-	Tenant *Subscription `json:"tenant,omitempty"`
-	// Party holds the value of the party edge.
-	Party *Party `json:"party,omitempty"`
+	// PartyContactMechanisms holds the value of the party_contact_mechanisms edge.
+	PartyContactMechanisms []*PartyContactMechanism `json:"party_contact_mechanisms,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 }
 
-// TenantOrErr returns the Tenant value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e ContactMechanismEdges) TenantOrErr() (*Subscription, error) {
-	if e.Tenant != nil {
-		return e.Tenant, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: subscription.Label}
+// PartyContactMechanismsOrErr returns the PartyContactMechanisms value or an error if the edge
+// was not loaded in eager-loading.
+func (e ContactMechanismEdges) PartyContactMechanismsOrErr() ([]*PartyContactMechanism, error) {
+	if e.loadedTypes[0] {
+		return e.PartyContactMechanisms, nil
 	}
-	return nil, &NotLoadedError{edge: "tenant"}
-}
-
-// PartyOrErr returns the Party value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e ContactMechanismEdges) PartyOrErr() (*Party, error) {
-	if e.Party != nil {
-		return e.Party, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: party.Label}
-	}
-	return nil, &NotLoadedError{edge: "party"}
+	return nil, &NotLoadedError{edge: "party_contact_mechanisms"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -82,13 +50,9 @@ func (*ContactMechanism) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case contactmechanism.FieldIsPrimary, contactmechanism.FieldIsVerified:
-			values[i] = new(sql.NullBool)
 		case contactmechanism.FieldType, contactmechanism.FieldValue:
 			values[i] = new(sql.NullString)
-		case contactmechanism.FieldCreatedAt, contactmechanism.FieldUpdatedAt, contactmechanism.FieldDeletedAt:
-			values[i] = new(sql.NullTime)
-		case contactmechanism.FieldID, contactmechanism.FieldTenantID, contactmechanism.FieldPartyID:
+		case contactmechanism.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -111,18 +75,6 @@ func (_m *ContactMechanism) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.ID = *value
 			}
-		case contactmechanism.FieldTenantID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field tenant_id", values[i])
-			} else if value != nil {
-				_m.TenantID = *value
-			}
-		case contactmechanism.FieldPartyID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field party_id", values[i])
-			} else if value != nil {
-				_m.PartyID = *value
-			}
 		case contactmechanism.FieldType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field type", values[i])
@@ -134,37 +86,6 @@ func (_m *ContactMechanism) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field value", values[i])
 			} else if value.Valid {
 				_m.Value = value.String
-			}
-		case contactmechanism.FieldIsPrimary:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_primary", values[i])
-			} else if value.Valid {
-				_m.IsPrimary = value.Bool
-			}
-		case contactmechanism.FieldIsVerified:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_verified", values[i])
-			} else if value.Valid {
-				_m.IsVerified = value.Bool
-			}
-		case contactmechanism.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[i])
-			} else if value.Valid {
-				_m.CreatedAt = value.Time
-			}
-		case contactmechanism.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				_m.UpdatedAt = value.Time
-			}
-		case contactmechanism.FieldDeletedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field deleted_at", values[i])
-			} else if value.Valid {
-				_m.DeletedAt = new(time.Time)
-				*_m.DeletedAt = value.Time
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -179,14 +100,9 @@ func (_m *ContactMechanism) GetValue(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
 }
 
-// QueryTenant queries the "tenant" edge of the ContactMechanism entity.
-func (_m *ContactMechanism) QueryTenant() *SubscriptionQuery {
-	return NewContactMechanismClient(_m.config).QueryTenant(_m)
-}
-
-// QueryParty queries the "party" edge of the ContactMechanism entity.
-func (_m *ContactMechanism) QueryParty() *PartyQuery {
-	return NewContactMechanismClient(_m.config).QueryParty(_m)
+// QueryPartyContactMechanisms queries the "party_contact_mechanisms" edge of the ContactMechanism entity.
+func (_m *ContactMechanism) QueryPartyContactMechanisms() *PartyContactMechanismQuery {
+	return NewContactMechanismClient(_m.config).QueryPartyContactMechanisms(_m)
 }
 
 // Update returns a builder for updating this ContactMechanism.
@@ -212,34 +128,11 @@ func (_m *ContactMechanism) String() string {
 	var builder strings.Builder
 	builder.WriteString("ContactMechanism(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("tenant_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TenantID))
-	builder.WriteString(", ")
-	builder.WriteString("party_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.PartyID))
-	builder.WriteString(", ")
 	builder.WriteString("type=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Type))
 	builder.WriteString(", ")
 	builder.WriteString("value=")
 	builder.WriteString(_m.Value)
-	builder.WriteString(", ")
-	builder.WriteString("is_primary=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsPrimary))
-	builder.WriteString(", ")
-	builder.WriteString("is_verified=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsVerified))
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	if v := _m.DeletedAt; v != nil {
-		builder.WriteString("deleted_at=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
 	builder.WriteByte(')')
 	return builder.String()
 }

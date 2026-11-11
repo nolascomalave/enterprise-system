@@ -6,10 +6,10 @@ import (
 	"context"
 	"database/sql/driver"
 	"enterprise-system/ent/address"
-	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
@@ -31,23 +31,23 @@ import (
 // PartyQuery is the builder for querying Party entities.
 type PartyQuery struct {
 	config
-	ctx                     *QueryContext
-	order                   []party.OrderOption
-	inters                  []Interceptor
-	predicates              []predicate.Party
-	withTenant              *SubscriptionQuery
-	withPersonProfile       *PersonProfileQuery
-	withOrganizationProfile *OrganizationProfileQuery
-	withPartyRoles          *PartyRoleQuery
-	withContactMechanisms   *ContactMechanismQuery
-	withAddresses           *AddressQuery
-	withSessions            *SessionQuery
-	withCredentials         *UserCredentialsQuery
-	withPasswordResetTokens *PasswordResetTokenQuery
-	withMergedParties       *PartyQuery
-	withCanonicalParty      *PartyQuery
-	withMergeSources        *PartyMergeLogQuery
-	withMergeTargets        *PartyMergeLogQuery
+	ctx                        *QueryContext
+	order                      []party.OrderOption
+	inters                     []Interceptor
+	predicates                 []predicate.Party
+	withTenant                 *SubscriptionQuery
+	withPersonProfile          *PersonProfileQuery
+	withOrganizationProfile    *OrganizationProfileQuery
+	withPartyRoles             *PartyRoleQuery
+	withPartyContactMechanisms *PartyContactMechanismQuery
+	withAddresses              *AddressQuery
+	withSessions               *SessionQuery
+	withCredentials            *UserCredentialsQuery
+	withPasswordResetTokens    *PasswordResetTokenQuery
+	withMergedParties          *PartyQuery
+	withCanonicalParty         *PartyQuery
+	withMergeSources           *PartyMergeLogQuery
+	withMergeTargets           *PartyMergeLogQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -184,9 +184,9 @@ func (_q *PartyQuery) QueryPartyRoles() *PartyRoleQuery {
 	return query
 }
 
-// QueryContactMechanisms chains the current query on the "contact_mechanisms" edge.
-func (_q *PartyQuery) QueryContactMechanisms() *ContactMechanismQuery {
-	query := (&ContactMechanismClient{config: _q.config}).Query()
+// QueryPartyContactMechanisms chains the current query on the "party_contact_mechanisms" edge.
+func (_q *PartyQuery) QueryPartyContactMechanisms() *PartyContactMechanismQuery {
+	query := (&PartyContactMechanismClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -197,12 +197,12 @@ func (_q *PartyQuery) QueryContactMechanisms() *ContactMechanismQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(party.Table, party.FieldID, selector),
-			sqlgraph.To(contactmechanism.Table, contactmechanism.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, party.ContactMechanismsTable, party.ContactMechanismsColumn),
+			sqlgraph.To(partycontactmechanism.Table, partycontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, party.PartyContactMechanismsTable, party.PartyContactMechanismsColumn),
 		)
 		schemaConfig := _q.schemaConfig
-		step.To.Schema = schemaConfig.ContactMechanism
-		step.Edge.Schema = schemaConfig.ContactMechanism
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -596,24 +596,24 @@ func (_q *PartyQuery) Clone() *PartyQuery {
 		return nil
 	}
 	return &PartyQuery{
-		config:                  _q.config,
-		ctx:                     _q.ctx.Clone(),
-		order:                   append([]party.OrderOption{}, _q.order...),
-		inters:                  append([]Interceptor{}, _q.inters...),
-		predicates:              append([]predicate.Party{}, _q.predicates...),
-		withTenant:              _q.withTenant.Clone(),
-		withPersonProfile:       _q.withPersonProfile.Clone(),
-		withOrganizationProfile: _q.withOrganizationProfile.Clone(),
-		withPartyRoles:          _q.withPartyRoles.Clone(),
-		withContactMechanisms:   _q.withContactMechanisms.Clone(),
-		withAddresses:           _q.withAddresses.Clone(),
-		withSessions:            _q.withSessions.Clone(),
-		withCredentials:         _q.withCredentials.Clone(),
-		withPasswordResetTokens: _q.withPasswordResetTokens.Clone(),
-		withMergedParties:       _q.withMergedParties.Clone(),
-		withCanonicalParty:      _q.withCanonicalParty.Clone(),
-		withMergeSources:        _q.withMergeSources.Clone(),
-		withMergeTargets:        _q.withMergeTargets.Clone(),
+		config:                     _q.config,
+		ctx:                        _q.ctx.Clone(),
+		order:                      append([]party.OrderOption{}, _q.order...),
+		inters:                     append([]Interceptor{}, _q.inters...),
+		predicates:                 append([]predicate.Party{}, _q.predicates...),
+		withTenant:                 _q.withTenant.Clone(),
+		withPersonProfile:          _q.withPersonProfile.Clone(),
+		withOrganizationProfile:    _q.withOrganizationProfile.Clone(),
+		withPartyRoles:             _q.withPartyRoles.Clone(),
+		withPartyContactMechanisms: _q.withPartyContactMechanisms.Clone(),
+		withAddresses:              _q.withAddresses.Clone(),
+		withSessions:               _q.withSessions.Clone(),
+		withCredentials:            _q.withCredentials.Clone(),
+		withPasswordResetTokens:    _q.withPasswordResetTokens.Clone(),
+		withMergedParties:          _q.withMergedParties.Clone(),
+		withCanonicalParty:         _q.withCanonicalParty.Clone(),
+		withMergeSources:           _q.withMergeSources.Clone(),
+		withMergeTargets:           _q.withMergeTargets.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -664,14 +664,14 @@ func (_q *PartyQuery) WithPartyRoles(opts ...func(*PartyRoleQuery)) *PartyQuery 
 	return _q
 }
 
-// WithContactMechanisms tells the query-builder to eager-load the nodes that are connected to
-// the "contact_mechanisms" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *PartyQuery) WithContactMechanisms(opts ...func(*ContactMechanismQuery)) *PartyQuery {
-	query := (&ContactMechanismClient{config: _q.config}).Query()
+// WithPartyContactMechanisms tells the query-builder to eager-load the nodes that are connected to
+// the "party_contact_mechanisms" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartyQuery) WithPartyContactMechanisms(opts ...func(*PartyContactMechanismQuery)) *PartyQuery {
+	query := (&PartyContactMechanismClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withContactMechanisms = query
+	_q.withPartyContactMechanisms = query
 	return _q
 }
 
@@ -846,7 +846,7 @@ func (_q *PartyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Party,
 			_q.withPersonProfile != nil,
 			_q.withOrganizationProfile != nil,
 			_q.withPartyRoles != nil,
-			_q.withContactMechanisms != nil,
+			_q.withPartyContactMechanisms != nil,
 			_q.withAddresses != nil,
 			_q.withSessions != nil,
 			_q.withCredentials != nil,
@@ -902,10 +902,12 @@ func (_q *PartyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Party,
 			return nil, err
 		}
 	}
-	if query := _q.withContactMechanisms; query != nil {
-		if err := _q.loadContactMechanisms(ctx, query, nodes,
-			func(n *Party) { n.Edges.ContactMechanisms = []*ContactMechanism{} },
-			func(n *Party, e *ContactMechanism) { n.Edges.ContactMechanisms = append(n.Edges.ContactMechanisms, e) }); err != nil {
+	if query := _q.withPartyContactMechanisms; query != nil {
+		if err := _q.loadPartyContactMechanisms(ctx, query, nodes,
+			func(n *Party) { n.Edges.PartyContactMechanisms = []*PartyContactMechanism{} },
+			func(n *Party, e *PartyContactMechanism) {
+				n.Edges.PartyContactMechanisms = append(n.Edges.PartyContactMechanisms, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1081,7 +1083,7 @@ func (_q *PartyQuery) loadPartyRoles(ctx context.Context, query *PartyRoleQuery,
 	}
 	return nil
 }
-func (_q *PartyQuery) loadContactMechanisms(ctx context.Context, query *ContactMechanismQuery, nodes []*Party, init func(*Party), assign func(*Party, *ContactMechanism)) error {
+func (_q *PartyQuery) loadPartyContactMechanisms(ctx context.Context, query *PartyContactMechanismQuery, nodes []*Party, init func(*Party), assign func(*Party, *PartyContactMechanism)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Party)
 	for i := range nodes {
@@ -1092,10 +1094,10 @@ func (_q *PartyQuery) loadContactMechanisms(ctx context.Context, query *ContactM
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(contactmechanism.FieldPartyID)
+		query.ctx.AppendFieldOnce(partycontactmechanism.FieldPartyID)
 	}
-	query.Where(predicate.ContactMechanism(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(party.ContactMechanismsColumn), fks...))
+	query.Where(predicate.PartyContactMechanism(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(party.PartyContactMechanismsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

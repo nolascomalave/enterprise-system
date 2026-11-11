@@ -5,7 +5,6 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
-	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -14,6 +13,7 @@ import (
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
@@ -263,19 +263,19 @@ func (_u *SubscriptionUpdate) AddEmployeeAssignments(v ...*EmployeeAssignment) *
 	return _u.AddEmployeeAssignmentIDs(ids...)
 }
 
-// AddContactMechanismIDs adds the "contact_mechanisms" edge to the ContactMechanism entity by IDs.
-func (_u *SubscriptionUpdate) AddContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdate {
-	_u.mutation.AddContactMechanismIDs(ids...)
+// AddPartyContactMechanismIDs adds the "party_contact_mechanisms" edge to the PartyContactMechanism entity by IDs.
+func (_u *SubscriptionUpdate) AddPartyContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddPartyContactMechanismIDs(ids...)
 	return _u
 }
 
-// AddContactMechanisms adds the "contact_mechanisms" edges to the ContactMechanism entity.
-func (_u *SubscriptionUpdate) AddContactMechanisms(v ...*ContactMechanism) *SubscriptionUpdate {
+// AddPartyContactMechanisms adds the "party_contact_mechanisms" edges to the PartyContactMechanism entity.
+func (_u *SubscriptionUpdate) AddPartyContactMechanisms(v ...*PartyContactMechanism) *SubscriptionUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddContactMechanismIDs(ids...)
+	return _u.AddPartyContactMechanismIDs(ids...)
 }
 
 // AddAddressIDs adds the "addresses" edge to the Address entity by IDs.
@@ -553,25 +553,25 @@ func (_u *SubscriptionUpdate) RemoveEmployeeAssignments(v ...*EmployeeAssignment
 	return _u.RemoveEmployeeAssignmentIDs(ids...)
 }
 
-// ClearContactMechanisms clears all "contact_mechanisms" edges to the ContactMechanism entity.
-func (_u *SubscriptionUpdate) ClearContactMechanisms() *SubscriptionUpdate {
-	_u.mutation.ClearContactMechanisms()
+// ClearPartyContactMechanisms clears all "party_contact_mechanisms" edges to the PartyContactMechanism entity.
+func (_u *SubscriptionUpdate) ClearPartyContactMechanisms() *SubscriptionUpdate {
+	_u.mutation.ClearPartyContactMechanisms()
 	return _u
 }
 
-// RemoveContactMechanismIDs removes the "contact_mechanisms" edge to ContactMechanism entities by IDs.
-func (_u *SubscriptionUpdate) RemoveContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdate {
-	_u.mutation.RemoveContactMechanismIDs(ids...)
+// RemovePartyContactMechanismIDs removes the "party_contact_mechanisms" edge to PartyContactMechanism entities by IDs.
+func (_u *SubscriptionUpdate) RemovePartyContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemovePartyContactMechanismIDs(ids...)
 	return _u
 }
 
-// RemoveContactMechanisms removes "contact_mechanisms" edges to ContactMechanism entities.
-func (_u *SubscriptionUpdate) RemoveContactMechanisms(v ...*ContactMechanism) *SubscriptionUpdate {
+// RemovePartyContactMechanisms removes "party_contact_mechanisms" edges to PartyContactMechanism entities.
+func (_u *SubscriptionUpdate) RemovePartyContactMechanisms(v ...*PartyContactMechanism) *SubscriptionUpdate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveContactMechanismIDs(ids...)
+	return _u.RemovePartyContactMechanismIDs(ids...)
 }
 
 // ClearAddresses clears all "addresses" edges to the Address entity.
@@ -1224,49 +1224,49 @@ func (_u *SubscriptionUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.ContactMechanismsCleared() {
+	if _u.mutation.PartyContactMechanismsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   subscription.ContactMechanismsTable,
-			Columns: []string{subscription.ContactMechanismsColumn},
+			Table:   subscription.PartyContactMechanismsTable,
+			Columns: []string{subscription.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(contactmechanism.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedContactMechanismsIDs(); len(nodes) > 0 && !_u.mutation.ContactMechanismsCleared() {
+	if nodes := _u.mutation.RemovedPartyContactMechanismsIDs(); len(nodes) > 0 && !_u.mutation.PartyContactMechanismsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   subscription.ContactMechanismsTable,
-			Columns: []string{subscription.ContactMechanismsColumn},
+			Table:   subscription.PartyContactMechanismsTable,
+			Columns: []string{subscription.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(contactmechanism.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.ContactMechanismsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PartyContactMechanismsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   subscription.ContactMechanismsTable,
-			Columns: []string{subscription.ContactMechanismsColumn},
+			Table:   subscription.PartyContactMechanismsTable,
+			Columns: []string{subscription.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(contactmechanism.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -1704,19 +1704,19 @@ func (_u *SubscriptionUpdateOne) AddEmployeeAssignments(v ...*EmployeeAssignment
 	return _u.AddEmployeeAssignmentIDs(ids...)
 }
 
-// AddContactMechanismIDs adds the "contact_mechanisms" edge to the ContactMechanism entity by IDs.
-func (_u *SubscriptionUpdateOne) AddContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
-	_u.mutation.AddContactMechanismIDs(ids...)
+// AddPartyContactMechanismIDs adds the "party_contact_mechanisms" edge to the PartyContactMechanism entity by IDs.
+func (_u *SubscriptionUpdateOne) AddPartyContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddPartyContactMechanismIDs(ids...)
 	return _u
 }
 
-// AddContactMechanisms adds the "contact_mechanisms" edges to the ContactMechanism entity.
-func (_u *SubscriptionUpdateOne) AddContactMechanisms(v ...*ContactMechanism) *SubscriptionUpdateOne {
+// AddPartyContactMechanisms adds the "party_contact_mechanisms" edges to the PartyContactMechanism entity.
+func (_u *SubscriptionUpdateOne) AddPartyContactMechanisms(v ...*PartyContactMechanism) *SubscriptionUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.AddContactMechanismIDs(ids...)
+	return _u.AddPartyContactMechanismIDs(ids...)
 }
 
 // AddAddressIDs adds the "addresses" edge to the Address entity by IDs.
@@ -1994,25 +1994,25 @@ func (_u *SubscriptionUpdateOne) RemoveEmployeeAssignments(v ...*EmployeeAssignm
 	return _u.RemoveEmployeeAssignmentIDs(ids...)
 }
 
-// ClearContactMechanisms clears all "contact_mechanisms" edges to the ContactMechanism entity.
-func (_u *SubscriptionUpdateOne) ClearContactMechanisms() *SubscriptionUpdateOne {
-	_u.mutation.ClearContactMechanisms()
+// ClearPartyContactMechanisms clears all "party_contact_mechanisms" edges to the PartyContactMechanism entity.
+func (_u *SubscriptionUpdateOne) ClearPartyContactMechanisms() *SubscriptionUpdateOne {
+	_u.mutation.ClearPartyContactMechanisms()
 	return _u
 }
 
-// RemoveContactMechanismIDs removes the "contact_mechanisms" edge to ContactMechanism entities by IDs.
-func (_u *SubscriptionUpdateOne) RemoveContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
-	_u.mutation.RemoveContactMechanismIDs(ids...)
+// RemovePartyContactMechanismIDs removes the "party_contact_mechanisms" edge to PartyContactMechanism entities by IDs.
+func (_u *SubscriptionUpdateOne) RemovePartyContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemovePartyContactMechanismIDs(ids...)
 	return _u
 }
 
-// RemoveContactMechanisms removes "contact_mechanisms" edges to ContactMechanism entities.
-func (_u *SubscriptionUpdateOne) RemoveContactMechanisms(v ...*ContactMechanism) *SubscriptionUpdateOne {
+// RemovePartyContactMechanisms removes "party_contact_mechanisms" edges to PartyContactMechanism entities.
+func (_u *SubscriptionUpdateOne) RemovePartyContactMechanisms(v ...*PartyContactMechanism) *SubscriptionUpdateOne {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _u.RemoveContactMechanismIDs(ids...)
+	return _u.RemovePartyContactMechanismIDs(ids...)
 }
 
 // ClearAddresses clears all "addresses" edges to the Address entity.
@@ -2695,49 +2695,49 @@ func (_u *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscripti
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.ContactMechanismsCleared() {
+	if _u.mutation.PartyContactMechanismsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   subscription.ContactMechanismsTable,
-			Columns: []string{subscription.ContactMechanismsColumn},
+			Table:   subscription.PartyContactMechanismsTable,
+			Columns: []string{subscription.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(contactmechanism.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.RemovedContactMechanismsIDs(); len(nodes) > 0 && !_u.mutation.ContactMechanismsCleared() {
+	if nodes := _u.mutation.RemovedPartyContactMechanismsIDs(); len(nodes) > 0 && !_u.mutation.PartyContactMechanismsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   subscription.ContactMechanismsTable,
-			Columns: []string{subscription.ContactMechanismsColumn},
+			Table:   subscription.PartyContactMechanismsTable,
+			Columns: []string{subscription.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(contactmechanism.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.ContactMechanismsIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PartyContactMechanismsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   subscription.ContactMechanismsTable,
-			Columns: []string{subscription.ContactMechanismsColumn},
+			Table:   subscription.PartyContactMechanismsTable,
+			Columns: []string{subscription.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(contactmechanism.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

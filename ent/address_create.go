@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type AddressCreate struct {
 	config
 	mutation *AddressMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTenantID sets the "tenant_id" field.
@@ -315,6 +318,7 @@ func (_c *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(address.Table, sqlgraph.NewFieldSpec(address.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.Address
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -402,11 +406,514 @@ func (_c *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Address.Create().
+//		SetTenantID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.AddressUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *AddressCreate) OnConflict(opts ...sql.ConflictOption) *AddressUpsertOne {
+	_c.conflict = opts
+	return &AddressUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Address.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *AddressCreate) OnConflictColumns(columns ...string) *AddressUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &AddressUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// AddressUpsertOne is the builder for "upsert"-ing
+	//  one Address node.
+	AddressUpsertOne struct {
+		create *AddressCreate
+	}
+
+	// AddressUpsert is the "OnConflict" setter.
+	AddressUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTenantID sets the "tenant_id" field.
+func (u *AddressUpsert) SetTenantID(v uuid.UUID) *AddressUpsert {
+	u.Set(address.FieldTenantID, v)
+	return u
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateTenantID() *AddressUpsert {
+	u.SetExcluded(address.FieldTenantID)
+	return u
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *AddressUpsert) SetPartyID(v uuid.UUID) *AddressUpsert {
+	u.Set(address.FieldPartyID, v)
+	return u
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *AddressUpsert) UpdatePartyID() *AddressUpsert {
+	u.SetExcluded(address.FieldPartyID)
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *AddressUpsert) SetType(v address.Type) *AddressUpsert {
+	u.Set(address.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateType() *AddressUpsert {
+	u.SetExcluded(address.FieldType)
+	return u
+}
+
+// SetLine1 sets the "line1" field.
+func (u *AddressUpsert) SetLine1(v string) *AddressUpsert {
+	u.Set(address.FieldLine1, v)
+	return u
+}
+
+// UpdateLine1 sets the "line1" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateLine1() *AddressUpsert {
+	u.SetExcluded(address.FieldLine1)
+	return u
+}
+
+// SetLine2 sets the "line2" field.
+func (u *AddressUpsert) SetLine2(v string) *AddressUpsert {
+	u.Set(address.FieldLine2, v)
+	return u
+}
+
+// UpdateLine2 sets the "line2" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateLine2() *AddressUpsert {
+	u.SetExcluded(address.FieldLine2)
+	return u
+}
+
+// ClearLine2 clears the value of the "line2" field.
+func (u *AddressUpsert) ClearLine2() *AddressUpsert {
+	u.SetNull(address.FieldLine2)
+	return u
+}
+
+// SetCity sets the "city" field.
+func (u *AddressUpsert) SetCity(v string) *AddressUpsert {
+	u.Set(address.FieldCity, v)
+	return u
+}
+
+// UpdateCity sets the "city" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateCity() *AddressUpsert {
+	u.SetExcluded(address.FieldCity)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *AddressUpsert) SetState(v string) *AddressUpsert {
+	u.Set(address.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateState() *AddressUpsert {
+	u.SetExcluded(address.FieldState)
+	return u
+}
+
+// ClearState clears the value of the "state" field.
+func (u *AddressUpsert) ClearState() *AddressUpsert {
+	u.SetNull(address.FieldState)
+	return u
+}
+
+// SetPostalCode sets the "postal_code" field.
+func (u *AddressUpsert) SetPostalCode(v string) *AddressUpsert {
+	u.Set(address.FieldPostalCode, v)
+	return u
+}
+
+// UpdatePostalCode sets the "postal_code" field to the value that was provided on create.
+func (u *AddressUpsert) UpdatePostalCode() *AddressUpsert {
+	u.SetExcluded(address.FieldPostalCode)
+	return u
+}
+
+// ClearPostalCode clears the value of the "postal_code" field.
+func (u *AddressUpsert) ClearPostalCode() *AddressUpsert {
+	u.SetNull(address.FieldPostalCode)
+	return u
+}
+
+// SetCountry sets the "country" field.
+func (u *AddressUpsert) SetCountry(v string) *AddressUpsert {
+	u.Set(address.FieldCountry, v)
+	return u
+}
+
+// UpdateCountry sets the "country" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateCountry() *AddressUpsert {
+	u.SetExcluded(address.FieldCountry)
+	return u
+}
+
+// SetIsPrimary sets the "is_primary" field.
+func (u *AddressUpsert) SetIsPrimary(v bool) *AddressUpsert {
+	u.Set(address.FieldIsPrimary, v)
+	return u
+}
+
+// UpdateIsPrimary sets the "is_primary" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateIsPrimary() *AddressUpsert {
+	u.SetExcluded(address.FieldIsPrimary)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AddressUpsert) SetUpdatedAt(v time.Time) *AddressUpsert {
+	u.Set(address.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateUpdatedAt() *AddressUpsert {
+	u.SetExcluded(address.FieldUpdatedAt)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *AddressUpsert) SetDeletedAt(v time.Time) *AddressUpsert {
+	u.Set(address.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateDeletedAt() *AddressUpsert {
+	u.SetExcluded(address.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *AddressUpsert) ClearDeletedAt() *AddressUpsert {
+	u.SetNull(address.FieldDeletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Address.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(address.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *AddressUpsertOne) UpdateNewValues() *AddressUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(address.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(address.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Address.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *AddressUpsertOne) Ignore() *AddressUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *AddressUpsertOne) DoNothing() *AddressUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the AddressCreate.OnConflict
+// documentation for more info.
+func (u *AddressUpsertOne) Update(set func(*AddressUpsert)) *AddressUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&AddressUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *AddressUpsertOne) SetTenantID(v uuid.UUID) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateTenantID() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *AddressUpsertOne) SetPartyID(v uuid.UUID) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdatePartyID() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *AddressUpsertOne) SetType(v address.Type) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateType() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetLine1 sets the "line1" field.
+func (u *AddressUpsertOne) SetLine1(v string) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetLine1(v)
+	})
+}
+
+// UpdateLine1 sets the "line1" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateLine1() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateLine1()
+	})
+}
+
+// SetLine2 sets the "line2" field.
+func (u *AddressUpsertOne) SetLine2(v string) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetLine2(v)
+	})
+}
+
+// UpdateLine2 sets the "line2" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateLine2() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateLine2()
+	})
+}
+
+// ClearLine2 clears the value of the "line2" field.
+func (u *AddressUpsertOne) ClearLine2() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.ClearLine2()
+	})
+}
+
+// SetCity sets the "city" field.
+func (u *AddressUpsertOne) SetCity(v string) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetCity(v)
+	})
+}
+
+// UpdateCity sets the "city" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateCity() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateCity()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *AddressUpsertOne) SetState(v string) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateState() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateState()
+	})
+}
+
+// ClearState clears the value of the "state" field.
+func (u *AddressUpsertOne) ClearState() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.ClearState()
+	})
+}
+
+// SetPostalCode sets the "postal_code" field.
+func (u *AddressUpsertOne) SetPostalCode(v string) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetPostalCode(v)
+	})
+}
+
+// UpdatePostalCode sets the "postal_code" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdatePostalCode() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdatePostalCode()
+	})
+}
+
+// ClearPostalCode clears the value of the "postal_code" field.
+func (u *AddressUpsertOne) ClearPostalCode() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.ClearPostalCode()
+	})
+}
+
+// SetCountry sets the "country" field.
+func (u *AddressUpsertOne) SetCountry(v string) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetCountry(v)
+	})
+}
+
+// UpdateCountry sets the "country" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateCountry() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateCountry()
+	})
+}
+
+// SetIsPrimary sets the "is_primary" field.
+func (u *AddressUpsertOne) SetIsPrimary(v bool) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetIsPrimary(v)
+	})
+}
+
+// UpdateIsPrimary sets the "is_primary" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateIsPrimary() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateIsPrimary()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AddressUpsertOne) SetUpdatedAt(v time.Time) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateUpdatedAt() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *AddressUpsertOne) SetDeletedAt(v time.Time) *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateDeletedAt() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *AddressUpsertOne) ClearDeletedAt() *AddressUpsertOne {
+	return u.Update(func(s *AddressUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *AddressUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for AddressCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *AddressUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *AddressUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: AddressUpsertOne.ID is not supported by MySQL driver. Use AddressUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *AddressUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // AddressCreateBulk is the builder for creating many Address entities in bulk.
 type AddressCreateBulk struct {
 	config
 	err      error
 	builders []*AddressCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Address entities in the database.
@@ -436,6 +943,7 @@ func (_c *AddressCreateBulk) Save(ctx context.Context) ([]*Address, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -482,6 +990,319 @@ func (_c *AddressCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *AddressCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Address.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.AddressUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *AddressCreateBulk) OnConflict(opts ...sql.ConflictOption) *AddressUpsertBulk {
+	_c.conflict = opts
+	return &AddressUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Address.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *AddressCreateBulk) OnConflictColumns(columns ...string) *AddressUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &AddressUpsertBulk{
+		create: _c,
+	}
+}
+
+// AddressUpsertBulk is the builder for "upsert"-ing
+// a bulk of Address nodes.
+type AddressUpsertBulk struct {
+	create *AddressCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Address.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(address.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *AddressUpsertBulk) UpdateNewValues() *AddressUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(address.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(address.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Address.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *AddressUpsertBulk) Ignore() *AddressUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *AddressUpsertBulk) DoNothing() *AddressUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the AddressCreateBulk.OnConflict
+// documentation for more info.
+func (u *AddressUpsertBulk) Update(set func(*AddressUpsert)) *AddressUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&AddressUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *AddressUpsertBulk) SetTenantID(v uuid.UUID) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateTenantID() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *AddressUpsertBulk) SetPartyID(v uuid.UUID) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdatePartyID() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetType sets the "type" field.
+func (u *AddressUpsertBulk) SetType(v address.Type) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateType() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetLine1 sets the "line1" field.
+func (u *AddressUpsertBulk) SetLine1(v string) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetLine1(v)
+	})
+}
+
+// UpdateLine1 sets the "line1" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateLine1() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateLine1()
+	})
+}
+
+// SetLine2 sets the "line2" field.
+func (u *AddressUpsertBulk) SetLine2(v string) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetLine2(v)
+	})
+}
+
+// UpdateLine2 sets the "line2" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateLine2() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateLine2()
+	})
+}
+
+// ClearLine2 clears the value of the "line2" field.
+func (u *AddressUpsertBulk) ClearLine2() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.ClearLine2()
+	})
+}
+
+// SetCity sets the "city" field.
+func (u *AddressUpsertBulk) SetCity(v string) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetCity(v)
+	})
+}
+
+// UpdateCity sets the "city" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateCity() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateCity()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *AddressUpsertBulk) SetState(v string) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateState() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateState()
+	})
+}
+
+// ClearState clears the value of the "state" field.
+func (u *AddressUpsertBulk) ClearState() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.ClearState()
+	})
+}
+
+// SetPostalCode sets the "postal_code" field.
+func (u *AddressUpsertBulk) SetPostalCode(v string) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetPostalCode(v)
+	})
+}
+
+// UpdatePostalCode sets the "postal_code" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdatePostalCode() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdatePostalCode()
+	})
+}
+
+// ClearPostalCode clears the value of the "postal_code" field.
+func (u *AddressUpsertBulk) ClearPostalCode() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.ClearPostalCode()
+	})
+}
+
+// SetCountry sets the "country" field.
+func (u *AddressUpsertBulk) SetCountry(v string) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetCountry(v)
+	})
+}
+
+// UpdateCountry sets the "country" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateCountry() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateCountry()
+	})
+}
+
+// SetIsPrimary sets the "is_primary" field.
+func (u *AddressUpsertBulk) SetIsPrimary(v bool) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetIsPrimary(v)
+	})
+}
+
+// UpdateIsPrimary sets the "is_primary" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateIsPrimary() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateIsPrimary()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *AddressUpsertBulk) SetUpdatedAt(v time.Time) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateUpdatedAt() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *AddressUpsertBulk) SetDeletedAt(v time.Time) *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateDeletedAt() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *AddressUpsertBulk) ClearDeletedAt() *AddressUpsertBulk {
+	return u.Update(func(s *AddressUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *AddressUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the AddressCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for AddressCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *AddressUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

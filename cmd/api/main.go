@@ -1,9 +1,23 @@
+// @title           Enterprise System API
+// @version         1.0
+// @description     Multi-tenant Party Model API with JWT, refresh tokens, 2FA, onboarding and password recovery.
+// @BasePath        /api/v1
+// @schemes         http https
+// @securityDefinitions.apikey BearerAuth
+// @in              header
+// @name            Authorization
+// @description     Bearer access token, e.g. "Bearer <token>".
 package main
 
 import (
+	"context"
+	"errors"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"enterprise-system/internal/auth"
@@ -11,7 +25,9 @@ import (
 	emailinfra "enterprise-system/internal/infrastructure/email"
 	"enterprise-system/internal/infrastructure/enttenant"
 	"enterprise-system/internal/infrastructure/repository"
+	"enterprise-system/internal/infrastructure/transaction"
 	"enterprise-system/internal/usecase"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -48,48 +64,123 @@ func main() {
 		log.Fatalf("configure auth: %v", err)
 	}
 
+	txManager := transaction.NewManager(client)
+
 	partyRepo := repository.NewPartyRepository(client)
-	partyService := usecase.NewPartyService(partyRepo, time.Now)
+	partyService := usecase.NewPartyService(partyRepo, txManager, time.Now)
 	credentialRepo := repository.NewCredentialRepository(client)
+	partyContactRepo := repository.NewPartyContactRepository(client)
 	sessionRepo := repository.NewSessionRepository(client)
 	binder := enttenant.ContextBinder{}
 	authService := usecase.NewAuthService(
-		tokenManager, credentialRepo, sessionRepo, binder, time.Now,
+		tokenManager, credentialRepo, partyContactRepo, sessionRepo, txManager, binder, time.Now,
 	)
 	accountService := usecase.NewAccountService(
-		tokenManager, credentialRepo, sessionRepo,
+		tokenManager, credentialRepo, partyContactRepo, sessionRepo,
 		repository.NewPasswordResetTokenRepository(client),
 		emailinfra.NewConsoleSender(os.Stdout),
+		txManager, binder, time.Now,
+	)
+	onboardingService := usecase.NewRegisterTenantService(
+		tokenManager,
+		txManager,
+		repository.NewTenantProvisioningStore(client),
 		binder, time.Now,
 	)
+	orgService := usecase.NewOrgStructure(repository.NewOrgStructureRepository(client), txManager, time.Now)
+	mergeService := usecase.NewMergeParties(txManager, repository.NewPartyMergeRepository(client), time.Now, nil)
 
-	var trustedProxies []string
-	if value := strings.TrimSpace(os.Getenv("TRUSTED_PROXIES")); value != "" {
-		for _, proxy := range strings.Split(value, ",") {
-			if proxy = strings.TrimSpace(proxy); proxy != "" {
-				trustedProxies = append(trustedProxies, proxy)
-			}
-		}
+	allowedOrigins := splitCSV(os.Getenv("CORS_ALLOWED_ORIGINS"))
+	if len(allowedOrigins) == 0 {
+		allowedOrigins = []string{"http://localhost:3000"}
 	}
 
 	router := deliveryhttp.NewRouter(deliveryhttp.Dependencies{
-		PartyUseCase:   partyService,
-		AuthUseCase:    authService,
-		AccountUseCase: accountService,
-		TokenManager:   tokenManager,
-		CookieSecure:   os.Getenv("COOKIE_SECURE") != "false",
-		RefreshTTL:     30 * 24 * time.Hour,
-		AuthRateLimit:  5,
-		AuthRateWindow: time.Minute,
-		TrustedProxies: trustedProxies,
+		PartyUseCase:        partyService,
+		AuthUseCase:         authService,
+		AccountUseCase:      accountService,
+		OnboardingUseCase:   onboardingService,
+		OrgStructureUseCase: orgService,
+		MergePartiesUseCase: mergeService,
+		TokenManager:        tokenManager,
+		CookieSecure:        os.Getenv("COOKIE_SECURE") != "false",
+		RefreshTTL:          30 * 24 * time.Hour,
+		AuthRateLimit:       5,
+		AuthRateWindow:      time.Minute,
+		TrustedProxies:      splitCSV(os.Getenv("TRUSTED_PROXIES")),
+		AllowedOrigins:      allowedOrigins,
 	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-	log.Printf("API listening on :%s", port)
-	if err := router.Run(":" + port); err != nil {
-		log.Fatalf("run API: %v", err)
+	server := &http.Server{
+		Addr:              ":" + port,
+		Handler:           router,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
+
+	serverErr := make(chan error, 1)
+	go func() {
+		log.Printf("API listening on :%s", port)
+		serverErr <- server.ListenAndServe()
+	}()
+
+	shutdownSignal, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	select {
+	case err := <-serverErr:
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("run API: %v", err)
+		}
+		return
+	case <-shutdownSignal.Done():
+		log.Printf("shutdown signal received")
+	}
+
+	timeout := shutdownTimeout()
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Printf("graceful shutdown failed: %v", err)
+		_ = server.Close()
+	} else {
+		log.Printf("server stopped gracefully")
+	}
+	if err := <-serverErr; err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Printf("server error during shutdown: %v", err)
+	}
+}
+
+func splitCSV(value string) []string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	result := make([]string, 0)
+	for _, item := range strings.Split(value, ",") {
+		if item = strings.TrimSpace(item); item != "" {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func shutdownTimeout() time.Duration {
+	value := strings.TrimSpace(os.Getenv("SHUTDOWN_TIMEOUT"))
+	if value == "" {
+		return 10 * time.Second
+	}
+	timeout, err := time.ParseDuration(value)
+	if err != nil || timeout <= 0 {
+		log.Printf("invalid SHUTDOWN_TIMEOUT %q; using 10s", value)
+		return 10 * time.Second
+	}
+	return timeout
 }

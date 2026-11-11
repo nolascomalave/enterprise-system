@@ -6,6 +6,7 @@ import (
 	"context"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
@@ -22,12 +23,13 @@ import (
 // UserCredentialsQuery is the builder for querying UserCredentials entities.
 type UserCredentialsQuery struct {
 	config
-	ctx        *QueryContext
-	order      []usercredentials.OrderOption
-	inters     []Interceptor
-	predicates []predicate.UserCredentials
-	withTenant *SubscriptionQuery
-	withParty  *PartyQuery
+	ctx                       *QueryContext
+	order                     []usercredentials.OrderOption
+	inters                    []Interceptor
+	predicates                []predicate.UserCredentials
+	withTenant                *SubscriptionQuery
+	withParty                 *PartyQuery
+	withPartyContactMechanism *PartyContactMechanismQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -107,6 +109,31 @@ func (_q *UserCredentialsQuery) QueryParty() *PartyQuery {
 		)
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.Party
+		step.Edge.Schema = schemaConfig.UserCredentials
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPartyContactMechanism chains the current query on the "party_contact_mechanism" edge.
+func (_q *UserCredentialsQuery) QueryPartyContactMechanism() *PartyContactMechanismQuery {
+	query := (&PartyContactMechanismClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usercredentials.Table, usercredentials.FieldID, selector),
+			sqlgraph.To(partycontactmechanism.Table, partycontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, usercredentials.PartyContactMechanismTable, usercredentials.PartyContactMechanismColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyContactMechanism
 		step.Edge.Schema = schemaConfig.UserCredentials
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -301,13 +328,14 @@ func (_q *UserCredentialsQuery) Clone() *UserCredentialsQuery {
 		return nil
 	}
 	return &UserCredentialsQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]usercredentials.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.UserCredentials{}, _q.predicates...),
-		withTenant: _q.withTenant.Clone(),
-		withParty:  _q.withParty.Clone(),
+		config:                    _q.config,
+		ctx:                       _q.ctx.Clone(),
+		order:                     append([]usercredentials.OrderOption{}, _q.order...),
+		inters:                    append([]Interceptor{}, _q.inters...),
+		predicates:                append([]predicate.UserCredentials{}, _q.predicates...),
+		withTenant:                _q.withTenant.Clone(),
+		withParty:                 _q.withParty.Clone(),
+		withPartyContactMechanism: _q.withPartyContactMechanism.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -333,6 +361,17 @@ func (_q *UserCredentialsQuery) WithParty(opts ...func(*PartyQuery)) *UserCreden
 		opt(query)
 	}
 	_q.withParty = query
+	return _q
+}
+
+// WithPartyContactMechanism tells the query-builder to eager-load the nodes that are connected to
+// the "party_contact_mechanism" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserCredentialsQuery) WithPartyContactMechanism(opts ...func(*PartyContactMechanismQuery)) *UserCredentialsQuery {
+	query := (&PartyContactMechanismClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPartyContactMechanism = query
 	return _q
 }
 
@@ -414,9 +453,10 @@ func (_q *UserCredentialsQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*UserCredentials{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withTenant != nil,
 			_q.withParty != nil,
+			_q.withPartyContactMechanism != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -448,6 +488,12 @@ func (_q *UserCredentialsQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if query := _q.withParty; query != nil {
 		if err := _q.loadParty(ctx, query, nodes, nil,
 			func(n *UserCredentials, e *Party) { n.Edges.Party = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPartyContactMechanism; query != nil {
+		if err := _q.loadPartyContactMechanism(ctx, query, nodes, nil,
+			func(n *UserCredentials, e *PartyContactMechanism) { n.Edges.PartyContactMechanism = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -512,6 +558,35 @@ func (_q *UserCredentialsQuery) loadParty(ctx context.Context, query *PartyQuery
 	}
 	return nil
 }
+func (_q *UserCredentialsQuery) loadPartyContactMechanism(ctx context.Context, query *PartyContactMechanismQuery, nodes []*UserCredentials, init func(*UserCredentials), assign func(*UserCredentials, *PartyContactMechanism)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*UserCredentials)
+	for i := range nodes {
+		fk := nodes[i].PartyContactMechanismID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(partycontactmechanism.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "party_contact_mechanism_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *UserCredentialsQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -545,6 +620,9 @@ func (_q *UserCredentialsQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withParty != nil {
 			_spec.Node.AddColumnOnce(usercredentials.FieldPartyID)
+		}
+		if _q.withPartyContactMechanism != nil {
+			_spec.Node.AddColumnOnce(usercredentials.FieldPartyContactMechanismID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

@@ -91,10 +91,12 @@ func (Address) Indexes() []ent.Index {
 		index.Fields("tenant_id", "party_id").
 			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
 		index.Fields("tenant_id", "party_id", "type").
+			StorageKey("address_tenant_party_type_idx").
 			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
 		index.Fields("tenant_id", "city").
 			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
 		index.Fields("tenant_id", "party_id", "type").
+			StorageKey("address_one_primary_uq").
 			Unique().
 			Annotations(entsql.IndexWhere("is_primary AND deleted_at IS NULL")),
 	}

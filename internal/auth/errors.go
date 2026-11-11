@@ -16,4 +16,7 @@ var (
 	ErrInvalidCurrentPassword = errors.New("invalid current password")
 	ErrSamePassword           = errors.New("new password must differ from current password")
 	ErrInvalidResetToken      = errors.New("invalid or expired password reset token")
+	// ErrConcurrentModification means another request changed the same record
+	// between the read and the conditional write.
+	ErrConcurrentModification = errors.New("record modified concurrently")
 )

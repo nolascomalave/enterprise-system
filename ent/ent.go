@@ -13,6 +13,7 @@ import (
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
@@ -89,23 +90,24 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			address.Table:             address.ValidColumn,
-			contactmechanism.Table:    contactmechanism.ValidColumn,
-			department.Table:          department.ValidColumn,
-			employee.Table:            employee.ValidColumn,
-			employeeassignment.Table:  employeeassignment.ValidColumn,
-			job.Table:                 job.ValidColumn,
-			jobfamily.Table:           jobfamily.ValidColumn,
-			organizationprofile.Table: organizationprofile.ValidColumn,
-			party.Table:               party.ValidColumn,
-			partymergelog.Table:       partymergelog.ValidColumn,
-			partyrole.Table:           partyrole.ValidColumn,
-			passwordresettoken.Table:  passwordresettoken.ValidColumn,
-			personprofile.Table:       personprofile.ValidColumn,
-			roletype.Table:            roletype.ValidColumn,
-			session.Table:             session.ValidColumn,
-			subscription.Table:        subscription.ValidColumn,
-			usercredentials.Table:     usercredentials.ValidColumn,
+			address.Table:               address.ValidColumn,
+			contactmechanism.Table:      contactmechanism.ValidColumn,
+			department.Table:            department.ValidColumn,
+			employee.Table:              employee.ValidColumn,
+			employeeassignment.Table:    employeeassignment.ValidColumn,
+			job.Table:                   job.ValidColumn,
+			jobfamily.Table:             jobfamily.ValidColumn,
+			organizationprofile.Table:   organizationprofile.ValidColumn,
+			party.Table:                 party.ValidColumn,
+			partycontactmechanism.Table: partycontactmechanism.ValidColumn,
+			partymergelog.Table:         partymergelog.ValidColumn,
+			partyrole.Table:             partyrole.ValidColumn,
+			passwordresettoken.Table:    passwordresettoken.ValidColumn,
+			personprofile.Table:         personprofile.ValidColumn,
+			roletype.Table:              roletype.ValidColumn,
+			session.Table:               session.ValidColumn,
+			subscription.Table:          subscription.ValidColumn,
+			usercredentials.Table:       usercredentials.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

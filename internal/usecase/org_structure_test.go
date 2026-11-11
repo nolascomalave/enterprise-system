@@ -171,7 +171,8 @@ func orgTestNow() time.Time {
 
 func TestOrgStructureCreateJobFamily(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	txManager := newFakeTxManager()
+	uc := NewOrgStructure(repo, txManager, orgTestNow)
 
 	jf, err := uc.CreateJobFamily(context.Background(), CreateJobFamilyInput{
 		TenantID: testTenantID(), Name: " Recursos Humanos ", Code: " RH ",
@@ -182,10 +183,11 @@ func TestOrgStructureCreateJobFamily(t *testing.T) {
 	assert.Equal(t, "Recursos Humanos", jf.Name)
 	assert.Equal(t, "RH", jf.Code)
 	assert.Contains(t, repo.jobFamilies, jf.ID)
+	assert.Equal(t, 1, txManager.calls, "the write use case must open a transaction")
 }
 
 func TestOrgStructureCreateJobFamilyValidation(t *testing.T) {
-	uc := NewOrgStructure(newFakeOrgRepo(), orgTestNow)
+	uc := NewOrgStructure(newFakeOrgRepo(), newFakeTxManager(), orgTestNow)
 
 	_, err := uc.CreateJobFamily(context.Background(), CreateJobFamilyInput{
 		TenantID: testTenantID(), Name: " ", Code: "RH",
@@ -195,7 +197,7 @@ func TestOrgStructureCreateJobFamilyValidation(t *testing.T) {
 }
 
 func TestOrgStructureCreateJobRejectsInvalidSalaryRange(t *testing.T) {
-	uc := NewOrgStructure(newFakeOrgRepo(), orgTestNow)
+	uc := NewOrgStructure(newFakeOrgRepo(), newFakeTxManager(), orgTestNow)
 	min := domain.NewMoney(2000)
 	max := domain.NewMoney(1000)
 
@@ -208,7 +210,7 @@ func TestOrgStructureCreateJobRejectsInvalidSalaryRange(t *testing.T) {
 }
 
 func TestOrgStructureCreateEmployeeRejectsSelfManager(t *testing.T) {
-	uc := NewOrgStructure(newFakeOrgRepo(), orgTestNow)
+	uc := NewOrgStructure(newFakeOrgRepo(), newFakeTxManager(), orgTestNow)
 	partyID := uuid.New()
 
 	_, err := uc.CreateEmployee(context.Background(), CreateEmployeeInput{
@@ -222,7 +224,7 @@ func TestOrgStructureCreateEmployeeRejectsSelfManager(t *testing.T) {
 
 func TestOrgStructureUpdateAndDeleteJobFamily(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 
 	jf, err := uc.CreateJobFamily(context.Background(), CreateJobFamilyInput{
 		TenantID: testTenantID(), Name: "RH", Code: "RH",
@@ -241,7 +243,7 @@ func TestOrgStructureUpdateAndDeleteJobFamily(t *testing.T) {
 
 func TestOrgStructureDeleteEmployeeAssignmentClosesIt(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	start := orgTestNow().AddDate(0, -1, 0)
 
 	assignment, err := uc.CreateEmployeeAssignment(context.Background(), CreateEmployeeAssignmentInput{
@@ -258,7 +260,7 @@ func TestOrgStructureDeleteEmployeeAssignmentClosesIt(t *testing.T) {
 func TestOrgStructurePropagatesRepositoryError(t *testing.T) {
 	repo := newFakeOrgRepo()
 	repo.createJfErr = errors.New("db down")
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 
 	_, err := uc.CreateJobFamily(context.Background(), CreateJobFamilyInput{
 		TenantID: testTenantID(), Name: "RH", Code: "RH",
@@ -274,7 +276,7 @@ func testTenantID() uuid.UUID {
 
 func TestOrgStructureJobCRUD(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	ctx := context.Background()
 
 	job, err := uc.CreateJob(ctx, CreateJobInput{
@@ -302,7 +304,7 @@ func TestOrgStructureJobCRUD(t *testing.T) {
 
 func TestOrgStructureDepartmentCRUD(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	ctx := context.Background()
 
 	dept, err := uc.CreateDepartment(ctx, CreateDepartmentInput{
@@ -330,7 +332,7 @@ func TestOrgStructureDepartmentCRUD(t *testing.T) {
 
 func TestOrgStructureEmployeeCRUD(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	ctx := context.Background()
 	partyID := uuid.New()
 	managerID := uuid.New()
@@ -365,7 +367,7 @@ func TestOrgStructureEmployeeCRUD(t *testing.T) {
 
 func TestOrgStructureEmployeeAssignmentCRUD(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	ctx := context.Background()
 	start := orgTestNow().AddDate(0, -1, 0)
 
@@ -393,7 +395,7 @@ func TestOrgStructureEmployeeAssignmentCRUD(t *testing.T) {
 
 func TestOrgStructureJobFamilyGetAndList(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	ctx := context.Background()
 
 	jf, err := uc.CreateJobFamily(ctx, CreateJobFamilyInput{

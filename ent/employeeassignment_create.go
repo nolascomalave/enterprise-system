@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -24,6 +26,7 @@ type EmployeeAssignmentCreate struct {
 	config
 	mutation *EmployeeAssignmentMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTenantID sets the "tenant_id" field.
@@ -257,6 +260,7 @@ func (_c *EmployeeAssignmentCreate) createSpec() (*EmployeeAssignment, *sqlgraph
 		_spec = sqlgraph.NewCreateSpec(employeeassignment.Table, sqlgraph.NewFieldSpec(employeeassignment.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.EmployeeAssignment
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -356,11 +360,371 @@ func (_c *EmployeeAssignmentCreate) createSpec() (*EmployeeAssignment, *sqlgraph
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EmployeeAssignment.Create().
+//		SetTenantID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EmployeeAssignmentUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EmployeeAssignmentCreate) OnConflict(opts ...sql.ConflictOption) *EmployeeAssignmentUpsertOne {
+	_c.conflict = opts
+	return &EmployeeAssignmentUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EmployeeAssignment.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EmployeeAssignmentCreate) OnConflictColumns(columns ...string) *EmployeeAssignmentUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EmployeeAssignmentUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// EmployeeAssignmentUpsertOne is the builder for "upsert"-ing
+	//  one EmployeeAssignment node.
+	EmployeeAssignmentUpsertOne struct {
+		create *EmployeeAssignmentCreate
+	}
+
+	// EmployeeAssignmentUpsert is the "OnConflict" setter.
+	EmployeeAssignmentUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTenantID sets the "tenant_id" field.
+func (u *EmployeeAssignmentUpsert) SetTenantID(v uuid.UUID) *EmployeeAssignmentUpsert {
+	u.Set(employeeassignment.FieldTenantID, v)
+	return u
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsert) UpdateTenantID() *EmployeeAssignmentUpsert {
+	u.SetExcluded(employeeassignment.FieldTenantID)
+	return u
+}
+
+// SetEmployeePartyID sets the "employee_party_id" field.
+func (u *EmployeeAssignmentUpsert) SetEmployeePartyID(v uuid.UUID) *EmployeeAssignmentUpsert {
+	u.Set(employeeassignment.FieldEmployeePartyID, v)
+	return u
+}
+
+// UpdateEmployeePartyID sets the "employee_party_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsert) UpdateEmployeePartyID() *EmployeeAssignmentUpsert {
+	u.SetExcluded(employeeassignment.FieldEmployeePartyID)
+	return u
+}
+
+// SetJobID sets the "job_id" field.
+func (u *EmployeeAssignmentUpsert) SetJobID(v uuid.UUID) *EmployeeAssignmentUpsert {
+	u.Set(employeeassignment.FieldJobID, v)
+	return u
+}
+
+// UpdateJobID sets the "job_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsert) UpdateJobID() *EmployeeAssignmentUpsert {
+	u.SetExcluded(employeeassignment.FieldJobID)
+	return u
+}
+
+// SetDepartmentID sets the "department_id" field.
+func (u *EmployeeAssignmentUpsert) SetDepartmentID(v uuid.UUID) *EmployeeAssignmentUpsert {
+	u.Set(employeeassignment.FieldDepartmentID, v)
+	return u
+}
+
+// UpdateDepartmentID sets the "department_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsert) UpdateDepartmentID() *EmployeeAssignmentUpsert {
+	u.SetExcluded(employeeassignment.FieldDepartmentID)
+	return u
+}
+
+// SetStartDate sets the "start_date" field.
+func (u *EmployeeAssignmentUpsert) SetStartDate(v time.Time) *EmployeeAssignmentUpsert {
+	u.Set(employeeassignment.FieldStartDate, v)
+	return u
+}
+
+// UpdateStartDate sets the "start_date" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsert) UpdateStartDate() *EmployeeAssignmentUpsert {
+	u.SetExcluded(employeeassignment.FieldStartDate)
+	return u
+}
+
+// SetEndDate sets the "end_date" field.
+func (u *EmployeeAssignmentUpsert) SetEndDate(v time.Time) *EmployeeAssignmentUpsert {
+	u.Set(employeeassignment.FieldEndDate, v)
+	return u
+}
+
+// UpdateEndDate sets the "end_date" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsert) UpdateEndDate() *EmployeeAssignmentUpsert {
+	u.SetExcluded(employeeassignment.FieldEndDate)
+	return u
+}
+
+// ClearEndDate clears the value of the "end_date" field.
+func (u *EmployeeAssignmentUpsert) ClearEndDate() *EmployeeAssignmentUpsert {
+	u.SetNull(employeeassignment.FieldEndDate)
+	return u
+}
+
+// SetSalary sets the "salary" field.
+func (u *EmployeeAssignmentUpsert) SetSalary(v *domain.Money) *EmployeeAssignmentUpsert {
+	u.Set(employeeassignment.FieldSalary, v)
+	return u
+}
+
+// UpdateSalary sets the "salary" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsert) UpdateSalary() *EmployeeAssignmentUpsert {
+	u.SetExcluded(employeeassignment.FieldSalary)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EmployeeAssignmentUpsert) SetUpdatedAt(v time.Time) *EmployeeAssignmentUpsert {
+	u.Set(employeeassignment.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsert) UpdateUpdatedAt() *EmployeeAssignmentUpsert {
+	u.SetExcluded(employeeassignment.FieldUpdatedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.EmployeeAssignment.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(employeeassignment.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EmployeeAssignmentUpsertOne) UpdateNewValues() *EmployeeAssignmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(employeeassignment.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(employeeassignment.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EmployeeAssignment.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *EmployeeAssignmentUpsertOne) Ignore() *EmployeeAssignmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EmployeeAssignmentUpsertOne) DoNothing() *EmployeeAssignmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EmployeeAssignmentCreate.OnConflict
+// documentation for more info.
+func (u *EmployeeAssignmentUpsertOne) Update(set func(*EmployeeAssignmentUpsert)) *EmployeeAssignmentUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EmployeeAssignmentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *EmployeeAssignmentUpsertOne) SetTenantID(v uuid.UUID) *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertOne) UpdateTenantID() *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetEmployeePartyID sets the "employee_party_id" field.
+func (u *EmployeeAssignmentUpsertOne) SetEmployeePartyID(v uuid.UUID) *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetEmployeePartyID(v)
+	})
+}
+
+// UpdateEmployeePartyID sets the "employee_party_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertOne) UpdateEmployeePartyID() *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateEmployeePartyID()
+	})
+}
+
+// SetJobID sets the "job_id" field.
+func (u *EmployeeAssignmentUpsertOne) SetJobID(v uuid.UUID) *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetJobID(v)
+	})
+}
+
+// UpdateJobID sets the "job_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertOne) UpdateJobID() *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateJobID()
+	})
+}
+
+// SetDepartmentID sets the "department_id" field.
+func (u *EmployeeAssignmentUpsertOne) SetDepartmentID(v uuid.UUID) *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetDepartmentID(v)
+	})
+}
+
+// UpdateDepartmentID sets the "department_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertOne) UpdateDepartmentID() *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateDepartmentID()
+	})
+}
+
+// SetStartDate sets the "start_date" field.
+func (u *EmployeeAssignmentUpsertOne) SetStartDate(v time.Time) *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetStartDate(v)
+	})
+}
+
+// UpdateStartDate sets the "start_date" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertOne) UpdateStartDate() *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateStartDate()
+	})
+}
+
+// SetEndDate sets the "end_date" field.
+func (u *EmployeeAssignmentUpsertOne) SetEndDate(v time.Time) *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetEndDate(v)
+	})
+}
+
+// UpdateEndDate sets the "end_date" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertOne) UpdateEndDate() *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateEndDate()
+	})
+}
+
+// ClearEndDate clears the value of the "end_date" field.
+func (u *EmployeeAssignmentUpsertOne) ClearEndDate() *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.ClearEndDate()
+	})
+}
+
+// SetSalary sets the "salary" field.
+func (u *EmployeeAssignmentUpsertOne) SetSalary(v *domain.Money) *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetSalary(v)
+	})
+}
+
+// UpdateSalary sets the "salary" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertOne) UpdateSalary() *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateSalary()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EmployeeAssignmentUpsertOne) SetUpdatedAt(v time.Time) *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertOne) UpdateUpdatedAt() *EmployeeAssignmentUpsertOne {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *EmployeeAssignmentUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EmployeeAssignmentCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EmployeeAssignmentUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *EmployeeAssignmentUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: EmployeeAssignmentUpsertOne.ID is not supported by MySQL driver. Use EmployeeAssignmentUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *EmployeeAssignmentUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // EmployeeAssignmentCreateBulk is the builder for creating many EmployeeAssignment entities in bulk.
 type EmployeeAssignmentCreateBulk struct {
 	config
 	err      error
 	builders []*EmployeeAssignmentCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the EmployeeAssignment entities in the database.
@@ -390,6 +754,7 @@ func (_c *EmployeeAssignmentCreateBulk) Save(ctx context.Context) ([]*EmployeeAs
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -436,6 +801,242 @@ func (_c *EmployeeAssignmentCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *EmployeeAssignmentCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.EmployeeAssignment.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.EmployeeAssignmentUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *EmployeeAssignmentCreateBulk) OnConflict(opts ...sql.ConflictOption) *EmployeeAssignmentUpsertBulk {
+	_c.conflict = opts
+	return &EmployeeAssignmentUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.EmployeeAssignment.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *EmployeeAssignmentCreateBulk) OnConflictColumns(columns ...string) *EmployeeAssignmentUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &EmployeeAssignmentUpsertBulk{
+		create: _c,
+	}
+}
+
+// EmployeeAssignmentUpsertBulk is the builder for "upsert"-ing
+// a bulk of EmployeeAssignment nodes.
+type EmployeeAssignmentUpsertBulk struct {
+	create *EmployeeAssignmentCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.EmployeeAssignment.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(employeeassignment.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *EmployeeAssignmentUpsertBulk) UpdateNewValues() *EmployeeAssignmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(employeeassignment.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(employeeassignment.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.EmployeeAssignment.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *EmployeeAssignmentUpsertBulk) Ignore() *EmployeeAssignmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *EmployeeAssignmentUpsertBulk) DoNothing() *EmployeeAssignmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the EmployeeAssignmentCreateBulk.OnConflict
+// documentation for more info.
+func (u *EmployeeAssignmentUpsertBulk) Update(set func(*EmployeeAssignmentUpsert)) *EmployeeAssignmentUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&EmployeeAssignmentUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *EmployeeAssignmentUpsertBulk) SetTenantID(v uuid.UUID) *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertBulk) UpdateTenantID() *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetEmployeePartyID sets the "employee_party_id" field.
+func (u *EmployeeAssignmentUpsertBulk) SetEmployeePartyID(v uuid.UUID) *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetEmployeePartyID(v)
+	})
+}
+
+// UpdateEmployeePartyID sets the "employee_party_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertBulk) UpdateEmployeePartyID() *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateEmployeePartyID()
+	})
+}
+
+// SetJobID sets the "job_id" field.
+func (u *EmployeeAssignmentUpsertBulk) SetJobID(v uuid.UUID) *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetJobID(v)
+	})
+}
+
+// UpdateJobID sets the "job_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertBulk) UpdateJobID() *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateJobID()
+	})
+}
+
+// SetDepartmentID sets the "department_id" field.
+func (u *EmployeeAssignmentUpsertBulk) SetDepartmentID(v uuid.UUID) *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetDepartmentID(v)
+	})
+}
+
+// UpdateDepartmentID sets the "department_id" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertBulk) UpdateDepartmentID() *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateDepartmentID()
+	})
+}
+
+// SetStartDate sets the "start_date" field.
+func (u *EmployeeAssignmentUpsertBulk) SetStartDate(v time.Time) *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetStartDate(v)
+	})
+}
+
+// UpdateStartDate sets the "start_date" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertBulk) UpdateStartDate() *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateStartDate()
+	})
+}
+
+// SetEndDate sets the "end_date" field.
+func (u *EmployeeAssignmentUpsertBulk) SetEndDate(v time.Time) *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetEndDate(v)
+	})
+}
+
+// UpdateEndDate sets the "end_date" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertBulk) UpdateEndDate() *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateEndDate()
+	})
+}
+
+// ClearEndDate clears the value of the "end_date" field.
+func (u *EmployeeAssignmentUpsertBulk) ClearEndDate() *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.ClearEndDate()
+	})
+}
+
+// SetSalary sets the "salary" field.
+func (u *EmployeeAssignmentUpsertBulk) SetSalary(v *domain.Money) *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetSalary(v)
+	})
+}
+
+// UpdateSalary sets the "salary" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertBulk) UpdateSalary() *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateSalary()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *EmployeeAssignmentUpsertBulk) SetUpdatedAt(v time.Time) *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *EmployeeAssignmentUpsertBulk) UpdateUpdatedAt() *EmployeeAssignmentUpsertBulk {
+	return u.Update(func(s *EmployeeAssignmentUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *EmployeeAssignmentUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the EmployeeAssignmentCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for EmployeeAssignmentCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *EmployeeAssignmentUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

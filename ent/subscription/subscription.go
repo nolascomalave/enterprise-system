@@ -48,8 +48,8 @@ const (
 	EdgeDepartments = "departments"
 	// EdgeEmployeeAssignments holds the string denoting the employee_assignments edge name in mutations.
 	EdgeEmployeeAssignments = "employee_assignments"
-	// EdgeContactMechanisms holds the string denoting the contact_mechanisms edge name in mutations.
-	EdgeContactMechanisms = "contact_mechanisms"
+	// EdgePartyContactMechanisms holds the string denoting the party_contact_mechanisms edge name in mutations.
+	EdgePartyContactMechanisms = "party_contact_mechanisms"
 	// EdgeAddresses holds the string denoting the addresses edge name in mutations.
 	EdgeAddresses = "addresses"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
@@ -132,13 +132,13 @@ const (
 	EmployeeAssignmentsInverseTable = "employee_assignments"
 	// EmployeeAssignmentsColumn is the table column denoting the employee_assignments relation/edge.
 	EmployeeAssignmentsColumn = "tenant_id"
-	// ContactMechanismsTable is the table that holds the contact_mechanisms relation/edge.
-	ContactMechanismsTable = "contact_mechanisms"
-	// ContactMechanismsInverseTable is the table name for the ContactMechanism entity.
-	// It exists in this package in order to avoid circular dependency with the "contactmechanism" package.
-	ContactMechanismsInverseTable = "contact_mechanisms"
-	// ContactMechanismsColumn is the table column denoting the contact_mechanisms relation/edge.
-	ContactMechanismsColumn = "tenant_id"
+	// PartyContactMechanismsTable is the table that holds the party_contact_mechanisms relation/edge.
+	PartyContactMechanismsTable = "party_contact_mechanisms"
+	// PartyContactMechanismsInverseTable is the table name for the PartyContactMechanism entity.
+	// It exists in this package in order to avoid circular dependency with the "partycontactmechanism" package.
+	PartyContactMechanismsInverseTable = "party_contact_mechanisms"
+	// PartyContactMechanismsColumn is the table column denoting the party_contact_mechanisms relation/edge.
+	PartyContactMechanismsColumn = "tenant_id"
 	// AddressesTable is the table that holds the addresses relation/edge.
 	AddressesTable = "addresses"
 	// AddressesInverseTable is the table name for the Address entity.
@@ -410,17 +410,17 @@ func ByEmployeeAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 	}
 }
 
-// ByContactMechanismsCount orders the results by contact_mechanisms count.
-func ByContactMechanismsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByPartyContactMechanismsCount orders the results by party_contact_mechanisms count.
+func ByPartyContactMechanismsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newContactMechanismsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newPartyContactMechanismsStep(), opts...)
 	}
 }
 
-// ByContactMechanisms orders the results by contact_mechanisms terms.
-func ByContactMechanisms(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByPartyContactMechanisms orders the results by party_contact_mechanisms terms.
+func ByPartyContactMechanisms(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newContactMechanismsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newPartyContactMechanismsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -549,11 +549,11 @@ func newEmployeeAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, EmployeeAssignmentsTable, EmployeeAssignmentsColumn),
 	)
 }
-func newContactMechanismsStep() *sqlgraph.Step {
+func newPartyContactMechanismsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ContactMechanismsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ContactMechanismsTable, ContactMechanismsColumn),
+		sqlgraph.To(PartyContactMechanismsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyContactMechanismsTable, PartyContactMechanismsColumn),
 	)
 }
 func newAddressesStep() *sqlgraph.Step {

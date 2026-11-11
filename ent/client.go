@@ -20,6 +20,7 @@ import (
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
@@ -35,6 +36,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 
+	stdsql "database/sql"
 	"enterprise-system/ent/internal"
 )
 
@@ -61,6 +63,8 @@ type Client struct {
 	OrganizationProfile *OrganizationProfileClient
 	// Party is the client for interacting with the Party builders.
 	Party *PartyClient
+	// PartyContactMechanism is the client for interacting with the PartyContactMechanism builders.
+	PartyContactMechanism *PartyContactMechanismClient
 	// PartyMergeLog is the client for interacting with the PartyMergeLog builders.
 	PartyMergeLog *PartyMergeLogClient
 	// PartyRole is the client for interacting with the PartyRole builders.
@@ -97,6 +101,7 @@ func (c *Client) init() {
 	c.JobFamily = NewJobFamilyClient(c.config)
 	c.OrganizationProfile = NewOrganizationProfileClient(c.config)
 	c.Party = NewPartyClient(c.config)
+	c.PartyContactMechanism = NewPartyContactMechanismClient(c.config)
 	c.PartyMergeLog = NewPartyMergeLogClient(c.config)
 	c.PartyRole = NewPartyRoleClient(c.config)
 	c.PasswordResetToken = NewPasswordResetTokenClient(c.config)
@@ -198,25 +203,26 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                 ctx,
-		config:              cfg,
-		Address:             NewAddressClient(cfg),
-		ContactMechanism:    NewContactMechanismClient(cfg),
-		Department:          NewDepartmentClient(cfg),
-		Employee:            NewEmployeeClient(cfg),
-		EmployeeAssignment:  NewEmployeeAssignmentClient(cfg),
-		Job:                 NewJobClient(cfg),
-		JobFamily:           NewJobFamilyClient(cfg),
-		OrganizationProfile: NewOrganizationProfileClient(cfg),
-		Party:               NewPartyClient(cfg),
-		PartyMergeLog:       NewPartyMergeLogClient(cfg),
-		PartyRole:           NewPartyRoleClient(cfg),
-		PasswordResetToken:  NewPasswordResetTokenClient(cfg),
-		PersonProfile:       NewPersonProfileClient(cfg),
-		RoleType:            NewRoleTypeClient(cfg),
-		Session:             NewSessionClient(cfg),
-		Subscription:        NewSubscriptionClient(cfg),
-		UserCredentials:     NewUserCredentialsClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		Address:               NewAddressClient(cfg),
+		ContactMechanism:      NewContactMechanismClient(cfg),
+		Department:            NewDepartmentClient(cfg),
+		Employee:              NewEmployeeClient(cfg),
+		EmployeeAssignment:    NewEmployeeAssignmentClient(cfg),
+		Job:                   NewJobClient(cfg),
+		JobFamily:             NewJobFamilyClient(cfg),
+		OrganizationProfile:   NewOrganizationProfileClient(cfg),
+		Party:                 NewPartyClient(cfg),
+		PartyContactMechanism: NewPartyContactMechanismClient(cfg),
+		PartyMergeLog:         NewPartyMergeLogClient(cfg),
+		PartyRole:             NewPartyRoleClient(cfg),
+		PasswordResetToken:    NewPasswordResetTokenClient(cfg),
+		PersonProfile:         NewPersonProfileClient(cfg),
+		RoleType:              NewRoleTypeClient(cfg),
+		Session:               NewSessionClient(cfg),
+		Subscription:          NewSubscriptionClient(cfg),
+		UserCredentials:       NewUserCredentialsClient(cfg),
 	}, nil
 }
 
@@ -234,25 +240,26 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                 ctx,
-		config:              cfg,
-		Address:             NewAddressClient(cfg),
-		ContactMechanism:    NewContactMechanismClient(cfg),
-		Department:          NewDepartmentClient(cfg),
-		Employee:            NewEmployeeClient(cfg),
-		EmployeeAssignment:  NewEmployeeAssignmentClient(cfg),
-		Job:                 NewJobClient(cfg),
-		JobFamily:           NewJobFamilyClient(cfg),
-		OrganizationProfile: NewOrganizationProfileClient(cfg),
-		Party:               NewPartyClient(cfg),
-		PartyMergeLog:       NewPartyMergeLogClient(cfg),
-		PartyRole:           NewPartyRoleClient(cfg),
-		PasswordResetToken:  NewPasswordResetTokenClient(cfg),
-		PersonProfile:       NewPersonProfileClient(cfg),
-		RoleType:            NewRoleTypeClient(cfg),
-		Session:             NewSessionClient(cfg),
-		Subscription:        NewSubscriptionClient(cfg),
-		UserCredentials:     NewUserCredentialsClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		Address:               NewAddressClient(cfg),
+		ContactMechanism:      NewContactMechanismClient(cfg),
+		Department:            NewDepartmentClient(cfg),
+		Employee:              NewEmployeeClient(cfg),
+		EmployeeAssignment:    NewEmployeeAssignmentClient(cfg),
+		Job:                   NewJobClient(cfg),
+		JobFamily:             NewJobFamilyClient(cfg),
+		OrganizationProfile:   NewOrganizationProfileClient(cfg),
+		Party:                 NewPartyClient(cfg),
+		PartyContactMechanism: NewPartyContactMechanismClient(cfg),
+		PartyMergeLog:         NewPartyMergeLogClient(cfg),
+		PartyRole:             NewPartyRoleClient(cfg),
+		PasswordResetToken:    NewPasswordResetTokenClient(cfg),
+		PersonProfile:         NewPersonProfileClient(cfg),
+		RoleType:              NewRoleTypeClient(cfg),
+		Session:               NewSessionClient(cfg),
+		Subscription:          NewSubscriptionClient(cfg),
+		UserCredentials:       NewUserCredentialsClient(cfg),
 	}, nil
 }
 
@@ -283,9 +290,9 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Address, c.ContactMechanism, c.Department, c.Employee, c.EmployeeAssignment,
-		c.Job, c.JobFamily, c.OrganizationProfile, c.Party, c.PartyMergeLog,
-		c.PartyRole, c.PasswordResetToken, c.PersonProfile, c.RoleType, c.Session,
-		c.Subscription, c.UserCredentials,
+		c.Job, c.JobFamily, c.OrganizationProfile, c.Party, c.PartyContactMechanism,
+		c.PartyMergeLog, c.PartyRole, c.PasswordResetToken, c.PersonProfile,
+		c.RoleType, c.Session, c.Subscription, c.UserCredentials,
 	} {
 		n.Use(hooks...)
 	}
@@ -296,9 +303,9 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Address, c.ContactMechanism, c.Department, c.Employee, c.EmployeeAssignment,
-		c.Job, c.JobFamily, c.OrganizationProfile, c.Party, c.PartyMergeLog,
-		c.PartyRole, c.PasswordResetToken, c.PersonProfile, c.RoleType, c.Session,
-		c.Subscription, c.UserCredentials,
+		c.Job, c.JobFamily, c.OrganizationProfile, c.Party, c.PartyContactMechanism,
+		c.PartyMergeLog, c.PartyRole, c.PasswordResetToken, c.PersonProfile,
+		c.RoleType, c.Session, c.Subscription, c.UserCredentials,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -325,6 +332,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.OrganizationProfile.mutate(ctx, m)
 	case *PartyMutation:
 		return c.Party.mutate(ctx, m)
+	case *PartyContactMechanismMutation:
+		return c.PartyContactMechanism.mutate(ctx, m)
 	case *PartyMergeLogMutation:
 		return c.PartyMergeLog.mutate(ctx, m)
 	case *PartyRoleMutation:
@@ -625,38 +634,19 @@ func (c *ContactMechanismClient) GetX(ctx context.Context, id uuid.UUID) *Contac
 	return obj
 }
 
-// QueryTenant queries the tenant edge of a ContactMechanism.
-func (c *ContactMechanismClient) QueryTenant(_m *ContactMechanism) *SubscriptionQuery {
-	query := (&SubscriptionClient{config: c.config}).Query()
+// QueryPartyContactMechanisms queries the party_contact_mechanisms edge of a ContactMechanism.
+func (c *ContactMechanismClient) QueryPartyContactMechanisms(_m *ContactMechanism) *PartyContactMechanismQuery {
+	query := (&PartyContactMechanismClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(contactmechanism.Table, contactmechanism.FieldID, id),
-			sqlgraph.To(subscription.Table, subscription.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, contactmechanism.TenantTable, contactmechanism.TenantColumn),
+			sqlgraph.To(partycontactmechanism.Table, partycontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, contactmechanism.PartyContactMechanismsTable, contactmechanism.PartyContactMechanismsColumn),
 		)
 		schemaConfig := _m.schemaConfig
-		step.To.Schema = schemaConfig.Subscription
-		step.Edge.Schema = schemaConfig.ContactMechanism
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryParty queries the party edge of a ContactMechanism.
-func (c *ContactMechanismClient) QueryParty(_m *ContactMechanism) *PartyQuery {
-	query := (&PartyClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(contactmechanism.Table, contactmechanism.FieldID, id),
-			sqlgraph.To(party.Table, party.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, contactmechanism.PartyTable, contactmechanism.PartyColumn),
-		)
-		schemaConfig := _m.schemaConfig
-		step.To.Schema = schemaConfig.Party
-		step.Edge.Schema = schemaConfig.ContactMechanism
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -2145,19 +2135,19 @@ func (c *PartyClient) QueryPartyRoles(_m *Party) *PartyRoleQuery {
 	return query
 }
 
-// QueryContactMechanisms queries the contact_mechanisms edge of a Party.
-func (c *PartyClient) QueryContactMechanisms(_m *Party) *ContactMechanismQuery {
-	query := (&ContactMechanismClient{config: c.config}).Query()
+// QueryPartyContactMechanisms queries the party_contact_mechanisms edge of a Party.
+func (c *PartyClient) QueryPartyContactMechanisms(_m *Party) *PartyContactMechanismQuery {
+	query := (&PartyContactMechanismClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(party.Table, party.FieldID, id),
-			sqlgraph.To(contactmechanism.Table, contactmechanism.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, party.ContactMechanismsTable, party.ContactMechanismsColumn),
+			sqlgraph.To(partycontactmechanism.Table, partycontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, party.PartyContactMechanismsTable, party.PartyContactMechanismsColumn),
 		)
 		schemaConfig := _m.schemaConfig
-		step.To.Schema = schemaConfig.ContactMechanism
-		step.Edge.Schema = schemaConfig.ContactMechanism
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -2338,6 +2328,215 @@ func (c *PartyClient) mutate(ctx context.Context, m *PartyMutation) (Value, erro
 		return (&PartyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Party mutation op: %q", m.Op())
+	}
+}
+
+// PartyContactMechanismClient is a client for the PartyContactMechanism schema.
+type PartyContactMechanismClient struct {
+	config
+}
+
+// NewPartyContactMechanismClient returns a client for the PartyContactMechanism from the given config.
+func NewPartyContactMechanismClient(c config) *PartyContactMechanismClient {
+	return &PartyContactMechanismClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `partycontactmechanism.Hooks(f(g(h())))`.
+func (c *PartyContactMechanismClient) Use(hooks ...Hook) {
+	c.hooks.PartyContactMechanism = append(c.hooks.PartyContactMechanism, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `partycontactmechanism.Intercept(f(g(h())))`.
+func (c *PartyContactMechanismClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PartyContactMechanism = append(c.inters.PartyContactMechanism, interceptors...)
+}
+
+// Create returns a builder for creating a PartyContactMechanism entity.
+func (c *PartyContactMechanismClient) Create() *PartyContactMechanismCreate {
+	mutation := newPartyContactMechanismMutation(c.config, OpCreate)
+	return &PartyContactMechanismCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PartyContactMechanism entities.
+func (c *PartyContactMechanismClient) CreateBulk(builders ...*PartyContactMechanismCreate) *PartyContactMechanismCreateBulk {
+	return &PartyContactMechanismCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PartyContactMechanismClient) MapCreateBulk(slice any, setFunc func(*PartyContactMechanismCreate, int)) *PartyContactMechanismCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PartyContactMechanismCreateBulk{err: fmt.Errorf("calling to PartyContactMechanismClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PartyContactMechanismCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PartyContactMechanismCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PartyContactMechanism.
+func (c *PartyContactMechanismClient) Update() *PartyContactMechanismUpdate {
+	mutation := newPartyContactMechanismMutation(c.config, OpUpdate)
+	return &PartyContactMechanismUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PartyContactMechanismClient) UpdateOne(_m *PartyContactMechanism) *PartyContactMechanismUpdateOne {
+	mutation := newPartyContactMechanismMutation(c.config, OpUpdateOne, withPartyContactMechanism(_m))
+	return &PartyContactMechanismUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PartyContactMechanismClient) UpdateOneID(id uuid.UUID) *PartyContactMechanismUpdateOne {
+	mutation := newPartyContactMechanismMutation(c.config, OpUpdateOne, withPartyContactMechanismID(id))
+	return &PartyContactMechanismUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PartyContactMechanism.
+func (c *PartyContactMechanismClient) Delete() *PartyContactMechanismDelete {
+	mutation := newPartyContactMechanismMutation(c.config, OpDelete)
+	return &PartyContactMechanismDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PartyContactMechanismClient) DeleteOne(_m *PartyContactMechanism) *PartyContactMechanismDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PartyContactMechanismClient) DeleteOneID(id uuid.UUID) *PartyContactMechanismDeleteOne {
+	builder := c.Delete().Where(partycontactmechanism.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PartyContactMechanismDeleteOne{builder}
+}
+
+// Query returns a query builder for PartyContactMechanism.
+func (c *PartyContactMechanismClient) Query() *PartyContactMechanismQuery {
+	return &PartyContactMechanismQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePartyContactMechanism},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PartyContactMechanism entity by its id.
+func (c *PartyContactMechanismClient) Get(ctx context.Context, id uuid.UUID) (*PartyContactMechanism, error) {
+	return c.Query().Where(partycontactmechanism.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PartyContactMechanismClient) GetX(ctx context.Context, id uuid.UUID) *PartyContactMechanism {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a PartyContactMechanism.
+func (c *PartyContactMechanismClient) QueryTenant(_m *PartyContactMechanism) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partycontactmechanism.Table, partycontactmechanism.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partycontactmechanism.TenantTable, partycontactmechanism.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryParty queries the party edge of a PartyContactMechanism.
+func (c *PartyContactMechanismClient) QueryParty(_m *PartyContactMechanism) *PartyQuery {
+	query := (&PartyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partycontactmechanism.Table, partycontactmechanism.FieldID, id),
+			sqlgraph.To(party.Table, party.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partycontactmechanism.PartyTable, partycontactmechanism.PartyColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Party
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryContactMechanism queries the contact_mechanism edge of a PartyContactMechanism.
+func (c *PartyContactMechanismClient) QueryContactMechanism(_m *PartyContactMechanism) *ContactMechanismQuery {
+	query := (&ContactMechanismClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partycontactmechanism.Table, partycontactmechanism.FieldID, id),
+			sqlgraph.To(contactmechanism.Table, contactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, partycontactmechanism.ContactMechanismTable, partycontactmechanism.ContactMechanismColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.ContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCredentials queries the credentials edge of a PartyContactMechanism.
+func (c *PartyContactMechanismClient) QueryCredentials(_m *PartyContactMechanism) *UserCredentialsQuery {
+	query := (&UserCredentialsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partycontactmechanism.Table, partycontactmechanism.FieldID, id),
+			sqlgraph.To(usercredentials.Table, usercredentials.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, partycontactmechanism.CredentialsTable, partycontactmechanism.CredentialsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.UserCredentials
+		step.Edge.Schema = schemaConfig.UserCredentials
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PartyContactMechanismClient) Hooks() []Hook {
+	return c.hooks.PartyContactMechanism
+}
+
+// Interceptors returns the client interceptors.
+func (c *PartyContactMechanismClient) Interceptors() []Interceptor {
+	return c.inters.PartyContactMechanism
+}
+
+func (c *PartyContactMechanismClient) mutate(ctx context.Context, m *PartyContactMechanismMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PartyContactMechanismCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PartyContactMechanismUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PartyContactMechanismUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PartyContactMechanismDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PartyContactMechanism mutation op: %q", m.Op())
 	}
 }
 
@@ -3684,19 +3883,19 @@ func (c *SubscriptionClient) QueryEmployeeAssignments(_m *Subscription) *Employe
 	return query
 }
 
-// QueryContactMechanisms queries the contact_mechanisms edge of a Subscription.
-func (c *SubscriptionClient) QueryContactMechanisms(_m *Subscription) *ContactMechanismQuery {
-	query := (&ContactMechanismClient{config: c.config}).Query()
+// QueryPartyContactMechanisms queries the party_contact_mechanisms edge of a Subscription.
+func (c *SubscriptionClient) QueryPartyContactMechanisms(_m *Subscription) *PartyContactMechanismQuery {
+	query := (&PartyContactMechanismClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(subscription.Table, subscription.FieldID, id),
-			sqlgraph.To(contactmechanism.Table, contactmechanism.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, subscription.ContactMechanismsTable, subscription.ContactMechanismsColumn),
+			sqlgraph.To(partycontactmechanism.Table, partycontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PartyContactMechanismsTable, subscription.PartyContactMechanismsColumn),
 		)
 		schemaConfig := _m.schemaConfig
-		step.To.Schema = schemaConfig.ContactMechanism
-		step.Edge.Schema = schemaConfig.ContactMechanism
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -3950,6 +4149,25 @@ func (c *UserCredentialsClient) QueryParty(_m *UserCredentials) *PartyQuery {
 	return query
 }
 
+// QueryPartyContactMechanism queries the party_contact_mechanism edge of a UserCredentials.
+func (c *UserCredentialsClient) QueryPartyContactMechanism(_m *UserCredentials) *PartyContactMechanismQuery {
+	query := (&PartyContactMechanismClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usercredentials.Table, usercredentials.FieldID, id),
+			sqlgraph.To(partycontactmechanism.Table, partycontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, usercredentials.PartyContactMechanismTable, usercredentials.PartyContactMechanismColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.UserCredentials
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserCredentialsClient) Hooks() []Hook {
 	return c.hooks.UserCredentials
@@ -3979,14 +4197,14 @@ func (c *UserCredentialsClient) mutate(ctx context.Context, m *UserCredentialsMu
 type (
 	hooks struct {
 		Address, ContactMechanism, Department, Employee, EmployeeAssignment, Job,
-		JobFamily, OrganizationProfile, Party, PartyMergeLog, PartyRole,
-		PasswordResetToken, PersonProfile, RoleType, Session, Subscription,
+		JobFamily, OrganizationProfile, Party, PartyContactMechanism, PartyMergeLog,
+		PartyRole, PasswordResetToken, PersonProfile, RoleType, Session, Subscription,
 		UserCredentials []ent.Hook
 	}
 	inters struct {
 		Address, ContactMechanism, Department, Employee, EmployeeAssignment, Job,
-		JobFamily, OrganizationProfile, Party, PartyMergeLog, PartyRole,
-		PasswordResetToken, PersonProfile, RoleType, Session, Subscription,
+		JobFamily, OrganizationProfile, Party, PartyContactMechanism, PartyMergeLog,
+		PartyRole, PasswordResetToken, PersonProfile, RoleType, Session, Subscription,
 		UserCredentials []ent.Interceptor
 	}
 )
@@ -3994,23 +4212,24 @@ type (
 var (
 	// DefaultSchemaConfig represents the default schema names for all tables as defined in ent/schema.
 	DefaultSchemaConfig = SchemaConfig{
-		Address:             tableSchemas[1],
-		ContactMechanism:    tableSchemas[1],
-		Department:          tableSchemas[1],
-		Employee:            tableSchemas[1],
-		EmployeeAssignment:  tableSchemas[1],
-		Job:                 tableSchemas[1],
-		JobFamily:           tableSchemas[1],
-		OrganizationProfile: tableSchemas[1],
-		Party:               tableSchemas[1],
-		PartyMergeLog:       tableSchemas[1],
-		PartyRole:           tableSchemas[1],
-		PasswordResetToken:  tableSchemas[1],
-		PersonProfile:       tableSchemas[1],
-		RoleType:            tableSchemas[0],
-		Session:             tableSchemas[1],
-		Subscription:        tableSchemas[0],
-		UserCredentials:     tableSchemas[1],
+		Address:               tableSchemas[1],
+		ContactMechanism:      tableSchemas[0],
+		Department:            tableSchemas[1],
+		Employee:              tableSchemas[1],
+		EmployeeAssignment:    tableSchemas[1],
+		Job:                   tableSchemas[1],
+		JobFamily:             tableSchemas[1],
+		OrganizationProfile:   tableSchemas[1],
+		Party:                 tableSchemas[1],
+		PartyContactMechanism: tableSchemas[1],
+		PartyMergeLog:         tableSchemas[1],
+		PartyRole:             tableSchemas[1],
+		PasswordResetToken:    tableSchemas[1],
+		PersonProfile:         tableSchemas[1],
+		RoleType:              tableSchemas[0],
+		Session:               tableSchemas[1],
+		Subscription:          tableSchemas[0],
+		UserCredentials:       tableSchemas[1],
 	}
 	tableSchemas = [...]string{"global", "tenants"}
 )
@@ -4025,4 +4244,28 @@ func AlternateSchema(schemaConfig SchemaConfig) Option {
 	return func(c *config) {
 		c.schemaConfig = schemaConfig
 	}
+}
+
+// ExecContext allows calling the underlying ExecContext method of the driver if it is supported by it.
+// See, database/sql#DB.ExecContext for more information.
+func (c *config) ExecContext(ctx context.Context, query string, args ...any) (stdsql.Result, error) {
+	ex, ok := c.driver.(interface {
+		ExecContext(context.Context, string, ...any) (stdsql.Result, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Driver.ExecContext is not supported")
+	}
+	return ex.ExecContext(ctx, query, args...)
+}
+
+// QueryContext allows calling the underlying QueryContext method of the driver if it is supported by it.
+// See, database/sql#DB.QueryContext for more information.
+func (c *config) QueryContext(ctx context.Context, query string, args ...any) (*stdsql.Rows, error) {
+	q, ok := c.driver.(interface {
+		QueryContext(context.Context, string, ...any) (*stdsql.Rows, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Driver.QueryContext is not supported")
+	}
+	return q.QueryContext(ctx, query, args...)
 }

@@ -64,11 +64,15 @@ func mapError(err error) (int, string) {
 	case errors.Is(err, context.Canceled):
 		return http.StatusRequestTimeout, "request_timeout"
 	case errors.Is(err, domain.ErrAlreadyDeleted),
+		errors.Is(err, domain.ErrTenantSlugTaken),
+		errors.Is(err, domain.ErrTenantAdminEmailTaken),
 		errors.Is(err, domain.ErrPartyMergeTargetNotActive),
 		errors.Is(err, domain.ErrPartyNotMergeable),
+		errors.Is(err, auth.ErrConcurrentModification),
 		errors.Is(err, domain.ErrPartyTenantMismatch):
 		return http.StatusConflict, "conflict"
 	case errors.Is(err, ErrBadRequest),
+		errors.Is(err, domain.ErrInvalidTenantRegistration),
 		errors.Is(err, auth.Err2FANotEnabled),
 		errors.Is(err, auth.ErrWeakPassword),
 		errors.Is(err, auth.ErrSamePassword),

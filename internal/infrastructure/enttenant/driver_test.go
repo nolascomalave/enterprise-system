@@ -97,7 +97,9 @@ func TestDriverTxInjectsSessionContext(t *testing.T) {
 	tx, err := drv.Tx(WithSessionContext(context.Background(), sc))
 
 	require.NoError(t, err)
-	require.Same(t, ftx, tx)
+	stx, ok := tx.(*sessionTx)
+	require.True(t, ok)
+	require.Same(t, ftx, stx.Tx)
 	require.Len(t, ftx.calls, 1)
 
 	call := ftx.calls[0]
@@ -116,7 +118,9 @@ func TestDriverTxWithoutSessionContextDoesNotExec(t *testing.T) {
 	tx, err := drv.Tx(context.Background())
 
 	require.NoError(t, err)
-	require.Same(t, ftx, tx)
+	stx, ok := tx.(*sessionTx)
+	require.True(t, ok)
+	require.Same(t, ftx, stx.Tx)
 	assert.Empty(t, ftx.calls)
 }
 
@@ -165,7 +169,9 @@ func TestDriverBeginTxInjectsSessionContext(t *testing.T) {
 	tx, err := drv.BeginTx(WithSessionContext(context.Background(), testSessionContext()), opts)
 
 	require.NoError(t, err)
-	require.Same(t, ftx, tx)
+	stx, ok := tx.(*sessionTx)
+	require.True(t, ok)
+	require.Same(t, ftx, stx.Tx)
 	assert.Same(t, opts, fdrv.beginOpts)
 	require.Len(t, ftx.calls, 1)
 	assert.Contains(t, ftx.calls[0].query, "app.current_tenant_id")
@@ -182,4 +188,73 @@ func TestNewClientUsesWrappedDriver(t *testing.T) {
 	require.NotNil(t, tx)
 	require.Len(t, ftx.calls, 1)
 	assert.Contains(t, ftx.calls[0].query, "app.current_tenant_id")
+}
+
+func TestSessionTxAppliesLateTenantContext(t *testing.T) {
+	ftx := &fakeTx{}
+	drv := NewDriver(&fakeDriver{tx: ftx})
+
+	tx, err := drv.Tx(context.Background())
+	require.NoError(t, err)
+	stx := tx.(*sessionTx)
+
+	ctx := WithSessionContext(context.Background(), SessionContext{TenantID: testSessionContext().TenantID})
+	require.NoError(t, stx.Exec(ctx, "SELECT party", nil, nil))
+	require.Len(t, ftx.calls, 2)
+	assert.Contains(t, ftx.calls[0].query, "app.current_tenant_id")
+	assert.Equal(t, "SELECT party", ftx.calls[1].query)
+
+	// The same context must not issue set_config again.
+	require.NoError(t, stx.Query(ctx, "SELECT profile", nil, nil))
+	require.Len(t, ftx.calls, 2)
+	assert.Equal(t, 1, ftx.queryCalls)
+}
+
+func TestSessionTxRejectsTenantSwitchInsideTransaction(t *testing.T) {
+	ftx := &fakeTx{}
+	drv := NewDriver(&fakeDriver{tx: ftx})
+	tx, err := drv.Tx(WithSessionContext(context.Background(), testSessionContext()))
+	require.NoError(t, err)
+	stx := tx.(*sessionTx)
+	before := len(ftx.calls)
+
+	other := SessionContext{TenantID: uuid.New()}
+	err = stx.Exec(WithSessionContext(context.Background(), other), "SELECT party", nil, nil)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot change tenant")
+	assert.Len(t, ftx.calls, before, "no query may run under the wrong tenant")
+}
+
+func TestSessionTxRejectsMissingContextAfterBinding(t *testing.T) {
+	ftx := &fakeTx{}
+	drv := NewDriver(&fakeDriver{tx: ftx})
+	tx, err := drv.Tx(WithSessionContext(context.Background(), testSessionContext()))
+	require.NoError(t, err)
+	stx := tx.(*sessionTx)
+	before := len(ftx.calls)
+
+	err = stx.Exec(context.Background(), "SELECT party", nil, nil)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "missing session context")
+	assert.Len(t, ftx.calls, before, "fail closed instead of reusing the previous tenant")
+}
+
+func TestSessionTxAllowsUserUpdateWithinSameTenant(t *testing.T) {
+	sc := testSessionContext()
+	ftx := &fakeTx{}
+	drv := NewDriver(&fakeDriver{tx: ftx})
+	tx, err := drv.Tx(WithSessionContext(context.Background(), sc))
+	require.NoError(t, err)
+	stx := tx.(*sessionTx)
+
+	updated := sc
+	updated.UserID = uuid.New()
+	require.NoError(t, stx.Exec(WithSessionContext(context.Background(), updated), "SELECT party", nil, nil))
+
+	require.Len(t, ftx.calls, 3)
+	assert.Contains(t, ftx.calls[1].query, "app.current_tenant_id")
+	assert.Equal(t, []any{updated.TenantID.String(), updated.UserID.String(), updated.SessionID.String()}, ftx.calls[1].args)
+	assert.Equal(t, "SELECT party", ftx.calls[2].query)
 }

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Reglas obligatorias del proyecto (transacciones, RLS, migraciones...).
+  "instructions": [".opencode/rules/*.md"],
+  "mcp": {
+    "postgres": {
+      "type": "local",
+      "command": [
+        "docker",
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "DATABASE_URI",
+        "crystaldba/postgres-mcp:0.3.0",
+        "--access-mode=restricted"
+      ],
+      "environment": {
+        "DATABASE_URI": "{env:DATABASE_URL}"
+      }
+    }
+  }
+}

@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type PersonProfileCreate struct {
 	config
 	mutation *PersonProfileMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTenantID sets the "tenant_id" field.
@@ -266,6 +269,7 @@ func (_c *PersonProfileCreate) createSpec() (*PersonProfile, *sqlgraph.CreateSpe
 		_spec = sqlgraph.NewCreateSpec(personprofile.Table, sqlgraph.NewFieldSpec(personprofile.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.PersonProfile
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -341,11 +345,436 @@ func (_c *PersonProfileCreate) createSpec() (*PersonProfile, *sqlgraph.CreateSpe
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PersonProfile.Create().
+//		SetTenantID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PersonProfileUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PersonProfileCreate) OnConflict(opts ...sql.ConflictOption) *PersonProfileUpsertOne {
+	_c.conflict = opts
+	return &PersonProfileUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PersonProfile.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PersonProfileCreate) OnConflictColumns(columns ...string) *PersonProfileUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PersonProfileUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PersonProfileUpsertOne is the builder for "upsert"-ing
+	//  one PersonProfile node.
+	PersonProfileUpsertOne struct {
+		create *PersonProfileCreate
+	}
+
+	// PersonProfileUpsert is the "OnConflict" setter.
+	PersonProfileUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PersonProfileUpsert) SetTenantID(v uuid.UUID) *PersonProfileUpsert {
+	u.Set(personprofile.FieldTenantID, v)
+	return u
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PersonProfileUpsert) UpdateTenantID() *PersonProfileUpsert {
+	u.SetExcluded(personprofile.FieldTenantID)
+	return u
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *PersonProfileUpsert) SetPartyID(v uuid.UUID) *PersonProfileUpsert {
+	u.Set(personprofile.FieldPartyID, v)
+	return u
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *PersonProfileUpsert) UpdatePartyID() *PersonProfileUpsert {
+	u.SetExcluded(personprofile.FieldPartyID)
+	return u
+}
+
+// SetFirstName sets the "first_name" field.
+func (u *PersonProfileUpsert) SetFirstName(v string) *PersonProfileUpsert {
+	u.Set(personprofile.FieldFirstName, v)
+	return u
+}
+
+// UpdateFirstName sets the "first_name" field to the value that was provided on create.
+func (u *PersonProfileUpsert) UpdateFirstName() *PersonProfileUpsert {
+	u.SetExcluded(personprofile.FieldFirstName)
+	return u
+}
+
+// SetMiddleName sets the "middle_name" field.
+func (u *PersonProfileUpsert) SetMiddleName(v string) *PersonProfileUpsert {
+	u.Set(personprofile.FieldMiddleName, v)
+	return u
+}
+
+// UpdateMiddleName sets the "middle_name" field to the value that was provided on create.
+func (u *PersonProfileUpsert) UpdateMiddleName() *PersonProfileUpsert {
+	u.SetExcluded(personprofile.FieldMiddleName)
+	return u
+}
+
+// ClearMiddleName clears the value of the "middle_name" field.
+func (u *PersonProfileUpsert) ClearMiddleName() *PersonProfileUpsert {
+	u.SetNull(personprofile.FieldMiddleName)
+	return u
+}
+
+// SetLastName sets the "last_name" field.
+func (u *PersonProfileUpsert) SetLastName(v string) *PersonProfileUpsert {
+	u.Set(personprofile.FieldLastName, v)
+	return u
+}
+
+// UpdateLastName sets the "last_name" field to the value that was provided on create.
+func (u *PersonProfileUpsert) UpdateLastName() *PersonProfileUpsert {
+	u.SetExcluded(personprofile.FieldLastName)
+	return u
+}
+
+// SetSecondLastName sets the "second_last_name" field.
+func (u *PersonProfileUpsert) SetSecondLastName(v string) *PersonProfileUpsert {
+	u.Set(personprofile.FieldSecondLastName, v)
+	return u
+}
+
+// UpdateSecondLastName sets the "second_last_name" field to the value that was provided on create.
+func (u *PersonProfileUpsert) UpdateSecondLastName() *PersonProfileUpsert {
+	u.SetExcluded(personprofile.FieldSecondLastName)
+	return u
+}
+
+// ClearSecondLastName clears the value of the "second_last_name" field.
+func (u *PersonProfileUpsert) ClearSecondLastName() *PersonProfileUpsert {
+	u.SetNull(personprofile.FieldSecondLastName)
+	return u
+}
+
+// SetBirthDate sets the "birth_date" field.
+func (u *PersonProfileUpsert) SetBirthDate(v time.Time) *PersonProfileUpsert {
+	u.Set(personprofile.FieldBirthDate, v)
+	return u
+}
+
+// UpdateBirthDate sets the "birth_date" field to the value that was provided on create.
+func (u *PersonProfileUpsert) UpdateBirthDate() *PersonProfileUpsert {
+	u.SetExcluded(personprofile.FieldBirthDate)
+	return u
+}
+
+// ClearBirthDate clears the value of the "birth_date" field.
+func (u *PersonProfileUpsert) ClearBirthDate() *PersonProfileUpsert {
+	u.SetNull(personprofile.FieldBirthDate)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PersonProfileUpsert) SetUpdatedAt(v time.Time) *PersonProfileUpsert {
+	u.Set(personprofile.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PersonProfileUpsert) UpdateUpdatedAt() *PersonProfileUpsert {
+	u.SetExcluded(personprofile.FieldUpdatedAt)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *PersonProfileUpsert) SetDeletedAt(v time.Time) *PersonProfileUpsert {
+	u.Set(personprofile.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *PersonProfileUpsert) UpdateDeletedAt() *PersonProfileUpsert {
+	u.SetExcluded(personprofile.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *PersonProfileUpsert) ClearDeletedAt() *PersonProfileUpsert {
+	u.SetNull(personprofile.FieldDeletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PersonProfile.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(personprofile.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PersonProfileUpsertOne) UpdateNewValues() *PersonProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(personprofile.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(personprofile.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PersonProfile.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PersonProfileUpsertOne) Ignore() *PersonProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PersonProfileUpsertOne) DoNothing() *PersonProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PersonProfileCreate.OnConflict
+// documentation for more info.
+func (u *PersonProfileUpsertOne) Update(set func(*PersonProfileUpsert)) *PersonProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PersonProfileUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PersonProfileUpsertOne) SetTenantID(v uuid.UUID) *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PersonProfileUpsertOne) UpdateTenantID() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *PersonProfileUpsertOne) SetPartyID(v uuid.UUID) *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *PersonProfileUpsertOne) UpdatePartyID() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetFirstName sets the "first_name" field.
+func (u *PersonProfileUpsertOne) SetFirstName(v string) *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetFirstName(v)
+	})
+}
+
+// UpdateFirstName sets the "first_name" field to the value that was provided on create.
+func (u *PersonProfileUpsertOne) UpdateFirstName() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateFirstName()
+	})
+}
+
+// SetMiddleName sets the "middle_name" field.
+func (u *PersonProfileUpsertOne) SetMiddleName(v string) *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetMiddleName(v)
+	})
+}
+
+// UpdateMiddleName sets the "middle_name" field to the value that was provided on create.
+func (u *PersonProfileUpsertOne) UpdateMiddleName() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateMiddleName()
+	})
+}
+
+// ClearMiddleName clears the value of the "middle_name" field.
+func (u *PersonProfileUpsertOne) ClearMiddleName() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.ClearMiddleName()
+	})
+}
+
+// SetLastName sets the "last_name" field.
+func (u *PersonProfileUpsertOne) SetLastName(v string) *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetLastName(v)
+	})
+}
+
+// UpdateLastName sets the "last_name" field to the value that was provided on create.
+func (u *PersonProfileUpsertOne) UpdateLastName() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateLastName()
+	})
+}
+
+// SetSecondLastName sets the "second_last_name" field.
+func (u *PersonProfileUpsertOne) SetSecondLastName(v string) *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetSecondLastName(v)
+	})
+}
+
+// UpdateSecondLastName sets the "second_last_name" field to the value that was provided on create.
+func (u *PersonProfileUpsertOne) UpdateSecondLastName() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateSecondLastName()
+	})
+}
+
+// ClearSecondLastName clears the value of the "second_last_name" field.
+func (u *PersonProfileUpsertOne) ClearSecondLastName() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.ClearSecondLastName()
+	})
+}
+
+// SetBirthDate sets the "birth_date" field.
+func (u *PersonProfileUpsertOne) SetBirthDate(v time.Time) *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetBirthDate(v)
+	})
+}
+
+// UpdateBirthDate sets the "birth_date" field to the value that was provided on create.
+func (u *PersonProfileUpsertOne) UpdateBirthDate() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateBirthDate()
+	})
+}
+
+// ClearBirthDate clears the value of the "birth_date" field.
+func (u *PersonProfileUpsertOne) ClearBirthDate() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.ClearBirthDate()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PersonProfileUpsertOne) SetUpdatedAt(v time.Time) *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PersonProfileUpsertOne) UpdateUpdatedAt() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *PersonProfileUpsertOne) SetDeletedAt(v time.Time) *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *PersonProfileUpsertOne) UpdateDeletedAt() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *PersonProfileUpsertOne) ClearDeletedAt() *PersonProfileUpsertOne {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PersonProfileUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PersonProfileCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PersonProfileUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PersonProfileUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PersonProfileUpsertOne.ID is not supported by MySQL driver. Use PersonProfileUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PersonProfileUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PersonProfileCreateBulk is the builder for creating many PersonProfile entities in bulk.
 type PersonProfileCreateBulk struct {
 	config
 	err      error
 	builders []*PersonProfileCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PersonProfile entities in the database.
@@ -375,6 +804,7 @@ func (_c *PersonProfileCreateBulk) Save(ctx context.Context) ([]*PersonProfile, 
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -421,6 +851,277 @@ func (_c *PersonProfileCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PersonProfileCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PersonProfile.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PersonProfileUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PersonProfileCreateBulk) OnConflict(opts ...sql.ConflictOption) *PersonProfileUpsertBulk {
+	_c.conflict = opts
+	return &PersonProfileUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PersonProfile.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PersonProfileCreateBulk) OnConflictColumns(columns ...string) *PersonProfileUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PersonProfileUpsertBulk{
+		create: _c,
+	}
+}
+
+// PersonProfileUpsertBulk is the builder for "upsert"-ing
+// a bulk of PersonProfile nodes.
+type PersonProfileUpsertBulk struct {
+	create *PersonProfileCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PersonProfile.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(personprofile.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PersonProfileUpsertBulk) UpdateNewValues() *PersonProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(personprofile.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(personprofile.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PersonProfile.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PersonProfileUpsertBulk) Ignore() *PersonProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PersonProfileUpsertBulk) DoNothing() *PersonProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PersonProfileCreateBulk.OnConflict
+// documentation for more info.
+func (u *PersonProfileUpsertBulk) Update(set func(*PersonProfileUpsert)) *PersonProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PersonProfileUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PersonProfileUpsertBulk) SetTenantID(v uuid.UUID) *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PersonProfileUpsertBulk) UpdateTenantID() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *PersonProfileUpsertBulk) SetPartyID(v uuid.UUID) *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *PersonProfileUpsertBulk) UpdatePartyID() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetFirstName sets the "first_name" field.
+func (u *PersonProfileUpsertBulk) SetFirstName(v string) *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetFirstName(v)
+	})
+}
+
+// UpdateFirstName sets the "first_name" field to the value that was provided on create.
+func (u *PersonProfileUpsertBulk) UpdateFirstName() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateFirstName()
+	})
+}
+
+// SetMiddleName sets the "middle_name" field.
+func (u *PersonProfileUpsertBulk) SetMiddleName(v string) *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetMiddleName(v)
+	})
+}
+
+// UpdateMiddleName sets the "middle_name" field to the value that was provided on create.
+func (u *PersonProfileUpsertBulk) UpdateMiddleName() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateMiddleName()
+	})
+}
+
+// ClearMiddleName clears the value of the "middle_name" field.
+func (u *PersonProfileUpsertBulk) ClearMiddleName() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.ClearMiddleName()
+	})
+}
+
+// SetLastName sets the "last_name" field.
+func (u *PersonProfileUpsertBulk) SetLastName(v string) *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetLastName(v)
+	})
+}
+
+// UpdateLastName sets the "last_name" field to the value that was provided on create.
+func (u *PersonProfileUpsertBulk) UpdateLastName() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateLastName()
+	})
+}
+
+// SetSecondLastName sets the "second_last_name" field.
+func (u *PersonProfileUpsertBulk) SetSecondLastName(v string) *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetSecondLastName(v)
+	})
+}
+
+// UpdateSecondLastName sets the "second_last_name" field to the value that was provided on create.
+func (u *PersonProfileUpsertBulk) UpdateSecondLastName() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateSecondLastName()
+	})
+}
+
+// ClearSecondLastName clears the value of the "second_last_name" field.
+func (u *PersonProfileUpsertBulk) ClearSecondLastName() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.ClearSecondLastName()
+	})
+}
+
+// SetBirthDate sets the "birth_date" field.
+func (u *PersonProfileUpsertBulk) SetBirthDate(v time.Time) *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetBirthDate(v)
+	})
+}
+
+// UpdateBirthDate sets the "birth_date" field to the value that was provided on create.
+func (u *PersonProfileUpsertBulk) UpdateBirthDate() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateBirthDate()
+	})
+}
+
+// ClearBirthDate clears the value of the "birth_date" field.
+func (u *PersonProfileUpsertBulk) ClearBirthDate() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.ClearBirthDate()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PersonProfileUpsertBulk) SetUpdatedAt(v time.Time) *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PersonProfileUpsertBulk) UpdateUpdatedAt() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *PersonProfileUpsertBulk) SetDeletedAt(v time.Time) *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *PersonProfileUpsertBulk) UpdateDeletedAt() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *PersonProfileUpsertBulk) ClearDeletedAt() *PersonProfileUpsertBulk {
+	return u.Update(func(s *PersonProfileUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PersonProfileUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PersonProfileCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PersonProfileCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PersonProfileUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

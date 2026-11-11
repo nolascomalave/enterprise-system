@@ -33,17 +33,21 @@ type CreatePartyInput struct {
 
 type PartyService struct {
 	repo domain.PartyRepository
+	tx   TransactionManager
 	now  func() time.Time
 }
 
-func NewPartyService(repo domain.PartyRepository, now func() time.Time) *PartyService {
+func NewPartyService(repo domain.PartyRepository, tx TransactionManager, now func() time.Time) *PartyService {
 	if now == nil {
 		now = time.Now
 	}
-	return &PartyService{repo: repo, now: now}
+	return &PartyService{repo: repo, tx: tx, now: now}
 }
 
 func (s *PartyService) Create(ctx context.Context, in CreatePartyInput) (*domain.PartyDetail, error) {
+	if s == nil || s.repo == nil || s.tx == nil {
+		return nil, fmt.Errorf("%w: nil dependencies", domain.ErrInvalidParty)
+	}
 	now := s.now()
 	party, err := domain.NewParty(in.TenantID, in.PartyType, in.DisplayName, now)
 	if err != nil {
@@ -87,16 +91,45 @@ func (s *PartyService) Create(ctx context.Context, in CreatePartyInput) (*domain
 		detail.OrganizationProfile = profile
 	}
 
-	if err := s.repo.CreateParty(ctx, party, detail.PersonProfile, detail.OrganizationProfile); err != nil {
-		return nil, fmt.Errorf("create party: %w", err)
+	if err := s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
+		if err := s.repo.CreateParty(ctx, party, detail.PersonProfile, detail.OrganizationProfile); err != nil {
+			return fmt.Errorf("create party: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 	return detail, nil
 }
 
 func (s *PartyService) Get(ctx context.Context, tenantID, partyID uuid.UUID) (*domain.PartyDetail, error) {
-	return s.repo.GetPartyDetail(ctx, tenantID, partyID)
+	if s == nil || s.repo == nil || s.tx == nil {
+		return nil, fmt.Errorf("%w: nil dependencies", domain.ErrInvalidParty)
+	}
+	var detail *domain.PartyDetail
+	err := s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		detail, err = s.repo.GetPartyDetail(ctx, tenantID, partyID)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return detail, nil
 }
 
 func (s *PartyService) List(ctx context.Context, tenantID uuid.UUID) ([]*domain.Party, error) {
-	return s.repo.ListParties(ctx, tenantID)
+	if s == nil || s.repo == nil || s.tx == nil {
+		return nil, fmt.Errorf("%w: nil dependencies", domain.ErrInvalidParty)
+	}
+	var parties []*domain.Party
+	err := s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		parties, err = s.repo.ListParties(ctx, tenantID)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return parties, nil
 }

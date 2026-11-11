@@ -55,8 +55,8 @@ type PartyEdges struct {
 	OrganizationProfile *OrganizationProfile `json:"organization_profile,omitempty"`
 	// PartyRoles holds the value of the party_roles edge.
 	PartyRoles []*PartyRole `json:"party_roles,omitempty"`
-	// ContactMechanisms holds the value of the contact_mechanisms edge.
-	ContactMechanisms []*ContactMechanism `json:"contact_mechanisms,omitempty"`
+	// PartyContactMechanisms holds the value of the party_contact_mechanisms edge.
+	PartyContactMechanisms []*PartyContactMechanism `json:"party_contact_mechanisms,omitempty"`
 	// Addresses holds the value of the addresses edge.
 	Addresses []*Address `json:"addresses,omitempty"`
 	// Sessions holds the value of the sessions edge.
@@ -120,13 +120,13 @@ func (e PartyEdges) PartyRolesOrErr() ([]*PartyRole, error) {
 	return nil, &NotLoadedError{edge: "party_roles"}
 }
 
-// ContactMechanismsOrErr returns the ContactMechanisms value or an error if the edge
+// PartyContactMechanismsOrErr returns the PartyContactMechanisms value or an error if the edge
 // was not loaded in eager-loading.
-func (e PartyEdges) ContactMechanismsOrErr() ([]*ContactMechanism, error) {
+func (e PartyEdges) PartyContactMechanismsOrErr() ([]*PartyContactMechanism, error) {
 	if e.loadedTypes[4] {
-		return e.ContactMechanisms, nil
+		return e.PartyContactMechanisms, nil
 	}
-	return nil, &NotLoadedError{edge: "contact_mechanisms"}
+	return nil, &NotLoadedError{edge: "party_contact_mechanisms"}
 }
 
 // AddressesOrErr returns the Addresses value or an error if the edge
@@ -322,9 +322,9 @@ func (_m *Party) QueryPartyRoles() *PartyRoleQuery {
 	return NewPartyClient(_m.config).QueryPartyRoles(_m)
 }
 
-// QueryContactMechanisms queries the "contact_mechanisms" edge of the Party entity.
-func (_m *Party) QueryContactMechanisms() *ContactMechanismQuery {
-	return NewPartyClient(_m.config).QueryContactMechanisms(_m)
+// QueryPartyContactMechanisms queries the "party_contact_mechanisms" edge of the Party entity.
+func (_m *Party) QueryPartyContactMechanisms() *PartyContactMechanismQuery {
+	return NewPartyClient(_m.config).QueryPartyContactMechanisms(_m)
 }
 
 // QueryAddresses queries the "addresses" edge of the Party entity.

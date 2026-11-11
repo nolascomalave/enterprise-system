@@ -12,6 +12,7 @@ import (
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
@@ -79,27 +80,9 @@ func init() {
 	contactmechanismFields := schema.ContactMechanism{}.Fields()
 	_ = contactmechanismFields
 	// contactmechanismDescValue is the schema descriptor for value field.
-	contactmechanismDescValue := contactmechanismFields[4].Descriptor()
+	contactmechanismDescValue := contactmechanismFields[2].Descriptor()
 	// contactmechanism.ValueValidator is a validator for the "value" field. It is called by the builders before save.
 	contactmechanism.ValueValidator = contactmechanismDescValue.Validators[0].(func(string) error)
-	// contactmechanismDescIsPrimary is the schema descriptor for is_primary field.
-	contactmechanismDescIsPrimary := contactmechanismFields[5].Descriptor()
-	// contactmechanism.DefaultIsPrimary holds the default value on creation for the is_primary field.
-	contactmechanism.DefaultIsPrimary = contactmechanismDescIsPrimary.Default.(bool)
-	// contactmechanismDescIsVerified is the schema descriptor for is_verified field.
-	contactmechanismDescIsVerified := contactmechanismFields[6].Descriptor()
-	// contactmechanism.DefaultIsVerified holds the default value on creation for the is_verified field.
-	contactmechanism.DefaultIsVerified = contactmechanismDescIsVerified.Default.(bool)
-	// contactmechanismDescCreatedAt is the schema descriptor for created_at field.
-	contactmechanismDescCreatedAt := contactmechanismFields[7].Descriptor()
-	// contactmechanism.DefaultCreatedAt holds the default value on creation for the created_at field.
-	contactmechanism.DefaultCreatedAt = contactmechanismDescCreatedAt.Default.(func() time.Time)
-	// contactmechanismDescUpdatedAt is the schema descriptor for updated_at field.
-	contactmechanismDescUpdatedAt := contactmechanismFields[8].Descriptor()
-	// contactmechanism.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	contactmechanism.DefaultUpdatedAt = contactmechanismDescUpdatedAt.Default.(func() time.Time)
-	// contactmechanism.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	contactmechanism.UpdateDefaultUpdatedAt = contactmechanismDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// contactmechanismDescID is the schema descriptor for id field.
 	contactmechanismDescID := contactmechanismFields[0].Descriptor()
 	// contactmechanism.DefaultID holds the default value on creation for the id field.
@@ -252,6 +235,34 @@ func init() {
 	partyDescID := partyFields[0].Descriptor()
 	// party.DefaultID holds the default value on creation for the id field.
 	party.DefaultID = partyDescID.Default.(func() uuid.UUID)
+	partycontactmechanismFields := schema.PartyContactMechanism{}.Fields()
+	_ = partycontactmechanismFields
+	// partycontactmechanismDescIsPrimary is the schema descriptor for is_primary field.
+	partycontactmechanismDescIsPrimary := partycontactmechanismFields[4].Descriptor()
+	// partycontactmechanism.DefaultIsPrimary holds the default value on creation for the is_primary field.
+	partycontactmechanism.DefaultIsPrimary = partycontactmechanismDescIsPrimary.Default.(bool)
+	// partycontactmechanismDescIsVerified is the schema descriptor for is_verified field.
+	partycontactmechanismDescIsVerified := partycontactmechanismFields[5].Descriptor()
+	// partycontactmechanism.DefaultIsVerified holds the default value on creation for the is_verified field.
+	partycontactmechanism.DefaultIsVerified = partycontactmechanismDescIsVerified.Default.(bool)
+	// partycontactmechanismDescContactMechanismOrder is the schema descriptor for contact_mechanism_order field.
+	partycontactmechanismDescContactMechanismOrder := partycontactmechanismFields[6].Descriptor()
+	// partycontactmechanism.ContactMechanismOrderValidator is a validator for the "contact_mechanism_order" field. It is called by the builders before save.
+	partycontactmechanism.ContactMechanismOrderValidator = partycontactmechanismDescContactMechanismOrder.Validators[0].(func(int) error)
+	// partycontactmechanismDescCreatedAt is the schema descriptor for created_at field.
+	partycontactmechanismDescCreatedAt := partycontactmechanismFields[9].Descriptor()
+	// partycontactmechanism.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partycontactmechanism.DefaultCreatedAt = partycontactmechanismDescCreatedAt.Default.(func() time.Time)
+	// partycontactmechanismDescUpdatedAt is the schema descriptor for updated_at field.
+	partycontactmechanismDescUpdatedAt := partycontactmechanismFields[10].Descriptor()
+	// partycontactmechanism.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partycontactmechanism.DefaultUpdatedAt = partycontactmechanismDescUpdatedAt.Default.(func() time.Time)
+	// partycontactmechanism.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partycontactmechanism.UpdateDefaultUpdatedAt = partycontactmechanismDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partycontactmechanismDescID is the schema descriptor for id field.
+	partycontactmechanismDescID := partycontactmechanismFields[0].Descriptor()
+	// partycontactmechanism.DefaultID holds the default value on creation for the id field.
+	partycontactmechanism.DefaultID = partycontactmechanismDescID.Default.(func() uuid.UUID)
 	partymergelogFields := schema.PartyMergeLog{}.Fields()
 	_ = partymergelogFields
 	// partymergelogDescMergedAt is the schema descriptor for merged_at field.
@@ -392,10 +403,6 @@ func init() {
 	subscription.DefaultID = subscriptionDescID.Default.(func() uuid.UUID)
 	usercredentialsFields := schema.UserCredentials{}.Fields()
 	_ = usercredentialsFields
-	// usercredentialsDescEmail is the schema descriptor for email field.
-	usercredentialsDescEmail := usercredentialsFields[3].Descriptor()
-	// usercredentials.EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	usercredentials.EmailValidator = usercredentialsDescEmail.Validators[0].(func(string) error)
 	// usercredentialsDescPasswordHash is the schema descriptor for password_hash field.
 	usercredentialsDescPasswordHash := usercredentialsFields[4].Descriptor()
 	// usercredentials.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.

@@ -69,3 +69,16 @@ func TestMoneyComparison(t *testing.T) {
 	assert.True(t, low.IsNegative() == false)
 	assert.True(t, NewMoney(-1).IsNegative())
 }
+
+func TestParseMoney(t *testing.T) {
+	money, err := ParseMoney("1250.50")
+	require.NoError(t, err)
+	assert.Equal(t, int64(125050), money.CentsValue())
+
+	money, err = ParseMoney("0")
+	require.NoError(t, err)
+	assert.Equal(t, int64(0), money.CentsValue())
+
+	_, err = ParseMoney("abc")
+	require.Error(t, err)
+}

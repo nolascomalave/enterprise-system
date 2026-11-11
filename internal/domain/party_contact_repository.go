@@ -2,16 +2,21 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
 
-// PartyContactRepository is the persistence port for contacts and addresses.
+// PartyContactRepository persists global contacts, their tenant-scoped party
+// relations, and addresses.
 type PartyContactRepository interface {
-	CreateContactMechanism(ctx context.Context, contact *ContactMechanism) error
-	GetContactMechanism(ctx context.Context, id uuid.UUID) (*ContactMechanism, error)
-	ListContactMechanisms(ctx context.Context, partyID uuid.UUID) ([]*ContactMechanism, error)
-	UpdateContactMechanism(ctx context.Context, contact *ContactMechanism) error
+	FindContactMechanismByTypeValue(ctx context.Context, contactType ContactType, value string) (*ContactMechanism, error)
+	FindOrCreateContactMechanism(ctx context.Context, contact *ContactMechanism) (*ContactMechanism, error)
+	CreatePartyContactMechanism(ctx context.Context, relation *PartyContactMechanism) error
+	GetPartyContact(ctx context.Context, tenantID, relationID uuid.UUID) (*PartyContact, error)
+	ListPartyContacts(ctx context.Context, tenantID, partyID uuid.UUID) ([]*PartyContact, error)
+	UpdatePartyContactMechanism(ctx context.Context, relation *PartyContactMechanism) error
+	FindActivePartyContact(ctx context.Context, tenantID, contactMechanismID uuid.UUID, at time.Time) (*PartyContactMechanism, error)
 
 	CreateAddress(ctx context.Context, address *Address) error
 	GetAddress(ctx context.Context, id uuid.UUID) (*Address, error)

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"sort"
 	"testing"
 	"time"
 
@@ -14,6 +15,8 @@ import (
 
 type fakePartyContactRepo struct {
 	contacts   map[uuid.UUID]*domain.ContactMechanism
+	byValue    map[string]*domain.ContactMechanism
+	relations  map[uuid.UUID]*domain.PartyContactMechanism
 	addresses  map[uuid.UUID]*domain.Address
 	createCErr error
 	updateCErr error
@@ -24,39 +27,84 @@ type fakePartyContactRepo struct {
 func newFakePartyContactRepo() *fakePartyContactRepo {
 	return &fakePartyContactRepo{
 		contacts:  make(map[uuid.UUID]*domain.ContactMechanism),
+		byValue:   make(map[string]*domain.ContactMechanism),
+		relations: make(map[uuid.UUID]*domain.PartyContactMechanism),
 		addresses: make(map[uuid.UUID]*domain.Address),
 	}
 }
 
-func (r *fakePartyContactRepo) CreateContactMechanism(ctx context.Context, e *domain.ContactMechanism) error {
+func (r *fakePartyContactRepo) FindContactMechanismByTypeValue(ctx context.Context, contactType domain.ContactType, value string) (*domain.ContactMechanism, error) {
+	if c, ok := r.byValue[string(contactType)+"|"+value]; ok {
+		return c, nil
+	}
+	return nil, domain.ErrContactMechanismNotFound
+}
+
+func (r *fakePartyContactRepo) FindOrCreateContactMechanism(ctx context.Context, contact *domain.ContactMechanism) (*domain.ContactMechanism, error) {
+	if r.createCErr != nil {
+		return nil, r.createCErr
+	}
+	if existing, ok := r.byValue[string(contact.Type)+"|"+contact.Value]; ok {
+		return existing, nil
+	}
+	r.contacts[contact.ID] = contact
+	r.byValue[string(contact.Type)+"|"+contact.Value] = contact
+	return contact, nil
+}
+
+func (r *fakePartyContactRepo) CreatePartyContactMechanism(ctx context.Context, relation *domain.PartyContactMechanism) error {
 	if r.createCErr != nil {
 		return r.createCErr
 	}
-	r.contacts[e.ID] = e
+	r.relations[relation.ID] = relation
 	return nil
 }
-func (r *fakePartyContactRepo) GetContactMechanism(ctx context.Context, id uuid.UUID) (*domain.ContactMechanism, error) {
-	e, ok := r.contacts[id]
+
+func (r *fakePartyContactRepo) GetPartyContact(ctx context.Context, tenantID, relationID uuid.UUID) (*domain.PartyContact, error) {
+	relation, ok := r.relations[relationID]
+	if !ok || relation.TenantID != tenantID {
+		return nil, domain.ErrPartyContactNotFound
+	}
+	contact, ok := r.contacts[relation.ContactMechanismID]
 	if !ok {
-		return nil, errors.New("contact not found")
+		return nil, domain.ErrContactMechanismNotFound
 	}
-	return e, nil
+	return &domain.PartyContact{Relation: relation, Contact: contact}, nil
 }
-func (r *fakePartyContactRepo) ListContactMechanisms(ctx context.Context, partyID uuid.UUID) ([]*domain.ContactMechanism, error) {
-	out := make([]*domain.ContactMechanism, 0)
-	for _, e := range r.contacts {
-		if e.PartyID == partyID {
-			out = append(out, e)
+
+func (r *fakePartyContactRepo) ListPartyContacts(ctx context.Context, tenantID, partyID uuid.UUID) ([]*domain.PartyContact, error) {
+	out := make([]*domain.PartyContact, 0)
+	for _, relation := range r.relations {
+		if relation.TenantID != tenantID || relation.PartyID != partyID || relation.EndDate != nil {
+			continue
 		}
+		contact := r.contacts[relation.ContactMechanismID]
+		out = append(out, &domain.PartyContact{Relation: relation, Contact: contact})
 	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Relation.ContactMechanismOrder == out[j].Relation.ContactMechanismOrder {
+			return out[i].Relation.StartDate.Before(out[j].Relation.StartDate)
+		}
+		return out[i].Relation.ContactMechanismOrder < out[j].Relation.ContactMechanismOrder
+	})
 	return out, nil
 }
-func (r *fakePartyContactRepo) UpdateContactMechanism(ctx context.Context, e *domain.ContactMechanism) error {
+
+func (r *fakePartyContactRepo) UpdatePartyContactMechanism(ctx context.Context, relation *domain.PartyContactMechanism) error {
 	if r.updateCErr != nil {
 		return r.updateCErr
 	}
-	r.contacts[e.ID] = e
+	r.relations[relation.ID] = relation
 	return nil
+}
+
+func (r *fakePartyContactRepo) FindActivePartyContact(ctx context.Context, tenantID, contactMechanismID uuid.UUID, at time.Time) (*domain.PartyContactMechanism, error) {
+	for _, relation := range r.relations {
+		if relation.TenantID == tenantID && relation.ContactMechanismID == contactMechanismID && relation.IsActive(at) {
+			return relation, nil
+		}
+	}
+	return nil, domain.ErrPartyContactNotFound
 }
 
 func (r *fakePartyContactRepo) CreateAddress(ctx context.Context, e *domain.Address) error {
@@ -66,6 +114,7 @@ func (r *fakePartyContactRepo) CreateAddress(ctx context.Context, e *domain.Addr
 	r.addresses[e.ID] = e
 	return nil
 }
+
 func (r *fakePartyContactRepo) GetAddress(ctx context.Context, id uuid.UUID) (*domain.Address, error) {
 	e, ok := r.addresses[id]
 	if !ok {
@@ -73,6 +122,7 @@ func (r *fakePartyContactRepo) GetAddress(ctx context.Context, id uuid.UUID) (*d
 	}
 	return e, nil
 }
+
 func (r *fakePartyContactRepo) ListAddresses(ctx context.Context, partyID uuid.UUID) ([]*domain.Address, error) {
 	out := make([]*domain.Address, 0)
 	for _, e := range r.addresses {
@@ -82,6 +132,7 @@ func (r *fakePartyContactRepo) ListAddresses(ctx context.Context, partyID uuid.U
 	}
 	return out, nil
 }
+
 func (r *fakePartyContactRepo) UpdateAddress(ctx context.Context, e *domain.Address) error {
 	if r.updateAErr != nil {
 		return r.updateAErr
@@ -96,37 +147,93 @@ func contactTestNow() time.Time {
 
 func TestPartyContactsContactCRUD(t *testing.T) {
 	repo := newFakePartyContactRepo()
-	uc := NewPartyContacts(repo, contactTestNow)
+	txManager := newFakeTxManager()
+	uc := NewPartyContacts(repo, txManager, contactTestNow)
 	ctx := context.Background()
 	partyID := uuid.New()
+	tenantID := testTenantID()
 
-	contact, err := uc.CreateContactMechanism(ctx, CreateContactMechanismInput{
-		TenantID: testTenantID(), PartyID: partyID, Type: domain.ContactTypeEmail,
-		Value: "user@example.com", IsPrimary: true,
+	created, err := uc.CreateContactMechanism(ctx, CreateContactMechanismInput{
+		TenantID: tenantID, PartyID: partyID, Type: domain.ContactTypeEmail,
+		Value: "user@example.com", IsPrimary: true, Order: 2,
 	})
 	require.NoError(t, err)
+	require.NotNil(t, created)
 
-	got, err := uc.GetContactMechanism(ctx, contact.ID)
+	got, err := uc.GetContactMechanism(ctx, tenantID, created.Relation.ID)
 	require.NoError(t, err)
-	assert.Equal(t, "user@example.com", got.Value)
+	assert.Equal(t, "user@example.com", got.Contact.Value)
 
-	list, err := uc.ListContactMechanisms(ctx, partyID)
+	list, err := uc.ListContactMechanisms(ctx, tenantID, partyID)
 	require.NoError(t, err)
 	assert.Len(t, list, 1)
 
 	updated, err := uc.UpdateContactMechanism(ctx, UpdateContactMechanismInput{
-		ID: contact.ID, Type: domain.ContactTypeEmail, Value: "other@example.com", IsPrimary: true,
+		ID: created.Relation.ID, TenantID: tenantID, IsPrimary: true, Order: 1,
 	})
 	require.NoError(t, err)
-	assert.Equal(t, "other@example.com", updated.Value)
+	assert.Equal(t, 1, updated.Relation.ContactMechanismOrder)
 
-	require.NoError(t, uc.DeleteContactMechanism(ctx, contact.ID))
-	assert.NotNil(t, updated.DeletedAt)
+	require.NoError(t, uc.DeleteContactMechanism(ctx, tenantID, created.Relation.ID))
+	assert.NotNil(t, updated.Relation.EndDate)
+	assert.Equal(t, 5, txManager.calls, "every write and read must run inside the manager")
+}
+
+func TestPartyContactsRespectOrder(t *testing.T) {
+	repo := newFakePartyContactRepo()
+	uc := NewPartyContacts(repo, newFakeTxManager(), contactTestNow)
+	ctx := context.Background()
+	partyID := uuid.New()
+	tenantID := testTenantID()
+
+	_, err := uc.CreateContactMechanism(ctx, CreateContactMechanismInput{
+		TenantID: tenantID, PartyID: partyID, Type: domain.ContactTypePhone,
+		Value: "+58 412 1234567", Order: 3,
+	})
+	require.NoError(t, err)
+	_, err = uc.CreateContactMechanism(ctx, CreateContactMechanismInput{
+		TenantID: tenantID, PartyID: partyID, Type: domain.ContactTypeEmail,
+		Value: "user@example.com", Order: 1,
+	})
+	require.NoError(t, err)
+	_, err = uc.CreateContactMechanism(ctx, CreateContactMechanismInput{
+		TenantID: tenantID, PartyID: partyID, Type: domain.ContactTypeWebsite,
+		Value: "https://example.com", Order: 2,
+	})
+	require.NoError(t, err)
+
+	list, err := uc.ListContactMechanisms(ctx, tenantID, partyID)
+	require.NoError(t, err)
+	require.Len(t, list, 3)
+	assert.Equal(t, 1, list[0].Relation.ContactMechanismOrder)
+	assert.Equal(t, 2, list[1].Relation.ContactMechanismOrder)
+	assert.Equal(t, 3, list[2].Relation.ContactMechanismOrder)
+}
+
+func TestPartyContactsReusesGlobalContact(t *testing.T) {
+	repo := newFakePartyContactRepo()
+	uc := NewPartyContacts(repo, newFakeTxManager(), contactTestNow)
+	ctx := context.Background()
+	tenantID := testTenantID()
+
+	first, err := uc.CreateContactMechanism(ctx, CreateContactMechanismInput{
+		TenantID: tenantID, PartyID: uuid.New(), Type: domain.ContactTypeEmail,
+		Value: "shared@example.com", Order: 1,
+	})
+	require.NoError(t, err)
+	second, err := uc.CreateContactMechanism(ctx, CreateContactMechanismInput{
+		TenantID: tenantID, PartyID: uuid.New(), Type: domain.ContactTypeEmail,
+		Value: "shared@example.com", Order: 1,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, first.Contact.ID, second.Contact.ID)
+	assert.NotEqual(t, first.Relation.ID, second.Relation.ID)
+	assert.Len(t, repo.contacts, 1)
 }
 
 func TestPartyContactsAddressCRUD(t *testing.T) {
 	repo := newFakePartyContactRepo()
-	uc := NewPartyContacts(repo, contactTestNow)
+	uc := NewPartyContacts(repo, newFakeTxManager(), contactTestNow)
 	ctx := context.Background()
 	partyID := uuid.New()
 
@@ -157,7 +264,7 @@ func TestPartyContactsAddressCRUD(t *testing.T) {
 }
 
 func TestPartyContactsValidation(t *testing.T) {
-	uc := NewPartyContacts(newFakePartyContactRepo(), contactTestNow)
+	uc := NewPartyContacts(newFakePartyContactRepo(), newFakeTxManager(), contactTestNow)
 
 	_, err := uc.CreateContactMechanism(context.Background(), CreateContactMechanismInput{
 		TenantID: testTenantID(), PartyID: uuid.New(), Type: domain.ContactTypeEmail,
@@ -175,7 +282,7 @@ func TestPartyContactsValidation(t *testing.T) {
 func TestPartyContactsPropagatesRepositoryError(t *testing.T) {
 	repo := newFakePartyContactRepo()
 	repo.createCErr = errors.New("db down")
-	uc := NewPartyContacts(repo, contactTestNow)
+	uc := NewPartyContacts(repo, newFakeTxManager(), contactTestNow)
 
 	_, err := uc.CreateContactMechanism(context.Background(), CreateContactMechanismInput{
 		TenantID: testTenantID(), PartyID: uuid.New(), Type: domain.ContactTypeEmail,
@@ -183,5 +290,5 @@ func TestPartyContactsPropagatesRepositoryError(t *testing.T) {
 	})
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "create contact mechanism")
+	assert.Contains(t, err.Error(), "find or create contact mechanism")
 }

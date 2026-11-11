@@ -31,7 +31,16 @@ description: >-
   inicio de cada transacción.
 - Usar `LOCAL` para evitar fugas entre peticiones en el pool de conexiones.
 
-## 5. Antipatrones prohibidos
+## 5. Onboarding de un tenant
+- `global.subscriptions` no tiene RLS: se inserta primero dentro de la transacción.
+- Después se enlaza el nuevo `tenant_id` con `enttenant.WithSessionContext`.
+- El wrapper `sessionTx` de `enttenant` aplica `SET LOCAL` de forma perezosa
+  antes de la primera consulta con el nuevo contexto; así la misma transacción
+  puede pasar de inserts globales a inserts con RLS.
+- Todo el grafo (suscripción, parties, perfiles, roles y credenciales) se crea
+  en una sola transacción; cualquier fallo hace rollback completo.
+
+## 6. Antipatrones prohibidos
 - ❌ Omitir `FORCE ROW LEVEL SECURITY` (el propietario de la tabla evade la RLS).
 - ❌ No incluir `tenant_id` en los índices (la RLS siempre filtra por él).
 - ❌ Conectar la aplicación como superusuario o rol con `BYPASSRLS`.

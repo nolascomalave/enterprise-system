@@ -15,6 +15,12 @@ El código debe organizarse estrictamente en capas (de adentro hacia afuera):
 - `internal/infrastructure`: Implementación de repositorios usando Ent.
 - `internal/delivery`: Handlers HTTP usando Gin (rutas, middlewares, DTOs).
 
+### Unit of Work
+- Los casos de uso que crean varias entidades relacionadas deben recibir una
+  interfaz `UnitOfWork` y ejecutar todo dentro de una única transacción.
+- La implementación Ent hace `Begin -> callback -> Commit` y `Rollback` ante
+  cualquier error. El caso de uso no debe conocer `*ent.Tx`.
+
 ## 2. Test-Driven Development (TDD)
 - **Obligatorio** escribir tests antes o junto con la implementación.
 - Usar `stretchr/testify` para aserciones y mocks.

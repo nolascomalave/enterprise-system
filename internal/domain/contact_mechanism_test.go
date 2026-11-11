@@ -9,21 +9,17 @@ import (
 )
 
 func TestNewContactMechanism(t *testing.T) {
-	contact, err := NewContactMechanism(testTenantID, testPartyID, ContactTypeEmail,
-		" user@example.com ", true, false, testNow())
+	contact, err := NewContactMechanism(ContactTypeEmail, " user@example.com ")
 
 	require.NoError(t, err)
 	require.NotNil(t, contact)
 	assert.NotEqual(t, uuid.Nil, contact.ID)
 	assert.Equal(t, ContactTypeEmail, contact.Type)
 	assert.Equal(t, "user@example.com", contact.Value)
-	assert.True(t, contact.IsPrimary)
-	assert.False(t, contact.IsVerified)
 }
 
 func TestContactMechanismEmailValidation(t *testing.T) {
-	contact, err := NewContactMechanism(testTenantID, testPartyID, ContactTypeEmail,
-		"not-an-email", false, false, testNow())
+	contact, err := NewContactMechanism(ContactTypeEmail, "not-an-email")
 
 	require.ErrorIs(t, err, ErrInvalidContactMechanism)
 	assert.Nil(t, contact)
@@ -45,7 +41,7 @@ func TestContactMechanismValueValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			contact, err := NewContactMechanism(testTenantID, testPartyID, tt.ctype, tt.value, false, false, testNow())
+			contact, err := NewContactMechanism(tt.ctype, tt.value)
 			require.ErrorIs(t, err, ErrInvalidContactMechanism)
 			assert.Nil(t, contact)
 		})
@@ -53,30 +49,21 @@ func TestContactMechanismValueValidation(t *testing.T) {
 }
 
 func TestContactMechanismPhoneAndWebsite(t *testing.T) {
-	phone, err := NewContactMechanism(testTenantID, testPartyID, ContactTypePhone, "+58 412 1234567", false, false, testNow())
+	phone, err := NewContactMechanism(ContactTypePhone, "+58 412 1234567")
 	require.NoError(t, err)
 	assert.Equal(t, ContactTypePhone, phone.Type)
 
-	site, err := NewContactMechanism(testTenantID, testPartyID, ContactTypeWebsite, "https://example.com", false, false, testNow())
+	site, err := NewContactMechanism(ContactTypeWebsite, "https://example.com")
 	require.NoError(t, err)
 	assert.Equal(t, ContactTypeWebsite, site.Type)
 }
 
-func TestContactMechanismActions(t *testing.T) {
-	contact, err := NewContactMechanism(testTenantID, testPartyID, ContactTypeEmail, "user@example.com", false, false, testNow())
+func TestContactMechanismUpdate(t *testing.T) {
+	contact, err := NewContactMechanism(ContactTypeEmail, "user@example.com")
 	require.NoError(t, err)
-	later := testNow().Add(1)
 
-	require.NoError(t, contact.SetPrimary(true, later))
-	assert.True(t, contact.IsPrimary)
-
-	require.NoError(t, contact.Verify(later))
-	assert.True(t, contact.IsVerified)
-
-	require.NoError(t, contact.Update(ContactTypeEmail, "other@example.com", false, true, later))
+	require.NoError(t, contact.Update(ContactTypeEmail, "other@example.com"))
 	assert.Equal(t, "other@example.com", contact.Value)
 
-	require.NoError(t, contact.SoftDelete(later))
-	require.NotNil(t, contact.DeletedAt)
-	require.ErrorIs(t, contact.Update(ContactTypeEmail, "x@example.com", false, false, later), ErrAlreadyDeleted)
+	require.ErrorIs(t, contact.Update(ContactTypeEmail, "not-an-email"), ErrInvalidContactMechanism)
 }

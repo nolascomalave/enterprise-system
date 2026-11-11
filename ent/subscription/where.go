@@ -652,27 +652,27 @@ func HasEmployeeAssignmentsWith(preds ...predicate.EmployeeAssignment) predicate
 	})
 }
 
-// HasContactMechanisms applies the HasEdge predicate on the "contact_mechanisms" edge.
-func HasContactMechanisms() predicate.Subscription {
+// HasPartyContactMechanisms applies the HasEdge predicate on the "party_contact_mechanisms" edge.
+func HasPartyContactMechanisms() predicate.Subscription {
 	return predicate.Subscription(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ContactMechanismsTable, ContactMechanismsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyContactMechanismsTable, PartyContactMechanismsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ContactMechanism
-		step.Edge.Schema = schemaConfig.ContactMechanism
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasContactMechanismsWith applies the HasEdge predicate on the "contact_mechanisms" edge with a given conditions (other predicates).
-func HasContactMechanismsWith(preds ...predicate.ContactMechanism) predicate.Subscription {
+// HasPartyContactMechanismsWith applies the HasEdge predicate on the "party_contact_mechanisms" edge with a given conditions (other predicates).
+func HasPartyContactMechanismsWith(preds ...predicate.PartyContactMechanism) predicate.Subscription {
 	return predicate.Subscription(func(s *sql.Selector) {
-		step := newContactMechanismsStep()
+		step := newPartyContactMechanismsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.ContactMechanism
-		step.Edge.Schema = schemaConfig.ContactMechanism
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

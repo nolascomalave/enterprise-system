@@ -1,12 +1,13 @@
 -- ============================================================================
 -- 0006_contacts_addresses.sql
--- Contactos y direcciones por Party.
+-- Master Data Management de contactos + direcciones por Party.
 --
---   * tenants.contact_mechanisms
---   * tenants.addresses
+--   * global.contact_mechanisms: maestro global, único por (type, value).
+--   * tenants.party_contact_mechanisms: relación party ↔ contacto con vigencia.
+--   * tenants.addresses: direcciones por party.
 --
--- Ambas con tenant_id, RLS ENABLE/FORCE, triggers de auditoría, timestamps,
--- soft delete y un índice único parcial de is_primary por (party, type).
+-- Los contactos globales NO tienen tenant_id, party_id, is_primary ni
+-- is_verified. Esos atributos viven en la relación tenant-scoped.
 -- ============================================================================
 
 DO $$
@@ -44,39 +45,75 @@ END
 $$;
 
 -- ----------------------------------------------------------------------------
--- Contactos
+-- Maestro global de contactos
 -- ----------------------------------------------------------------------------
-CREATE TABLE tenants.contact_mechanisms (
-  id          uuid        PRIMARY KEY DEFAULT uuidv7(),
-  tenant_id   uuid        NOT NULL REFERENCES global.subscriptions (id) ON DELETE RESTRICT,
-  party_id    uuid        NOT NULL REFERENCES tenants.parties (id) ON DELETE RESTRICT,
-  type        text        NOT NULL,
-  value       text        COLLATE "unaccent_case_insensitive" NOT NULL,
-  is_primary  boolean     NOT NULL DEFAULT false,
-  is_verified boolean     NOT NULL DEFAULT false,
-  created_at  timestamptz NOT NULL DEFAULT now(),
-  updated_at  timestamptz NOT NULL DEFAULT now(),
-  deleted_at  timestamptz,
+CREATE TABLE global.contact_mechanisms (
+  id    uuid PRIMARY KEY DEFAULT uuidv7(),
+  type  text NOT NULL,
+  value text COLLATE "unaccent_case_insensitive" NOT NULL,
 
   CONSTRAINT contact_mechanisms_type_chk
     CHECK (type IN ('EMAIL', 'PHONE', 'MOBILE', 'FAX', 'WEBSITE')),
   CONSTRAINT contact_mechanisms_value_chk CHECK (btrim(value) <> '')
 );
 
-CREATE INDEX contact_mechanisms_tenant_party_idx
-  ON tenants.contact_mechanisms (tenant_id, party_id)
-  WHERE deleted_at IS NULL;
-CREATE INDEX contact_mechanisms_tenant_party_type_idx
-  ON tenants.contact_mechanisms (tenant_id, party_id, type)
-  WHERE deleted_at IS NULL;
+-- Un mismo email/teléfono/web no puede estar duplicado globalmente.
+CREATE UNIQUE INDEX contact_mechanisms_type_value_uq
+  ON global.contact_mechanisms (type, value);
 
--- Un solo primario por Party y tipo de contacto.
-CREATE UNIQUE INDEX contact_mechanisms_one_primary_uq
-  ON tenants.contact_mechanisms (tenant_id, party_id, type)
-  WHERE is_primary AND deleted_at IS NULL;
+COMMENT ON TABLE global.contact_mechanisms IS
+  'Master Data Management global de contactos. Sin tenant_id ni RLS; unicidad global por (type, value).';
+COMMENT ON COLUMN global.contact_mechanisms.value IS
+  'Valor canónico con collation ICU; la unicidad (type, value) es case-insensitive.';
 
 -- ----------------------------------------------------------------------------
--- Direcciones
+-- Relación Party ↔ contacto, con vigencia y orden
+-- ----------------------------------------------------------------------------
+CREATE TABLE tenants.party_contact_mechanisms (
+  id                     uuid        PRIMARY KEY DEFAULT uuidv7(),
+  tenant_id              uuid        NOT NULL REFERENCES global.subscriptions (id) ON DELETE RESTRICT,
+  party_id               uuid        NOT NULL REFERENCES tenants.parties (id) ON DELETE RESTRICT,
+  contact_mechanism_id   uuid        NOT NULL REFERENCES global.contact_mechanisms (id) ON DELETE RESTRICT,
+  is_primary             boolean     NOT NULL DEFAULT false,
+  is_verified            boolean     NOT NULL DEFAULT false,
+  contact_mechanism_order integer    NOT NULL DEFAULT 0,
+  start_date             timestamptz NOT NULL,
+  end_date               timestamptz,
+  created_at             timestamptz NOT NULL DEFAULT now(),
+  updated_at             timestamptz NOT NULL DEFAULT now(),
+
+  CONSTRAINT party_contact_mechanisms_order_chk
+    CHECK (contact_mechanism_order >= 0),
+  CONSTRAINT party_contact_mechanisms_dates_chk
+    CHECK (end_date IS NULL OR end_date > start_date)
+);
+
+CREATE INDEX party_contact_mechanisms_tenant_party_order_idx
+  ON tenants.party_contact_mechanisms (tenant_id, party_id, contact_mechanism_order);
+CREATE INDEX party_contact_mechanisms_tenant_contact_idx
+  ON tenants.party_contact_mechanisms (tenant_id, contact_mechanism_id);
+
+-- Un contacto global solo puede estar activo una vez dentro del tenant; así el
+-- login por email es determinista.
+CREATE UNIQUE INDEX party_contact_mechanisms_active_contact_uq
+  ON tenants.party_contact_mechanisms (tenant_id, contact_mechanism_id)
+  WHERE end_date IS NULL;
+
+ALTER TABLE tenants.party_contact_mechanisms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tenants.party_contact_mechanisms FORCE ROW LEVEL SECURITY;
+CREATE POLICY party_contact_mechanisms_tenant_isolation
+  ON tenants.party_contact_mechanisms
+  FOR ALL
+  USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid)
+  WITH CHECK (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
+
+DROP TRIGGER IF EXISTS party_contact_mechanisms_audit_trg ON tenants.party_contact_mechanisms;
+CREATE TRIGGER party_contact_mechanisms_audit_trg
+  AFTER INSERT OR UPDATE OR DELETE ON tenants.party_contact_mechanisms
+  FOR EACH ROW EXECUTE FUNCTION audit.fn_log_change();
+
+-- ----------------------------------------------------------------------------
+-- Direcciones (sin cambios de modelo)
 -- ----------------------------------------------------------------------------
 CREATE TABLE tenants.addresses (
   id          uuid        PRIMARY KEY DEFAULT uuidv7(),
@@ -111,20 +148,9 @@ CREATE INDEX addresses_tenant_city_idx
   ON tenants.addresses (tenant_id, city)
   WHERE deleted_at IS NULL;
 
--- Un solo primario por Party y tipo de dirección.
 CREATE UNIQUE INDEX addresses_one_primary_uq
   ON tenants.addresses (tenant_id, party_id, type)
   WHERE is_primary AND deleted_at IS NULL;
-
--- ----------------------------------------------------------------------------
--- RLS
--- ----------------------------------------------------------------------------
-ALTER TABLE tenants.contact_mechanisms ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tenants.contact_mechanisms FORCE ROW LEVEL SECURITY;
-CREATE POLICY contact_mechanisms_tenant_isolation ON tenants.contact_mechanisms
-  FOR ALL
-  USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid)
-  WITH CHECK (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
 
 ALTER TABLE tenants.addresses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tenants.addresses FORCE ROW LEVEL SECURITY;
@@ -132,14 +158,6 @@ CREATE POLICY addresses_tenant_isolation ON tenants.addresses
   FOR ALL
   USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid)
   WITH CHECK (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
-
--- ----------------------------------------------------------------------------
--- Auditoría
--- ----------------------------------------------------------------------------
-DROP TRIGGER IF EXISTS contact_mechanisms_audit_trg ON tenants.contact_mechanisms;
-CREATE TRIGGER contact_mechanisms_audit_trg
-  AFTER INSERT OR UPDATE OR DELETE ON tenants.contact_mechanisms
-  FOR EACH ROW EXECUTE FUNCTION audit.fn_log_change();
 
 DROP TRIGGER IF EXISTS addresses_audit_trg ON tenants.addresses;
 CREATE TRIGGER addresses_audit_trg

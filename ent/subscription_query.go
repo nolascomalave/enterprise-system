@@ -6,7 +6,6 @@ import (
 	"context"
 	"database/sql/driver"
 	"enterprise-system/ent/address"
-	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -15,6 +14,7 @@ import (
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
@@ -36,25 +36,25 @@ import (
 // SubscriptionQuery is the builder for querying Subscription entities.
 type SubscriptionQuery struct {
 	config
-	ctx                      *QueryContext
-	order                    []subscription.OrderOption
-	inters                   []Interceptor
-	predicates               []predicate.Subscription
-	withParties              *PartyQuery
-	withPersonProfiles       *PersonProfileQuery
-	withOrganizationProfiles *OrganizationProfileQuery
-	withPartyRoles           *PartyRoleQuery
-	withPartyMergeLogs       *PartyMergeLogQuery
-	withJobFamilies          *JobFamilyQuery
-	withJobs                 *JobQuery
-	withEmployees            *EmployeeQuery
-	withDepartments          *DepartmentQuery
-	withEmployeeAssignments  *EmployeeAssignmentQuery
-	withContactMechanisms    *ContactMechanismQuery
-	withAddresses            *AddressQuery
-	withSessions             *SessionQuery
-	withUserCredentials      *UserCredentialsQuery
-	withPasswordResetTokens  *PasswordResetTokenQuery
+	ctx                        *QueryContext
+	order                      []subscription.OrderOption
+	inters                     []Interceptor
+	predicates                 []predicate.Subscription
+	withParties                *PartyQuery
+	withPersonProfiles         *PersonProfileQuery
+	withOrganizationProfiles   *OrganizationProfileQuery
+	withPartyRoles             *PartyRoleQuery
+	withPartyMergeLogs         *PartyMergeLogQuery
+	withJobFamilies            *JobFamilyQuery
+	withJobs                   *JobQuery
+	withEmployees              *EmployeeQuery
+	withDepartments            *DepartmentQuery
+	withEmployeeAssignments    *EmployeeAssignmentQuery
+	withPartyContactMechanisms *PartyContactMechanismQuery
+	withAddresses              *AddressQuery
+	withSessions               *SessionQuery
+	withUserCredentials        *UserCredentialsQuery
+	withPasswordResetTokens    *PasswordResetTokenQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -341,9 +341,9 @@ func (_q *SubscriptionQuery) QueryEmployeeAssignments() *EmployeeAssignmentQuery
 	return query
 }
 
-// QueryContactMechanisms chains the current query on the "contact_mechanisms" edge.
-func (_q *SubscriptionQuery) QueryContactMechanisms() *ContactMechanismQuery {
-	query := (&ContactMechanismClient{config: _q.config}).Query()
+// QueryPartyContactMechanisms chains the current query on the "party_contact_mechanisms" edge.
+func (_q *SubscriptionQuery) QueryPartyContactMechanisms() *PartyContactMechanismQuery {
+	query := (&PartyContactMechanismClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -354,12 +354,12 @@ func (_q *SubscriptionQuery) QueryContactMechanisms() *ContactMechanismQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
-			sqlgraph.To(contactmechanism.Table, contactmechanism.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, subscription.ContactMechanismsTable, subscription.ContactMechanismsColumn),
+			sqlgraph.To(partycontactmechanism.Table, partycontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PartyContactMechanismsTable, subscription.PartyContactMechanismsColumn),
 		)
 		schemaConfig := _q.schemaConfig
-		step.To.Schema = schemaConfig.ContactMechanism
-		step.Edge.Schema = schemaConfig.ContactMechanism
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -653,26 +653,26 @@ func (_q *SubscriptionQuery) Clone() *SubscriptionQuery {
 		return nil
 	}
 	return &SubscriptionQuery{
-		config:                   _q.config,
-		ctx:                      _q.ctx.Clone(),
-		order:                    append([]subscription.OrderOption{}, _q.order...),
-		inters:                   append([]Interceptor{}, _q.inters...),
-		predicates:               append([]predicate.Subscription{}, _q.predicates...),
-		withParties:              _q.withParties.Clone(),
-		withPersonProfiles:       _q.withPersonProfiles.Clone(),
-		withOrganizationProfiles: _q.withOrganizationProfiles.Clone(),
-		withPartyRoles:           _q.withPartyRoles.Clone(),
-		withPartyMergeLogs:       _q.withPartyMergeLogs.Clone(),
-		withJobFamilies:          _q.withJobFamilies.Clone(),
-		withJobs:                 _q.withJobs.Clone(),
-		withEmployees:            _q.withEmployees.Clone(),
-		withDepartments:          _q.withDepartments.Clone(),
-		withEmployeeAssignments:  _q.withEmployeeAssignments.Clone(),
-		withContactMechanisms:    _q.withContactMechanisms.Clone(),
-		withAddresses:            _q.withAddresses.Clone(),
-		withSessions:             _q.withSessions.Clone(),
-		withUserCredentials:      _q.withUserCredentials.Clone(),
-		withPasswordResetTokens:  _q.withPasswordResetTokens.Clone(),
+		config:                     _q.config,
+		ctx:                        _q.ctx.Clone(),
+		order:                      append([]subscription.OrderOption{}, _q.order...),
+		inters:                     append([]Interceptor{}, _q.inters...),
+		predicates:                 append([]predicate.Subscription{}, _q.predicates...),
+		withParties:                _q.withParties.Clone(),
+		withPersonProfiles:         _q.withPersonProfiles.Clone(),
+		withOrganizationProfiles:   _q.withOrganizationProfiles.Clone(),
+		withPartyRoles:             _q.withPartyRoles.Clone(),
+		withPartyMergeLogs:         _q.withPartyMergeLogs.Clone(),
+		withJobFamilies:            _q.withJobFamilies.Clone(),
+		withJobs:                   _q.withJobs.Clone(),
+		withEmployees:              _q.withEmployees.Clone(),
+		withDepartments:            _q.withDepartments.Clone(),
+		withEmployeeAssignments:    _q.withEmployeeAssignments.Clone(),
+		withPartyContactMechanisms: _q.withPartyContactMechanisms.Clone(),
+		withAddresses:              _q.withAddresses.Clone(),
+		withSessions:               _q.withSessions.Clone(),
+		withUserCredentials:        _q.withUserCredentials.Clone(),
+		withPasswordResetTokens:    _q.withPasswordResetTokens.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -789,14 +789,14 @@ func (_q *SubscriptionQuery) WithEmployeeAssignments(opts ...func(*EmployeeAssig
 	return _q
 }
 
-// WithContactMechanisms tells the query-builder to eager-load the nodes that are connected to
-// the "contact_mechanisms" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *SubscriptionQuery) WithContactMechanisms(opts ...func(*ContactMechanismQuery)) *SubscriptionQuery {
-	query := (&ContactMechanismClient{config: _q.config}).Query()
+// WithPartyContactMechanisms tells the query-builder to eager-load the nodes that are connected to
+// the "party_contact_mechanisms" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithPartyContactMechanisms(opts ...func(*PartyContactMechanismQuery)) *SubscriptionQuery {
+	query := (&PartyContactMechanismClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withContactMechanisms = query
+	_q.withPartyContactMechanisms = query
 	return _q
 }
 
@@ -933,7 +933,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withEmployees != nil,
 			_q.withDepartments != nil,
 			_q.withEmployeeAssignments != nil,
-			_q.withContactMechanisms != nil,
+			_q.withPartyContactMechanisms != nil,
 			_q.withAddresses != nil,
 			_q.withSessions != nil,
 			_q.withUserCredentials != nil,
@@ -1034,11 +1034,11 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			return nil, err
 		}
 	}
-	if query := _q.withContactMechanisms; query != nil {
-		if err := _q.loadContactMechanisms(ctx, query, nodes,
-			func(n *Subscription) { n.Edges.ContactMechanisms = []*ContactMechanism{} },
-			func(n *Subscription, e *ContactMechanism) {
-				n.Edges.ContactMechanisms = append(n.Edges.ContactMechanisms, e)
+	if query := _q.withPartyContactMechanisms; query != nil {
+		if err := _q.loadPartyContactMechanisms(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.PartyContactMechanisms = []*PartyContactMechanism{} },
+			func(n *Subscription, e *PartyContactMechanism) {
+				n.Edges.PartyContactMechanisms = append(n.Edges.PartyContactMechanisms, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1378,7 +1378,7 @@ func (_q *SubscriptionQuery) loadEmployeeAssignments(ctx context.Context, query 
 	}
 	return nil
 }
-func (_q *SubscriptionQuery) loadContactMechanisms(ctx context.Context, query *ContactMechanismQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *ContactMechanism)) error {
+func (_q *SubscriptionQuery) loadPartyContactMechanisms(ctx context.Context, query *PartyContactMechanismQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *PartyContactMechanism)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*Subscription)
 	for i := range nodes {
@@ -1389,10 +1389,10 @@ func (_q *SubscriptionQuery) loadContactMechanisms(ctx context.Context, query *C
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(contactmechanism.FieldTenantID)
+		query.ctx.AppendFieldOnce(partycontactmechanism.FieldTenantID)
 	}
-	query.Where(predicate.ContactMechanism(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(subscription.ContactMechanismsColumn), fks...))
+	query.Where(predicate.PartyContactMechanism(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.PartyContactMechanismsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

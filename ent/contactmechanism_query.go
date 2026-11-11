@@ -4,11 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/internal"
-	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/predicate"
-	"enterprise-system/ent/subscription"
 	"fmt"
 	"math"
 
@@ -22,12 +22,11 @@ import (
 // ContactMechanismQuery is the builder for querying ContactMechanism entities.
 type ContactMechanismQuery struct {
 	config
-	ctx        *QueryContext
-	order      []contactmechanism.OrderOption
-	inters     []Interceptor
-	predicates []predicate.ContactMechanism
-	withTenant *SubscriptionQuery
-	withParty  *PartyQuery
+	ctx                        *QueryContext
+	order                      []contactmechanism.OrderOption
+	inters                     []Interceptor
+	predicates                 []predicate.ContactMechanism
+	withPartyContactMechanisms *PartyContactMechanismQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -64,9 +63,9 @@ func (_q *ContactMechanismQuery) Order(o ...contactmechanism.OrderOption) *Conta
 	return _q
 }
 
-// QueryTenant chains the current query on the "tenant" edge.
-func (_q *ContactMechanismQuery) QueryTenant() *SubscriptionQuery {
-	query := (&SubscriptionClient{config: _q.config}).Query()
+// QueryPartyContactMechanisms chains the current query on the "party_contact_mechanisms" edge.
+func (_q *ContactMechanismQuery) QueryPartyContactMechanisms() *PartyContactMechanismQuery {
+	query := (&PartyContactMechanismClient{config: _q.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := _q.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -77,37 +76,12 @@ func (_q *ContactMechanismQuery) QueryTenant() *SubscriptionQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(contactmechanism.Table, contactmechanism.FieldID, selector),
-			sqlgraph.To(subscription.Table, subscription.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, contactmechanism.TenantTable, contactmechanism.TenantColumn),
+			sqlgraph.To(partycontactmechanism.Table, partycontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, contactmechanism.PartyContactMechanismsTable, contactmechanism.PartyContactMechanismsColumn),
 		)
 		schemaConfig := _q.schemaConfig
-		step.To.Schema = schemaConfig.Subscription
-		step.Edge.Schema = schemaConfig.ContactMechanism
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryParty chains the current query on the "party" edge.
-func (_q *ContactMechanismQuery) QueryParty() *PartyQuery {
-	query := (&PartyClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(contactmechanism.Table, contactmechanism.FieldID, selector),
-			sqlgraph.To(party.Table, party.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, contactmechanism.PartyTable, contactmechanism.PartyColumn),
-		)
-		schemaConfig := _q.schemaConfig
-		step.To.Schema = schemaConfig.Party
-		step.Edge.Schema = schemaConfig.ContactMechanism
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -301,38 +275,26 @@ func (_q *ContactMechanismQuery) Clone() *ContactMechanismQuery {
 		return nil
 	}
 	return &ContactMechanismQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]contactmechanism.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.ContactMechanism{}, _q.predicates...),
-		withTenant: _q.withTenant.Clone(),
-		withParty:  _q.withParty.Clone(),
+		config:                     _q.config,
+		ctx:                        _q.ctx.Clone(),
+		order:                      append([]contactmechanism.OrderOption{}, _q.order...),
+		inters:                     append([]Interceptor{}, _q.inters...),
+		predicates:                 append([]predicate.ContactMechanism{}, _q.predicates...),
+		withPartyContactMechanisms: _q.withPartyContactMechanisms.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
 }
 
-// WithTenant tells the query-builder to eager-load the nodes that are connected to
-// the "tenant" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *ContactMechanismQuery) WithTenant(opts ...func(*SubscriptionQuery)) *ContactMechanismQuery {
-	query := (&SubscriptionClient{config: _q.config}).Query()
+// WithPartyContactMechanisms tells the query-builder to eager-load the nodes that are connected to
+// the "party_contact_mechanisms" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ContactMechanismQuery) WithPartyContactMechanisms(opts ...func(*PartyContactMechanismQuery)) *ContactMechanismQuery {
+	query := (&PartyContactMechanismClient{config: _q.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	_q.withTenant = query
-	return _q
-}
-
-// WithParty tells the query-builder to eager-load the nodes that are connected to
-// the "party" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *ContactMechanismQuery) WithParty(opts ...func(*PartyQuery)) *ContactMechanismQuery {
-	query := (&PartyClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withParty = query
+	_q.withPartyContactMechanisms = query
 	return _q
 }
 
@@ -342,12 +304,12 @@ func (_q *ContactMechanismQuery) WithParty(opts ...func(*PartyQuery)) *ContactMe
 // Example:
 //
 //	var v []struct {
-//		TenantID uuid.UUID `json:"tenant_id,omitempty"`
+//		Type contactmechanism.Type `json:"type,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.ContactMechanism.Query().
-//		GroupBy(contactmechanism.FieldTenantID).
+//		GroupBy(contactmechanism.FieldType).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *ContactMechanismQuery) GroupBy(field string, fields ...string) *ContactMechanismGroupBy {
@@ -365,11 +327,11 @@ func (_q *ContactMechanismQuery) GroupBy(field string, fields ...string) *Contac
 // Example:
 //
 //	var v []struct {
-//		TenantID uuid.UUID `json:"tenant_id,omitempty"`
+//		Type contactmechanism.Type `json:"type,omitempty"`
 //	}
 //
 //	client.ContactMechanism.Query().
-//		Select(contactmechanism.FieldTenantID).
+//		Select(contactmechanism.FieldType).
 //		Scan(ctx, &v)
 func (_q *ContactMechanismQuery) Select(fields ...string) *ContactMechanismSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
@@ -414,9 +376,8 @@ func (_q *ContactMechanismQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	var (
 		nodes       = []*ContactMechanism{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withTenant != nil,
-			_q.withParty != nil,
+		loadedTypes = [1]bool{
+			_q.withPartyContactMechanisms != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -439,76 +400,45 @@ func (_q *ContactMechanismQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withTenant; query != nil {
-		if err := _q.loadTenant(ctx, query, nodes, nil,
-			func(n *ContactMechanism, e *Subscription) { n.Edges.Tenant = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withParty; query != nil {
-		if err := _q.loadParty(ctx, query, nodes, nil,
-			func(n *ContactMechanism, e *Party) { n.Edges.Party = e }); err != nil {
+	if query := _q.withPartyContactMechanisms; query != nil {
+		if err := _q.loadPartyContactMechanisms(ctx, query, nodes,
+			func(n *ContactMechanism) { n.Edges.PartyContactMechanisms = []*PartyContactMechanism{} },
+			func(n *ContactMechanism, e *PartyContactMechanism) {
+				n.Edges.PartyContactMechanisms = append(n.Edges.PartyContactMechanisms, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (_q *ContactMechanismQuery) loadTenant(ctx context.Context, query *SubscriptionQuery, nodes []*ContactMechanism, init func(*ContactMechanism), assign func(*ContactMechanism, *Subscription)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*ContactMechanism)
+func (_q *ContactMechanismQuery) loadPartyContactMechanisms(ctx context.Context, query *PartyContactMechanismQuery, nodes []*ContactMechanism, init func(*ContactMechanism), assign func(*ContactMechanism, *PartyContactMechanism)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*ContactMechanism)
 	for i := range nodes {
-		fk := nodes[i].TenantID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
 		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	if len(ids) == 0 {
-		return nil
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partycontactmechanism.FieldContactMechanismID)
 	}
-	query.Where(subscription.IDIn(ids...))
+	query.Where(predicate.PartyContactMechanism(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(contactmechanism.PartyContactMechanismsColumn), fks...))
+	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
+		fk := n.ContactMechanismID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "tenant_id" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "contact_mechanism_id" returned %v for node %v`, fk, n.ID)
 		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *ContactMechanismQuery) loadParty(ctx context.Context, query *PartyQuery, nodes []*ContactMechanism, init func(*ContactMechanism), assign func(*ContactMechanism, *Party)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*ContactMechanism)
-	for i := range nodes {
-		fk := nodes[i].PartyID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(party.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "party_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
+		assign(node, n)
 	}
 	return nil
 }
@@ -539,12 +469,6 @@ func (_q *ContactMechanismQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != contactmechanism.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withTenant != nil {
-			_spec.Node.AddColumnOnce(contactmechanism.FieldTenantID)
-		}
-		if _q.withParty != nil {
-			_spec.Node.AddColumnOnce(contactmechanism.FieldPartyID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

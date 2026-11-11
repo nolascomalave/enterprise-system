@@ -55,11 +55,11 @@ var (
 				},
 			},
 			{
-				Name:    "address_tenant_id_party_id_type",
+				Name:    "address_tenant_party_type_idx",
 				Unique:  false,
 				Columns: []*schema.Column{AddressesColumns[13], AddressesColumns[12], AddressesColumns[1]},
 				Annotation: &entsql.IndexAnnotation{
-					Where: "is_primary AND deleted_at IS NULL",
+					Where: "deleted_at IS NULL",
 				},
 			},
 			{
@@ -71,9 +71,12 @@ var (
 				},
 			},
 			{
-				Name:    "address_tenant_id_party_id_type",
+				Name:    "address_one_primary_uq",
 				Unique:  true,
 				Columns: []*schema.Column{AddressesColumns[13], AddressesColumns[12], AddressesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_primary AND deleted_at IS NULL",
+				},
 			},
 		},
 	}
@@ -82,54 +85,17 @@ var (
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"EMAIL", "PHONE", "MOBILE", "FAX", "WEBSITE"}},
 		{Name: "value", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
-		{Name: "is_primary", Type: field.TypeBool, Default: false},
-		{Name: "is_verified", Type: field.TypeBool, Default: false},
-		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
-		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
-		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "party_id", Type: field.TypeUUID},
-		{Name: "tenant_id", Type: field.TypeUUID},
 	}
 	// ContactMechanismsTable holds the schema information for the "contact_mechanisms" table.
 	ContactMechanismsTable = &schema.Table{
 		Name:       "contact_mechanisms",
 		Columns:    ContactMechanismsColumns,
 		PrimaryKey: []*schema.Column{ContactMechanismsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "contact_mechanisms_parties_contact_mechanisms",
-				Columns:    []*schema.Column{ContactMechanismsColumns[8]},
-				RefColumns: []*schema.Column{PartiesColumns[0]},
-				OnDelete:   schema.Restrict,
-			},
-			{
-				Symbol:     "contact_mechanisms_subscriptions_contact_mechanisms",
-				Columns:    []*schema.Column{ContactMechanismsColumns[9]},
-				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
-				OnDelete:   schema.Restrict,
-			},
-		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "contactmechanism_tenant_id_party_id",
-				Unique:  false,
-				Columns: []*schema.Column{ContactMechanismsColumns[9], ContactMechanismsColumns[8]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "deleted_at IS NULL",
-				},
-			},
-			{
-				Name:    "contactmechanism_tenant_id_party_id_type",
-				Unique:  false,
-				Columns: []*schema.Column{ContactMechanismsColumns[9], ContactMechanismsColumns[8], ContactMechanismsColumns[1]},
-				Annotation: &entsql.IndexAnnotation{
-					Where: "is_primary AND deleted_at IS NULL",
-				},
-			},
-			{
-				Name:    "contactmechanism_tenant_id_party_id_type",
+				Name:    "contactmechanism_type_value",
 				Unique:  true,
-				Columns: []*schema.Column{ContactMechanismsColumns[9], ContactMechanismsColumns[8], ContactMechanismsColumns[1]},
+				Columns: []*schema.Column{ContactMechanismsColumns[1], ContactMechanismsColumns[2]},
 			},
 		},
 	}
@@ -560,6 +526,61 @@ var (
 			},
 		},
 	}
+	// PartyContactMechanismsColumns holds the columns for the "party_contact_mechanisms" table.
+	PartyContactMechanismsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "is_primary", Type: field.TypeBool, Default: false},
+		{Name: "is_verified", Type: field.TypeBool, Default: false},
+		{Name: "contact_mechanism_order", Type: field.TypeInt},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "contact_mechanism_id", Type: field.TypeUUID},
+		{Name: "party_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// PartyContactMechanismsTable holds the schema information for the "party_contact_mechanisms" table.
+	PartyContactMechanismsTable = &schema.Table{
+		Name:       "party_contact_mechanisms",
+		Columns:    PartyContactMechanismsColumns,
+		PrimaryKey: []*schema.Column{PartyContactMechanismsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "party_contact_mechanisms_contact_mechanisms_party_contact_mechanisms",
+				Columns:    []*schema.Column{PartyContactMechanismsColumns[8]},
+				RefColumns: []*schema.Column{ContactMechanismsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "party_contact_mechanisms_parties_party_contact_mechanisms",
+				Columns:    []*schema.Column{PartyContactMechanismsColumns[9]},
+				RefColumns: []*schema.Column{PartiesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "party_contact_mechanisms_subscriptions_party_contact_mechanisms",
+				Columns:    []*schema.Column{PartyContactMechanismsColumns[10]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partycontactmechanism_tenant_id_party_id_contact_mechanism_order",
+				Unique:  false,
+				Columns: []*schema.Column{PartyContactMechanismsColumns[10], PartyContactMechanismsColumns[9], PartyContactMechanismsColumns[3]},
+			},
+			{
+				Name:    "partycontactmechanism_tenant_id_contact_mechanism_id",
+				Unique:  true,
+				Columns: []*schema.Column{PartyContactMechanismsColumns[10], PartyContactMechanismsColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "end_date IS NULL",
+				},
+			},
+		},
+	}
 	// PartyMergeLogColumns holds the columns for the "party_merge_log" table.
 	PartyMergeLogColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -858,7 +879,6 @@ var (
 	// UserCredentialsColumns holds the columns for the "user_credentials" table.
 	UserCredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
-		{Name: "email", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
 		{Name: "password_hash", Type: field.TypeString},
 		{Name: "totp_secret", Type: field.TypeString, Nullable: true},
 		{Name: "totp_enabled", Type: field.TypeBool, Default: false},
@@ -867,6 +887,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
 		{Name: "party_id", Type: field.TypeUUID, Unique: true},
+		{Name: "party_contact_mechanism_id", Type: field.TypeUUID, Unique: true},
 		{Name: "tenant_id", Type: field.TypeUUID},
 	}
 	// UserCredentialsTable holds the schema information for the "user_credentials" table.
@@ -877,8 +898,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_credentials_parties_credentials",
-				Columns:    []*schema.Column{UserCredentialsColumns[9]},
+				Columns:    []*schema.Column{UserCredentialsColumns[8]},
 				RefColumns: []*schema.Column{PartiesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "user_credentials_party_contact_mechanisms_credentials",
+				Columns:    []*schema.Column{UserCredentialsColumns[9]},
+				RefColumns: []*schema.Column{PartyContactMechanismsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
@@ -890,9 +917,9 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "usercredentials_tenant_id_email",
+				Name:    "usercredentials_party_contact_mechanism_id",
 				Unique:  true,
-				Columns: []*schema.Column{UserCredentialsColumns[10], UserCredentialsColumns[1]},
+				Columns: []*schema.Column{UserCredentialsColumns[9]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
@@ -900,7 +927,7 @@ var (
 			{
 				Name:    "usercredentials_tenant_id_party_id",
 				Unique:  true,
-				Columns: []*schema.Column{UserCredentialsColumns[10], UserCredentialsColumns[9]},
+				Columns: []*schema.Column{UserCredentialsColumns[10], UserCredentialsColumns[8]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
@@ -918,6 +945,7 @@ var (
 		JobFamiliesTable,
 		OrganizationProfilesTable,
 		PartiesTable,
+		PartyContactMechanismsTable,
 		PartyMergeLogTable,
 		PartyRolesTable,
 		PasswordResetTokensTable,
@@ -935,8 +963,6 @@ func init() {
 	AddressesTable.Annotation = &entsql.Annotation{
 		Table: "addresses",
 	}
-	ContactMechanismsTable.ForeignKeys[0].RefTable = PartiesTable
-	ContactMechanismsTable.ForeignKeys[1].RefTable = SubscriptionsTable
 	ContactMechanismsTable.Annotation = &entsql.Annotation{
 		Table: "contact_mechanisms",
 	}
@@ -979,6 +1005,12 @@ func init() {
 	PartiesTable.Annotation = &entsql.Annotation{
 		Table: "parties",
 	}
+	PartyContactMechanismsTable.ForeignKeys[0].RefTable = ContactMechanismsTable
+	PartyContactMechanismsTable.ForeignKeys[1].RefTable = PartiesTable
+	PartyContactMechanismsTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	PartyContactMechanismsTable.Annotation = &entsql.Annotation{
+		Table: "party_contact_mechanisms",
+	}
 	PartyMergeLogTable.ForeignKeys[0].RefTable = PartiesTable
 	PartyMergeLogTable.ForeignKeys[1].RefTable = PartiesTable
 	PartyMergeLogTable.ForeignKeys[2].RefTable = SubscriptionsTable
@@ -1013,7 +1045,8 @@ func init() {
 		Table: "subscriptions",
 	}
 	UserCredentialsTable.ForeignKeys[0].RefTable = PartiesTable
-	UserCredentialsTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	UserCredentialsTable.ForeignKeys[1].RefTable = PartyContactMechanismsTable
+	UserCredentialsTable.ForeignKeys[2].RefTable = SubscriptionsTable
 	UserCredentialsTable.Annotation = &entsql.Annotation{
 		Table: "user_credentials",
 	}
