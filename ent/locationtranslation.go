@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
 	"fmt"
@@ -39,9 +40,11 @@ type LocationTranslation struct {
 type LocationTranslationEdges struct {
 	// Location holds the value of the location edge.
 	Location *Location `json:"location,omitempty"`
+	// Locale holds the value of the locale edge.
+	Locale *Locale `json:"locale,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // LocationOrErr returns the Location value or an error if the edge
@@ -53,6 +56,17 @@ func (e LocationTranslationEdges) LocationOrErr() (*Location, error) {
 		return nil, &NotFoundError{label: location.Label}
 	}
 	return nil, &NotLoadedError{edge: "location"}
+}
+
+// LocaleOrErr returns the Locale value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LocationTranslationEdges) LocaleOrErr() (*Locale, error) {
+	if e.Locale != nil {
+		return e.Locale, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: locale.Label}
+	}
+	return nil, &NotLoadedError{edge: "locale"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -133,6 +147,11 @@ func (_m *LocationTranslation) Value(name string) (ent.Value, error) {
 // QueryLocation queries the "location" edge of the LocationTranslation entity.
 func (_m *LocationTranslation) QueryLocation() *LocationQuery {
 	return NewLocationTranslationClient(_m.config).QueryLocation(_m)
+}
+
+// QueryLocale queries the "locale" edge of the LocationTranslation entity.
+func (_m *LocationTranslation) QueryLocale() *LocaleQuery {
+	return NewLocationTranslationClient(_m.config).QueryLocale(_m)
 }
 
 // Update returns a builder for updating this LocationTranslation.

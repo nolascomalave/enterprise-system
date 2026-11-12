@@ -14,6 +14,7 @@ import (
 	"enterprise-system/ent/identitydocumenttype"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/nametype"
@@ -298,6 +299,30 @@ func init() {
 	jobfamilyDescID := jobfamilyFields[0].Descriptor()
 	// jobfamily.DefaultID holds the default value on creation for the id field.
 	jobfamily.DefaultID = jobfamilyDescID.Default.(func() uuid.UUID)
+	localeFields := schema.Locale{}.Fields()
+	_ = localeFields
+	// localeDescName is the schema descriptor for name field.
+	localeDescName := localeFields[1].Descriptor()
+	// locale.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	locale.NameValidator = localeDescName.Validators[0].(func(string) error)
+	// localeDescIsDefault is the schema descriptor for is_default field.
+	localeDescIsDefault := localeFields[2].Descriptor()
+	// locale.DefaultIsDefault holds the default value on creation for the is_default field.
+	locale.DefaultIsDefault = localeDescIsDefault.Default.(bool)
+	// localeDescCreatedAt is the schema descriptor for created_at field.
+	localeDescCreatedAt := localeFields[3].Descriptor()
+	// locale.DefaultCreatedAt holds the default value on creation for the created_at field.
+	locale.DefaultCreatedAt = localeDescCreatedAt.Default.(func() time.Time)
+	// localeDescUpdatedAt is the schema descriptor for updated_at field.
+	localeDescUpdatedAt := localeFields[4].Descriptor()
+	// locale.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	locale.DefaultUpdatedAt = localeDescUpdatedAt.Default.(func() time.Time)
+	// locale.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	locale.UpdateDefaultUpdatedAt = localeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// localeDescID is the schema descriptor for id field.
+	localeDescID := localeFields[0].Descriptor()
+	// locale.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	locale.IDValidator = localeDescID.Validators[0].(func(string) error)
 	locationFields := schema.Location{}.Fields()
 	_ = locationFields
 	// locationDescCountryCode is the schema descriptor for country_code field.

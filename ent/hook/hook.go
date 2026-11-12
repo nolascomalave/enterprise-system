@@ -140,6 +140,18 @@ func (f JobFamilyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.JobFamilyMutation", m)
 }
 
+// The LocaleFunc type is an adapter to allow the use of ordinary
+// function as Locale mutator.
+type LocaleFunc func(context.Context, *ent.LocaleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LocaleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LocaleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LocaleMutation", m)
+}
+
 // The LocationFunc type is an adapter to allow the use of ordinary
 // function as Location mutator.
 type LocationFunc func(context.Context, *ent.LocationMutation) (ent.Value, error)

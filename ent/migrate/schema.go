@@ -579,6 +579,20 @@ var (
 			},
 		},
 	}
+	// LocalesColumns holds the columns for the "locales" table.
+	LocalesColumns = []*schema.Column{
+		{Name: "code", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+	}
+	// LocalesTable holds the schema information for the "locales" table.
+	LocalesTable = &schema.Table{
+		Name:       "locales",
+		Columns:    LocalesColumns,
+		PrimaryKey: []*schema.Column{LocalesColumns[0]},
+	}
 	// LocationsColumns holds the columns for the "locations" table.
 	LocationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -647,10 +661,10 @@ var (
 	// LocationTranslationsColumns holds the columns for the "location_translations" table.
 	LocationTranslationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
-		{Name: "language_code", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
 		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "language_code", Type: field.TypeString},
 		{Name: "location_id", Type: field.TypeUUID},
 	}
 	// LocationTranslationsTable holds the schema information for the "location_translations" table.
@@ -659,6 +673,12 @@ var (
 		Columns:    LocationTranslationsColumns,
 		PrimaryKey: []*schema.Column{LocationTranslationsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "location_translations_locales_location_translations",
+				Columns:    []*schema.Column{LocationTranslationsColumns[4]},
+				RefColumns: []*schema.Column{LocalesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
 			{
 				Symbol:     "location_translations_locations_translations",
 				Columns:    []*schema.Column{LocationTranslationsColumns[5]},
@@ -670,17 +690,17 @@ var (
 			{
 				Name:    "locationtranslation_location_id_language_code",
 				Unique:  true,
-				Columns: []*schema.Column{LocationTranslationsColumns[5], LocationTranslationsColumns[1]},
+				Columns: []*schema.Column{LocationTranslationsColumns[5], LocationTranslationsColumns[4]},
 			},
 			{
 				Name:    "locationtranslation_language_code",
 				Unique:  false,
-				Columns: []*schema.Column{LocationTranslationsColumns[1]},
+				Columns: []*schema.Column{LocationTranslationsColumns[4]},
 			},
 			{
 				Name:    "locationtranslation_name",
 				Unique:  false,
-				Columns: []*schema.Column{LocationTranslationsColumns[2]},
+				Columns: []*schema.Column{LocationTranslationsColumns[1]},
 			},
 		},
 	}
@@ -1624,6 +1644,7 @@ var (
 		IdentityDocumentTypesTable,
 		JobsTable,
 		JobFamiliesTable,
+		LocalesTable,
 		LocationsTable,
 		LocationTranslationsTable,
 		NameTypesTable,
@@ -1703,11 +1724,15 @@ func init() {
 	JobFamiliesTable.Annotation = &entsql.Annotation{
 		Table: "job_families",
 	}
+	LocalesTable.Annotation = &entsql.Annotation{
+		Table: "locales",
+	}
 	LocationsTable.ForeignKeys[0].RefTable = LocationsTable
 	LocationsTable.Annotation = &entsql.Annotation{
 		Table: "locations",
 	}
-	LocationTranslationsTable.ForeignKeys[0].RefTable = LocationsTable
+	LocationTranslationsTable.ForeignKeys[0].RefTable = LocalesTable
+	LocationTranslationsTable.ForeignKeys[1].RefTable = LocationsTable
 	LocationTranslationsTable.Annotation = &entsql.Annotation{
 		Table: "location_translations",
 	}

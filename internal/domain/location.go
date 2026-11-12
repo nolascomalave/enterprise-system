@@ -111,4 +111,17 @@ type LocationRepository interface {
 	// Ancestors returns the hierarchy from root to the given location
 	// (including the location itself), using ltree `@>`.
 	Ancestors(ctx context.Context, id uuid.UUID) ([]*Location, error)
+	// GetLocationTranslation returns the translated name for a locale. It
+	// returns ErrTranslationNotFound when the translation does not exist.
+	GetLocationTranslation(ctx context.Context, locationID uuid.UUID, locale string) (string, error)
+	// GetDefaultLocale returns the code of the locale marked is_default.
+	GetDefaultLocale(ctx context.Context) (string, error)
+}
+
+// TranslatedLocation is a location resolved for a specific locale, including
+// which locale was actually used by the fallback chain.
+type TranslatedLocation struct {
+	Location *Location
+	Name     string
+	Locale   string
 }

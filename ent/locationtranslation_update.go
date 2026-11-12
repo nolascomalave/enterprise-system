@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/internal"
+	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/predicate"
@@ -84,6 +85,17 @@ func (_u *LocationTranslationUpdate) SetLocation(v *Location) *LocationTranslati
 	return _u.SetLocationID(v.ID)
 }
 
+// SetLocaleID sets the "locale" edge to the Locale entity by ID.
+func (_u *LocationTranslationUpdate) SetLocaleID(id string) *LocationTranslationUpdate {
+	_u.mutation.SetLocaleID(id)
+	return _u
+}
+
+// SetLocale sets the "locale" edge to the Locale entity.
+func (_u *LocationTranslationUpdate) SetLocale(v *Locale) *LocationTranslationUpdate {
+	return _u.SetLocaleID(v.ID)
+}
+
 // Mutation returns the LocationTranslationMutation object of the builder.
 func (_u *LocationTranslationUpdate) Mutation() *LocationTranslationMutation {
 	return _u.mutation
@@ -92,6 +104,12 @@ func (_u *LocationTranslationUpdate) Mutation() *LocationTranslationMutation {
 // ClearLocation clears the "location" edge to the Location entity.
 func (_u *LocationTranslationUpdate) ClearLocation() *LocationTranslationUpdate {
 	_u.mutation.ClearLocation()
+	return _u
+}
+
+// ClearLocale clears the "locale" edge to the Locale entity.
+func (_u *LocationTranslationUpdate) ClearLocale() *LocationTranslationUpdate {
+	_u.mutation.ClearLocale()
 	return _u
 }
 
@@ -146,6 +164,9 @@ func (_u *LocationTranslationUpdate) check() error {
 	if _u.mutation.LocationCleared() && len(_u.mutation.LocationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "LocationTranslation.location"`)
 	}
+	if _u.mutation.LocaleCleared() && len(_u.mutation.LocaleIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "LocationTranslation.locale"`)
+	}
 	return nil
 }
 
@@ -160,9 +181,6 @@ func (_u *LocationTranslationUpdate) sqlSave(ctx context.Context) (_node int, er
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := _u.mutation.LanguageCode(); ok {
-		_spec.SetField(locationtranslation.FieldLanguageCode, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(locationtranslation.FieldName, field.TypeString, value)
@@ -193,6 +211,37 @@ func (_u *LocationTranslationUpdate) sqlSave(ctx context.Context) (_node int, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(location.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.LocationTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LocaleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   locationtranslation.LocaleTable,
+			Columns: []string{locationtranslation.LocaleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locale.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = _u.schemaConfig.LocationTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LocaleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   locationtranslation.LocaleTable,
+			Columns: []string{locationtranslation.LocaleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locale.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = _u.schemaConfig.LocationTranslation
@@ -276,6 +325,17 @@ func (_u *LocationTranslationUpdateOne) SetLocation(v *Location) *LocationTransl
 	return _u.SetLocationID(v.ID)
 }
 
+// SetLocaleID sets the "locale" edge to the Locale entity by ID.
+func (_u *LocationTranslationUpdateOne) SetLocaleID(id string) *LocationTranslationUpdateOne {
+	_u.mutation.SetLocaleID(id)
+	return _u
+}
+
+// SetLocale sets the "locale" edge to the Locale entity.
+func (_u *LocationTranslationUpdateOne) SetLocale(v *Locale) *LocationTranslationUpdateOne {
+	return _u.SetLocaleID(v.ID)
+}
+
 // Mutation returns the LocationTranslationMutation object of the builder.
 func (_u *LocationTranslationUpdateOne) Mutation() *LocationTranslationMutation {
 	return _u.mutation
@@ -284,6 +344,12 @@ func (_u *LocationTranslationUpdateOne) Mutation() *LocationTranslationMutation 
 // ClearLocation clears the "location" edge to the Location entity.
 func (_u *LocationTranslationUpdateOne) ClearLocation() *LocationTranslationUpdateOne {
 	_u.mutation.ClearLocation()
+	return _u
+}
+
+// ClearLocale clears the "locale" edge to the Locale entity.
+func (_u *LocationTranslationUpdateOne) ClearLocale() *LocationTranslationUpdateOne {
+	_u.mutation.ClearLocale()
 	return _u
 }
 
@@ -351,6 +417,9 @@ func (_u *LocationTranslationUpdateOne) check() error {
 	if _u.mutation.LocationCleared() && len(_u.mutation.LocationIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "LocationTranslation.location"`)
 	}
+	if _u.mutation.LocaleCleared() && len(_u.mutation.LocaleIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "LocationTranslation.locale"`)
+	}
 	return nil
 }
 
@@ -383,9 +452,6 @@ func (_u *LocationTranslationUpdateOne) sqlSave(ctx context.Context) (_node *Loc
 			}
 		}
 	}
-	if value, ok := _u.mutation.LanguageCode(); ok {
-		_spec.SetField(locationtranslation.FieldLanguageCode, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(locationtranslation.FieldName, field.TypeString, value)
 	}
@@ -415,6 +481,37 @@ func (_u *LocationTranslationUpdateOne) sqlSave(ctx context.Context) (_node *Loc
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(location.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.LocationTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LocaleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   locationtranslation.LocaleTable,
+			Columns: []string{locationtranslation.LocaleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locale.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = _u.schemaConfig.LocationTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LocaleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   locationtranslation.LocaleTable,
+			Columns: []string{locationtranslation.LocaleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locale.FieldID, field.TypeString),
 			},
 		}
 		edge.Schema = _u.schemaConfig.LocationTranslation

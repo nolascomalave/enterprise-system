@@ -22,6 +22,7 @@ import (
 	"enterprise-system/ent/identitydocumenttype"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/nametype"
@@ -80,6 +81,8 @@ type Client struct {
 	Job *JobClient
 	// JobFamily is the client for interacting with the JobFamily builders.
 	JobFamily *JobFamilyClient
+	// Locale is the client for interacting with the Locale builders.
+	Locale *LocaleClient
 	// Location is the client for interacting with the Location builders.
 	Location *LocationClient
 	// LocationTranslation is the client for interacting with the LocationTranslation builders.
@@ -142,6 +145,7 @@ func (c *Client) init() {
 	c.IdentityDocumentType = NewIdentityDocumentTypeClient(c.config)
 	c.Job = NewJobClient(c.config)
 	c.JobFamily = NewJobFamilyClient(c.config)
+	c.Locale = NewLocaleClient(c.config)
 	c.Location = NewLocationClient(c.config)
 	c.LocationTranslation = NewLocationTranslationClient(c.config)
 	c.NameType = NewNameTypeClient(c.config)
@@ -268,6 +272,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		IdentityDocumentType:          NewIdentityDocumentTypeClient(cfg),
 		Job:                           NewJobClient(cfg),
 		JobFamily:                     NewJobFamilyClient(cfg),
+		Locale:                        NewLocaleClient(cfg),
 		Location:                      NewLocationClient(cfg),
 		LocationTranslation:           NewLocationTranslationClient(cfg),
 		NameType:                      NewNameTypeClient(cfg),
@@ -318,6 +323,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		IdentityDocumentType:          NewIdentityDocumentTypeClient(cfg),
 		Job:                           NewJobClient(cfg),
 		JobFamily:                     NewJobFamilyClient(cfg),
+		Locale:                        NewLocaleClient(cfg),
 		Location:                      NewLocationClient(cfg),
 		LocationTranslation:           NewLocationTranslationClient(cfg),
 		NameType:                      NewNameTypeClient(cfg),
@@ -369,12 +375,13 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Address, c.AttachedDocument, c.ContactMechanism, c.CorporateGroup,
 		c.Department, c.DepartmentGroupAssignment, c.Employee, c.EmployeeAssignment,
-		c.IdentityDocumentType, c.Job, c.JobFamily, c.Location, c.LocationTranslation,
-		c.NameType, c.OrganizationProfile, c.Party, c.PartyContactMechanism,
-		c.PartyContactMechanismValidity, c.PartyIdentityDocument,
-		c.PartyIdentityDocumentValidity, c.PartyMergeLog, c.PartyName,
-		c.PartyNameValidity, c.PartyNationality, c.PartyRole, c.PasswordResetToken,
-		c.PersonProfile, c.RoleType, c.Session, c.Subscription, c.UserCredentials,
+		c.IdentityDocumentType, c.Job, c.JobFamily, c.Locale, c.Location,
+		c.LocationTranslation, c.NameType, c.OrganizationProfile, c.Party,
+		c.PartyContactMechanism, c.PartyContactMechanismValidity,
+		c.PartyIdentityDocument, c.PartyIdentityDocumentValidity, c.PartyMergeLog,
+		c.PartyName, c.PartyNameValidity, c.PartyNationality, c.PartyRole,
+		c.PasswordResetToken, c.PersonProfile, c.RoleType, c.Session, c.Subscription,
+		c.UserCredentials,
 	} {
 		n.Use(hooks...)
 	}
@@ -386,12 +393,13 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Address, c.AttachedDocument, c.ContactMechanism, c.CorporateGroup,
 		c.Department, c.DepartmentGroupAssignment, c.Employee, c.EmployeeAssignment,
-		c.IdentityDocumentType, c.Job, c.JobFamily, c.Location, c.LocationTranslation,
-		c.NameType, c.OrganizationProfile, c.Party, c.PartyContactMechanism,
-		c.PartyContactMechanismValidity, c.PartyIdentityDocument,
-		c.PartyIdentityDocumentValidity, c.PartyMergeLog, c.PartyName,
-		c.PartyNameValidity, c.PartyNationality, c.PartyRole, c.PasswordResetToken,
-		c.PersonProfile, c.RoleType, c.Session, c.Subscription, c.UserCredentials,
+		c.IdentityDocumentType, c.Job, c.JobFamily, c.Locale, c.Location,
+		c.LocationTranslation, c.NameType, c.OrganizationProfile, c.Party,
+		c.PartyContactMechanism, c.PartyContactMechanismValidity,
+		c.PartyIdentityDocument, c.PartyIdentityDocumentValidity, c.PartyMergeLog,
+		c.PartyName, c.PartyNameValidity, c.PartyNationality, c.PartyRole,
+		c.PasswordResetToken, c.PersonProfile, c.RoleType, c.Session, c.Subscription,
+		c.UserCredentials,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -422,6 +430,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Job.mutate(ctx, m)
 	case *JobFamilyMutation:
 		return c.JobFamily.mutate(ctx, m)
+	case *LocaleMutation:
+		return c.Locale.mutate(ctx, m)
 	case *LocationMutation:
 		return c.Location.mutate(ctx, m)
 	case *LocationTranslationMutation:
@@ -2595,6 +2605,158 @@ func (c *JobFamilyClient) mutate(ctx context.Context, m *JobFamilyMutation) (Val
 	}
 }
 
+// LocaleClient is a client for the Locale schema.
+type LocaleClient struct {
+	config
+}
+
+// NewLocaleClient returns a client for the Locale from the given config.
+func NewLocaleClient(c config) *LocaleClient {
+	return &LocaleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `locale.Hooks(f(g(h())))`.
+func (c *LocaleClient) Use(hooks ...Hook) {
+	c.hooks.Locale = append(c.hooks.Locale, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `locale.Intercept(f(g(h())))`.
+func (c *LocaleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Locale = append(c.inters.Locale, interceptors...)
+}
+
+// Create returns a builder for creating a Locale entity.
+func (c *LocaleClient) Create() *LocaleCreate {
+	mutation := newLocaleMutation(c.config, OpCreate)
+	return &LocaleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Locale entities.
+func (c *LocaleClient) CreateBulk(builders ...*LocaleCreate) *LocaleCreateBulk {
+	return &LocaleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LocaleClient) MapCreateBulk(slice any, setFunc func(*LocaleCreate, int)) *LocaleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LocaleCreateBulk{err: fmt.Errorf("calling to LocaleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LocaleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LocaleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Locale.
+func (c *LocaleClient) Update() *LocaleUpdate {
+	mutation := newLocaleMutation(c.config, OpUpdate)
+	return &LocaleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LocaleClient) UpdateOne(_m *Locale) *LocaleUpdateOne {
+	mutation := newLocaleMutation(c.config, OpUpdateOne, withLocale(_m))
+	return &LocaleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LocaleClient) UpdateOneID(id string) *LocaleUpdateOne {
+	mutation := newLocaleMutation(c.config, OpUpdateOne, withLocaleID(id))
+	return &LocaleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Locale.
+func (c *LocaleClient) Delete() *LocaleDelete {
+	mutation := newLocaleMutation(c.config, OpDelete)
+	return &LocaleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LocaleClient) DeleteOne(_m *Locale) *LocaleDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LocaleClient) DeleteOneID(id string) *LocaleDeleteOne {
+	builder := c.Delete().Where(locale.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LocaleDeleteOne{builder}
+}
+
+// Query returns a query builder for Locale.
+func (c *LocaleClient) Query() *LocaleQuery {
+	return &LocaleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLocale},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Locale entity by its id.
+func (c *LocaleClient) Get(ctx context.Context, id string) (*Locale, error) {
+	return c.Query().Where(locale.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LocaleClient) GetX(ctx context.Context, id string) *Locale {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLocationTranslations queries the location_translations edge of a Locale.
+func (c *LocaleClient) QueryLocationTranslations(_m *Locale) *LocationTranslationQuery {
+	query := (&LocationTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locale.Table, locale.FieldID, id),
+			sqlgraph.To(locationtranslation.Table, locationtranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, locale.LocationTranslationsTable, locale.LocationTranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.LocationTranslation
+		step.Edge.Schema = schemaConfig.LocationTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LocaleClient) Hooks() []Hook {
+	return c.hooks.Locale
+}
+
+// Interceptors returns the client interceptors.
+func (c *LocaleClient) Interceptors() []Interceptor {
+	return c.inters.Locale
+}
+
+func (c *LocaleClient) mutate(ctx context.Context, m *LocaleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LocaleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LocaleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LocaleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LocaleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Locale mutation op: %q", m.Op())
+	}
+}
+
 // LocationClient is a client for the Location schema.
 type LocationClient struct {
 	config
@@ -2943,6 +3105,25 @@ func (c *LocationTranslationClient) QueryLocation(_m *LocationTranslation) *Loca
 		)
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.Location
+		step.Edge.Schema = schemaConfig.LocationTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLocale queries the locale edge of a LocationTranslation.
+func (c *LocationTranslationClient) QueryLocale(_m *LocationTranslation) *LocaleQuery {
+	query := (&LocaleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locationtranslation.Table, locationtranslation.FieldID, id),
+			sqlgraph.To(locale.Table, locale.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, locationtranslation.LocaleTable, locationtranslation.LocaleColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Locale
 		step.Edge.Schema = schemaConfig.LocationTranslation
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -7084,21 +7265,22 @@ type (
 	hooks struct {
 		Address, AttachedDocument, ContactMechanism, CorporateGroup, Department,
 		DepartmentGroupAssignment, Employee, EmployeeAssignment, IdentityDocumentType,
-		Job, JobFamily, Location, LocationTranslation, NameType, OrganizationProfile,
-		Party, PartyContactMechanism, PartyContactMechanismValidity,
-		PartyIdentityDocument, PartyIdentityDocumentValidity, PartyMergeLog, PartyName,
-		PartyNameValidity, PartyNationality, PartyRole, PasswordResetToken,
-		PersonProfile, RoleType, Session, Subscription, UserCredentials []ent.Hook
+		Job, JobFamily, Locale, Location, LocationTranslation, NameType,
+		OrganizationProfile, Party, PartyContactMechanism,
+		PartyContactMechanismValidity, PartyIdentityDocument,
+		PartyIdentityDocumentValidity, PartyMergeLog, PartyName, PartyNameValidity,
+		PartyNationality, PartyRole, PasswordResetToken, PersonProfile, RoleType,
+		Session, Subscription, UserCredentials []ent.Hook
 	}
 	inters struct {
 		Address, AttachedDocument, ContactMechanism, CorporateGroup, Department,
 		DepartmentGroupAssignment, Employee, EmployeeAssignment, IdentityDocumentType,
-		Job, JobFamily, Location, LocationTranslation, NameType, OrganizationProfile,
-		Party, PartyContactMechanism, PartyContactMechanismValidity,
-		PartyIdentityDocument, PartyIdentityDocumentValidity, PartyMergeLog, PartyName,
-		PartyNameValidity, PartyNationality, PartyRole, PasswordResetToken,
-		PersonProfile, RoleType, Session, Subscription,
-		UserCredentials []ent.Interceptor
+		Job, JobFamily, Locale, Location, LocationTranslation, NameType,
+		OrganizationProfile, Party, PartyContactMechanism,
+		PartyContactMechanismValidity, PartyIdentityDocument,
+		PartyIdentityDocumentValidity, PartyMergeLog, PartyName, PartyNameValidity,
+		PartyNationality, PartyRole, PasswordResetToken, PersonProfile, RoleType,
+		Session, Subscription, UserCredentials []ent.Interceptor
 	}
 )
 
@@ -7116,6 +7298,7 @@ var (
 		IdentityDocumentType:          tableSchemas[0],
 		Job:                           tableSchemas[1],
 		JobFamily:                     tableSchemas[1],
+		Locale:                        tableSchemas[0],
 		Location:                      tableSchemas[0],
 		LocationTranslation:           tableSchemas[0],
 		NameType:                      tableSchemas[0],
