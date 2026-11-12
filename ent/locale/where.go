@@ -270,6 +270,93 @@ func HasLocationTranslationsWith(preds ...predicate.LocationTranslation) predica
 	})
 }
 
+// HasIdentityDocumentTypeTranslations applies the HasEdge predicate on the "identity_document_type_translations" edge.
+func HasIdentityDocumentTypeTranslations() predicate.Locale {
+	return predicate.Locale(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IdentityDocumentTypeTranslationsTable, IdentityDocumentTypeTranslationsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		step.Edge.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIdentityDocumentTypeTranslationsWith applies the HasEdge predicate on the "identity_document_type_translations" edge with a given conditions (other predicates).
+func HasIdentityDocumentTypeTranslationsWith(preds ...predicate.IdentityDocumentTypeTranslation) predicate.Locale {
+	return predicate.Locale(func(s *sql.Selector) {
+		step := newIdentityDocumentTypeTranslationsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		step.Edge.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRoleTypeTranslations applies the HasEdge predicate on the "role_type_translations" edge.
+func HasRoleTypeTranslations() predicate.Locale {
+	return predicate.Locale(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RoleTypeTranslationsTable, RoleTypeTranslationsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.RoleTypeTranslation
+		step.Edge.Schema = schemaConfig.RoleTypeTranslation
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoleTypeTranslationsWith applies the HasEdge predicate on the "role_type_translations" edge with a given conditions (other predicates).
+func HasRoleTypeTranslationsWith(preds ...predicate.RoleTypeTranslation) predicate.Locale {
+	return predicate.Locale(func(s *sql.Selector) {
+		step := newRoleTypeTranslationsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.RoleTypeTranslation
+		step.Edge.Schema = schemaConfig.RoleTypeTranslation
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDepartmentTranslations applies the HasEdge predicate on the "department_translations" edge.
+func HasDepartmentTranslations() predicate.Locale {
+	return predicate.Locale(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentTranslationsTable, DepartmentTranslationsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentTranslation
+		step.Edge.Schema = schemaConfig.DepartmentTranslation
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentTranslationsWith applies the HasEdge predicate on the "department_translations" edge with a given conditions (other predicates).
+func HasDepartmentTranslationsWith(preds ...predicate.DepartmentTranslation) predicate.Locale {
+	return predicate.Locale(func(s *sql.Selector) {
+		step := newDepartmentTranslationsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentTranslation
+		step.Edge.Schema = schemaConfig.DepartmentTranslation
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Locale) predicate.Locale {
 	return predicate.Locale(sql.AndPredicates(predicates...))

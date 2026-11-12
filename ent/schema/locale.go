@@ -46,5 +46,11 @@ func (Locale) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("location_translations", LocationTranslation.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("identity_document_type_translations", IdentityDocumentTypeTranslation.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("role_type_translations", RoleTypeTranslation.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("department_translations", DepartmentTranslation.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }

@@ -31,8 +31,6 @@ func (IdentityDocumentType) Fields() []ent.Field {
 		field.String("code").
 			NotEmpty().
 			Unique(),
-		field.String("name").
-			NotEmpty(),
 		field.Enum("scope").
 			Values("PERSON", "ORGANIZATION").
 			Default("PERSON"),
@@ -50,6 +48,8 @@ func (IdentityDocumentType) Fields() []ent.Field {
 func (IdentityDocumentType) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("documents", PartyIdentityDocument.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("translations", IdentityDocumentTypeTranslation.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }

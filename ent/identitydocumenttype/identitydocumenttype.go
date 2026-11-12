@@ -18,8 +18,6 @@ const (
 	FieldID = "id"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
 	// FieldScope holds the string denoting the scope field in the database.
 	FieldScope = "scope"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -28,6 +26,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeDocuments holds the string denoting the documents edge name in mutations.
 	EdgeDocuments = "documents"
+	// EdgeTranslations holds the string denoting the translations edge name in mutations.
+	EdgeTranslations = "translations"
 	// Table holds the table name of the identitydocumenttype in the database.
 	Table = "identity_document_types"
 	// DocumentsTable is the table that holds the documents relation/edge.
@@ -37,13 +37,19 @@ const (
 	DocumentsInverseTable = "party_identity_documents"
 	// DocumentsColumn is the table column denoting the documents relation/edge.
 	DocumentsColumn = "document_type_id"
+	// TranslationsTable is the table that holds the translations relation/edge.
+	TranslationsTable = "identity_document_type_translations"
+	// TranslationsInverseTable is the table name for the IdentityDocumentTypeTranslation entity.
+	// It exists in this package in order to avoid circular dependency with the "identitydocumenttypetranslation" package.
+	TranslationsInverseTable = "identity_document_type_translations"
+	// TranslationsColumn is the table column denoting the translations relation/edge.
+	TranslationsColumn = "identity_document_type_id"
 )
 
 // Columns holds all SQL columns for identitydocumenttype fields.
 var Columns = []string{
 	FieldID,
 	FieldCode,
-	FieldName,
 	FieldScope,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -62,8 +68,6 @@ func ValidColumn(column string) bool {
 var (
 	// CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	CodeValidator func(string) error
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -113,11 +117,6 @@ func ByCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCode, opts...).ToFunc()
 }
 
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
-}
-
 // ByScope orders the results by the scope field.
 func ByScope(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldScope, opts...).ToFunc()
@@ -146,10 +145,31 @@ func ByDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByTranslationsCount orders the results by translations count.
+func ByTranslationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTranslationsStep(), opts...)
+	}
+}
+
+// ByTranslations orders the results by translations terms.
+func ByTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newDocumentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DocumentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, DocumentsTable, DocumentsColumn),
+	)
+}
+func newTranslationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TranslationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TranslationsTable, TranslationsColumn),
 	)
 }

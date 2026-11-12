@@ -13,29 +13,31 @@ import (
 )
 
 type fakeOrgRepo struct {
-	jobFamilies      map[uuid.UUID]*domain.JobFamily
-	jobs             map[uuid.UUID]*domain.Job
-	departments      map[uuid.UUID]*domain.Department
-	employees        map[uuid.UUID]*domain.Employee
-	assignments      map[uuid.UUID]*domain.EmployeeAssignment
-	corporateGroups  map[uuid.UUID]*domain.CorporateGroup
-	groupAssignments int
-	getGroupErr      error
-	createJfErr      error
-	updateJfErr      error
-	getJfErr         error
-	createAsgErr     error
-	updateAsgErr     error
+	jobFamilies            map[uuid.UUID]*domain.JobFamily
+	jobs                   map[uuid.UUID]*domain.Job
+	departments            map[uuid.UUID]*domain.Department
+	employees              map[uuid.UUID]*domain.Employee
+	assignments            map[uuid.UUID]*domain.EmployeeAssignment
+	corporateGroups        map[uuid.UUID]*domain.CorporateGroup
+	departmentTranslations map[uuid.UUID]map[string]string
+	groupAssignments       int
+	getGroupErr            error
+	createJfErr            error
+	updateJfErr            error
+	getJfErr               error
+	createAsgErr           error
+	updateAsgErr           error
 }
 
 func newFakeOrgRepo() *fakeOrgRepo {
 	return &fakeOrgRepo{
-		jobFamilies:     make(map[uuid.UUID]*domain.JobFamily),
-		jobs:            make(map[uuid.UUID]*domain.Job),
-		departments:     make(map[uuid.UUID]*domain.Department),
-		employees:       make(map[uuid.UUID]*domain.Employee),
-		assignments:     make(map[uuid.UUID]*domain.EmployeeAssignment),
-		corporateGroups: make(map[uuid.UUID]*domain.CorporateGroup),
+		jobFamilies:            make(map[uuid.UUID]*domain.JobFamily),
+		jobs:                   make(map[uuid.UUID]*domain.Job),
+		departments:            make(map[uuid.UUID]*domain.Department),
+		employees:              make(map[uuid.UUID]*domain.Employee),
+		assignments:            make(map[uuid.UUID]*domain.EmployeeAssignment),
+		corporateGroups:        make(map[uuid.UUID]*domain.CorporateGroup),
+		departmentTranslations: make(map[uuid.UUID]map[string]string),
 	}
 }
 
@@ -535,4 +537,13 @@ func TestOrgStructureAssignDepartmentRespectsRLSLookup(t *testing.T) {
 
 	require.ErrorIs(t, err, domain.ErrCorporateGroupNotFound)
 	assert.Zero(t, repo.groupAssignments)
+}
+
+func (r *fakeOrgRepo) GetDepartmentTranslation(ctx context.Context, departmentID uuid.UUID, locale string) (string, error) {
+	if translations, ok := r.departmentTranslations[departmentID]; ok {
+		if name, ok := translations[locale]; ok {
+			return name, nil
+		}
+	}
+	return "", domain.ErrTranslationNotFound
 }

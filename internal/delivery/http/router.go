@@ -24,6 +24,7 @@ type Dependencies struct {
 	IdentityUseCase      IdentityUseCase
 	DepartmentMDMUseCase DepartmentMDMUseCase
 	OAuthUseCase         OAuthUseCase
+	CatalogUseCase       CatalogUseCase
 	TokenManager         *auth.Manager
 
 	CookieSecure   bool
@@ -70,7 +71,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	authHandler := NewAuthHandler(deps.AuthUseCase, deps.CookieSecure, deps.RefreshTTL)
 	accountHandler := NewAccountHandler(deps.AccountUseCase)
 	onboardingHandler := NewOnboardingHandler(deps.OnboardingUseCase)
-	orgHandler := NewOrgHandler(deps.OrgStructureUseCase)
+	orgHandler := NewOrgHandler(deps.OrgStructureUseCase, deps.CatalogUseCase)
 	mergeHandler := NewMergeHandler(deps.MergePartiesUseCase)
 	documentHandler := NewDocumentHandler(deps.DocumentUseCase)
 	partyNameHandler := NewPartyNameHandler(deps.PartyNameUseCase)
@@ -78,6 +79,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	identityHandler := NewIdentityHandler(deps.IdentityUseCase)
 	departmentMDMHandler := NewDepartmentMDMHandler(deps.DepartmentMDMUseCase)
 	oauthHandler := NewOAuthHandler(deps.OAuthUseCase)
+	catalogHandler := NewCatalogHandler(deps.CatalogUseCase)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -85,6 +87,8 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	api.GET("/health", Health)
 	api.GET("/locations", locationHandler.List)
 	api.POST("/oauth/token", oauthHandler.Token)
+	api.GET("/identity-document-types", catalogHandler.ListIdentityDocumentTypes)
+	api.GET("/role-types", catalogHandler.ListRoleTypes)
 
 	authRoutes := api.Group("/auth")
 	{

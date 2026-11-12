@@ -35,9 +35,15 @@ type Locale struct {
 type LocaleEdges struct {
 	// LocationTranslations holds the value of the location_translations edge.
 	LocationTranslations []*LocationTranslation `json:"location_translations,omitempty"`
+	// IdentityDocumentTypeTranslations holds the value of the identity_document_type_translations edge.
+	IdentityDocumentTypeTranslations []*IdentityDocumentTypeTranslation `json:"identity_document_type_translations,omitempty"`
+	// RoleTypeTranslations holds the value of the role_type_translations edge.
+	RoleTypeTranslations []*RoleTypeTranslation `json:"role_type_translations,omitempty"`
+	// DepartmentTranslations holds the value of the department_translations edge.
+	DepartmentTranslations []*DepartmentTranslation `json:"department_translations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [4]bool
 }
 
 // LocationTranslationsOrErr returns the LocationTranslations value or an error if the edge
@@ -47,6 +53,33 @@ func (e LocaleEdges) LocationTranslationsOrErr() ([]*LocationTranslation, error)
 		return e.LocationTranslations, nil
 	}
 	return nil, &NotLoadedError{edge: "location_translations"}
+}
+
+// IdentityDocumentTypeTranslationsOrErr returns the IdentityDocumentTypeTranslations value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocaleEdges) IdentityDocumentTypeTranslationsOrErr() ([]*IdentityDocumentTypeTranslation, error) {
+	if e.loadedTypes[1] {
+		return e.IdentityDocumentTypeTranslations, nil
+	}
+	return nil, &NotLoadedError{edge: "identity_document_type_translations"}
+}
+
+// RoleTypeTranslationsOrErr returns the RoleTypeTranslations value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocaleEdges) RoleTypeTranslationsOrErr() ([]*RoleTypeTranslation, error) {
+	if e.loadedTypes[2] {
+		return e.RoleTypeTranslations, nil
+	}
+	return nil, &NotLoadedError{edge: "role_type_translations"}
+}
+
+// DepartmentTranslationsOrErr returns the DepartmentTranslations value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocaleEdges) DepartmentTranslationsOrErr() ([]*DepartmentTranslation, error) {
+	if e.loadedTypes[3] {
+		return e.DepartmentTranslations, nil
+	}
+	return nil, &NotLoadedError{edge: "department_translations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -121,6 +154,21 @@ func (_m *Locale) Value(name string) (ent.Value, error) {
 // QueryLocationTranslations queries the "location_translations" edge of the Locale entity.
 func (_m *Locale) QueryLocationTranslations() *LocationTranslationQuery {
 	return NewLocaleClient(_m.config).QueryLocationTranslations(_m)
+}
+
+// QueryIdentityDocumentTypeTranslations queries the "identity_document_type_translations" edge of the Locale entity.
+func (_m *Locale) QueryIdentityDocumentTypeTranslations() *IdentityDocumentTypeTranslationQuery {
+	return NewLocaleClient(_m.config).QueryIdentityDocumentTypeTranslations(_m)
+}
+
+// QueryRoleTypeTranslations queries the "role_type_translations" edge of the Locale entity.
+func (_m *Locale) QueryRoleTypeTranslations() *RoleTypeTranslationQuery {
+	return NewLocaleClient(_m.config).QueryRoleTypeTranslations(_m)
+}
+
+// QueryDepartmentTranslations queries the "department_translations" edge of the Locale entity.
+func (_m *Locale) QueryDepartmentTranslations() *DepartmentTranslationQuery {
+	return NewLocaleClient(_m.config).QueryDepartmentTranslations(_m)
 }
 
 // Update returns a builder for updating this Locale.

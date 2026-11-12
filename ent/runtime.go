@@ -15,9 +15,11 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/identitydocumenttype"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/locale"
@@ -38,6 +40,7 @@ import (
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
 	"enterprise-system/ent/roletype"
+	"enterprise-system/ent/roletypetranslation"
 	"enterprise-system/ent/schema"
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
@@ -329,6 +332,30 @@ func init() {
 	departmentgroupassignmentDescID := departmentgroupassignmentFields[0].Descriptor()
 	// departmentgroupassignment.DefaultID holds the default value on creation for the id field.
 	departmentgroupassignment.DefaultID = departmentgroupassignmentDescID.Default.(func() uuid.UUID)
+	departmenttranslationFields := schema.DepartmentTranslation{}.Fields()
+	_ = departmenttranslationFields
+	// departmenttranslationDescLocaleCode is the schema descriptor for locale_code field.
+	departmenttranslationDescLocaleCode := departmenttranslationFields[3].Descriptor()
+	// departmenttranslation.LocaleCodeValidator is a validator for the "locale_code" field. It is called by the builders before save.
+	departmenttranslation.LocaleCodeValidator = departmenttranslationDescLocaleCode.Validators[0].(func(string) error)
+	// departmenttranslationDescName is the schema descriptor for name field.
+	departmenttranslationDescName := departmenttranslationFields[4].Descriptor()
+	// departmenttranslation.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	departmenttranslation.NameValidator = departmenttranslationDescName.Validators[0].(func(string) error)
+	// departmenttranslationDescCreatedAt is the schema descriptor for created_at field.
+	departmenttranslationDescCreatedAt := departmenttranslationFields[6].Descriptor()
+	// departmenttranslation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	departmenttranslation.DefaultCreatedAt = departmenttranslationDescCreatedAt.Default.(func() time.Time)
+	// departmenttranslationDescUpdatedAt is the schema descriptor for updated_at field.
+	departmenttranslationDescUpdatedAt := departmenttranslationFields[7].Descriptor()
+	// departmenttranslation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	departmenttranslation.DefaultUpdatedAt = departmenttranslationDescUpdatedAt.Default.(func() time.Time)
+	// departmenttranslation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	departmenttranslation.UpdateDefaultUpdatedAt = departmenttranslationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// departmenttranslationDescID is the schema descriptor for id field.
+	departmenttranslationDescID := departmenttranslationFields[0].Descriptor()
+	// departmenttranslation.DefaultID holds the default value on creation for the id field.
+	departmenttranslation.DefaultID = departmenttranslationDescID.Default.(func() uuid.UUID)
 	employeeFields := schema.Employee{}.Fields()
 	_ = employeeFields
 	// employeeDescEmployeeCode is the schema descriptor for employee_code field.
@@ -367,16 +394,12 @@ func init() {
 	identitydocumenttypeDescCode := identitydocumenttypeFields[1].Descriptor()
 	// identitydocumenttype.CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	identitydocumenttype.CodeValidator = identitydocumenttypeDescCode.Validators[0].(func(string) error)
-	// identitydocumenttypeDescName is the schema descriptor for name field.
-	identitydocumenttypeDescName := identitydocumenttypeFields[2].Descriptor()
-	// identitydocumenttype.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	identitydocumenttype.NameValidator = identitydocumenttypeDescName.Validators[0].(func(string) error)
 	// identitydocumenttypeDescCreatedAt is the schema descriptor for created_at field.
-	identitydocumenttypeDescCreatedAt := identitydocumenttypeFields[4].Descriptor()
+	identitydocumenttypeDescCreatedAt := identitydocumenttypeFields[3].Descriptor()
 	// identitydocumenttype.DefaultCreatedAt holds the default value on creation for the created_at field.
 	identitydocumenttype.DefaultCreatedAt = identitydocumenttypeDescCreatedAt.Default.(func() time.Time)
 	// identitydocumenttypeDescUpdatedAt is the schema descriptor for updated_at field.
-	identitydocumenttypeDescUpdatedAt := identitydocumenttypeFields[5].Descriptor()
+	identitydocumenttypeDescUpdatedAt := identitydocumenttypeFields[4].Descriptor()
 	// identitydocumenttype.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	identitydocumenttype.DefaultUpdatedAt = identitydocumenttypeDescUpdatedAt.Default.(func() time.Time)
 	// identitydocumenttype.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -385,6 +408,30 @@ func init() {
 	identitydocumenttypeDescID := identitydocumenttypeFields[0].Descriptor()
 	// identitydocumenttype.DefaultID holds the default value on creation for the id field.
 	identitydocumenttype.DefaultID = identitydocumenttypeDescID.Default.(func() uuid.UUID)
+	identitydocumenttypetranslationFields := schema.IdentityDocumentTypeTranslation{}.Fields()
+	_ = identitydocumenttypetranslationFields
+	// identitydocumenttypetranslationDescLocaleCode is the schema descriptor for locale_code field.
+	identitydocumenttypetranslationDescLocaleCode := identitydocumenttypetranslationFields[2].Descriptor()
+	// identitydocumenttypetranslation.LocaleCodeValidator is a validator for the "locale_code" field. It is called by the builders before save.
+	identitydocumenttypetranslation.LocaleCodeValidator = identitydocumenttypetranslationDescLocaleCode.Validators[0].(func(string) error)
+	// identitydocumenttypetranslationDescName is the schema descriptor for name field.
+	identitydocumenttypetranslationDescName := identitydocumenttypetranslationFields[3].Descriptor()
+	// identitydocumenttypetranslation.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	identitydocumenttypetranslation.NameValidator = identitydocumenttypetranslationDescName.Validators[0].(func(string) error)
+	// identitydocumenttypetranslationDescCreatedAt is the schema descriptor for created_at field.
+	identitydocumenttypetranslationDescCreatedAt := identitydocumenttypetranslationFields[5].Descriptor()
+	// identitydocumenttypetranslation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	identitydocumenttypetranslation.DefaultCreatedAt = identitydocumenttypetranslationDescCreatedAt.Default.(func() time.Time)
+	// identitydocumenttypetranslationDescUpdatedAt is the schema descriptor for updated_at field.
+	identitydocumenttypetranslationDescUpdatedAt := identitydocumenttypetranslationFields[6].Descriptor()
+	// identitydocumenttypetranslation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	identitydocumenttypetranslation.DefaultUpdatedAt = identitydocumenttypetranslationDescUpdatedAt.Default.(func() time.Time)
+	// identitydocumenttypetranslation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	identitydocumenttypetranslation.UpdateDefaultUpdatedAt = identitydocumenttypetranslationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// identitydocumenttypetranslationDescID is the schema descriptor for id field.
+	identitydocumenttypetranslationDescID := identitydocumenttypetranslationFields[0].Descriptor()
+	// identitydocumenttypetranslation.DefaultID holds the default value on creation for the id field.
+	identitydocumenttypetranslation.DefaultID = identitydocumenttypetranslationDescID.Default.(func() uuid.UUID)
 	jobFields := schema.Job{}.Fields()
 	_ = jobFields
 	// jobDescTitle is the schema descriptor for title field.
@@ -847,20 +894,16 @@ func init() {
 	roletypeDescCode := roletypeFields[1].Descriptor()
 	// roletype.CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	roletype.CodeValidator = roletypeDescCode.Validators[0].(func(string) error)
-	// roletypeDescName is the schema descriptor for name field.
-	roletypeDescName := roletypeFields[2].Descriptor()
-	// roletype.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	roletype.NameValidator = roletypeDescName.Validators[0].(func(string) error)
 	// roletypeDescIsSystem is the schema descriptor for is_system field.
-	roletypeDescIsSystem := roletypeFields[4].Descriptor()
+	roletypeDescIsSystem := roletypeFields[2].Descriptor()
 	// roletype.DefaultIsSystem holds the default value on creation for the is_system field.
 	roletype.DefaultIsSystem = roletypeDescIsSystem.Default.(bool)
 	// roletypeDescCreatedAt is the schema descriptor for created_at field.
-	roletypeDescCreatedAt := roletypeFields[5].Descriptor()
+	roletypeDescCreatedAt := roletypeFields[3].Descriptor()
 	// roletype.DefaultCreatedAt holds the default value on creation for the created_at field.
 	roletype.DefaultCreatedAt = roletypeDescCreatedAt.Default.(func() time.Time)
 	// roletypeDescUpdatedAt is the schema descriptor for updated_at field.
-	roletypeDescUpdatedAt := roletypeFields[6].Descriptor()
+	roletypeDescUpdatedAt := roletypeFields[4].Descriptor()
 	// roletype.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	roletype.DefaultUpdatedAt = roletypeDescUpdatedAt.Default.(func() time.Time)
 	// roletype.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -869,6 +912,30 @@ func init() {
 	roletypeDescID := roletypeFields[0].Descriptor()
 	// roletype.DefaultID holds the default value on creation for the id field.
 	roletype.DefaultID = roletypeDescID.Default.(func() uuid.UUID)
+	roletypetranslationFields := schema.RoleTypeTranslation{}.Fields()
+	_ = roletypetranslationFields
+	// roletypetranslationDescLocaleCode is the schema descriptor for locale_code field.
+	roletypetranslationDescLocaleCode := roletypetranslationFields[2].Descriptor()
+	// roletypetranslation.LocaleCodeValidator is a validator for the "locale_code" field. It is called by the builders before save.
+	roletypetranslation.LocaleCodeValidator = roletypetranslationDescLocaleCode.Validators[0].(func(string) error)
+	// roletypetranslationDescName is the schema descriptor for name field.
+	roletypetranslationDescName := roletypetranslationFields[3].Descriptor()
+	// roletypetranslation.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	roletypetranslation.NameValidator = roletypetranslationDescName.Validators[0].(func(string) error)
+	// roletypetranslationDescCreatedAt is the schema descriptor for created_at field.
+	roletypetranslationDescCreatedAt := roletypetranslationFields[5].Descriptor()
+	// roletypetranslation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	roletypetranslation.DefaultCreatedAt = roletypetranslationDescCreatedAt.Default.(func() time.Time)
+	// roletypetranslationDescUpdatedAt is the schema descriptor for updated_at field.
+	roletypetranslationDescUpdatedAt := roletypetranslationFields[6].Descriptor()
+	// roletypetranslation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	roletypetranslation.DefaultUpdatedAt = roletypetranslationDescUpdatedAt.Default.(func() time.Time)
+	// roletypetranslation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	roletypetranslation.UpdateDefaultUpdatedAt = roletypetranslationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// roletypetranslationDescID is the schema descriptor for id field.
+	roletypetranslationDescID := roletypetranslationFields[0].Descriptor()
+	// roletypetranslation.DefaultID holds the default value on creation for the id field.
+	roletypetranslation.DefaultID = roletypetranslationDescID.Default.(func() uuid.UUID)
 	sessionFields := schema.Session{}.Fields()
 	_ = sessionFields
 	// sessionDescMetadata is the schema descriptor for metadata field.

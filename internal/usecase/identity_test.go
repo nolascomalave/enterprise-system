@@ -32,7 +32,7 @@ func newFakeIdentityRepo() *fakeIdentityRepo {
 		domain.IdentityDocumentTypeDriverLicense, domain.IdentityDocumentTypeEUCitizenID,
 		domain.IdentityDocumentTypeBirthCertificate,
 	} {
-		repo.types[string(code)] = &domain.IdentityDocumentType{ID: uuid.New(), Code: string(code), Name: string(code), Scope: "PERSON"}
+		repo.types[string(code)] = &domain.IdentityDocumentType{ID: uuid.New(), Code: string(code), Scope: "PERSON"}
 	}
 	return repo
 }
@@ -228,4 +228,16 @@ func TestUpdateIdentityDocumentValidity(t *testing.T) {
 	assert.Nil(t, updated.Validity.EndDate)
 	assert.Equal(t, created.Document.ID, updated.Document.ID)
 	assert.Equal(t, 1, repo.closed)
+}
+
+func (r *fakeIdentityRepo) ListDocumentTypes(ctx context.Context) ([]*domain.IdentityDocumentType, error) {
+	result := make([]*domain.IdentityDocumentType, 0, len(r.types))
+	for _, documentType := range r.types {
+		result = append(result, documentType)
+	}
+	return result, nil
+}
+
+func (r *fakeIdentityRepo) GetDocumentTypeTranslation(ctx context.Context, documentTypeID uuid.UUID, locale string) (string, error) {
+	return "", domain.ErrTranslationNotFound
 }

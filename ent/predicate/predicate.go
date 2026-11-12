@@ -42,6 +42,9 @@ type DepartmentContactMechanismValidity func(*sql.Selector)
 // DepartmentGroupAssignment is the predicate function for departmentgroupassignment builders.
 type DepartmentGroupAssignment func(*sql.Selector)
 
+// DepartmentTranslation is the predicate function for departmenttranslation builders.
+type DepartmentTranslation func(*sql.Selector)
+
 // Employee is the predicate function for employee builders.
 type Employee func(*sql.Selector)
 
@@ -50,6 +53,9 @@ type EmployeeAssignment func(*sql.Selector)
 
 // IdentityDocumentType is the predicate function for identitydocumenttype builders.
 type IdentityDocumentType func(*sql.Selector)
+
+// IdentityDocumentTypeTranslation is the predicate function for identitydocumenttypetranslation builders.
+type IdentityDocumentTypeTranslation func(*sql.Selector)
 
 // Job is the predicate function for job builders.
 type Job func(*sql.Selector)
@@ -110,6 +116,9 @@ type PersonProfile func(*sql.Selector)
 
 // RoleType is the predicate function for roletype builders.
 type RoleType func(*sql.Selector)
+
+// RoleTypeTranslation is the predicate function for roletypetranslation builders.
+type RoleTypeTranslation func(*sql.Selector)
 
 // Session is the predicate function for session builders.
 type Session func(*sql.Selector)

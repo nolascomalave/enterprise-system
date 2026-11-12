@@ -638,6 +638,60 @@ var (
 			},
 		},
 	}
+	// DepartmentTranslationsColumns holds the columns for the "department_translations" table.
+	DepartmentTranslationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "description", Type: field.TypeString, Nullable: true, Collation: "unaccent_case_insensitive"},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "department_id", Type: field.TypeUUID},
+		{Name: "locale_code", Type: field.TypeString},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// DepartmentTranslationsTable holds the schema information for the "department_translations" table.
+	DepartmentTranslationsTable = &schema.Table{
+		Name:       "department_translations",
+		Columns:    DepartmentTranslationsColumns,
+		PrimaryKey: []*schema.Column{DepartmentTranslationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "department_translations_departments_translations",
+				Columns:    []*schema.Column{DepartmentTranslationsColumns[5]},
+				RefColumns: []*schema.Column{DepartmentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_translations_locales_department_translations",
+				Columns:    []*schema.Column{DepartmentTranslationsColumns[6]},
+				RefColumns: []*schema.Column{LocalesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_translations_subscriptions_department_translations",
+				Columns:    []*schema.Column{DepartmentTranslationsColumns[7]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "departmenttranslation_tenant_id_department_id_locale_code",
+				Unique:  true,
+				Columns: []*schema.Column{DepartmentTranslationsColumns[7], DepartmentTranslationsColumns[5], DepartmentTranslationsColumns[6]},
+			},
+			{
+				Name:    "departmenttranslation_tenant_id_department_id",
+				Unique:  false,
+				Columns: []*schema.Column{DepartmentTranslationsColumns[7], DepartmentTranslationsColumns[5]},
+			},
+			{
+				Name:    "departmenttranslation_locale_code",
+				Unique:  false,
+				Columns: []*schema.Column{DepartmentTranslationsColumns[6]},
+			},
+		},
+	}
 	// EmployeesColumns holds the columns for the "employees" table.
 	EmployeesColumns = []*schema.Column{
 		{Name: "party_id", Type: field.TypeUUID},
@@ -792,7 +846,6 @@ var (
 	IdentityDocumentTypesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
 		{Name: "code", Type: field.TypeString, Unique: true},
-		{Name: "name", Type: field.TypeString},
 		{Name: "scope", Type: field.TypeEnum, Enums: []string{"PERSON", "ORGANIZATION"}, Default: "PERSON"},
 		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
@@ -802,6 +855,48 @@ var (
 		Name:       "identity_document_types",
 		Columns:    IdentityDocumentTypesColumns,
 		PrimaryKey: []*schema.Column{IdentityDocumentTypesColumns[0]},
+	}
+	// IdentityDocumentTypeTranslationsColumns holds the columns for the "identity_document_type_translations" table.
+	IdentityDocumentTypeTranslationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "description", Type: field.TypeString, Nullable: true, Collation: "unaccent_case_insensitive"},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "identity_document_type_id", Type: field.TypeUUID},
+		{Name: "locale_code", Type: field.TypeString},
+	}
+	// IdentityDocumentTypeTranslationsTable holds the schema information for the "identity_document_type_translations" table.
+	IdentityDocumentTypeTranslationsTable = &schema.Table{
+		Name:       "identity_document_type_translations",
+		Columns:    IdentityDocumentTypeTranslationsColumns,
+		PrimaryKey: []*schema.Column{IdentityDocumentTypeTranslationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "identity_document_type_translations_identity_document_types_translations",
+				Columns:    []*schema.Column{IdentityDocumentTypeTranslationsColumns[5]},
+				RefColumns: []*schema.Column{IdentityDocumentTypesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "identity_document_type_translations_locales_identity_document_type_translations",
+				Columns:    []*schema.Column{IdentityDocumentTypeTranslationsColumns[6]},
+				RefColumns: []*schema.Column{LocalesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "identitydocumenttypetranslation_identity_document_type_id_locale_code",
+				Unique:  true,
+				Columns: []*schema.Column{IdentityDocumentTypeTranslationsColumns[5], IdentityDocumentTypeTranslationsColumns[6]},
+			},
+			{
+				Name:    "identitydocumenttypetranslation_locale_code",
+				Unique:  false,
+				Columns: []*schema.Column{IdentityDocumentTypeTranslationsColumns[6]},
+			},
+		},
 	}
 	// JobsColumns holds the columns for the "jobs" table.
 	JobsColumns = []*schema.Column{
@@ -1802,8 +1897,6 @@ var (
 	RoleTypesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
 		{Name: "code", Type: field.TypeString},
-		{Name: "name", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "is_system", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
@@ -1822,6 +1915,48 @@ var (
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
+			},
+		},
+	}
+	// RoleTypeTranslationsColumns holds the columns for the "role_type_translations" table.
+	RoleTypeTranslationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "description", Type: field.TypeString, Nullable: true, Collation: "unaccent_case_insensitive"},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "locale_code", Type: field.TypeString},
+		{Name: "role_type_id", Type: field.TypeUUID},
+	}
+	// RoleTypeTranslationsTable holds the schema information for the "role_type_translations" table.
+	RoleTypeTranslationsTable = &schema.Table{
+		Name:       "role_type_translations",
+		Columns:    RoleTypeTranslationsColumns,
+		PrimaryKey: []*schema.Column{RoleTypeTranslationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "role_type_translations_locales_role_type_translations",
+				Columns:    []*schema.Column{RoleTypeTranslationsColumns[5]},
+				RefColumns: []*schema.Column{LocalesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "role_type_translations_role_types_translations",
+				Columns:    []*schema.Column{RoleTypeTranslationsColumns[6]},
+				RefColumns: []*schema.Column{RoleTypesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "roletypetranslation_role_type_id_locale_code",
+				Unique:  true,
+				Columns: []*schema.Column{RoleTypeTranslationsColumns[6], RoleTypeTranslationsColumns[5]},
+			},
+			{
+				Name:    "roletypetranslation_locale_code",
+				Unique:  false,
+				Columns: []*schema.Column{RoleTypeTranslationsColumns[5]},
 			},
 		},
 	}
@@ -1972,9 +2107,11 @@ var (
 		DepartmentContactMechanismsTable,
 		DepartmentContactMechanismValiditiesTable,
 		DepartmentGroupAssignmentsTable,
+		DepartmentTranslationsTable,
 		EmployeesTable,
 		EmployeeAssignmentsTable,
 		IdentityDocumentTypesTable,
+		IdentityDocumentTypeTranslationsTable,
 		JobsTable,
 		JobFamiliesTable,
 		LocalesTable,
@@ -1995,6 +2132,7 @@ var (
 		PasswordResetTokensTable,
 		PersonProfilesTable,
 		RoleTypesTable,
+		RoleTypeTranslationsTable,
 		SessionsTable,
 		SubscriptionsTable,
 		UserCredentialsTable,
@@ -2065,6 +2203,12 @@ func init() {
 	DepartmentGroupAssignmentsTable.Annotation = &entsql.Annotation{
 		Table: "department_group_assignments",
 	}
+	DepartmentTranslationsTable.ForeignKeys[0].RefTable = DepartmentsTable
+	DepartmentTranslationsTable.ForeignKeys[1].RefTable = LocalesTable
+	DepartmentTranslationsTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	DepartmentTranslationsTable.Annotation = &entsql.Annotation{
+		Table: "department_translations",
+	}
 	EmployeesTable.ForeignKeys[0].RefTable = DepartmentsTable
 	EmployeesTable.ForeignKeys[1].RefTable = EmployeesTable
 	EmployeesTable.ForeignKeys[2].RefTable = JobsTable
@@ -2081,6 +2225,11 @@ func init() {
 	}
 	IdentityDocumentTypesTable.Annotation = &entsql.Annotation{
 		Table: "identity_document_types",
+	}
+	IdentityDocumentTypeTranslationsTable.ForeignKeys[0].RefTable = IdentityDocumentTypesTable
+	IdentityDocumentTypeTranslationsTable.ForeignKeys[1].RefTable = LocalesTable
+	IdentityDocumentTypeTranslationsTable.Annotation = &entsql.Annotation{
+		Table: "identity_document_type_translations",
 	}
 	JobsTable.ForeignKeys[0].RefTable = JobFamiliesTable
 	JobsTable.ForeignKeys[1].RefTable = SubscriptionsTable
@@ -2185,6 +2334,11 @@ func init() {
 	}
 	RoleTypesTable.Annotation = &entsql.Annotation{
 		Table: "role_types",
+	}
+	RoleTypeTranslationsTable.ForeignKeys[0].RefTable = LocalesTable
+	RoleTypeTranslationsTable.ForeignKeys[1].RefTable = RoleTypesTable
+	RoleTypeTranslationsTable.Annotation = &entsql.Annotation{
+		Table: "role_type_translations",
 	}
 	SessionsTable.ForeignKeys[0].RefTable = PartiesTable
 	SessionsTable.ForeignKeys[1].RefTable = SubscriptionsTable

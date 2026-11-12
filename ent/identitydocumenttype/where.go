@@ -62,11 +62,6 @@ func Code(v string) predicate.IdentityDocumentType {
 	return predicate.IdentityDocumentType(sql.FieldEQ(FieldCode, v))
 }
 
-// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldEQ(FieldName, v))
-}
-
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.IdentityDocumentType {
 	return predicate.IdentityDocumentType(sql.FieldEQ(FieldCreatedAt, v))
@@ -140,71 +135,6 @@ func CodeEqualFold(v string) predicate.IdentityDocumentType {
 // CodeContainsFold applies the ContainsFold predicate on the "code" field.
 func CodeContainsFold(v string) predicate.IdentityDocumentType {
 	return predicate.IdentityDocumentType(sql.FieldContainsFold(FieldCode, v))
-}
-
-// NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldEQ(FieldName, v))
-}
-
-// NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldNEQ(FieldName, v))
-}
-
-// NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldIn(FieldName, vs...))
-}
-
-// NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldNotIn(FieldName, vs...))
-}
-
-// NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldGT(FieldName, v))
-}
-
-// NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldGTE(FieldName, v))
-}
-
-// NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldLT(FieldName, v))
-}
-
-// NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldLTE(FieldName, v))
-}
-
-// NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldContains(FieldName, v))
-}
-
-// NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldHasPrefix(FieldName, v))
-}
-
-// NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldHasSuffix(FieldName, v))
-}
-
-// NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldEqualFold(FieldName, v))
-}
-
-// NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.IdentityDocumentType {
-	return predicate.IdentityDocumentType(sql.FieldContainsFold(FieldName, v))
 }
 
 // ScopeEQ applies the EQ predicate on the "scope" field.
@@ -328,6 +258,35 @@ func HasDocumentsWith(preds ...predicate.PartyIdentityDocument) predicate.Identi
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.PartyIdentityDocument
 		step.Edge.Schema = schemaConfig.PartyIdentityDocument
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTranslations applies the HasEdge predicate on the "translations" edge.
+func HasTranslations() predicate.IdentityDocumentType {
+	return predicate.IdentityDocumentType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TranslationsTable, TranslationsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		step.Edge.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTranslationsWith applies the HasEdge predicate on the "translations" edge with a given conditions (other predicates).
+func HasTranslationsWith(preds ...predicate.IdentityDocumentTypeTranslation) predicate.IdentityDocumentType {
+	return predicate.IdentityDocumentType(func(s *sql.Selector) {
+		step := newTranslationsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		step.Edge.Schema = schemaConfig.IdentityDocumentTypeTranslation
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

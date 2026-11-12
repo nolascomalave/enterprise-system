@@ -15,6 +15,7 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/job"
@@ -584,6 +585,21 @@ func (_c *SubscriptionCreate) AddClientApplications(v ...*ClientApplication) *Su
 		ids[i] = v[i].ID
 	}
 	return _c.AddClientApplicationIDs(ids...)
+}
+
+// AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by IDs.
+func (_c *SubscriptionCreate) AddDepartmentTranslationIDs(ids ...uuid.UUID) *SubscriptionCreate {
+	_c.mutation.AddDepartmentTranslationIDs(ids...)
+	return _c
+}
+
+// AddDepartmentTranslations adds the "department_translations" edges to the DepartmentTranslation entity.
+func (_c *SubscriptionCreate) AddDepartmentTranslations(v ...*DepartmentTranslation) *SubscriptionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDepartmentTranslationIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -1231,6 +1247,23 @@ func (_c *SubscriptionCreate) createSpec() (*Subscription, *sqlgraph.CreateSpec)
 			},
 		}
 		edge.Schema = _c.schemaConfig.ClientApplication
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DepartmentTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentTranslationsTable,
+			Columns: []string{subscription.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

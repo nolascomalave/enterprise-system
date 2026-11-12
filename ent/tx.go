@@ -38,12 +38,16 @@ type Tx struct {
 	DepartmentContactMechanismValidity *DepartmentContactMechanismValidityClient
 	// DepartmentGroupAssignment is the client for interacting with the DepartmentGroupAssignment builders.
 	DepartmentGroupAssignment *DepartmentGroupAssignmentClient
+	// DepartmentTranslation is the client for interacting with the DepartmentTranslation builders.
+	DepartmentTranslation *DepartmentTranslationClient
 	// Employee is the client for interacting with the Employee builders.
 	Employee *EmployeeClient
 	// EmployeeAssignment is the client for interacting with the EmployeeAssignment builders.
 	EmployeeAssignment *EmployeeAssignmentClient
 	// IdentityDocumentType is the client for interacting with the IdentityDocumentType builders.
 	IdentityDocumentType *IdentityDocumentTypeClient
+	// IdentityDocumentTypeTranslation is the client for interacting with the IdentityDocumentTypeTranslation builders.
+	IdentityDocumentTypeTranslation *IdentityDocumentTypeTranslationClient
 	// Job is the client for interacting with the Job builders.
 	Job *JobClient
 	// JobFamily is the client for interacting with the JobFamily builders.
@@ -84,6 +88,8 @@ type Tx struct {
 	PersonProfile *PersonProfileClient
 	// RoleType is the client for interacting with the RoleType builders.
 	RoleType *RoleTypeClient
+	// RoleTypeTranslation is the client for interacting with the RoleTypeTranslation builders.
+	RoleTypeTranslation *RoleTypeTranslationClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// Subscription is the client for interacting with the Subscription builders.
@@ -233,9 +239,11 @@ func (tx *Tx) init() {
 	tx.DepartmentContactMechanism = NewDepartmentContactMechanismClient(tx.config)
 	tx.DepartmentContactMechanismValidity = NewDepartmentContactMechanismValidityClient(tx.config)
 	tx.DepartmentGroupAssignment = NewDepartmentGroupAssignmentClient(tx.config)
+	tx.DepartmentTranslation = NewDepartmentTranslationClient(tx.config)
 	tx.Employee = NewEmployeeClient(tx.config)
 	tx.EmployeeAssignment = NewEmployeeAssignmentClient(tx.config)
 	tx.IdentityDocumentType = NewIdentityDocumentTypeClient(tx.config)
+	tx.IdentityDocumentTypeTranslation = NewIdentityDocumentTypeTranslationClient(tx.config)
 	tx.Job = NewJobClient(tx.config)
 	tx.JobFamily = NewJobFamilyClient(tx.config)
 	tx.Locale = NewLocaleClient(tx.config)
@@ -256,6 +264,7 @@ func (tx *Tx) init() {
 	tx.PasswordResetToken = NewPasswordResetTokenClient(tx.config)
 	tx.PersonProfile = NewPersonProfileClient(tx.config)
 	tx.RoleType = NewRoleTypeClient(tx.config)
+	tx.RoleTypeTranslation = NewRoleTypeTranslationClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.Subscription = NewSubscriptionClient(tx.config)
 	tx.UserCredentials = NewUserCredentialsClient(tx.config)

@@ -20,8 +20,6 @@ type IdentityDocumentType struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
 	// Scope holds the value of the "scope" field.
 	Scope identitydocumenttype.Scope `json:"scope,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -38,9 +36,11 @@ type IdentityDocumentType struct {
 type IdentityDocumentTypeEdges struct {
 	// Documents holds the value of the documents edge.
 	Documents []*PartyIdentityDocument `json:"documents,omitempty"`
+	// Translations holds the value of the translations edge.
+	Translations []*IdentityDocumentTypeTranslation `json:"translations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // DocumentsOrErr returns the Documents value or an error if the edge
@@ -52,12 +52,21 @@ func (e IdentityDocumentTypeEdges) DocumentsOrErr() ([]*PartyIdentityDocument, e
 	return nil, &NotLoadedError{edge: "documents"}
 }
 
+// TranslationsOrErr returns the Translations value or an error if the edge
+// was not loaded in eager-loading.
+func (e IdentityDocumentTypeEdges) TranslationsOrErr() ([]*IdentityDocumentTypeTranslation, error) {
+	if e.loadedTypes[1] {
+		return e.Translations, nil
+	}
+	return nil, &NotLoadedError{edge: "translations"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*IdentityDocumentType) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case identitydocumenttype.FieldCode, identitydocumenttype.FieldName, identitydocumenttype.FieldScope:
+		case identitydocumenttype.FieldCode, identitydocumenttype.FieldScope:
 			values[i] = new(sql.NullString)
 		case identitydocumenttype.FieldCreatedAt, identitydocumenttype.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -89,12 +98,6 @@ func (_m *IdentityDocumentType) assignValues(columns []string, values []any) err
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
 				_m.Code = value.String
-			}
-		case identitydocumenttype.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				_m.Name = value.String
 			}
 		case identitydocumenttype.FieldScope:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -132,6 +135,11 @@ func (_m *IdentityDocumentType) QueryDocuments() *PartyIdentityDocumentQuery {
 	return NewIdentityDocumentTypeClient(_m.config).QueryDocuments(_m)
 }
 
+// QueryTranslations queries the "translations" edge of the IdentityDocumentType entity.
+func (_m *IdentityDocumentType) QueryTranslations() *IdentityDocumentTypeTranslationQuery {
+	return NewIdentityDocumentTypeClient(_m.config).QueryTranslations(_m)
+}
+
 // Update returns a builder for updating this IdentityDocumentType.
 // Note that you need to call IdentityDocumentType.Unwrap() before calling this method if this IdentityDocumentType
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -157,9 +165,6 @@ func (_m *IdentityDocumentType) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("code=")
 	builder.WriteString(_m.Code)
-	builder.WriteString(", ")
-	builder.WriteString("name=")
-	builder.WriteString(_m.Name)
 	builder.WriteString(", ")
 	builder.WriteString("scope=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Scope))

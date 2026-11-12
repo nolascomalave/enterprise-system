@@ -23,9 +23,11 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/identitydocumenttype"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/locale"
@@ -46,6 +48,7 @@ import (
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
 	"enterprise-system/ent/roletype"
+	"enterprise-system/ent/roletypetranslation"
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
@@ -89,12 +92,16 @@ type Client struct {
 	DepartmentContactMechanismValidity *DepartmentContactMechanismValidityClient
 	// DepartmentGroupAssignment is the client for interacting with the DepartmentGroupAssignment builders.
 	DepartmentGroupAssignment *DepartmentGroupAssignmentClient
+	// DepartmentTranslation is the client for interacting with the DepartmentTranslation builders.
+	DepartmentTranslation *DepartmentTranslationClient
 	// Employee is the client for interacting with the Employee builders.
 	Employee *EmployeeClient
 	// EmployeeAssignment is the client for interacting with the EmployeeAssignment builders.
 	EmployeeAssignment *EmployeeAssignmentClient
 	// IdentityDocumentType is the client for interacting with the IdentityDocumentType builders.
 	IdentityDocumentType *IdentityDocumentTypeClient
+	// IdentityDocumentTypeTranslation is the client for interacting with the IdentityDocumentTypeTranslation builders.
+	IdentityDocumentTypeTranslation *IdentityDocumentTypeTranslationClient
 	// Job is the client for interacting with the Job builders.
 	Job *JobClient
 	// JobFamily is the client for interacting with the JobFamily builders.
@@ -135,6 +142,8 @@ type Client struct {
 	PersonProfile *PersonProfileClient
 	// RoleType is the client for interacting with the RoleType builders.
 	RoleType *RoleTypeClient
+	// RoleTypeTranslation is the client for interacting with the RoleTypeTranslation builders.
+	RoleTypeTranslation *RoleTypeTranslationClient
 	// Session is the client for interacting with the Session builders.
 	Session *SessionClient
 	// Subscription is the client for interacting with the Subscription builders.
@@ -164,9 +173,11 @@ func (c *Client) init() {
 	c.DepartmentContactMechanism = NewDepartmentContactMechanismClient(c.config)
 	c.DepartmentContactMechanismValidity = NewDepartmentContactMechanismValidityClient(c.config)
 	c.DepartmentGroupAssignment = NewDepartmentGroupAssignmentClient(c.config)
+	c.DepartmentTranslation = NewDepartmentTranslationClient(c.config)
 	c.Employee = NewEmployeeClient(c.config)
 	c.EmployeeAssignment = NewEmployeeAssignmentClient(c.config)
 	c.IdentityDocumentType = NewIdentityDocumentTypeClient(c.config)
+	c.IdentityDocumentTypeTranslation = NewIdentityDocumentTypeTranslationClient(c.config)
 	c.Job = NewJobClient(c.config)
 	c.JobFamily = NewJobFamilyClient(c.config)
 	c.Locale = NewLocaleClient(c.config)
@@ -187,6 +198,7 @@ func (c *Client) init() {
 	c.PasswordResetToken = NewPasswordResetTokenClient(c.config)
 	c.PersonProfile = NewPersonProfileClient(c.config)
 	c.RoleType = NewRoleTypeClient(c.config)
+	c.RoleTypeTranslation = NewRoleTypeTranslationClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.Subscription = NewSubscriptionClient(c.config)
 	c.UserCredentials = NewUserCredentialsClient(c.config)
@@ -297,9 +309,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		DepartmentContactMechanism:         NewDepartmentContactMechanismClient(cfg),
 		DepartmentContactMechanismValidity: NewDepartmentContactMechanismValidityClient(cfg),
 		DepartmentGroupAssignment:          NewDepartmentGroupAssignmentClient(cfg),
+		DepartmentTranslation:              NewDepartmentTranslationClient(cfg),
 		Employee:                           NewEmployeeClient(cfg),
 		EmployeeAssignment:                 NewEmployeeAssignmentClient(cfg),
 		IdentityDocumentType:               NewIdentityDocumentTypeClient(cfg),
+		IdentityDocumentTypeTranslation:    NewIdentityDocumentTypeTranslationClient(cfg),
 		Job:                                NewJobClient(cfg),
 		JobFamily:                          NewJobFamilyClient(cfg),
 		Locale:                             NewLocaleClient(cfg),
@@ -320,6 +334,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PasswordResetToken:                 NewPasswordResetTokenClient(cfg),
 		PersonProfile:                      NewPersonProfileClient(cfg),
 		RoleType:                           NewRoleTypeClient(cfg),
+		RoleTypeTranslation:                NewRoleTypeTranslationClient(cfg),
 		Session:                            NewSessionClient(cfg),
 		Subscription:                       NewSubscriptionClient(cfg),
 		UserCredentials:                    NewUserCredentialsClient(cfg),
@@ -354,9 +369,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		DepartmentContactMechanism:         NewDepartmentContactMechanismClient(cfg),
 		DepartmentContactMechanismValidity: NewDepartmentContactMechanismValidityClient(cfg),
 		DepartmentGroupAssignment:          NewDepartmentGroupAssignmentClient(cfg),
+		DepartmentTranslation:              NewDepartmentTranslationClient(cfg),
 		Employee:                           NewEmployeeClient(cfg),
 		EmployeeAssignment:                 NewEmployeeAssignmentClient(cfg),
 		IdentityDocumentType:               NewIdentityDocumentTypeClient(cfg),
+		IdentityDocumentTypeTranslation:    NewIdentityDocumentTypeTranslationClient(cfg),
 		Job:                                NewJobClient(cfg),
 		JobFamily:                          NewJobFamilyClient(cfg),
 		Locale:                             NewLocaleClient(cfg),
@@ -377,6 +394,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PasswordResetToken:                 NewPasswordResetTokenClient(cfg),
 		PersonProfile:                      NewPersonProfileClient(cfg),
 		RoleType:                           NewRoleTypeClient(cfg),
+		RoleTypeTranslation:                NewRoleTypeTranslationClient(cfg),
 		Session:                            NewSessionClient(cfg),
 		Subscription:                       NewSubscriptionClient(cfg),
 		UserCredentials:                    NewUserCredentialsClient(cfg),
@@ -412,14 +430,15 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Address, c.AddressValidity, c.AttachedDocument, c.ClientApplication,
 		c.ContactMechanism, c.CorporateGroup, c.Department, c.DepartmentAddress,
 		c.DepartmentAddressValidity, c.DepartmentContactMechanism,
-		c.DepartmentContactMechanismValidity, c.DepartmentGroupAssignment, c.Employee,
-		c.EmployeeAssignment, c.IdentityDocumentType, c.Job, c.JobFamily, c.Locale,
-		c.Location, c.LocationTranslation, c.NameType, c.OrganizationProfile, c.Party,
-		c.PartyContactMechanism, c.PartyContactMechanismValidity,
+		c.DepartmentContactMechanismValidity, c.DepartmentGroupAssignment,
+		c.DepartmentTranslation, c.Employee, c.EmployeeAssignment,
+		c.IdentityDocumentType, c.IdentityDocumentTypeTranslation, c.Job, c.JobFamily,
+		c.Locale, c.Location, c.LocationTranslation, c.NameType, c.OrganizationProfile,
+		c.Party, c.PartyContactMechanism, c.PartyContactMechanismValidity,
 		c.PartyIdentityDocument, c.PartyIdentityDocumentValidity, c.PartyMergeLog,
 		c.PartyName, c.PartyNameValidity, c.PartyNationality, c.PartyRole,
-		c.PasswordResetToken, c.PersonProfile, c.RoleType, c.Session, c.Subscription,
-		c.UserCredentials,
+		c.PasswordResetToken, c.PersonProfile, c.RoleType, c.RoleTypeTranslation,
+		c.Session, c.Subscription, c.UserCredentials,
 	} {
 		n.Use(hooks...)
 	}
@@ -432,14 +451,15 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Address, c.AddressValidity, c.AttachedDocument, c.ClientApplication,
 		c.ContactMechanism, c.CorporateGroup, c.Department, c.DepartmentAddress,
 		c.DepartmentAddressValidity, c.DepartmentContactMechanism,
-		c.DepartmentContactMechanismValidity, c.DepartmentGroupAssignment, c.Employee,
-		c.EmployeeAssignment, c.IdentityDocumentType, c.Job, c.JobFamily, c.Locale,
-		c.Location, c.LocationTranslation, c.NameType, c.OrganizationProfile, c.Party,
-		c.PartyContactMechanism, c.PartyContactMechanismValidity,
+		c.DepartmentContactMechanismValidity, c.DepartmentGroupAssignment,
+		c.DepartmentTranslation, c.Employee, c.EmployeeAssignment,
+		c.IdentityDocumentType, c.IdentityDocumentTypeTranslation, c.Job, c.JobFamily,
+		c.Locale, c.Location, c.LocationTranslation, c.NameType, c.OrganizationProfile,
+		c.Party, c.PartyContactMechanism, c.PartyContactMechanismValidity,
 		c.PartyIdentityDocument, c.PartyIdentityDocumentValidity, c.PartyMergeLog,
 		c.PartyName, c.PartyNameValidity, c.PartyNationality, c.PartyRole,
-		c.PasswordResetToken, c.PersonProfile, c.RoleType, c.Session, c.Subscription,
-		c.UserCredentials,
+		c.PasswordResetToken, c.PersonProfile, c.RoleType, c.RoleTypeTranslation,
+		c.Session, c.Subscription, c.UserCredentials,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -472,12 +492,16 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.DepartmentContactMechanismValidity.mutate(ctx, m)
 	case *DepartmentGroupAssignmentMutation:
 		return c.DepartmentGroupAssignment.mutate(ctx, m)
+	case *DepartmentTranslationMutation:
+		return c.DepartmentTranslation.mutate(ctx, m)
 	case *EmployeeMutation:
 		return c.Employee.mutate(ctx, m)
 	case *EmployeeAssignmentMutation:
 		return c.EmployeeAssignment.mutate(ctx, m)
 	case *IdentityDocumentTypeMutation:
 		return c.IdentityDocumentType.mutate(ctx, m)
+	case *IdentityDocumentTypeTranslationMutation:
+		return c.IdentityDocumentTypeTranslation.mutate(ctx, m)
 	case *JobMutation:
 		return c.Job.mutate(ctx, m)
 	case *JobFamilyMutation:
@@ -518,6 +542,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PersonProfile.mutate(ctx, m)
 	case *RoleTypeMutation:
 		return c.RoleType.mutate(ctx, m)
+	case *RoleTypeTranslationMutation:
+		return c.RoleTypeTranslation.mutate(ctx, m)
 	case *SessionMutation:
 		return c.Session.mutate(ctx, m)
 	case *SubscriptionMutation:
@@ -1891,6 +1917,25 @@ func (c *DepartmentClient) QueryAddressValidities(_m *Department) *DepartmentAdd
 	return query
 }
 
+// QueryTranslations queries the translations edge of a Department.
+func (c *DepartmentClient) QueryTranslations(_m *Department) *DepartmentTranslationQuery {
+	query := (&DepartmentTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, id),
+			sqlgraph.To(departmenttranslation.Table, departmenttranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.TranslationsTable, department.TranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentTranslation
+		step.Edge.Schema = schemaConfig.DepartmentTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *DepartmentClient) Hooks() []Hook {
 	return c.hooks.Department
@@ -2904,6 +2949,196 @@ func (c *DepartmentGroupAssignmentClient) mutate(ctx context.Context, m *Departm
 	}
 }
 
+// DepartmentTranslationClient is a client for the DepartmentTranslation schema.
+type DepartmentTranslationClient struct {
+	config
+}
+
+// NewDepartmentTranslationClient returns a client for the DepartmentTranslation from the given config.
+func NewDepartmentTranslationClient(c config) *DepartmentTranslationClient {
+	return &DepartmentTranslationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `departmenttranslation.Hooks(f(g(h())))`.
+func (c *DepartmentTranslationClient) Use(hooks ...Hook) {
+	c.hooks.DepartmentTranslation = append(c.hooks.DepartmentTranslation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `departmenttranslation.Intercept(f(g(h())))`.
+func (c *DepartmentTranslationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepartmentTranslation = append(c.inters.DepartmentTranslation, interceptors...)
+}
+
+// Create returns a builder for creating a DepartmentTranslation entity.
+func (c *DepartmentTranslationClient) Create() *DepartmentTranslationCreate {
+	mutation := newDepartmentTranslationMutation(c.config, OpCreate)
+	return &DepartmentTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepartmentTranslation entities.
+func (c *DepartmentTranslationClient) CreateBulk(builders ...*DepartmentTranslationCreate) *DepartmentTranslationCreateBulk {
+	return &DepartmentTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepartmentTranslationClient) MapCreateBulk(slice any, setFunc func(*DepartmentTranslationCreate, int)) *DepartmentTranslationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepartmentTranslationCreateBulk{err: fmt.Errorf("calling to DepartmentTranslationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepartmentTranslationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepartmentTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepartmentTranslation.
+func (c *DepartmentTranslationClient) Update() *DepartmentTranslationUpdate {
+	mutation := newDepartmentTranslationMutation(c.config, OpUpdate)
+	return &DepartmentTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepartmentTranslationClient) UpdateOne(_m *DepartmentTranslation) *DepartmentTranslationUpdateOne {
+	mutation := newDepartmentTranslationMutation(c.config, OpUpdateOne, withDepartmentTranslation(_m))
+	return &DepartmentTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepartmentTranslationClient) UpdateOneID(id uuid.UUID) *DepartmentTranslationUpdateOne {
+	mutation := newDepartmentTranslationMutation(c.config, OpUpdateOne, withDepartmentTranslationID(id))
+	return &DepartmentTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepartmentTranslation.
+func (c *DepartmentTranslationClient) Delete() *DepartmentTranslationDelete {
+	mutation := newDepartmentTranslationMutation(c.config, OpDelete)
+	return &DepartmentTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepartmentTranslationClient) DeleteOne(_m *DepartmentTranslation) *DepartmentTranslationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepartmentTranslationClient) DeleteOneID(id uuid.UUID) *DepartmentTranslationDeleteOne {
+	builder := c.Delete().Where(departmenttranslation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepartmentTranslationDeleteOne{builder}
+}
+
+// Query returns a query builder for DepartmentTranslation.
+func (c *DepartmentTranslationClient) Query() *DepartmentTranslationQuery {
+	return &DepartmentTranslationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepartmentTranslation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepartmentTranslation entity by its id.
+func (c *DepartmentTranslationClient) Get(ctx context.Context, id uuid.UUID) (*DepartmentTranslation, error) {
+	return c.Query().Where(departmenttranslation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepartmentTranslationClient) GetX(ctx context.Context, id uuid.UUID) *DepartmentTranslation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a DepartmentTranslation.
+func (c *DepartmentTranslationClient) QueryTenant(_m *DepartmentTranslation) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmenttranslation.Table, departmenttranslation.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmenttranslation.TenantTable, departmenttranslation.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.DepartmentTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartment queries the department edge of a DepartmentTranslation.
+func (c *DepartmentTranslationClient) QueryDepartment(_m *DepartmentTranslation) *DepartmentQuery {
+	query := (&DepartmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmenttranslation.Table, departmenttranslation.FieldID, id),
+			sqlgraph.To(department.Table, department.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmenttranslation.DepartmentTable, departmenttranslation.DepartmentColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Department
+		step.Edge.Schema = schemaConfig.DepartmentTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLocale queries the locale edge of a DepartmentTranslation.
+func (c *DepartmentTranslationClient) QueryLocale(_m *DepartmentTranslation) *LocaleQuery {
+	query := (&LocaleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmenttranslation.Table, departmenttranslation.FieldID, id),
+			sqlgraph.To(locale.Table, locale.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmenttranslation.LocaleTable, departmenttranslation.LocaleColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Locale
+		step.Edge.Schema = schemaConfig.DepartmentTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DepartmentTranslationClient) Hooks() []Hook {
+	return c.hooks.DepartmentTranslation
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepartmentTranslationClient) Interceptors() []Interceptor {
+	return c.inters.DepartmentTranslation
+}
+
+func (c *DepartmentTranslationClient) mutate(ctx context.Context, m *DepartmentTranslationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepartmentTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepartmentTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepartmentTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepartmentTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepartmentTranslation mutation op: %q", m.Op())
+	}
+}
+
 // EmployeeClient is a client for the Employee schema.
 type EmployeeClient struct {
 	config
@@ -3506,6 +3741,25 @@ func (c *IdentityDocumentTypeClient) QueryDocuments(_m *IdentityDocumentType) *P
 	return query
 }
 
+// QueryTranslations queries the translations edge of a IdentityDocumentType.
+func (c *IdentityDocumentTypeClient) QueryTranslations(_m *IdentityDocumentType) *IdentityDocumentTypeTranslationQuery {
+	query := (&IdentityDocumentTypeTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(identitydocumenttype.Table, identitydocumenttype.FieldID, id),
+			sqlgraph.To(identitydocumenttypetranslation.Table, identitydocumenttypetranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, identitydocumenttype.TranslationsTable, identitydocumenttype.TranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		step.Edge.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *IdentityDocumentTypeClient) Hooks() []Hook {
 	return c.hooks.IdentityDocumentType
@@ -3528,6 +3782,177 @@ func (c *IdentityDocumentTypeClient) mutate(ctx context.Context, m *IdentityDocu
 		return (&IdentityDocumentTypeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown IdentityDocumentType mutation op: %q", m.Op())
+	}
+}
+
+// IdentityDocumentTypeTranslationClient is a client for the IdentityDocumentTypeTranslation schema.
+type IdentityDocumentTypeTranslationClient struct {
+	config
+}
+
+// NewIdentityDocumentTypeTranslationClient returns a client for the IdentityDocumentTypeTranslation from the given config.
+func NewIdentityDocumentTypeTranslationClient(c config) *IdentityDocumentTypeTranslationClient {
+	return &IdentityDocumentTypeTranslationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `identitydocumenttypetranslation.Hooks(f(g(h())))`.
+func (c *IdentityDocumentTypeTranslationClient) Use(hooks ...Hook) {
+	c.hooks.IdentityDocumentTypeTranslation = append(c.hooks.IdentityDocumentTypeTranslation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `identitydocumenttypetranslation.Intercept(f(g(h())))`.
+func (c *IdentityDocumentTypeTranslationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.IdentityDocumentTypeTranslation = append(c.inters.IdentityDocumentTypeTranslation, interceptors...)
+}
+
+// Create returns a builder for creating a IdentityDocumentTypeTranslation entity.
+func (c *IdentityDocumentTypeTranslationClient) Create() *IdentityDocumentTypeTranslationCreate {
+	mutation := newIdentityDocumentTypeTranslationMutation(c.config, OpCreate)
+	return &IdentityDocumentTypeTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of IdentityDocumentTypeTranslation entities.
+func (c *IdentityDocumentTypeTranslationClient) CreateBulk(builders ...*IdentityDocumentTypeTranslationCreate) *IdentityDocumentTypeTranslationCreateBulk {
+	return &IdentityDocumentTypeTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *IdentityDocumentTypeTranslationClient) MapCreateBulk(slice any, setFunc func(*IdentityDocumentTypeTranslationCreate, int)) *IdentityDocumentTypeTranslationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &IdentityDocumentTypeTranslationCreateBulk{err: fmt.Errorf("calling to IdentityDocumentTypeTranslationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*IdentityDocumentTypeTranslationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &IdentityDocumentTypeTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for IdentityDocumentTypeTranslation.
+func (c *IdentityDocumentTypeTranslationClient) Update() *IdentityDocumentTypeTranslationUpdate {
+	mutation := newIdentityDocumentTypeTranslationMutation(c.config, OpUpdate)
+	return &IdentityDocumentTypeTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *IdentityDocumentTypeTranslationClient) UpdateOne(_m *IdentityDocumentTypeTranslation) *IdentityDocumentTypeTranslationUpdateOne {
+	mutation := newIdentityDocumentTypeTranslationMutation(c.config, OpUpdateOne, withIdentityDocumentTypeTranslation(_m))
+	return &IdentityDocumentTypeTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *IdentityDocumentTypeTranslationClient) UpdateOneID(id uuid.UUID) *IdentityDocumentTypeTranslationUpdateOne {
+	mutation := newIdentityDocumentTypeTranslationMutation(c.config, OpUpdateOne, withIdentityDocumentTypeTranslationID(id))
+	return &IdentityDocumentTypeTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for IdentityDocumentTypeTranslation.
+func (c *IdentityDocumentTypeTranslationClient) Delete() *IdentityDocumentTypeTranslationDelete {
+	mutation := newIdentityDocumentTypeTranslationMutation(c.config, OpDelete)
+	return &IdentityDocumentTypeTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *IdentityDocumentTypeTranslationClient) DeleteOne(_m *IdentityDocumentTypeTranslation) *IdentityDocumentTypeTranslationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *IdentityDocumentTypeTranslationClient) DeleteOneID(id uuid.UUID) *IdentityDocumentTypeTranslationDeleteOne {
+	builder := c.Delete().Where(identitydocumenttypetranslation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &IdentityDocumentTypeTranslationDeleteOne{builder}
+}
+
+// Query returns a query builder for IdentityDocumentTypeTranslation.
+func (c *IdentityDocumentTypeTranslationClient) Query() *IdentityDocumentTypeTranslationQuery {
+	return &IdentityDocumentTypeTranslationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeIdentityDocumentTypeTranslation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a IdentityDocumentTypeTranslation entity by its id.
+func (c *IdentityDocumentTypeTranslationClient) Get(ctx context.Context, id uuid.UUID) (*IdentityDocumentTypeTranslation, error) {
+	return c.Query().Where(identitydocumenttypetranslation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *IdentityDocumentTypeTranslationClient) GetX(ctx context.Context, id uuid.UUID) *IdentityDocumentTypeTranslation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryIdentityDocumentType queries the identity_document_type edge of a IdentityDocumentTypeTranslation.
+func (c *IdentityDocumentTypeTranslationClient) QueryIdentityDocumentType(_m *IdentityDocumentTypeTranslation) *IdentityDocumentTypeQuery {
+	query := (&IdentityDocumentTypeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(identitydocumenttypetranslation.Table, identitydocumenttypetranslation.FieldID, id),
+			sqlgraph.To(identitydocumenttype.Table, identitydocumenttype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, identitydocumenttypetranslation.IdentityDocumentTypeTable, identitydocumenttypetranslation.IdentityDocumentTypeColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.IdentityDocumentType
+		step.Edge.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLocale queries the locale edge of a IdentityDocumentTypeTranslation.
+func (c *IdentityDocumentTypeTranslationClient) QueryLocale(_m *IdentityDocumentTypeTranslation) *LocaleQuery {
+	query := (&LocaleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(identitydocumenttypetranslation.Table, identitydocumenttypetranslation.FieldID, id),
+			sqlgraph.To(locale.Table, locale.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, identitydocumenttypetranslation.LocaleTable, identitydocumenttypetranslation.LocaleColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Locale
+		step.Edge.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *IdentityDocumentTypeTranslationClient) Hooks() []Hook {
+	return c.hooks.IdentityDocumentTypeTranslation
+}
+
+// Interceptors returns the client interceptors.
+func (c *IdentityDocumentTypeTranslationClient) Interceptors() []Interceptor {
+	return c.inters.IdentityDocumentTypeTranslation
+}
+
+func (c *IdentityDocumentTypeTranslationClient) mutate(ctx context.Context, m *IdentityDocumentTypeTranslationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&IdentityDocumentTypeTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&IdentityDocumentTypeTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&IdentityDocumentTypeTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&IdentityDocumentTypeTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown IdentityDocumentTypeTranslation mutation op: %q", m.Op())
 	}
 }
 
@@ -4032,6 +4457,63 @@ func (c *LocaleClient) QueryLocationTranslations(_m *Locale) *LocationTranslatio
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.LocationTranslation
 		step.Edge.Schema = schemaConfig.LocationTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryIdentityDocumentTypeTranslations queries the identity_document_type_translations edge of a Locale.
+func (c *LocaleClient) QueryIdentityDocumentTypeTranslations(_m *Locale) *IdentityDocumentTypeTranslationQuery {
+	query := (&IdentityDocumentTypeTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locale.Table, locale.FieldID, id),
+			sqlgraph.To(identitydocumenttypetranslation.Table, identitydocumenttypetranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, locale.IdentityDocumentTypeTranslationsTable, locale.IdentityDocumentTypeTranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		step.Edge.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoleTypeTranslations queries the role_type_translations edge of a Locale.
+func (c *LocaleClient) QueryRoleTypeTranslations(_m *Locale) *RoleTypeTranslationQuery {
+	query := (&RoleTypeTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locale.Table, locale.FieldID, id),
+			sqlgraph.To(roletypetranslation.Table, roletypetranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, locale.RoleTypeTranslationsTable, locale.RoleTypeTranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.RoleTypeTranslation
+		step.Edge.Schema = schemaConfig.RoleTypeTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentTranslations queries the department_translations edge of a Locale.
+func (c *LocaleClient) QueryDepartmentTranslations(_m *Locale) *DepartmentTranslationQuery {
+	query := (&DepartmentTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locale.Table, locale.FieldID, id),
+			sqlgraph.To(departmenttranslation.Table, departmenttranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, locale.DepartmentTranslationsTable, locale.DepartmentTranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentTranslation
+		step.Edge.Schema = schemaConfig.DepartmentTranslation
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -7629,6 +8111,25 @@ func (c *RoleTypeClient) QueryPartyRoles(_m *RoleType) *PartyRoleQuery {
 	return query
 }
 
+// QueryTranslations queries the translations edge of a RoleType.
+func (c *RoleTypeClient) QueryTranslations(_m *RoleType) *RoleTypeTranslationQuery {
+	query := (&RoleTypeTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(roletype.Table, roletype.FieldID, id),
+			sqlgraph.To(roletypetranslation.Table, roletypetranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, roletype.TranslationsTable, roletype.TranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.RoleTypeTranslation
+		step.Edge.Schema = schemaConfig.RoleTypeTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *RoleTypeClient) Hooks() []Hook {
 	return c.hooks.RoleType
@@ -7651,6 +8152,177 @@ func (c *RoleTypeClient) mutate(ctx context.Context, m *RoleTypeMutation) (Value
 		return (&RoleTypeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown RoleType mutation op: %q", m.Op())
+	}
+}
+
+// RoleTypeTranslationClient is a client for the RoleTypeTranslation schema.
+type RoleTypeTranslationClient struct {
+	config
+}
+
+// NewRoleTypeTranslationClient returns a client for the RoleTypeTranslation from the given config.
+func NewRoleTypeTranslationClient(c config) *RoleTypeTranslationClient {
+	return &RoleTypeTranslationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `roletypetranslation.Hooks(f(g(h())))`.
+func (c *RoleTypeTranslationClient) Use(hooks ...Hook) {
+	c.hooks.RoleTypeTranslation = append(c.hooks.RoleTypeTranslation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `roletypetranslation.Intercept(f(g(h())))`.
+func (c *RoleTypeTranslationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RoleTypeTranslation = append(c.inters.RoleTypeTranslation, interceptors...)
+}
+
+// Create returns a builder for creating a RoleTypeTranslation entity.
+func (c *RoleTypeTranslationClient) Create() *RoleTypeTranslationCreate {
+	mutation := newRoleTypeTranslationMutation(c.config, OpCreate)
+	return &RoleTypeTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RoleTypeTranslation entities.
+func (c *RoleTypeTranslationClient) CreateBulk(builders ...*RoleTypeTranslationCreate) *RoleTypeTranslationCreateBulk {
+	return &RoleTypeTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RoleTypeTranslationClient) MapCreateBulk(slice any, setFunc func(*RoleTypeTranslationCreate, int)) *RoleTypeTranslationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RoleTypeTranslationCreateBulk{err: fmt.Errorf("calling to RoleTypeTranslationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RoleTypeTranslationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RoleTypeTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RoleTypeTranslation.
+func (c *RoleTypeTranslationClient) Update() *RoleTypeTranslationUpdate {
+	mutation := newRoleTypeTranslationMutation(c.config, OpUpdate)
+	return &RoleTypeTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RoleTypeTranslationClient) UpdateOne(_m *RoleTypeTranslation) *RoleTypeTranslationUpdateOne {
+	mutation := newRoleTypeTranslationMutation(c.config, OpUpdateOne, withRoleTypeTranslation(_m))
+	return &RoleTypeTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RoleTypeTranslationClient) UpdateOneID(id uuid.UUID) *RoleTypeTranslationUpdateOne {
+	mutation := newRoleTypeTranslationMutation(c.config, OpUpdateOne, withRoleTypeTranslationID(id))
+	return &RoleTypeTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RoleTypeTranslation.
+func (c *RoleTypeTranslationClient) Delete() *RoleTypeTranslationDelete {
+	mutation := newRoleTypeTranslationMutation(c.config, OpDelete)
+	return &RoleTypeTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RoleTypeTranslationClient) DeleteOne(_m *RoleTypeTranslation) *RoleTypeTranslationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RoleTypeTranslationClient) DeleteOneID(id uuid.UUID) *RoleTypeTranslationDeleteOne {
+	builder := c.Delete().Where(roletypetranslation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RoleTypeTranslationDeleteOne{builder}
+}
+
+// Query returns a query builder for RoleTypeTranslation.
+func (c *RoleTypeTranslationClient) Query() *RoleTypeTranslationQuery {
+	return &RoleTypeTranslationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRoleTypeTranslation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RoleTypeTranslation entity by its id.
+func (c *RoleTypeTranslationClient) Get(ctx context.Context, id uuid.UUID) (*RoleTypeTranslation, error) {
+	return c.Query().Where(roletypetranslation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RoleTypeTranslationClient) GetX(ctx context.Context, id uuid.UUID) *RoleTypeTranslation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRoleType queries the role_type edge of a RoleTypeTranslation.
+func (c *RoleTypeTranslationClient) QueryRoleType(_m *RoleTypeTranslation) *RoleTypeQuery {
+	query := (&RoleTypeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(roletypetranslation.Table, roletypetranslation.FieldID, id),
+			sqlgraph.To(roletype.Table, roletype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, roletypetranslation.RoleTypeTable, roletypetranslation.RoleTypeColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.RoleType
+		step.Edge.Schema = schemaConfig.RoleTypeTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLocale queries the locale edge of a RoleTypeTranslation.
+func (c *RoleTypeTranslationClient) QueryLocale(_m *RoleTypeTranslation) *LocaleQuery {
+	query := (&LocaleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(roletypetranslation.Table, roletypetranslation.FieldID, id),
+			sqlgraph.To(locale.Table, locale.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, roletypetranslation.LocaleTable, roletypetranslation.LocaleColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Locale
+		step.Edge.Schema = schemaConfig.RoleTypeTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RoleTypeTranslationClient) Hooks() []Hook {
+	return c.hooks.RoleTypeTranslation
+}
+
+// Interceptors returns the client interceptors.
+func (c *RoleTypeTranslationClient) Interceptors() []Interceptor {
+	return c.inters.RoleTypeTranslation
+}
+
+func (c *RoleTypeTranslationClient) mutate(ctx context.Context, m *RoleTypeTranslationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RoleTypeTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RoleTypeTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RoleTypeTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RoleTypeTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RoleTypeTranslation mutation op: %q", m.Op())
 	}
 }
 
@@ -8503,6 +9175,25 @@ func (c *SubscriptionClient) QueryClientApplications(_m *Subscription) *ClientAp
 	return query
 }
 
+// QueryDepartmentTranslations queries the department_translations edge of a Subscription.
+func (c *SubscriptionClient) QueryDepartmentTranslations(_m *Subscription) *DepartmentTranslationQuery {
+	query := (&DepartmentTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(departmenttranslation.Table, departmenttranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentTranslationsTable, subscription.DepartmentTranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentTranslation
+		step.Edge.Schema = schemaConfig.DepartmentTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SubscriptionClient) Hooks() []Hook {
 	return c.hooks.Subscription
@@ -8724,25 +9415,25 @@ type (
 		Address, AddressValidity, AttachedDocument, ClientApplication, ContactMechanism,
 		CorporateGroup, Department, DepartmentAddress, DepartmentAddressValidity,
 		DepartmentContactMechanism, DepartmentContactMechanismValidity,
-		DepartmentGroupAssignment, Employee, EmployeeAssignment, IdentityDocumentType,
-		Job, JobFamily, Locale, Location, LocationTranslation, NameType,
-		OrganizationProfile, Party, PartyContactMechanism,
-		PartyContactMechanismValidity, PartyIdentityDocument,
+		DepartmentGroupAssignment, DepartmentTranslation, Employee, EmployeeAssignment,
+		IdentityDocumentType, IdentityDocumentTypeTranslation, Job, JobFamily, Locale,
+		Location, LocationTranslation, NameType, OrganizationProfile, Party,
+		PartyContactMechanism, PartyContactMechanismValidity, PartyIdentityDocument,
 		PartyIdentityDocumentValidity, PartyMergeLog, PartyName, PartyNameValidity,
 		PartyNationality, PartyRole, PasswordResetToken, PersonProfile, RoleType,
-		Session, Subscription, UserCredentials []ent.Hook
+		RoleTypeTranslation, Session, Subscription, UserCredentials []ent.Hook
 	}
 	inters struct {
 		Address, AddressValidity, AttachedDocument, ClientApplication, ContactMechanism,
 		CorporateGroup, Department, DepartmentAddress, DepartmentAddressValidity,
 		DepartmentContactMechanism, DepartmentContactMechanismValidity,
-		DepartmentGroupAssignment, Employee, EmployeeAssignment, IdentityDocumentType,
-		Job, JobFamily, Locale, Location, LocationTranslation, NameType,
-		OrganizationProfile, Party, PartyContactMechanism,
-		PartyContactMechanismValidity, PartyIdentityDocument,
+		DepartmentGroupAssignment, DepartmentTranslation, Employee, EmployeeAssignment,
+		IdentityDocumentType, IdentityDocumentTypeTranslation, Job, JobFamily, Locale,
+		Location, LocationTranslation, NameType, OrganizationProfile, Party,
+		PartyContactMechanism, PartyContactMechanismValidity, PartyIdentityDocument,
 		PartyIdentityDocumentValidity, PartyMergeLog, PartyName, PartyNameValidity,
 		PartyNationality, PartyRole, PasswordResetToken, PersonProfile, RoleType,
-		Session, Subscription, UserCredentials []ent.Interceptor
+		RoleTypeTranslation, Session, Subscription, UserCredentials []ent.Interceptor
 	}
 )
 
@@ -8761,9 +9452,11 @@ var (
 		DepartmentContactMechanism:         tableSchemas[1],
 		DepartmentContactMechanismValidity: tableSchemas[1],
 		DepartmentGroupAssignment:          tableSchemas[1],
+		DepartmentTranslation:              tableSchemas[1],
 		Employee:                           tableSchemas[1],
 		EmployeeAssignment:                 tableSchemas[1],
 		IdentityDocumentType:               tableSchemas[0],
+		IdentityDocumentTypeTranslation:    tableSchemas[0],
 		Job:                                tableSchemas[1],
 		JobFamily:                          tableSchemas[1],
 		Locale:                             tableSchemas[0],
@@ -8784,6 +9477,7 @@ var (
 		PasswordResetToken:                 tableSchemas[1],
 		PersonProfile:                      tableSchemas[1],
 		RoleType:                           tableSchemas[0],
+		RoleTypeTranslation:                tableSchemas[0],
 		Session:                            tableSchemas[1],
 		Subscription:                       tableSchemas[0],
 		UserCredentials:                    tableSchemas[1],

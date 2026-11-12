@@ -7,6 +7,7 @@ import (
 
 	"enterprise-system/ent"
 	"enterprise-system/ent/identitydocumenttype"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/partyidentitydocument"
 	"enterprise-system/ent/partyidentitydocumentvalidity"
 	"enterprise-system/ent/partynationality"
@@ -34,12 +35,57 @@ func (r *IdentityRepository) FindDocumentTypeByCode(ctx context.Context, code st
 			return repoError(err)
 		}
 		result = &domain.IdentityDocumentType{
-			ID: row.ID, Code: row.Code, Name: row.Name, Scope: string(row.Scope),
+			ID: row.ID, Code: row.Code, Scope: string(row.Scope),
 		}
 		return nil
 	})
 	if ent.IsNotFound(err) {
 		return nil, domain.ErrIdentityDocumentTypeNotFound
+	}
+	return result, err
+}
+
+func (r *IdentityRepository) ListDocumentTypes(ctx context.Context) ([]*domain.IdentityDocumentType, error) {
+	var result []*domain.IdentityDocumentType
+	err := execute(ctx, r.client, func(client *ent.Client) error {
+		rows, err := client.IdentityDocumentType.Query().
+			Order(ent.Asc(identitydocumenttype.FieldCode)).
+			All(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+		result = make([]*domain.IdentityDocumentType, 0, len(rows))
+		for _, row := range rows {
+			result = append(result, &domain.IdentityDocumentType{
+				ID: row.ID, Code: row.Code, Scope: string(row.Scope),
+			})
+		}
+		return nil
+	})
+	return result, err
+}
+
+func (r *IdentityRepository) GetDocumentTypeTranslation(
+	ctx context.Context,
+	documentTypeID uuid.UUID,
+	locale string,
+) (string, error) {
+	var result string
+	err := execute(ctx, r.client, func(client *ent.Client) error {
+		row, err := client.IdentityDocumentTypeTranslation.Query().
+			Where(
+				identitydocumenttypetranslation.IdentityDocumentTypeID(documentTypeID),
+				identitydocumenttypetranslation.LocaleCodeEQ(locale),
+			).
+			Only(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+		result = row.Name
+		return nil
+	})
+	if ent.IsNotFound(err) {
+		return "", domain.ErrTranslationNotFound
 	}
 	return result, err
 }

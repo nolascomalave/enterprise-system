@@ -27,6 +27,17 @@
 - Usa `internal/common/apperror`: centinelas en dominio, `NewNotFound`/
   `NewValidation`/`NewUnauthorized` para errores de negocio y `NewInternal`
   para fallos técnicos.
+
+## Internacionalización (OBLIGATORIO)
+- Carga y aplica el skill `.opencode/skills/i18n-management/SKILL.md` siempre
+  que crees o modifiques entidades globales, catálogos compartidos o entidades
+  con nombres/descripciones visibles.
+- Los textos visibles viven en tablas `<entidad>_translations` con
+  `locale_code` FK a `global.locales`.
+- El fallback (locale solicitado → locale default → valor base) se resuelve en
+  la capa de casos de uso.
+- Usa `LocaleMiddleware` y `LocaleFromContext`; no leas `Accept-Language`
+  directamente en los handlers.
 <!-- END:project-context -->
 
 

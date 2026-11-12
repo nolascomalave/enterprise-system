@@ -34,7 +34,6 @@ func (c IdentityDocumentTypeCode) Valid() bool {
 type IdentityDocumentType struct {
 	ID    uuid.UUID
 	Code  string
-	Name  string
 	Scope string
 }
 
@@ -220,6 +219,8 @@ var identityCountryPattern = regexp.MustCompile(`^[A-Z]{2}$`)
 // IdentityRepository persists nationalities and identity document metadata.
 type IdentityRepository interface {
 	FindDocumentTypeByCode(ctx context.Context, code string) (*IdentityDocumentType, error)
+	ListDocumentTypes(ctx context.Context) ([]*IdentityDocumentType, error)
+	GetDocumentTypeTranslation(ctx context.Context, documentTypeID uuid.UUID, locale string) (string, error)
 
 	CreateNationality(ctx context.Context, nationality *PartyNationality) error
 	ClearPrimaryNationality(ctx context.Context, tenantID, partyID uuid.UUID) error

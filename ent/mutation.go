@@ -16,9 +16,11 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/identitydocumenttype"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/locale"
@@ -40,6 +42,7 @@ import (
 	"enterprise-system/ent/personprofile"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/roletype"
+	"enterprise-system/ent/roletypetranslation"
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
@@ -75,9 +78,11 @@ const (
 	TypeDepartmentContactMechanism         = "DepartmentContactMechanism"
 	TypeDepartmentContactMechanismValidity = "DepartmentContactMechanismValidity"
 	TypeDepartmentGroupAssignment          = "DepartmentGroupAssignment"
+	TypeDepartmentTranslation              = "DepartmentTranslation"
 	TypeEmployee                           = "Employee"
 	TypeEmployeeAssignment                 = "EmployeeAssignment"
 	TypeIdentityDocumentType               = "IdentityDocumentType"
+	TypeIdentityDocumentTypeTranslation    = "IdentityDocumentTypeTranslation"
 	TypeJob                                = "Job"
 	TypeJobFamily                          = "JobFamily"
 	TypeLocale                             = "Locale"
@@ -98,6 +103,7 @@ const (
 	TypePasswordResetToken                 = "PasswordResetToken"
 	TypePersonProfile                      = "PersonProfile"
 	TypeRoleType                           = "RoleType"
+	TypeRoleTypeTranslation                = "RoleTypeTranslation"
 	TypeSession                            = "Session"
 	TypeSubscription                       = "Subscription"
 	TypeUserCredentials                    = "UserCredentials"
@@ -5571,6 +5577,9 @@ type DepartmentMutation struct {
 	address_validities                  map[uuid.UUID]struct{}
 	removedaddress_validities           map[uuid.UUID]struct{}
 	clearedaddress_validities           bool
+	translations                        map[uuid.UUID]struct{}
+	removedtranslations                 map[uuid.UUID]struct{}
+	clearedtranslations                 bool
 	done                                bool
 	oldValue                            func(context.Context) (*Department, error)
 	predicates                          []predicate.Department
@@ -6582,6 +6591,60 @@ func (m *DepartmentMutation) ResetAddressValidities() {
 	m.removedaddress_validities = nil
 }
 
+// AddTranslationIDs adds the "translations" edge to the DepartmentTranslation entity by ids.
+func (m *DepartmentMutation) AddTranslationIDs(ids ...uuid.UUID) {
+	if m.translations == nil {
+		m.translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTranslations clears the "translations" edge to the DepartmentTranslation entity.
+func (m *DepartmentMutation) ClearTranslations() {
+	m.clearedtranslations = true
+}
+
+// TranslationsCleared reports if the "translations" edge to the DepartmentTranslation entity was cleared.
+func (m *DepartmentMutation) TranslationsCleared() bool {
+	return m.clearedtranslations
+}
+
+// RemoveTranslationIDs removes the "translations" edge to the DepartmentTranslation entity by IDs.
+func (m *DepartmentMutation) RemoveTranslationIDs(ids ...uuid.UUID) {
+	if m.removedtranslations == nil {
+		m.removedtranslations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.translations, ids[i])
+		m.removedtranslations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTranslations returns the removed IDs of the "translations" edge to the DepartmentTranslation entity.
+func (m *DepartmentMutation) RemovedTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedtranslations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TranslationsIDs returns the "translations" edge IDs in the mutation.
+func (m *DepartmentMutation) TranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTranslations resets all changes to the "translations" edge.
+func (m *DepartmentMutation) ResetTranslations() {
+	m.translations = nil
+	m.clearedtranslations = false
+	m.removedtranslations = nil
+}
+
 // Where appends a list predicates to the DepartmentMutation builder.
 func (m *DepartmentMutation) Where(ps ...predicate.Department) {
 	m.predicates = append(m.predicates, ps...)
@@ -6872,7 +6935,7 @@ func (m *DepartmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DepartmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.tenant != nil {
 		edges = append(edges, department.EdgeTenant)
 	}
@@ -6905,6 +6968,9 @@ func (m *DepartmentMutation) AddedEdges() []string {
 	}
 	if m.address_validities != nil {
 		edges = append(edges, department.EdgeAddressValidities)
+	}
+	if m.translations != nil {
+		edges = append(edges, department.EdgeTranslations)
 	}
 	return edges
 }
@@ -6973,13 +7039,19 @@ func (m *DepartmentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case department.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.translations))
+		for id := range m.translations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DepartmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.removedchildren != nil {
 		edges = append(edges, department.EdgeChildren)
 	}
@@ -7003,6 +7075,9 @@ func (m *DepartmentMutation) RemovedEdges() []string {
 	}
 	if m.removedaddress_validities != nil {
 		edges = append(edges, department.EdgeAddressValidities)
+	}
+	if m.removedtranslations != nil {
+		edges = append(edges, department.EdgeTranslations)
 	}
 	return edges
 }
@@ -7059,13 +7134,19 @@ func (m *DepartmentMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case department.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.removedtranslations))
+		for id := range m.removedtranslations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DepartmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 11)
+	edges := make([]string, 0, 12)
 	if m.clearedtenant {
 		edges = append(edges, department.EdgeTenant)
 	}
@@ -7099,6 +7180,9 @@ func (m *DepartmentMutation) ClearedEdges() []string {
 	if m.clearedaddress_validities {
 		edges = append(edges, department.EdgeAddressValidities)
 	}
+	if m.clearedtranslations {
+		edges = append(edges, department.EdgeTranslations)
+	}
 	return edges
 }
 
@@ -7128,6 +7212,8 @@ func (m *DepartmentMutation) EdgeCleared(name string) bool {
 		return m.clearedaddresses
 	case department.EdgeAddressValidities:
 		return m.clearedaddress_validities
+	case department.EdgeTranslations:
+		return m.clearedtranslations
 	}
 	return false
 }
@@ -7185,6 +7271,9 @@ func (m *DepartmentMutation) ResetEdge(name string) error {
 		return nil
 	case department.EdgeAddressValidities:
 		m.ResetAddressValidities()
+		return nil
+	case department.EdgeTranslations:
+		m.ResetTranslations()
 		return nil
 	}
 	return fmt.Errorf("unknown Department edge %s", name)
@@ -11729,6 +11818,843 @@ func (m *DepartmentGroupAssignmentMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown DepartmentGroupAssignment edge %s", name)
 }
 
+// DepartmentTranslationMutation represents an operation that mutates the DepartmentTranslation nodes in the graph.
+type DepartmentTranslationMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *uuid.UUID
+	name              *string
+	description       *string
+	created_at        *time.Time
+	updated_at        *time.Time
+	clearedFields     map[string]struct{}
+	tenant            *uuid.UUID
+	clearedtenant     bool
+	department        *uuid.UUID
+	cleareddepartment bool
+	locale            *string
+	clearedlocale     bool
+	done              bool
+	oldValue          func(context.Context) (*DepartmentTranslation, error)
+	predicates        []predicate.DepartmentTranslation
+}
+
+var _ ent.Mutation = (*DepartmentTranslationMutation)(nil)
+
+// departmenttranslationOption allows management of the mutation configuration using functional options.
+type departmenttranslationOption func(*DepartmentTranslationMutation)
+
+// newDepartmentTranslationMutation creates new mutation for the DepartmentTranslation entity.
+func newDepartmentTranslationMutation(c config, op Op, opts ...departmenttranslationOption) *DepartmentTranslationMutation {
+	m := &DepartmentTranslationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDepartmentTranslation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDepartmentTranslationID sets the ID field of the mutation.
+func withDepartmentTranslationID(id uuid.UUID) departmenttranslationOption {
+	return func(m *DepartmentTranslationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DepartmentTranslation
+		)
+		m.oldValue = func(ctx context.Context) (*DepartmentTranslation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DepartmentTranslation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDepartmentTranslation sets the old DepartmentTranslation of the mutation.
+func withDepartmentTranslation(node *DepartmentTranslation) departmenttranslationOption {
+	return func(m *DepartmentTranslationMutation) {
+		m.oldValue = func(context.Context) (*DepartmentTranslation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DepartmentTranslationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DepartmentTranslationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DepartmentTranslation entities.
+func (m *DepartmentTranslationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DepartmentTranslationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DepartmentTranslationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DepartmentTranslation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (m *DepartmentTranslationMutation) SetTenantID(u uuid.UUID) {
+	m.tenant = &u
+}
+
+// TenantID returns the value of the "tenant_id" field in the mutation.
+func (m *DepartmentTranslationMutation) TenantID() (r uuid.UUID, exists bool) {
+	v := m.tenant
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTenantID returns the old "tenant_id" field's value of the DepartmentTranslation entity.
+// If the DepartmentTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentTranslationMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTenantID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+	}
+	return oldValue.TenantID, nil
+}
+
+// ResetTenantID resets all changes to the "tenant_id" field.
+func (m *DepartmentTranslationMutation) ResetTenantID() {
+	m.tenant = nil
+}
+
+// SetDepartmentID sets the "department_id" field.
+func (m *DepartmentTranslationMutation) SetDepartmentID(u uuid.UUID) {
+	m.department = &u
+}
+
+// DepartmentID returns the value of the "department_id" field in the mutation.
+func (m *DepartmentTranslationMutation) DepartmentID() (r uuid.UUID, exists bool) {
+	v := m.department
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepartmentID returns the old "department_id" field's value of the DepartmentTranslation entity.
+// If the DepartmentTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentTranslationMutation) OldDepartmentID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepartmentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepartmentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepartmentID: %w", err)
+	}
+	return oldValue.DepartmentID, nil
+}
+
+// ResetDepartmentID resets all changes to the "department_id" field.
+func (m *DepartmentTranslationMutation) ResetDepartmentID() {
+	m.department = nil
+}
+
+// SetLocaleCode sets the "locale_code" field.
+func (m *DepartmentTranslationMutation) SetLocaleCode(s string) {
+	m.locale = &s
+}
+
+// LocaleCode returns the value of the "locale_code" field in the mutation.
+func (m *DepartmentTranslationMutation) LocaleCode() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocaleCode returns the old "locale_code" field's value of the DepartmentTranslation entity.
+// If the DepartmentTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentTranslationMutation) OldLocaleCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocaleCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocaleCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocaleCode: %w", err)
+	}
+	return oldValue.LocaleCode, nil
+}
+
+// ResetLocaleCode resets all changes to the "locale_code" field.
+func (m *DepartmentTranslationMutation) ResetLocaleCode() {
+	m.locale = nil
+}
+
+// SetName sets the "name" field.
+func (m *DepartmentTranslationMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *DepartmentTranslationMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the DepartmentTranslation entity.
+// If the DepartmentTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentTranslationMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *DepartmentTranslationMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *DepartmentTranslationMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *DepartmentTranslationMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the DepartmentTranslation entity.
+// If the DepartmentTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentTranslationMutation) OldDescription(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *DepartmentTranslationMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[departmenttranslation.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *DepartmentTranslationMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[departmenttranslation.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *DepartmentTranslationMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, departmenttranslation.FieldDescription)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DepartmentTranslationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DepartmentTranslationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DepartmentTranslation entity.
+// If the DepartmentTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentTranslationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DepartmentTranslationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DepartmentTranslationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DepartmentTranslationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DepartmentTranslation entity.
+// If the DepartmentTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentTranslationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DepartmentTranslationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearTenant clears the "tenant" edge to the Subscription entity.
+func (m *DepartmentTranslationMutation) ClearTenant() {
+	m.clearedtenant = true
+	m.clearedFields[departmenttranslation.FieldTenantID] = struct{}{}
+}
+
+// TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
+func (m *DepartmentTranslationMutation) TenantCleared() bool {
+	return m.clearedtenant
+}
+
+// TenantIDs returns the "tenant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TenantID instead. It exists only for internal usage by the builders.
+func (m *DepartmentTranslationMutation) TenantIDs() (ids []uuid.UUID) {
+	if id := m.tenant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTenant resets all changes to the "tenant" edge.
+func (m *DepartmentTranslationMutation) ResetTenant() {
+	m.tenant = nil
+	m.clearedtenant = false
+}
+
+// ClearDepartment clears the "department" edge to the Department entity.
+func (m *DepartmentTranslationMutation) ClearDepartment() {
+	m.cleareddepartment = true
+	m.clearedFields[departmenttranslation.FieldDepartmentID] = struct{}{}
+}
+
+// DepartmentCleared reports if the "department" edge to the Department entity was cleared.
+func (m *DepartmentTranslationMutation) DepartmentCleared() bool {
+	return m.cleareddepartment
+}
+
+// DepartmentIDs returns the "department" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DepartmentID instead. It exists only for internal usage by the builders.
+func (m *DepartmentTranslationMutation) DepartmentIDs() (ids []uuid.UUID) {
+	if id := m.department; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDepartment resets all changes to the "department" edge.
+func (m *DepartmentTranslationMutation) ResetDepartment() {
+	m.department = nil
+	m.cleareddepartment = false
+}
+
+// SetLocaleID sets the "locale" edge to the Locale entity by id.
+func (m *DepartmentTranslationMutation) SetLocaleID(id string) {
+	m.locale = &id
+}
+
+// ClearLocale clears the "locale" edge to the Locale entity.
+func (m *DepartmentTranslationMutation) ClearLocale() {
+	m.clearedlocale = true
+	m.clearedFields[departmenttranslation.FieldLocaleCode] = struct{}{}
+}
+
+// LocaleCleared reports if the "locale" edge to the Locale entity was cleared.
+func (m *DepartmentTranslationMutation) LocaleCleared() bool {
+	return m.clearedlocale
+}
+
+// LocaleID returns the "locale" edge ID in the mutation.
+func (m *DepartmentTranslationMutation) LocaleID() (id string, exists bool) {
+	if m.locale != nil {
+		return *m.locale, true
+	}
+	return
+}
+
+// LocaleIDs returns the "locale" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LocaleID instead. It exists only for internal usage by the builders.
+func (m *DepartmentTranslationMutation) LocaleIDs() (ids []string) {
+	if id := m.locale; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocale resets all changes to the "locale" edge.
+func (m *DepartmentTranslationMutation) ResetLocale() {
+	m.locale = nil
+	m.clearedlocale = false
+}
+
+// Where appends a list predicates to the DepartmentTranslationMutation builder.
+func (m *DepartmentTranslationMutation) Where(ps ...predicate.DepartmentTranslation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DepartmentTranslationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DepartmentTranslationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DepartmentTranslation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DepartmentTranslationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DepartmentTranslationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DepartmentTranslation).
+func (m *DepartmentTranslationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DepartmentTranslationMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.tenant != nil {
+		fields = append(fields, departmenttranslation.FieldTenantID)
+	}
+	if m.department != nil {
+		fields = append(fields, departmenttranslation.FieldDepartmentID)
+	}
+	if m.locale != nil {
+		fields = append(fields, departmenttranslation.FieldLocaleCode)
+	}
+	if m.name != nil {
+		fields = append(fields, departmenttranslation.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, departmenttranslation.FieldDescription)
+	}
+	if m.created_at != nil {
+		fields = append(fields, departmenttranslation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, departmenttranslation.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DepartmentTranslationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case departmenttranslation.FieldTenantID:
+		return m.TenantID()
+	case departmenttranslation.FieldDepartmentID:
+		return m.DepartmentID()
+	case departmenttranslation.FieldLocaleCode:
+		return m.LocaleCode()
+	case departmenttranslation.FieldName:
+		return m.Name()
+	case departmenttranslation.FieldDescription:
+		return m.Description()
+	case departmenttranslation.FieldCreatedAt:
+		return m.CreatedAt()
+	case departmenttranslation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DepartmentTranslationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case departmenttranslation.FieldTenantID:
+		return m.OldTenantID(ctx)
+	case departmenttranslation.FieldDepartmentID:
+		return m.OldDepartmentID(ctx)
+	case departmenttranslation.FieldLocaleCode:
+		return m.OldLocaleCode(ctx)
+	case departmenttranslation.FieldName:
+		return m.OldName(ctx)
+	case departmenttranslation.FieldDescription:
+		return m.OldDescription(ctx)
+	case departmenttranslation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case departmenttranslation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown DepartmentTranslation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepartmentTranslationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case departmenttranslation.FieldTenantID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTenantID(v)
+		return nil
+	case departmenttranslation.FieldDepartmentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepartmentID(v)
+		return nil
+	case departmenttranslation.FieldLocaleCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocaleCode(v)
+		return nil
+	case departmenttranslation.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case departmenttranslation.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case departmenttranslation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case departmenttranslation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentTranslation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DepartmentTranslationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DepartmentTranslationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepartmentTranslationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DepartmentTranslation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DepartmentTranslationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(departmenttranslation.FieldDescription) {
+		fields = append(fields, departmenttranslation.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DepartmentTranslationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DepartmentTranslationMutation) ClearField(name string) error {
+	switch name {
+	case departmenttranslation.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentTranslation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DepartmentTranslationMutation) ResetField(name string) error {
+	switch name {
+	case departmenttranslation.FieldTenantID:
+		m.ResetTenantID()
+		return nil
+	case departmenttranslation.FieldDepartmentID:
+		m.ResetDepartmentID()
+		return nil
+	case departmenttranslation.FieldLocaleCode:
+		m.ResetLocaleCode()
+		return nil
+	case departmenttranslation.FieldName:
+		m.ResetName()
+		return nil
+	case departmenttranslation.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case departmenttranslation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case departmenttranslation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentTranslation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DepartmentTranslationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.tenant != nil {
+		edges = append(edges, departmenttranslation.EdgeTenant)
+	}
+	if m.department != nil {
+		edges = append(edges, departmenttranslation.EdgeDepartment)
+	}
+	if m.locale != nil {
+		edges = append(edges, departmenttranslation.EdgeLocale)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DepartmentTranslationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case departmenttranslation.EdgeTenant:
+		if id := m.tenant; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmenttranslation.EdgeDepartment:
+		if id := m.department; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmenttranslation.EdgeLocale:
+		if id := m.locale; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DepartmentTranslationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DepartmentTranslationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DepartmentTranslationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedtenant {
+		edges = append(edges, departmenttranslation.EdgeTenant)
+	}
+	if m.cleareddepartment {
+		edges = append(edges, departmenttranslation.EdgeDepartment)
+	}
+	if m.clearedlocale {
+		edges = append(edges, departmenttranslation.EdgeLocale)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DepartmentTranslationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case departmenttranslation.EdgeTenant:
+		return m.clearedtenant
+	case departmenttranslation.EdgeDepartment:
+		return m.cleareddepartment
+	case departmenttranslation.EdgeLocale:
+		return m.clearedlocale
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DepartmentTranslationMutation) ClearEdge(name string) error {
+	switch name {
+	case departmenttranslation.EdgeTenant:
+		m.ClearTenant()
+		return nil
+	case departmenttranslation.EdgeDepartment:
+		m.ClearDepartment()
+		return nil
+	case departmenttranslation.EdgeLocale:
+		m.ClearLocale()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentTranslation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DepartmentTranslationMutation) ResetEdge(name string) error {
+	switch name {
+	case departmenttranslation.EdgeTenant:
+		m.ResetTenant()
+		return nil
+	case departmenttranslation.EdgeDepartment:
+		m.ResetDepartment()
+		return nil
+	case departmenttranslation.EdgeLocale:
+		m.ResetLocale()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentTranslation edge %s", name)
+}
+
 // EmployeeMutation represents an operation that mutates the Employee nodes in the graph.
 type EmployeeMutation struct {
 	config
@@ -14038,21 +14964,23 @@ func (m *EmployeeAssignmentMutation) ResetEdge(name string) error {
 // IdentityDocumentTypeMutation represents an operation that mutates the IdentityDocumentType nodes in the graph.
 type IdentityDocumentTypeMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	code             *string
-	name             *string
-	scope            *identitydocumenttype.Scope
-	created_at       *time.Time
-	updated_at       *time.Time
-	clearedFields    map[string]struct{}
-	documents        map[uuid.UUID]struct{}
-	removeddocuments map[uuid.UUID]struct{}
-	cleareddocuments bool
-	done             bool
-	oldValue         func(context.Context) (*IdentityDocumentType, error)
-	predicates       []predicate.IdentityDocumentType
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	code                *string
+	scope               *identitydocumenttype.Scope
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	documents           map[uuid.UUID]struct{}
+	removeddocuments    map[uuid.UUID]struct{}
+	cleareddocuments    bool
+	translations        map[uuid.UUID]struct{}
+	removedtranslations map[uuid.UUID]struct{}
+	clearedtranslations bool
+	done                bool
+	oldValue            func(context.Context) (*IdentityDocumentType, error)
+	predicates          []predicate.IdentityDocumentType
 }
 
 var _ ent.Mutation = (*IdentityDocumentTypeMutation)(nil)
@@ -14193,42 +15121,6 @@ func (m *IdentityDocumentTypeMutation) OldCode(ctx context.Context) (v string, e
 // ResetCode resets all changes to the "code" field.
 func (m *IdentityDocumentTypeMutation) ResetCode() {
 	m.code = nil
-}
-
-// SetName sets the "name" field.
-func (m *IdentityDocumentTypeMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *IdentityDocumentTypeMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the IdentityDocumentType entity.
-// If the IdentityDocumentType object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *IdentityDocumentTypeMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *IdentityDocumentTypeMutation) ResetName() {
-	m.name = nil
 }
 
 // SetScope sets the "scope" field.
@@ -14393,6 +15285,60 @@ func (m *IdentityDocumentTypeMutation) ResetDocuments() {
 	m.removeddocuments = nil
 }
 
+// AddTranslationIDs adds the "translations" edge to the IdentityDocumentTypeTranslation entity by ids.
+func (m *IdentityDocumentTypeMutation) AddTranslationIDs(ids ...uuid.UUID) {
+	if m.translations == nil {
+		m.translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTranslations clears the "translations" edge to the IdentityDocumentTypeTranslation entity.
+func (m *IdentityDocumentTypeMutation) ClearTranslations() {
+	m.clearedtranslations = true
+}
+
+// TranslationsCleared reports if the "translations" edge to the IdentityDocumentTypeTranslation entity was cleared.
+func (m *IdentityDocumentTypeMutation) TranslationsCleared() bool {
+	return m.clearedtranslations
+}
+
+// RemoveTranslationIDs removes the "translations" edge to the IdentityDocumentTypeTranslation entity by IDs.
+func (m *IdentityDocumentTypeMutation) RemoveTranslationIDs(ids ...uuid.UUID) {
+	if m.removedtranslations == nil {
+		m.removedtranslations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.translations, ids[i])
+		m.removedtranslations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTranslations returns the removed IDs of the "translations" edge to the IdentityDocumentTypeTranslation entity.
+func (m *IdentityDocumentTypeMutation) RemovedTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedtranslations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TranslationsIDs returns the "translations" edge IDs in the mutation.
+func (m *IdentityDocumentTypeMutation) TranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTranslations resets all changes to the "translations" edge.
+func (m *IdentityDocumentTypeMutation) ResetTranslations() {
+	m.translations = nil
+	m.clearedtranslations = false
+	m.removedtranslations = nil
+}
+
 // Where appends a list predicates to the IdentityDocumentTypeMutation builder.
 func (m *IdentityDocumentTypeMutation) Where(ps ...predicate.IdentityDocumentType) {
 	m.predicates = append(m.predicates, ps...)
@@ -14427,12 +15373,9 @@ func (m *IdentityDocumentTypeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *IdentityDocumentTypeMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 4)
 	if m.code != nil {
 		fields = append(fields, identitydocumenttype.FieldCode)
-	}
-	if m.name != nil {
-		fields = append(fields, identitydocumenttype.FieldName)
 	}
 	if m.scope != nil {
 		fields = append(fields, identitydocumenttype.FieldScope)
@@ -14453,8 +15396,6 @@ func (m *IdentityDocumentTypeMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case identitydocumenttype.FieldCode:
 		return m.Code()
-	case identitydocumenttype.FieldName:
-		return m.Name()
 	case identitydocumenttype.FieldScope:
 		return m.Scope()
 	case identitydocumenttype.FieldCreatedAt:
@@ -14472,8 +15413,6 @@ func (m *IdentityDocumentTypeMutation) OldField(ctx context.Context, name string
 	switch name {
 	case identitydocumenttype.FieldCode:
 		return m.OldCode(ctx)
-	case identitydocumenttype.FieldName:
-		return m.OldName(ctx)
 	case identitydocumenttype.FieldScope:
 		return m.OldScope(ctx)
 	case identitydocumenttype.FieldCreatedAt:
@@ -14495,13 +15434,6 @@ func (m *IdentityDocumentTypeMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCode(v)
-		return nil
-	case identitydocumenttype.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
 		return nil
 	case identitydocumenttype.FieldScope:
 		v, ok := value.(identitydocumenttype.Scope)
@@ -14576,9 +15508,6 @@ func (m *IdentityDocumentTypeMutation) ResetField(name string) error {
 	case identitydocumenttype.FieldCode:
 		m.ResetCode()
 		return nil
-	case identitydocumenttype.FieldName:
-		m.ResetName()
-		return nil
 	case identitydocumenttype.FieldScope:
 		m.ResetScope()
 		return nil
@@ -14594,9 +15523,12 @@ func (m *IdentityDocumentTypeMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *IdentityDocumentTypeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.documents != nil {
 		edges = append(edges, identitydocumenttype.EdgeDocuments)
+	}
+	if m.translations != nil {
+		edges = append(edges, identitydocumenttype.EdgeTranslations)
 	}
 	return edges
 }
@@ -14611,15 +15543,24 @@ func (m *IdentityDocumentTypeMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case identitydocumenttype.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.translations))
+		for id := range m.translations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *IdentityDocumentTypeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removeddocuments != nil {
 		edges = append(edges, identitydocumenttype.EdgeDocuments)
+	}
+	if m.removedtranslations != nil {
+		edges = append(edges, identitydocumenttype.EdgeTranslations)
 	}
 	return edges
 }
@@ -14634,15 +15575,24 @@ func (m *IdentityDocumentTypeMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case identitydocumenttype.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.removedtranslations))
+		for id := range m.removedtranslations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *IdentityDocumentTypeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareddocuments {
 		edges = append(edges, identitydocumenttype.EdgeDocuments)
+	}
+	if m.clearedtranslations {
+		edges = append(edges, identitydocumenttype.EdgeTranslations)
 	}
 	return edges
 }
@@ -14653,6 +15603,8 @@ func (m *IdentityDocumentTypeMutation) EdgeCleared(name string) bool {
 	switch name {
 	case identitydocumenttype.EdgeDocuments:
 		return m.cleareddocuments
+	case identitydocumenttype.EdgeTranslations:
+		return m.clearedtranslations
 	}
 	return false
 }
@@ -14672,8 +15624,748 @@ func (m *IdentityDocumentTypeMutation) ResetEdge(name string) error {
 	case identitydocumenttype.EdgeDocuments:
 		m.ResetDocuments()
 		return nil
+	case identitydocumenttype.EdgeTranslations:
+		m.ResetTranslations()
+		return nil
 	}
 	return fmt.Errorf("unknown IdentityDocumentType edge %s", name)
+}
+
+// IdentityDocumentTypeTranslationMutation represents an operation that mutates the IdentityDocumentTypeTranslation nodes in the graph.
+type IdentityDocumentTypeTranslationMutation struct {
+	config
+	op                            Op
+	typ                           string
+	id                            *uuid.UUID
+	name                          *string
+	description                   *string
+	created_at                    *time.Time
+	updated_at                    *time.Time
+	clearedFields                 map[string]struct{}
+	identity_document_type        *uuid.UUID
+	clearedidentity_document_type bool
+	locale                        *string
+	clearedlocale                 bool
+	done                          bool
+	oldValue                      func(context.Context) (*IdentityDocumentTypeTranslation, error)
+	predicates                    []predicate.IdentityDocumentTypeTranslation
+}
+
+var _ ent.Mutation = (*IdentityDocumentTypeTranslationMutation)(nil)
+
+// identitydocumenttypetranslationOption allows management of the mutation configuration using functional options.
+type identitydocumenttypetranslationOption func(*IdentityDocumentTypeTranslationMutation)
+
+// newIdentityDocumentTypeTranslationMutation creates new mutation for the IdentityDocumentTypeTranslation entity.
+func newIdentityDocumentTypeTranslationMutation(c config, op Op, opts ...identitydocumenttypetranslationOption) *IdentityDocumentTypeTranslationMutation {
+	m := &IdentityDocumentTypeTranslationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeIdentityDocumentTypeTranslation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withIdentityDocumentTypeTranslationID sets the ID field of the mutation.
+func withIdentityDocumentTypeTranslationID(id uuid.UUID) identitydocumenttypetranslationOption {
+	return func(m *IdentityDocumentTypeTranslationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *IdentityDocumentTypeTranslation
+		)
+		m.oldValue = func(ctx context.Context) (*IdentityDocumentTypeTranslation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().IdentityDocumentTypeTranslation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withIdentityDocumentTypeTranslation sets the old IdentityDocumentTypeTranslation of the mutation.
+func withIdentityDocumentTypeTranslation(node *IdentityDocumentTypeTranslation) identitydocumenttypetranslationOption {
+	return func(m *IdentityDocumentTypeTranslationMutation) {
+		m.oldValue = func(context.Context) (*IdentityDocumentTypeTranslation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m IdentityDocumentTypeTranslationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m IdentityDocumentTypeTranslationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of IdentityDocumentTypeTranslation entities.
+func (m *IdentityDocumentTypeTranslationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *IdentityDocumentTypeTranslationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *IdentityDocumentTypeTranslationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().IdentityDocumentTypeTranslation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetIdentityDocumentTypeID sets the "identity_document_type_id" field.
+func (m *IdentityDocumentTypeTranslationMutation) SetIdentityDocumentTypeID(u uuid.UUID) {
+	m.identity_document_type = &u
+}
+
+// IdentityDocumentTypeID returns the value of the "identity_document_type_id" field in the mutation.
+func (m *IdentityDocumentTypeTranslationMutation) IdentityDocumentTypeID() (r uuid.UUID, exists bool) {
+	v := m.identity_document_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdentityDocumentTypeID returns the old "identity_document_type_id" field's value of the IdentityDocumentTypeTranslation entity.
+// If the IdentityDocumentTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeTranslationMutation) OldIdentityDocumentTypeID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdentityDocumentTypeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdentityDocumentTypeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdentityDocumentTypeID: %w", err)
+	}
+	return oldValue.IdentityDocumentTypeID, nil
+}
+
+// ResetIdentityDocumentTypeID resets all changes to the "identity_document_type_id" field.
+func (m *IdentityDocumentTypeTranslationMutation) ResetIdentityDocumentTypeID() {
+	m.identity_document_type = nil
+}
+
+// SetLocaleCode sets the "locale_code" field.
+func (m *IdentityDocumentTypeTranslationMutation) SetLocaleCode(s string) {
+	m.locale = &s
+}
+
+// LocaleCode returns the value of the "locale_code" field in the mutation.
+func (m *IdentityDocumentTypeTranslationMutation) LocaleCode() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocaleCode returns the old "locale_code" field's value of the IdentityDocumentTypeTranslation entity.
+// If the IdentityDocumentTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeTranslationMutation) OldLocaleCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocaleCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocaleCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocaleCode: %w", err)
+	}
+	return oldValue.LocaleCode, nil
+}
+
+// ResetLocaleCode resets all changes to the "locale_code" field.
+func (m *IdentityDocumentTypeTranslationMutation) ResetLocaleCode() {
+	m.locale = nil
+}
+
+// SetName sets the "name" field.
+func (m *IdentityDocumentTypeTranslationMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *IdentityDocumentTypeTranslationMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the IdentityDocumentTypeTranslation entity.
+// If the IdentityDocumentTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeTranslationMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *IdentityDocumentTypeTranslationMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *IdentityDocumentTypeTranslationMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *IdentityDocumentTypeTranslationMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the IdentityDocumentTypeTranslation entity.
+// If the IdentityDocumentTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeTranslationMutation) OldDescription(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *IdentityDocumentTypeTranslationMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[identitydocumenttypetranslation.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *IdentityDocumentTypeTranslationMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[identitydocumenttypetranslation.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *IdentityDocumentTypeTranslationMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, identitydocumenttypetranslation.FieldDescription)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *IdentityDocumentTypeTranslationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *IdentityDocumentTypeTranslationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the IdentityDocumentTypeTranslation entity.
+// If the IdentityDocumentTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeTranslationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *IdentityDocumentTypeTranslationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *IdentityDocumentTypeTranslationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *IdentityDocumentTypeTranslationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the IdentityDocumentTypeTranslation entity.
+// If the IdentityDocumentTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeTranslationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *IdentityDocumentTypeTranslationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearIdentityDocumentType clears the "identity_document_type" edge to the IdentityDocumentType entity.
+func (m *IdentityDocumentTypeTranslationMutation) ClearIdentityDocumentType() {
+	m.clearedidentity_document_type = true
+	m.clearedFields[identitydocumenttypetranslation.FieldIdentityDocumentTypeID] = struct{}{}
+}
+
+// IdentityDocumentTypeCleared reports if the "identity_document_type" edge to the IdentityDocumentType entity was cleared.
+func (m *IdentityDocumentTypeTranslationMutation) IdentityDocumentTypeCleared() bool {
+	return m.clearedidentity_document_type
+}
+
+// IdentityDocumentTypeIDs returns the "identity_document_type" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// IdentityDocumentTypeID instead. It exists only for internal usage by the builders.
+func (m *IdentityDocumentTypeTranslationMutation) IdentityDocumentTypeIDs() (ids []uuid.UUID) {
+	if id := m.identity_document_type; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetIdentityDocumentType resets all changes to the "identity_document_type" edge.
+func (m *IdentityDocumentTypeTranslationMutation) ResetIdentityDocumentType() {
+	m.identity_document_type = nil
+	m.clearedidentity_document_type = false
+}
+
+// SetLocaleID sets the "locale" edge to the Locale entity by id.
+func (m *IdentityDocumentTypeTranslationMutation) SetLocaleID(id string) {
+	m.locale = &id
+}
+
+// ClearLocale clears the "locale" edge to the Locale entity.
+func (m *IdentityDocumentTypeTranslationMutation) ClearLocale() {
+	m.clearedlocale = true
+	m.clearedFields[identitydocumenttypetranslation.FieldLocaleCode] = struct{}{}
+}
+
+// LocaleCleared reports if the "locale" edge to the Locale entity was cleared.
+func (m *IdentityDocumentTypeTranslationMutation) LocaleCleared() bool {
+	return m.clearedlocale
+}
+
+// LocaleID returns the "locale" edge ID in the mutation.
+func (m *IdentityDocumentTypeTranslationMutation) LocaleID() (id string, exists bool) {
+	if m.locale != nil {
+		return *m.locale, true
+	}
+	return
+}
+
+// LocaleIDs returns the "locale" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LocaleID instead. It exists only for internal usage by the builders.
+func (m *IdentityDocumentTypeTranslationMutation) LocaleIDs() (ids []string) {
+	if id := m.locale; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocale resets all changes to the "locale" edge.
+func (m *IdentityDocumentTypeTranslationMutation) ResetLocale() {
+	m.locale = nil
+	m.clearedlocale = false
+}
+
+// Where appends a list predicates to the IdentityDocumentTypeTranslationMutation builder.
+func (m *IdentityDocumentTypeTranslationMutation) Where(ps ...predicate.IdentityDocumentTypeTranslation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the IdentityDocumentTypeTranslationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *IdentityDocumentTypeTranslationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.IdentityDocumentTypeTranslation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *IdentityDocumentTypeTranslationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *IdentityDocumentTypeTranslationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (IdentityDocumentTypeTranslation).
+func (m *IdentityDocumentTypeTranslationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *IdentityDocumentTypeTranslationMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.identity_document_type != nil {
+		fields = append(fields, identitydocumenttypetranslation.FieldIdentityDocumentTypeID)
+	}
+	if m.locale != nil {
+		fields = append(fields, identitydocumenttypetranslation.FieldLocaleCode)
+	}
+	if m.name != nil {
+		fields = append(fields, identitydocumenttypetranslation.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, identitydocumenttypetranslation.FieldDescription)
+	}
+	if m.created_at != nil {
+		fields = append(fields, identitydocumenttypetranslation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, identitydocumenttypetranslation.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *IdentityDocumentTypeTranslationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case identitydocumenttypetranslation.FieldIdentityDocumentTypeID:
+		return m.IdentityDocumentTypeID()
+	case identitydocumenttypetranslation.FieldLocaleCode:
+		return m.LocaleCode()
+	case identitydocumenttypetranslation.FieldName:
+		return m.Name()
+	case identitydocumenttypetranslation.FieldDescription:
+		return m.Description()
+	case identitydocumenttypetranslation.FieldCreatedAt:
+		return m.CreatedAt()
+	case identitydocumenttypetranslation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *IdentityDocumentTypeTranslationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case identitydocumenttypetranslation.FieldIdentityDocumentTypeID:
+		return m.OldIdentityDocumentTypeID(ctx)
+	case identitydocumenttypetranslation.FieldLocaleCode:
+		return m.OldLocaleCode(ctx)
+	case identitydocumenttypetranslation.FieldName:
+		return m.OldName(ctx)
+	case identitydocumenttypetranslation.FieldDescription:
+		return m.OldDescription(ctx)
+	case identitydocumenttypetranslation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case identitydocumenttypetranslation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown IdentityDocumentTypeTranslation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IdentityDocumentTypeTranslationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case identitydocumenttypetranslation.FieldIdentityDocumentTypeID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdentityDocumentTypeID(v)
+		return nil
+	case identitydocumenttypetranslation.FieldLocaleCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocaleCode(v)
+		return nil
+	case identitydocumenttypetranslation.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case identitydocumenttypetranslation.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case identitydocumenttypetranslation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case identitydocumenttypetranslation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IdentityDocumentTypeTranslation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *IdentityDocumentTypeTranslationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *IdentityDocumentTypeTranslationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IdentityDocumentTypeTranslationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown IdentityDocumentTypeTranslation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *IdentityDocumentTypeTranslationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(identitydocumenttypetranslation.FieldDescription) {
+		fields = append(fields, identitydocumenttypetranslation.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *IdentityDocumentTypeTranslationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *IdentityDocumentTypeTranslationMutation) ClearField(name string) error {
+	switch name {
+	case identitydocumenttypetranslation.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown IdentityDocumentTypeTranslation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *IdentityDocumentTypeTranslationMutation) ResetField(name string) error {
+	switch name {
+	case identitydocumenttypetranslation.FieldIdentityDocumentTypeID:
+		m.ResetIdentityDocumentTypeID()
+		return nil
+	case identitydocumenttypetranslation.FieldLocaleCode:
+		m.ResetLocaleCode()
+		return nil
+	case identitydocumenttypetranslation.FieldName:
+		m.ResetName()
+		return nil
+	case identitydocumenttypetranslation.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case identitydocumenttypetranslation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case identitydocumenttypetranslation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown IdentityDocumentTypeTranslation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *IdentityDocumentTypeTranslationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.identity_document_type != nil {
+		edges = append(edges, identitydocumenttypetranslation.EdgeIdentityDocumentType)
+	}
+	if m.locale != nil {
+		edges = append(edges, identitydocumenttypetranslation.EdgeLocale)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *IdentityDocumentTypeTranslationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case identitydocumenttypetranslation.EdgeIdentityDocumentType:
+		if id := m.identity_document_type; id != nil {
+			return []ent.Value{*id}
+		}
+	case identitydocumenttypetranslation.EdgeLocale:
+		if id := m.locale; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *IdentityDocumentTypeTranslationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *IdentityDocumentTypeTranslationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *IdentityDocumentTypeTranslationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedidentity_document_type {
+		edges = append(edges, identitydocumenttypetranslation.EdgeIdentityDocumentType)
+	}
+	if m.clearedlocale {
+		edges = append(edges, identitydocumenttypetranslation.EdgeLocale)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *IdentityDocumentTypeTranslationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case identitydocumenttypetranslation.EdgeIdentityDocumentType:
+		return m.clearedidentity_document_type
+	case identitydocumenttypetranslation.EdgeLocale:
+		return m.clearedlocale
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *IdentityDocumentTypeTranslationMutation) ClearEdge(name string) error {
+	switch name {
+	case identitydocumenttypetranslation.EdgeIdentityDocumentType:
+		m.ClearIdentityDocumentType()
+		return nil
+	case identitydocumenttypetranslation.EdgeLocale:
+		m.ClearLocale()
+		return nil
+	}
+	return fmt.Errorf("unknown IdentityDocumentTypeTranslation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *IdentityDocumentTypeTranslationMutation) ResetEdge(name string) error {
+	switch name {
+	case identitydocumenttypetranslation.EdgeIdentityDocumentType:
+		m.ResetIdentityDocumentType()
+		return nil
+	case identitydocumenttypetranslation.EdgeLocale:
+		m.ResetLocale()
+		return nil
+	}
+	return fmt.Errorf("unknown IdentityDocumentTypeTranslation edge %s", name)
 }
 
 // JobMutation represents an operation that mutates the Job nodes in the graph.
@@ -16680,20 +18372,29 @@ func (m *JobFamilyMutation) ResetEdge(name string) error {
 // LocaleMutation represents an operation that mutates the Locale nodes in the graph.
 type LocaleMutation struct {
 	config
-	op                           Op
-	typ                          string
-	id                           *string
-	name                         *string
-	is_default                   *bool
-	created_at                   *time.Time
-	updated_at                   *time.Time
-	clearedFields                map[string]struct{}
-	location_translations        map[uuid.UUID]struct{}
-	removedlocation_translations map[uuid.UUID]struct{}
-	clearedlocation_translations bool
-	done                         bool
-	oldValue                     func(context.Context) (*Locale, error)
-	predicates                   []predicate.Locale
+	op                                         Op
+	typ                                        string
+	id                                         *string
+	name                                       *string
+	is_default                                 *bool
+	created_at                                 *time.Time
+	updated_at                                 *time.Time
+	clearedFields                              map[string]struct{}
+	location_translations                      map[uuid.UUID]struct{}
+	removedlocation_translations               map[uuid.UUID]struct{}
+	clearedlocation_translations               bool
+	identity_document_type_translations        map[uuid.UUID]struct{}
+	removedidentity_document_type_translations map[uuid.UUID]struct{}
+	clearedidentity_document_type_translations bool
+	role_type_translations                     map[uuid.UUID]struct{}
+	removedrole_type_translations              map[uuid.UUID]struct{}
+	clearedrole_type_translations              bool
+	department_translations                    map[uuid.UUID]struct{}
+	removeddepartment_translations             map[uuid.UUID]struct{}
+	cleareddepartment_translations             bool
+	done                                       bool
+	oldValue                                   func(context.Context) (*Locale, error)
+	predicates                                 []predicate.Locale
 }
 
 var _ ent.Mutation = (*LocaleMutation)(nil)
@@ -16998,6 +18699,168 @@ func (m *LocaleMutation) ResetLocationTranslations() {
 	m.removedlocation_translations = nil
 }
 
+// AddIdentityDocumentTypeTranslationIDs adds the "identity_document_type_translations" edge to the IdentityDocumentTypeTranslation entity by ids.
+func (m *LocaleMutation) AddIdentityDocumentTypeTranslationIDs(ids ...uuid.UUID) {
+	if m.identity_document_type_translations == nil {
+		m.identity_document_type_translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.identity_document_type_translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIdentityDocumentTypeTranslations clears the "identity_document_type_translations" edge to the IdentityDocumentTypeTranslation entity.
+func (m *LocaleMutation) ClearIdentityDocumentTypeTranslations() {
+	m.clearedidentity_document_type_translations = true
+}
+
+// IdentityDocumentTypeTranslationsCleared reports if the "identity_document_type_translations" edge to the IdentityDocumentTypeTranslation entity was cleared.
+func (m *LocaleMutation) IdentityDocumentTypeTranslationsCleared() bool {
+	return m.clearedidentity_document_type_translations
+}
+
+// RemoveIdentityDocumentTypeTranslationIDs removes the "identity_document_type_translations" edge to the IdentityDocumentTypeTranslation entity by IDs.
+func (m *LocaleMutation) RemoveIdentityDocumentTypeTranslationIDs(ids ...uuid.UUID) {
+	if m.removedidentity_document_type_translations == nil {
+		m.removedidentity_document_type_translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.identity_document_type_translations, ids[i])
+		m.removedidentity_document_type_translations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIdentityDocumentTypeTranslations returns the removed IDs of the "identity_document_type_translations" edge to the IdentityDocumentTypeTranslation entity.
+func (m *LocaleMutation) RemovedIdentityDocumentTypeTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedidentity_document_type_translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IdentityDocumentTypeTranslationsIDs returns the "identity_document_type_translations" edge IDs in the mutation.
+func (m *LocaleMutation) IdentityDocumentTypeTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.identity_document_type_translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIdentityDocumentTypeTranslations resets all changes to the "identity_document_type_translations" edge.
+func (m *LocaleMutation) ResetIdentityDocumentTypeTranslations() {
+	m.identity_document_type_translations = nil
+	m.clearedidentity_document_type_translations = false
+	m.removedidentity_document_type_translations = nil
+}
+
+// AddRoleTypeTranslationIDs adds the "role_type_translations" edge to the RoleTypeTranslation entity by ids.
+func (m *LocaleMutation) AddRoleTypeTranslationIDs(ids ...uuid.UUID) {
+	if m.role_type_translations == nil {
+		m.role_type_translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.role_type_translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRoleTypeTranslations clears the "role_type_translations" edge to the RoleTypeTranslation entity.
+func (m *LocaleMutation) ClearRoleTypeTranslations() {
+	m.clearedrole_type_translations = true
+}
+
+// RoleTypeTranslationsCleared reports if the "role_type_translations" edge to the RoleTypeTranslation entity was cleared.
+func (m *LocaleMutation) RoleTypeTranslationsCleared() bool {
+	return m.clearedrole_type_translations
+}
+
+// RemoveRoleTypeTranslationIDs removes the "role_type_translations" edge to the RoleTypeTranslation entity by IDs.
+func (m *LocaleMutation) RemoveRoleTypeTranslationIDs(ids ...uuid.UUID) {
+	if m.removedrole_type_translations == nil {
+		m.removedrole_type_translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.role_type_translations, ids[i])
+		m.removedrole_type_translations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRoleTypeTranslations returns the removed IDs of the "role_type_translations" edge to the RoleTypeTranslation entity.
+func (m *LocaleMutation) RemovedRoleTypeTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedrole_type_translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RoleTypeTranslationsIDs returns the "role_type_translations" edge IDs in the mutation.
+func (m *LocaleMutation) RoleTypeTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.role_type_translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRoleTypeTranslations resets all changes to the "role_type_translations" edge.
+func (m *LocaleMutation) ResetRoleTypeTranslations() {
+	m.role_type_translations = nil
+	m.clearedrole_type_translations = false
+	m.removedrole_type_translations = nil
+}
+
+// AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by ids.
+func (m *LocaleMutation) AddDepartmentTranslationIDs(ids ...uuid.UUID) {
+	if m.department_translations == nil {
+		m.department_translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.department_translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDepartmentTranslations clears the "department_translations" edge to the DepartmentTranslation entity.
+func (m *LocaleMutation) ClearDepartmentTranslations() {
+	m.cleareddepartment_translations = true
+}
+
+// DepartmentTranslationsCleared reports if the "department_translations" edge to the DepartmentTranslation entity was cleared.
+func (m *LocaleMutation) DepartmentTranslationsCleared() bool {
+	return m.cleareddepartment_translations
+}
+
+// RemoveDepartmentTranslationIDs removes the "department_translations" edge to the DepartmentTranslation entity by IDs.
+func (m *LocaleMutation) RemoveDepartmentTranslationIDs(ids ...uuid.UUID) {
+	if m.removeddepartment_translations == nil {
+		m.removeddepartment_translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.department_translations, ids[i])
+		m.removeddepartment_translations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDepartmentTranslations returns the removed IDs of the "department_translations" edge to the DepartmentTranslation entity.
+func (m *LocaleMutation) RemovedDepartmentTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.removeddepartment_translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DepartmentTranslationsIDs returns the "department_translations" edge IDs in the mutation.
+func (m *LocaleMutation) DepartmentTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.department_translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDepartmentTranslations resets all changes to the "department_translations" edge.
+func (m *LocaleMutation) ResetDepartmentTranslations() {
+	m.department_translations = nil
+	m.cleareddepartment_translations = false
+	m.removeddepartment_translations = nil
+}
+
 // Where appends a list predicates to the LocaleMutation builder.
 func (m *LocaleMutation) Where(ps ...predicate.Locale) {
 	m.predicates = append(m.predicates, ps...)
@@ -17182,9 +19045,18 @@ func (m *LocaleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LocaleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 4)
 	if m.location_translations != nil {
 		edges = append(edges, locale.EdgeLocationTranslations)
+	}
+	if m.identity_document_type_translations != nil {
+		edges = append(edges, locale.EdgeIdentityDocumentTypeTranslations)
+	}
+	if m.role_type_translations != nil {
+		edges = append(edges, locale.EdgeRoleTypeTranslations)
+	}
+	if m.department_translations != nil {
+		edges = append(edges, locale.EdgeDepartmentTranslations)
 	}
 	return edges
 }
@@ -17199,15 +19071,42 @@ func (m *LocaleMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case locale.EdgeIdentityDocumentTypeTranslations:
+		ids := make([]ent.Value, 0, len(m.identity_document_type_translations))
+		for id := range m.identity_document_type_translations {
+			ids = append(ids, id)
+		}
+		return ids
+	case locale.EdgeRoleTypeTranslations:
+		ids := make([]ent.Value, 0, len(m.role_type_translations))
+		for id := range m.role_type_translations {
+			ids = append(ids, id)
+		}
+		return ids
+	case locale.EdgeDepartmentTranslations:
+		ids := make([]ent.Value, 0, len(m.department_translations))
+		for id := range m.department_translations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LocaleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 4)
 	if m.removedlocation_translations != nil {
 		edges = append(edges, locale.EdgeLocationTranslations)
+	}
+	if m.removedidentity_document_type_translations != nil {
+		edges = append(edges, locale.EdgeIdentityDocumentTypeTranslations)
+	}
+	if m.removedrole_type_translations != nil {
+		edges = append(edges, locale.EdgeRoleTypeTranslations)
+	}
+	if m.removeddepartment_translations != nil {
+		edges = append(edges, locale.EdgeDepartmentTranslations)
 	}
 	return edges
 }
@@ -17222,15 +19121,42 @@ func (m *LocaleMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case locale.EdgeIdentityDocumentTypeTranslations:
+		ids := make([]ent.Value, 0, len(m.removedidentity_document_type_translations))
+		for id := range m.removedidentity_document_type_translations {
+			ids = append(ids, id)
+		}
+		return ids
+	case locale.EdgeRoleTypeTranslations:
+		ids := make([]ent.Value, 0, len(m.removedrole_type_translations))
+		for id := range m.removedrole_type_translations {
+			ids = append(ids, id)
+		}
+		return ids
+	case locale.EdgeDepartmentTranslations:
+		ids := make([]ent.Value, 0, len(m.removeddepartment_translations))
+		for id := range m.removeddepartment_translations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LocaleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 4)
 	if m.clearedlocation_translations {
 		edges = append(edges, locale.EdgeLocationTranslations)
+	}
+	if m.clearedidentity_document_type_translations {
+		edges = append(edges, locale.EdgeIdentityDocumentTypeTranslations)
+	}
+	if m.clearedrole_type_translations {
+		edges = append(edges, locale.EdgeRoleTypeTranslations)
+	}
+	if m.cleareddepartment_translations {
+		edges = append(edges, locale.EdgeDepartmentTranslations)
 	}
 	return edges
 }
@@ -17241,6 +19167,12 @@ func (m *LocaleMutation) EdgeCleared(name string) bool {
 	switch name {
 	case locale.EdgeLocationTranslations:
 		return m.clearedlocation_translations
+	case locale.EdgeIdentityDocumentTypeTranslations:
+		return m.clearedidentity_document_type_translations
+	case locale.EdgeRoleTypeTranslations:
+		return m.clearedrole_type_translations
+	case locale.EdgeDepartmentTranslations:
+		return m.cleareddepartment_translations
 	}
 	return false
 }
@@ -17259,6 +19191,15 @@ func (m *LocaleMutation) ResetEdge(name string) error {
 	switch name {
 	case locale.EdgeLocationTranslations:
 		m.ResetLocationTranslations()
+		return nil
+	case locale.EdgeIdentityDocumentTypeTranslations:
+		m.ResetIdentityDocumentTypeTranslations()
+		return nil
+	case locale.EdgeRoleTypeTranslations:
+		m.ResetRoleTypeTranslations()
+		return nil
+	case locale.EdgeDepartmentTranslations:
+		m.ResetDepartmentTranslations()
 		return nil
 	}
 	return fmt.Errorf("unknown Locale edge %s", name)
@@ -33245,23 +35186,24 @@ func (m *PersonProfileMutation) ResetEdge(name string) error {
 // RoleTypeMutation represents an operation that mutates the RoleType nodes in the graph.
 type RoleTypeMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	code               *string
-	name               *string
-	description        *string
-	is_system          *bool
-	created_at         *time.Time
-	updated_at         *time.Time
-	deleted_at         *time.Time
-	clearedFields      map[string]struct{}
-	party_roles        map[uuid.UUID]struct{}
-	removedparty_roles map[uuid.UUID]struct{}
-	clearedparty_roles bool
-	done               bool
-	oldValue           func(context.Context) (*RoleType, error)
-	predicates         []predicate.RoleType
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	code                *string
+	is_system           *bool
+	created_at          *time.Time
+	updated_at          *time.Time
+	deleted_at          *time.Time
+	clearedFields       map[string]struct{}
+	party_roles         map[uuid.UUID]struct{}
+	removedparty_roles  map[uuid.UUID]struct{}
+	clearedparty_roles  bool
+	translations        map[uuid.UUID]struct{}
+	removedtranslations map[uuid.UUID]struct{}
+	clearedtranslations bool
+	done                bool
+	oldValue            func(context.Context) (*RoleType, error)
+	predicates          []predicate.RoleType
 }
 
 var _ ent.Mutation = (*RoleTypeMutation)(nil)
@@ -33402,91 +35344,6 @@ func (m *RoleTypeMutation) OldCode(ctx context.Context) (v string, err error) {
 // ResetCode resets all changes to the "code" field.
 func (m *RoleTypeMutation) ResetCode() {
 	m.code = nil
-}
-
-// SetName sets the "name" field.
-func (m *RoleTypeMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *RoleTypeMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the RoleType entity.
-// If the RoleType object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleTypeMutation) OldName(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *RoleTypeMutation) ResetName() {
-	m.name = nil
-}
-
-// SetDescription sets the "description" field.
-func (m *RoleTypeMutation) SetDescription(s string) {
-	m.description = &s
-}
-
-// Description returns the value of the "description" field in the mutation.
-func (m *RoleTypeMutation) Description() (r string, exists bool) {
-	v := m.description
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDescription returns the old "description" field's value of the RoleType entity.
-// If the RoleType object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleTypeMutation) OldDescription(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDescription requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
-	}
-	return oldValue.Description, nil
-}
-
-// ClearDescription clears the value of the "description" field.
-func (m *RoleTypeMutation) ClearDescription() {
-	m.description = nil
-	m.clearedFields[roletype.FieldDescription] = struct{}{}
-}
-
-// DescriptionCleared returns if the "description" field was cleared in this mutation.
-func (m *RoleTypeMutation) DescriptionCleared() bool {
-	_, ok := m.clearedFields[roletype.FieldDescription]
-	return ok
-}
-
-// ResetDescription resets all changes to the "description" field.
-func (m *RoleTypeMutation) ResetDescription() {
-	m.description = nil
-	delete(m.clearedFields, roletype.FieldDescription)
 }
 
 // SetIsSystem sets the "is_system" field.
@@ -33700,6 +35557,60 @@ func (m *RoleTypeMutation) ResetPartyRoles() {
 	m.removedparty_roles = nil
 }
 
+// AddTranslationIDs adds the "translations" edge to the RoleTypeTranslation entity by ids.
+func (m *RoleTypeMutation) AddTranslationIDs(ids ...uuid.UUID) {
+	if m.translations == nil {
+		m.translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTranslations clears the "translations" edge to the RoleTypeTranslation entity.
+func (m *RoleTypeMutation) ClearTranslations() {
+	m.clearedtranslations = true
+}
+
+// TranslationsCleared reports if the "translations" edge to the RoleTypeTranslation entity was cleared.
+func (m *RoleTypeMutation) TranslationsCleared() bool {
+	return m.clearedtranslations
+}
+
+// RemoveTranslationIDs removes the "translations" edge to the RoleTypeTranslation entity by IDs.
+func (m *RoleTypeMutation) RemoveTranslationIDs(ids ...uuid.UUID) {
+	if m.removedtranslations == nil {
+		m.removedtranslations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.translations, ids[i])
+		m.removedtranslations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTranslations returns the removed IDs of the "translations" edge to the RoleTypeTranslation entity.
+func (m *RoleTypeMutation) RemovedTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedtranslations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TranslationsIDs returns the "translations" edge IDs in the mutation.
+func (m *RoleTypeMutation) TranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTranslations resets all changes to the "translations" edge.
+func (m *RoleTypeMutation) ResetTranslations() {
+	m.translations = nil
+	m.clearedtranslations = false
+	m.removedtranslations = nil
+}
+
 // Where appends a list predicates to the RoleTypeMutation builder.
 func (m *RoleTypeMutation) Where(ps ...predicate.RoleType) {
 	m.predicates = append(m.predicates, ps...)
@@ -33734,15 +35645,9 @@ func (m *RoleTypeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoleTypeMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 5)
 	if m.code != nil {
 		fields = append(fields, roletype.FieldCode)
-	}
-	if m.name != nil {
-		fields = append(fields, roletype.FieldName)
-	}
-	if m.description != nil {
-		fields = append(fields, roletype.FieldDescription)
 	}
 	if m.is_system != nil {
 		fields = append(fields, roletype.FieldIsSystem)
@@ -33766,10 +35671,6 @@ func (m *RoleTypeMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case roletype.FieldCode:
 		return m.Code()
-	case roletype.FieldName:
-		return m.Name()
-	case roletype.FieldDescription:
-		return m.Description()
 	case roletype.FieldIsSystem:
 		return m.IsSystem()
 	case roletype.FieldCreatedAt:
@@ -33789,10 +35690,6 @@ func (m *RoleTypeMutation) OldField(ctx context.Context, name string) (ent.Value
 	switch name {
 	case roletype.FieldCode:
 		return m.OldCode(ctx)
-	case roletype.FieldName:
-		return m.OldName(ctx)
-	case roletype.FieldDescription:
-		return m.OldDescription(ctx)
 	case roletype.FieldIsSystem:
 		return m.OldIsSystem(ctx)
 	case roletype.FieldCreatedAt:
@@ -33816,20 +35713,6 @@ func (m *RoleTypeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCode(v)
-		return nil
-	case roletype.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	case roletype.FieldDescription:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDescription(v)
 		return nil
 	case roletype.FieldIsSystem:
 		v, ok := value.(bool)
@@ -33889,9 +35772,6 @@ func (m *RoleTypeMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *RoleTypeMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(roletype.FieldDescription) {
-		fields = append(fields, roletype.FieldDescription)
-	}
 	if m.FieldCleared(roletype.FieldDeletedAt) {
 		fields = append(fields, roletype.FieldDeletedAt)
 	}
@@ -33909,9 +35789,6 @@ func (m *RoleTypeMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *RoleTypeMutation) ClearField(name string) error {
 	switch name {
-	case roletype.FieldDescription:
-		m.ClearDescription()
-		return nil
 	case roletype.FieldDeletedAt:
 		m.ClearDeletedAt()
 		return nil
@@ -33925,12 +35802,6 @@ func (m *RoleTypeMutation) ResetField(name string) error {
 	switch name {
 	case roletype.FieldCode:
 		m.ResetCode()
-		return nil
-	case roletype.FieldName:
-		m.ResetName()
-		return nil
-	case roletype.FieldDescription:
-		m.ResetDescription()
 		return nil
 	case roletype.FieldIsSystem:
 		m.ResetIsSystem()
@@ -33950,9 +35821,12 @@ func (m *RoleTypeMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RoleTypeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.party_roles != nil {
 		edges = append(edges, roletype.EdgePartyRoles)
+	}
+	if m.translations != nil {
+		edges = append(edges, roletype.EdgeTranslations)
 	}
 	return edges
 }
@@ -33967,15 +35841,24 @@ func (m *RoleTypeMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case roletype.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.translations))
+		for id := range m.translations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RoleTypeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedparty_roles != nil {
 		edges = append(edges, roletype.EdgePartyRoles)
+	}
+	if m.removedtranslations != nil {
+		edges = append(edges, roletype.EdgeTranslations)
 	}
 	return edges
 }
@@ -33990,15 +35873,24 @@ func (m *RoleTypeMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case roletype.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.removedtranslations))
+		for id := range m.removedtranslations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RoleTypeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedparty_roles {
 		edges = append(edges, roletype.EdgePartyRoles)
+	}
+	if m.clearedtranslations {
+		edges = append(edges, roletype.EdgeTranslations)
 	}
 	return edges
 }
@@ -34009,6 +35901,8 @@ func (m *RoleTypeMutation) EdgeCleared(name string) bool {
 	switch name {
 	case roletype.EdgePartyRoles:
 		return m.clearedparty_roles
+	case roletype.EdgeTranslations:
+		return m.clearedtranslations
 	}
 	return false
 }
@@ -34028,8 +35922,748 @@ func (m *RoleTypeMutation) ResetEdge(name string) error {
 	case roletype.EdgePartyRoles:
 		m.ResetPartyRoles()
 		return nil
+	case roletype.EdgeTranslations:
+		m.ResetTranslations()
+		return nil
 	}
 	return fmt.Errorf("unknown RoleType edge %s", name)
+}
+
+// RoleTypeTranslationMutation represents an operation that mutates the RoleTypeTranslation nodes in the graph.
+type RoleTypeTranslationMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	name             *string
+	description      *string
+	created_at       *time.Time
+	updated_at       *time.Time
+	clearedFields    map[string]struct{}
+	role_type        *uuid.UUID
+	clearedrole_type bool
+	locale           *string
+	clearedlocale    bool
+	done             bool
+	oldValue         func(context.Context) (*RoleTypeTranslation, error)
+	predicates       []predicate.RoleTypeTranslation
+}
+
+var _ ent.Mutation = (*RoleTypeTranslationMutation)(nil)
+
+// roletypetranslationOption allows management of the mutation configuration using functional options.
+type roletypetranslationOption func(*RoleTypeTranslationMutation)
+
+// newRoleTypeTranslationMutation creates new mutation for the RoleTypeTranslation entity.
+func newRoleTypeTranslationMutation(c config, op Op, opts ...roletypetranslationOption) *RoleTypeTranslationMutation {
+	m := &RoleTypeTranslationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeRoleTypeTranslation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withRoleTypeTranslationID sets the ID field of the mutation.
+func withRoleTypeTranslationID(id uuid.UUID) roletypetranslationOption {
+	return func(m *RoleTypeTranslationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *RoleTypeTranslation
+		)
+		m.oldValue = func(ctx context.Context) (*RoleTypeTranslation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().RoleTypeTranslation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withRoleTypeTranslation sets the old RoleTypeTranslation of the mutation.
+func withRoleTypeTranslation(node *RoleTypeTranslation) roletypetranslationOption {
+	return func(m *RoleTypeTranslationMutation) {
+		m.oldValue = func(context.Context) (*RoleTypeTranslation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m RoleTypeTranslationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m RoleTypeTranslationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of RoleTypeTranslation entities.
+func (m *RoleTypeTranslationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *RoleTypeTranslationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *RoleTypeTranslationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().RoleTypeTranslation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetRoleTypeID sets the "role_type_id" field.
+func (m *RoleTypeTranslationMutation) SetRoleTypeID(u uuid.UUID) {
+	m.role_type = &u
+}
+
+// RoleTypeID returns the value of the "role_type_id" field in the mutation.
+func (m *RoleTypeTranslationMutation) RoleTypeID() (r uuid.UUID, exists bool) {
+	v := m.role_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRoleTypeID returns the old "role_type_id" field's value of the RoleTypeTranslation entity.
+// If the RoleTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleTypeTranslationMutation) OldRoleTypeID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRoleTypeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRoleTypeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRoleTypeID: %w", err)
+	}
+	return oldValue.RoleTypeID, nil
+}
+
+// ResetRoleTypeID resets all changes to the "role_type_id" field.
+func (m *RoleTypeTranslationMutation) ResetRoleTypeID() {
+	m.role_type = nil
+}
+
+// SetLocaleCode sets the "locale_code" field.
+func (m *RoleTypeTranslationMutation) SetLocaleCode(s string) {
+	m.locale = &s
+}
+
+// LocaleCode returns the value of the "locale_code" field in the mutation.
+func (m *RoleTypeTranslationMutation) LocaleCode() (r string, exists bool) {
+	v := m.locale
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocaleCode returns the old "locale_code" field's value of the RoleTypeTranslation entity.
+// If the RoleTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleTypeTranslationMutation) OldLocaleCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocaleCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocaleCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocaleCode: %w", err)
+	}
+	return oldValue.LocaleCode, nil
+}
+
+// ResetLocaleCode resets all changes to the "locale_code" field.
+func (m *RoleTypeTranslationMutation) ResetLocaleCode() {
+	m.locale = nil
+}
+
+// SetName sets the "name" field.
+func (m *RoleTypeTranslationMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *RoleTypeTranslationMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the RoleTypeTranslation entity.
+// If the RoleTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleTypeTranslationMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *RoleTypeTranslationMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *RoleTypeTranslationMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *RoleTypeTranslationMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the RoleTypeTranslation entity.
+// If the RoleTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleTypeTranslationMutation) OldDescription(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *RoleTypeTranslationMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[roletypetranslation.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *RoleTypeTranslationMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[roletypetranslation.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *RoleTypeTranslationMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, roletypetranslation.FieldDescription)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *RoleTypeTranslationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *RoleTypeTranslationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the RoleTypeTranslation entity.
+// If the RoleTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleTypeTranslationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *RoleTypeTranslationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *RoleTypeTranslationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *RoleTypeTranslationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the RoleTypeTranslation entity.
+// If the RoleTypeTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoleTypeTranslationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *RoleTypeTranslationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearRoleType clears the "role_type" edge to the RoleType entity.
+func (m *RoleTypeTranslationMutation) ClearRoleType() {
+	m.clearedrole_type = true
+	m.clearedFields[roletypetranslation.FieldRoleTypeID] = struct{}{}
+}
+
+// RoleTypeCleared reports if the "role_type" edge to the RoleType entity was cleared.
+func (m *RoleTypeTranslationMutation) RoleTypeCleared() bool {
+	return m.clearedrole_type
+}
+
+// RoleTypeIDs returns the "role_type" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RoleTypeID instead. It exists only for internal usage by the builders.
+func (m *RoleTypeTranslationMutation) RoleTypeIDs() (ids []uuid.UUID) {
+	if id := m.role_type; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRoleType resets all changes to the "role_type" edge.
+func (m *RoleTypeTranslationMutation) ResetRoleType() {
+	m.role_type = nil
+	m.clearedrole_type = false
+}
+
+// SetLocaleID sets the "locale" edge to the Locale entity by id.
+func (m *RoleTypeTranslationMutation) SetLocaleID(id string) {
+	m.locale = &id
+}
+
+// ClearLocale clears the "locale" edge to the Locale entity.
+func (m *RoleTypeTranslationMutation) ClearLocale() {
+	m.clearedlocale = true
+	m.clearedFields[roletypetranslation.FieldLocaleCode] = struct{}{}
+}
+
+// LocaleCleared reports if the "locale" edge to the Locale entity was cleared.
+func (m *RoleTypeTranslationMutation) LocaleCleared() bool {
+	return m.clearedlocale
+}
+
+// LocaleID returns the "locale" edge ID in the mutation.
+func (m *RoleTypeTranslationMutation) LocaleID() (id string, exists bool) {
+	if m.locale != nil {
+		return *m.locale, true
+	}
+	return
+}
+
+// LocaleIDs returns the "locale" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LocaleID instead. It exists only for internal usage by the builders.
+func (m *RoleTypeTranslationMutation) LocaleIDs() (ids []string) {
+	if id := m.locale; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocale resets all changes to the "locale" edge.
+func (m *RoleTypeTranslationMutation) ResetLocale() {
+	m.locale = nil
+	m.clearedlocale = false
+}
+
+// Where appends a list predicates to the RoleTypeTranslationMutation builder.
+func (m *RoleTypeTranslationMutation) Where(ps ...predicate.RoleTypeTranslation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the RoleTypeTranslationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *RoleTypeTranslationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.RoleTypeTranslation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *RoleTypeTranslationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *RoleTypeTranslationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (RoleTypeTranslation).
+func (m *RoleTypeTranslationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *RoleTypeTranslationMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.role_type != nil {
+		fields = append(fields, roletypetranslation.FieldRoleTypeID)
+	}
+	if m.locale != nil {
+		fields = append(fields, roletypetranslation.FieldLocaleCode)
+	}
+	if m.name != nil {
+		fields = append(fields, roletypetranslation.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, roletypetranslation.FieldDescription)
+	}
+	if m.created_at != nil {
+		fields = append(fields, roletypetranslation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, roletypetranslation.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *RoleTypeTranslationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case roletypetranslation.FieldRoleTypeID:
+		return m.RoleTypeID()
+	case roletypetranslation.FieldLocaleCode:
+		return m.LocaleCode()
+	case roletypetranslation.FieldName:
+		return m.Name()
+	case roletypetranslation.FieldDescription:
+		return m.Description()
+	case roletypetranslation.FieldCreatedAt:
+		return m.CreatedAt()
+	case roletypetranslation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *RoleTypeTranslationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case roletypetranslation.FieldRoleTypeID:
+		return m.OldRoleTypeID(ctx)
+	case roletypetranslation.FieldLocaleCode:
+		return m.OldLocaleCode(ctx)
+	case roletypetranslation.FieldName:
+		return m.OldName(ctx)
+	case roletypetranslation.FieldDescription:
+		return m.OldDescription(ctx)
+	case roletypetranslation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case roletypetranslation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown RoleTypeTranslation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RoleTypeTranslationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case roletypetranslation.FieldRoleTypeID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRoleTypeID(v)
+		return nil
+	case roletypetranslation.FieldLocaleCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocaleCode(v)
+		return nil
+	case roletypetranslation.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case roletypetranslation.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case roletypetranslation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case roletypetranslation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown RoleTypeTranslation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *RoleTypeTranslationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *RoleTypeTranslationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RoleTypeTranslationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown RoleTypeTranslation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *RoleTypeTranslationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(roletypetranslation.FieldDescription) {
+		fields = append(fields, roletypetranslation.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *RoleTypeTranslationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *RoleTypeTranslationMutation) ClearField(name string) error {
+	switch name {
+	case roletypetranslation.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown RoleTypeTranslation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *RoleTypeTranslationMutation) ResetField(name string) error {
+	switch name {
+	case roletypetranslation.FieldRoleTypeID:
+		m.ResetRoleTypeID()
+		return nil
+	case roletypetranslation.FieldLocaleCode:
+		m.ResetLocaleCode()
+		return nil
+	case roletypetranslation.FieldName:
+		m.ResetName()
+		return nil
+	case roletypetranslation.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case roletypetranslation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case roletypetranslation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown RoleTypeTranslation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *RoleTypeTranslationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.role_type != nil {
+		edges = append(edges, roletypetranslation.EdgeRoleType)
+	}
+	if m.locale != nil {
+		edges = append(edges, roletypetranslation.EdgeLocale)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *RoleTypeTranslationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case roletypetranslation.EdgeRoleType:
+		if id := m.role_type; id != nil {
+			return []ent.Value{*id}
+		}
+	case roletypetranslation.EdgeLocale:
+		if id := m.locale; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *RoleTypeTranslationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *RoleTypeTranslationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *RoleTypeTranslationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedrole_type {
+		edges = append(edges, roletypetranslation.EdgeRoleType)
+	}
+	if m.clearedlocale {
+		edges = append(edges, roletypetranslation.EdgeLocale)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *RoleTypeTranslationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case roletypetranslation.EdgeRoleType:
+		return m.clearedrole_type
+	case roletypetranslation.EdgeLocale:
+		return m.clearedlocale
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *RoleTypeTranslationMutation) ClearEdge(name string) error {
+	switch name {
+	case roletypetranslation.EdgeRoleType:
+		m.ClearRoleType()
+		return nil
+	case roletypetranslation.EdgeLocale:
+		m.ClearLocale()
+		return nil
+	}
+	return fmt.Errorf("unknown RoleTypeTranslation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *RoleTypeTranslationMutation) ResetEdge(name string) error {
+	switch name {
+	case roletypetranslation.EdgeRoleType:
+		m.ResetRoleType()
+		return nil
+	case roletypetranslation.EdgeLocale:
+		m.ResetLocale()
+		return nil
+	}
+	return fmt.Errorf("unknown RoleTypeTranslation edge %s", name)
 }
 
 // SessionMutation represents an operation that mutates the Session nodes in the graph.
@@ -35113,6 +37747,9 @@ type SubscriptionMutation struct {
 	client_applications                            map[uuid.UUID]struct{}
 	removedclient_applications                     map[uuid.UUID]struct{}
 	clearedclient_applications                     bool
+	department_translations                        map[uuid.UUID]struct{}
+	removeddepartment_translations                 map[uuid.UUID]struct{}
+	cleareddepartment_translations                 bool
 	done                                           bool
 	oldValue                                       func(context.Context) (*Subscription, error)
 	predicates                                     []predicate.Subscription
@@ -37071,6 +39708,60 @@ func (m *SubscriptionMutation) ResetClientApplications() {
 	m.removedclient_applications = nil
 }
 
+// AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by ids.
+func (m *SubscriptionMutation) AddDepartmentTranslationIDs(ids ...uuid.UUID) {
+	if m.department_translations == nil {
+		m.department_translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.department_translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDepartmentTranslations clears the "department_translations" edge to the DepartmentTranslation entity.
+func (m *SubscriptionMutation) ClearDepartmentTranslations() {
+	m.cleareddepartment_translations = true
+}
+
+// DepartmentTranslationsCleared reports if the "department_translations" edge to the DepartmentTranslation entity was cleared.
+func (m *SubscriptionMutation) DepartmentTranslationsCleared() bool {
+	return m.cleareddepartment_translations
+}
+
+// RemoveDepartmentTranslationIDs removes the "department_translations" edge to the DepartmentTranslation entity by IDs.
+func (m *SubscriptionMutation) RemoveDepartmentTranslationIDs(ids ...uuid.UUID) {
+	if m.removeddepartment_translations == nil {
+		m.removeddepartment_translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.department_translations, ids[i])
+		m.removeddepartment_translations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDepartmentTranslations returns the removed IDs of the "department_translations" edge to the DepartmentTranslation entity.
+func (m *SubscriptionMutation) RemovedDepartmentTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.removeddepartment_translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DepartmentTranslationsIDs returns the "department_translations" edge IDs in the mutation.
+func (m *SubscriptionMutation) DepartmentTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.department_translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDepartmentTranslations resets all changes to the "department_translations" edge.
+func (m *SubscriptionMutation) ResetDepartmentTranslations() {
+	m.department_translations = nil
+	m.cleareddepartment_translations = false
+	m.removeddepartment_translations = nil
+}
+
 // Where appends a list predicates to the SubscriptionMutation builder.
 func (m *SubscriptionMutation) Where(ps ...predicate.Subscription) {
 	m.predicates = append(m.predicates, ps...)
@@ -37298,7 +39989,7 @@ func (m *SubscriptionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SubscriptionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 30)
+	edges := make([]string, 0, 31)
 	if m.parties != nil {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -37388,6 +40079,9 @@ func (m *SubscriptionMutation) AddedEdges() []string {
 	}
 	if m.client_applications != nil {
 		edges = append(edges, subscription.EdgeClientApplications)
+	}
+	if m.department_translations != nil {
+		edges = append(edges, subscription.EdgeDepartmentTranslations)
 	}
 	return edges
 }
@@ -37576,13 +40270,19 @@ func (m *SubscriptionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case subscription.EdgeDepartmentTranslations:
+		ids := make([]ent.Value, 0, len(m.department_translations))
+		for id := range m.department_translations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SubscriptionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 30)
+	edges := make([]string, 0, 31)
 	if m.removedparties != nil {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -37672,6 +40372,9 @@ func (m *SubscriptionMutation) RemovedEdges() []string {
 	}
 	if m.removedclient_applications != nil {
 		edges = append(edges, subscription.EdgeClientApplications)
+	}
+	if m.removeddepartment_translations != nil {
+		edges = append(edges, subscription.EdgeDepartmentTranslations)
 	}
 	return edges
 }
@@ -37860,13 +40563,19 @@ func (m *SubscriptionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case subscription.EdgeDepartmentTranslations:
+		ids := make([]ent.Value, 0, len(m.removeddepartment_translations))
+		for id := range m.removeddepartment_translations {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SubscriptionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 30)
+	edges := make([]string, 0, 31)
 	if m.clearedparties {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -37957,6 +40666,9 @@ func (m *SubscriptionMutation) ClearedEdges() []string {
 	if m.clearedclient_applications {
 		edges = append(edges, subscription.EdgeClientApplications)
 	}
+	if m.cleareddepartment_translations {
+		edges = append(edges, subscription.EdgeDepartmentTranslations)
+	}
 	return edges
 }
 
@@ -38024,6 +40736,8 @@ func (m *SubscriptionMutation) EdgeCleared(name string) bool {
 		return m.cleareddepartment_address_validities
 	case subscription.EdgeClientApplications:
 		return m.clearedclient_applications
+	case subscription.EdgeDepartmentTranslations:
+		return m.cleareddepartment_translations
 	}
 	return false
 }
@@ -38129,6 +40843,9 @@ func (m *SubscriptionMutation) ResetEdge(name string) error {
 		return nil
 	case subscription.EdgeClientApplications:
 		m.ResetClientApplications()
+		return nil
+	case subscription.EdgeDepartmentTranslations:
+		m.ResetDepartmentTranslations()
 		return nil
 	}
 	return fmt.Errorf("unknown Subscription edge %s", name)

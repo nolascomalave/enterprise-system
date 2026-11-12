@@ -24,8 +24,20 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeLocationTranslations holds the string denoting the location_translations edge name in mutations.
 	EdgeLocationTranslations = "location_translations"
+	// EdgeIdentityDocumentTypeTranslations holds the string denoting the identity_document_type_translations edge name in mutations.
+	EdgeIdentityDocumentTypeTranslations = "identity_document_type_translations"
+	// EdgeRoleTypeTranslations holds the string denoting the role_type_translations edge name in mutations.
+	EdgeRoleTypeTranslations = "role_type_translations"
+	// EdgeDepartmentTranslations holds the string denoting the department_translations edge name in mutations.
+	EdgeDepartmentTranslations = "department_translations"
 	// LocationTranslationFieldID holds the string denoting the ID field of the LocationTranslation.
 	LocationTranslationFieldID = "id"
+	// IdentityDocumentTypeTranslationFieldID holds the string denoting the ID field of the IdentityDocumentTypeTranslation.
+	IdentityDocumentTypeTranslationFieldID = "id"
+	// RoleTypeTranslationFieldID holds the string denoting the ID field of the RoleTypeTranslation.
+	RoleTypeTranslationFieldID = "id"
+	// DepartmentTranslationFieldID holds the string denoting the ID field of the DepartmentTranslation.
+	DepartmentTranslationFieldID = "id"
 	// Table holds the table name of the locale in the database.
 	Table = "locales"
 	// LocationTranslationsTable is the table that holds the location_translations relation/edge.
@@ -35,6 +47,27 @@ const (
 	LocationTranslationsInverseTable = "location_translations"
 	// LocationTranslationsColumn is the table column denoting the location_translations relation/edge.
 	LocationTranslationsColumn = "language_code"
+	// IdentityDocumentTypeTranslationsTable is the table that holds the identity_document_type_translations relation/edge.
+	IdentityDocumentTypeTranslationsTable = "identity_document_type_translations"
+	// IdentityDocumentTypeTranslationsInverseTable is the table name for the IdentityDocumentTypeTranslation entity.
+	// It exists in this package in order to avoid circular dependency with the "identitydocumenttypetranslation" package.
+	IdentityDocumentTypeTranslationsInverseTable = "identity_document_type_translations"
+	// IdentityDocumentTypeTranslationsColumn is the table column denoting the identity_document_type_translations relation/edge.
+	IdentityDocumentTypeTranslationsColumn = "locale_code"
+	// RoleTypeTranslationsTable is the table that holds the role_type_translations relation/edge.
+	RoleTypeTranslationsTable = "role_type_translations"
+	// RoleTypeTranslationsInverseTable is the table name for the RoleTypeTranslation entity.
+	// It exists in this package in order to avoid circular dependency with the "roletypetranslation" package.
+	RoleTypeTranslationsInverseTable = "role_type_translations"
+	// RoleTypeTranslationsColumn is the table column denoting the role_type_translations relation/edge.
+	RoleTypeTranslationsColumn = "locale_code"
+	// DepartmentTranslationsTable is the table that holds the department_translations relation/edge.
+	DepartmentTranslationsTable = "department_translations"
+	// DepartmentTranslationsInverseTable is the table name for the DepartmentTranslation entity.
+	// It exists in this package in order to avoid circular dependency with the "departmenttranslation" package.
+	DepartmentTranslationsInverseTable = "department_translations"
+	// DepartmentTranslationsColumn is the table column denoting the department_translations relation/edge.
+	DepartmentTranslationsColumn = "locale_code"
 )
 
 // Columns holds all SQL columns for locale fields.
@@ -112,10 +145,73 @@ func ByLocationTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpt
 		sqlgraph.OrderByNeighborTerms(s, newLocationTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByIdentityDocumentTypeTranslationsCount orders the results by identity_document_type_translations count.
+func ByIdentityDocumentTypeTranslationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIdentityDocumentTypeTranslationsStep(), opts...)
+	}
+}
+
+// ByIdentityDocumentTypeTranslations orders the results by identity_document_type_translations terms.
+func ByIdentityDocumentTypeTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIdentityDocumentTypeTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRoleTypeTranslationsCount orders the results by role_type_translations count.
+func ByRoleTypeTranslationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRoleTypeTranslationsStep(), opts...)
+	}
+}
+
+// ByRoleTypeTranslations orders the results by role_type_translations terms.
+func ByRoleTypeTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRoleTypeTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDepartmentTranslationsCount orders the results by department_translations count.
+func ByDepartmentTranslationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentTranslationsStep(), opts...)
+	}
+}
+
+// ByDepartmentTranslations orders the results by department_translations terms.
+func ByDepartmentTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newLocationTranslationsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LocationTranslationsInverseTable, LocationTranslationFieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, LocationTranslationsTable, LocationTranslationsColumn),
+	)
+}
+func newIdentityDocumentTypeTranslationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IdentityDocumentTypeTranslationsInverseTable, IdentityDocumentTypeTranslationFieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IdentityDocumentTypeTranslationsTable, IdentityDocumentTypeTranslationsColumn),
+	)
+}
+func newRoleTypeTranslationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RoleTypeTranslationsInverseTable, RoleTypeTranslationFieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RoleTypeTranslationsTable, RoleTypeTranslationsColumn),
+	)
+}
+func newDepartmentTranslationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentTranslationsInverseTable, DepartmentTranslationFieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentTranslationsTable, DepartmentTranslationsColumn),
 	)
 }

@@ -34,10 +34,6 @@ func (RoleType) Fields() []ent.Field {
 		field.String("code").
 			NotEmpty().
 			Comment("Stable code, e.g. OWNER or TENANT_ADMIN"),
-		field.String("name").
-			NotEmpty(),
-		field.String("description").
-			Optional(),
 		field.Bool("is_system").
 			Default(false).
 			Comment("System roles cannot be deleted by tenants"),
@@ -58,6 +54,8 @@ func (RoleType) Fields() []ent.Field {
 func (RoleType) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("party_roles", PartyRole.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("translations", RoleTypeTranslation.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
