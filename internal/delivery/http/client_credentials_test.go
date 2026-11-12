@@ -13,7 +13,7 @@ import (
 func TestClientCredentialsScopesRestrictRoutes(t *testing.T) {
 	manager := testAuthManager(t)
 	tenantID := uuid.New()
-	token, err := manager.IssueClientToken(tenantID, "client-123", []string{auth.ScopePartiesRead})
+	token, err := manager.IssueClientToken(&tenantID, "client-123", "THIRD_PARTY", "TENANT_SPECIFIC", []string{auth.ScopePartiesRead})
 	require.NoError(t, err)
 
 	router := NewRouter(Dependencies{
@@ -40,7 +40,7 @@ func TestClientCredentialsScopesRestrictRoutes(t *testing.T) {
 func TestClientCredentialsTenantIsInjected(t *testing.T) {
 	manager := testAuthManager(t)
 	tenantID := uuid.New()
-	token, err := manager.IssueClientToken(tenantID, "client-123", []string{auth.ScopePartiesRead})
+	token, err := manager.IssueClientToken(&tenantID, "client-123", "THIRD_PARTY", "TENANT_SPECIFIC", []string{auth.ScopePartiesRead})
 	require.NoError(t, err)
 
 	partyUseCase := &fakePartyUseCase{}
@@ -49,4 +49,28 @@ func TestClientCredentialsTenantIsInjected(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, recorder.Code)
 	assert.Equal(t, tenantID, partyUseCase.gotTenant)
+}
+
+func TestFirstPartyPlatformTokenAccessesPlatformRoute(t *testing.T) {
+	manager := testAuthManager(t)
+	token, err := manager.IssueClientToken(nil, "first-party-app", "FIRST_PARTY", "PLATFORM",
+		[]string{auth.ScopePlatformAdmin})
+	require.NoError(t, err)
+
+	router := NewRouter(Dependencies{TokenManager: manager})
+	recorder := requestWithToken(router, http.MethodGet, "/api/v1/platform/status", nil, token)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+}
+
+func TestPlatformTokenWithoutScopeIsForbidden(t *testing.T) {
+	manager := testAuthManager(t)
+	token, err := manager.IssueClientToken(nil, "first-party-app", "FIRST_PARTY", "PLATFORM",
+		[]string{"reports:global"})
+	require.NoError(t, err)
+
+	router := NewRouter(Dependencies{TokenManager: manager})
+	recorder := requestWithToken(router, http.MethodGet, "/api/v1/platform/status", nil, token)
+
+	assert.Equal(t, http.StatusForbidden, recorder.Code)
 }

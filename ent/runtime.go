@@ -165,15 +165,15 @@ func init() {
 	// clientapplication.ClientSecretHashValidator is a validator for the "client_secret_hash" field. It is called by the builders before save.
 	clientapplication.ClientSecretHashValidator = clientapplicationDescClientSecretHash.Validators[0].(func(string) error)
 	// clientapplicationDescIsActive is the schema descriptor for is_active field.
-	clientapplicationDescIsActive := clientapplicationFields[6].Descriptor()
+	clientapplicationDescIsActive := clientapplicationFields[8].Descriptor()
 	// clientapplication.DefaultIsActive holds the default value on creation for the is_active field.
 	clientapplication.DefaultIsActive = clientapplicationDescIsActive.Default.(bool)
 	// clientapplicationDescCreatedAt is the schema descriptor for created_at field.
-	clientapplicationDescCreatedAt := clientapplicationFields[7].Descriptor()
+	clientapplicationDescCreatedAt := clientapplicationFields[9].Descriptor()
 	// clientapplication.DefaultCreatedAt holds the default value on creation for the created_at field.
 	clientapplication.DefaultCreatedAt = clientapplicationDescCreatedAt.Default.(func() time.Time)
 	// clientapplicationDescUpdatedAt is the schema descriptor for updated_at field.
-	clientapplicationDescUpdatedAt := clientapplicationFields[8].Descriptor()
+	clientapplicationDescUpdatedAt := clientapplicationFields[10].Descriptor()
 	// clientapplication.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	clientapplication.DefaultUpdatedAt = clientapplicationDescUpdatedAt.Default.(func() time.Time)
 	// clientapplication.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

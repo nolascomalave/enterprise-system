@@ -30,7 +30,10 @@ func (ClientApplication) Fields() []ent.Field {
 			Default(uuidV7).
 			Immutable().
 			Annotations(entsql.DefaultExpr("uuidv7()")),
-		field.UUID("tenant_id", uuid.UUID{}),
+		field.UUID("tenant_id", uuid.UUID{}).
+			Optional().
+			Nillable().
+			Comment("Null for PLATFORM applications"),
 		field.String("name").
 			NotEmpty(),
 		field.String("client_id").
@@ -41,6 +44,12 @@ func (ClientApplication) Fields() []ent.Field {
 			Sensitive(),
 		field.Strings("scopes").
 			SchemaType(map[string]string{dialect.Postgres: "text[]"}),
+		field.Enum("client_type").
+			Values("FIRST_PARTY", "THIRD_PARTY").
+			Default("THIRD_PARTY"),
+		field.Enum("application_scope").
+			Values("PLATFORM", "TENANT_SPECIFIC").
+			Default("TENANT_SPECIFIC"),
 		field.Bool("is_active").
 			Default(true),
 		field.Time("created_at").
@@ -62,8 +71,7 @@ func (ClientApplication) Edges() []ent.Edge {
 		edge.From("tenant", Subscription.Type).
 			Ref("client_applications").
 			Field("tenant_id").
-			Unique().
-			Required(),
+			Unique(),
 	}
 }
 

@@ -148,7 +148,9 @@ Los archivos `docs/docs.go`, `docs/swagger.json` y `docs/swagger.yaml` se versio
 | `POST` | `/api/v1/auth/change-password` | JWT | Cambia contraseña |
 | `POST` | `/api/v1/onboarding/register` | No | Provisiona tenant + admin |
 | `POST` | `/api/v1/client-applications` | JWT | Crea una app cliente OAuth M2M |
+| `POST` | `/api/v1/client-applications/first-party` | Platform key | Crea app oficial FIRST_PARTY (PLATFORM o tenant) |
 | `POST` | `/api/v1/oauth/token` | No | Client Credentials: emite JWT M2M |
+| `GET` | `/api/v1/platform/status` | M2M `platform:admin` | Comprueba acceso de plataforma |
 | `POST` | `/api/v1/parties` | JWT | Crea party |
 | `GET` | `/api/v1/parties` | JWT | Lista parties |
 | `GET` | `/api/v1/parties/{id}` | JWT | Obtiene party |
@@ -213,6 +215,17 @@ Los contactos y direcciones de Departments usan el mismo patrón mediante
    la ruta (`parties:read`, `parties:write`, `identity:write`, `org:read`,
    `org:write`, `documents:write`, `admin:write`). Una ruta sin scope asignado
    se rechaza con `403 forbidden`.
+
+### Apps oficiales y apps de plataforma
+
+- `client_type`: `FIRST_PARTY` (apps oficiales) o `THIRD_PARTY`.
+- `application_scope`: `TENANT_SPECIFIC` (requiere `tenant_id`) o `PLATFORM`
+  (sin tenant y solo para `FIRST_PARTY`).
+- Las apps de plataforma usan los scopes `platform:admin` y `reports:global`.
+- El endpoint `POST /api/v1/client-applications/first-party` se protege con la
+  cabecera `X-Platform-Admin-Key`, que debe coincidir con `PLATFORM_ADMIN_KEY`.
+- Un token de una app `FIRST_PARTY`/`PLATFORM` no lleva `tenant_id`; solo puede
+  acceder a rutas de plataforma mapeadas a sus scopes.
 
 ## CORS
 

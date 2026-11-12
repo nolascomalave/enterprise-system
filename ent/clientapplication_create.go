@@ -31,6 +31,14 @@ func (_c *ClientApplicationCreate) SetTenantID(v uuid.UUID) *ClientApplicationCr
 	return _c
 }
 
+// SetNillableTenantID sets the "tenant_id" field if the given value is not nil.
+func (_c *ClientApplicationCreate) SetNillableTenantID(v *uuid.UUID) *ClientApplicationCreate {
+	if v != nil {
+		_c.SetTenantID(*v)
+	}
+	return _c
+}
+
 // SetName sets the "name" field.
 func (_c *ClientApplicationCreate) SetName(v string) *ClientApplicationCreate {
 	_c.mutation.SetName(v)
@@ -52,6 +60,34 @@ func (_c *ClientApplicationCreate) SetClientSecretHash(v string) *ClientApplicat
 // SetScopes sets the "scopes" field.
 func (_c *ClientApplicationCreate) SetScopes(v []string) *ClientApplicationCreate {
 	_c.mutation.SetScopes(v)
+	return _c
+}
+
+// SetClientType sets the "client_type" field.
+func (_c *ClientApplicationCreate) SetClientType(v clientapplication.ClientType) *ClientApplicationCreate {
+	_c.mutation.SetClientType(v)
+	return _c
+}
+
+// SetNillableClientType sets the "client_type" field if the given value is not nil.
+func (_c *ClientApplicationCreate) SetNillableClientType(v *clientapplication.ClientType) *ClientApplicationCreate {
+	if v != nil {
+		_c.SetClientType(*v)
+	}
+	return _c
+}
+
+// SetApplicationScope sets the "application_scope" field.
+func (_c *ClientApplicationCreate) SetApplicationScope(v clientapplication.ApplicationScope) *ClientApplicationCreate {
+	_c.mutation.SetApplicationScope(v)
+	return _c
+}
+
+// SetNillableApplicationScope sets the "application_scope" field if the given value is not nil.
+func (_c *ClientApplicationCreate) SetNillableApplicationScope(v *clientapplication.ApplicationScope) *ClientApplicationCreate {
+	if v != nil {
+		_c.SetApplicationScope(*v)
+	}
 	return _c
 }
 
@@ -165,6 +201,14 @@ func (_c *ClientApplicationCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *ClientApplicationCreate) defaults() {
+	if _, ok := _c.mutation.ClientType(); !ok {
+		v := clientapplication.DefaultClientType
+		_c.mutation.SetClientType(v)
+	}
+	if _, ok := _c.mutation.ApplicationScope(); !ok {
+		v := clientapplication.DefaultApplicationScope
+		_c.mutation.SetApplicationScope(v)
+	}
 	if _, ok := _c.mutation.IsActive(); !ok {
 		v := clientapplication.DefaultIsActive
 		_c.mutation.SetIsActive(v)
@@ -185,9 +229,6 @@ func (_c *ClientApplicationCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *ClientApplicationCreate) check() error {
-	if _, ok := _c.mutation.TenantID(); !ok {
-		return &ValidationError{Name: "tenant_id", err: errors.New(`ent: missing required field "ClientApplication.tenant_id"`)}
-	}
 	if _, ok := _c.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "ClientApplication.name"`)}
 	}
@@ -215,11 +256,24 @@ func (_c *ClientApplicationCreate) check() error {
 	if _, ok := _c.mutation.Scopes(); !ok {
 		return &ValidationError{Name: "scopes", err: errors.New(`ent: missing required field "ClientApplication.scopes"`)}
 	}
+	if _, ok := _c.mutation.ClientType(); !ok {
+		return &ValidationError{Name: "client_type", err: errors.New(`ent: missing required field "ClientApplication.client_type"`)}
+	}
+	if v, ok := _c.mutation.ClientType(); ok {
+		if err := clientapplication.ClientTypeValidator(v); err != nil {
+			return &ValidationError{Name: "client_type", err: fmt.Errorf(`ent: validator failed for field "ClientApplication.client_type": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.ApplicationScope(); !ok {
+		return &ValidationError{Name: "application_scope", err: errors.New(`ent: missing required field "ClientApplication.application_scope"`)}
+	}
+	if v, ok := _c.mutation.ApplicationScope(); ok {
+		if err := clientapplication.ApplicationScopeValidator(v); err != nil {
+			return &ValidationError{Name: "application_scope", err: fmt.Errorf(`ent: validator failed for field "ClientApplication.application_scope": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.IsActive(); !ok {
 		return &ValidationError{Name: "is_active", err: errors.New(`ent: missing required field "ClientApplication.is_active"`)}
-	}
-	if len(_c.mutation.TenantIDs()) == 0 {
-		return &ValidationError{Name: "tenant", err: errors.New(`ent: missing required edge "ClientApplication.tenant"`)}
 	}
 	return nil
 }
@@ -274,6 +328,14 @@ func (_c *ClientApplicationCreate) createSpec() (*ClientApplication, *sqlgraph.C
 		_spec.SetField(clientapplication.FieldScopes, field.TypeJSON, value)
 		_node.Scopes = value
 	}
+	if value, ok := _c.mutation.ClientType(); ok {
+		_spec.SetField(clientapplication.FieldClientType, field.TypeEnum, value)
+		_node.ClientType = value
+	}
+	if value, ok := _c.mutation.ApplicationScope(); ok {
+		_spec.SetField(clientapplication.FieldApplicationScope, field.TypeEnum, value)
+		_node.ApplicationScope = value
+	}
 	if value, ok := _c.mutation.IsActive(); ok {
 		_spec.SetField(clientapplication.FieldIsActive, field.TypeBool, value)
 		_node.IsActive = value
@@ -305,7 +367,7 @@ func (_c *ClientApplicationCreate) createSpec() (*ClientApplication, *sqlgraph.C
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.TenantID = nodes[0]
+		_node.TenantID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -372,6 +434,12 @@ func (u *ClientApplicationUpsert) UpdateTenantID() *ClientApplicationUpsert {
 	return u
 }
 
+// ClearTenantID clears the value of the "tenant_id" field.
+func (u *ClientApplicationUpsert) ClearTenantID() *ClientApplicationUpsert {
+	u.SetNull(clientapplication.FieldTenantID)
+	return u
+}
+
 // SetName sets the "name" field.
 func (u *ClientApplicationUpsert) SetName(v string) *ClientApplicationUpsert {
 	u.Set(clientapplication.FieldName, v)
@@ -417,6 +485,30 @@ func (u *ClientApplicationUpsert) SetScopes(v []string) *ClientApplicationUpsert
 // UpdateScopes sets the "scopes" field to the value that was provided on create.
 func (u *ClientApplicationUpsert) UpdateScopes() *ClientApplicationUpsert {
 	u.SetExcluded(clientapplication.FieldScopes)
+	return u
+}
+
+// SetClientType sets the "client_type" field.
+func (u *ClientApplicationUpsert) SetClientType(v clientapplication.ClientType) *ClientApplicationUpsert {
+	u.Set(clientapplication.FieldClientType, v)
+	return u
+}
+
+// UpdateClientType sets the "client_type" field to the value that was provided on create.
+func (u *ClientApplicationUpsert) UpdateClientType() *ClientApplicationUpsert {
+	u.SetExcluded(clientapplication.FieldClientType)
+	return u
+}
+
+// SetApplicationScope sets the "application_scope" field.
+func (u *ClientApplicationUpsert) SetApplicationScope(v clientapplication.ApplicationScope) *ClientApplicationUpsert {
+	u.Set(clientapplication.FieldApplicationScope, v)
+	return u
+}
+
+// UpdateApplicationScope sets the "application_scope" field to the value that was provided on create.
+func (u *ClientApplicationUpsert) UpdateApplicationScope() *ClientApplicationUpsert {
+	u.SetExcluded(clientapplication.FieldApplicationScope)
 	return u
 }
 
@@ -527,6 +619,13 @@ func (u *ClientApplicationUpsertOne) UpdateTenantID() *ClientApplicationUpsertOn
 	})
 }
 
+// ClearTenantID clears the value of the "tenant_id" field.
+func (u *ClientApplicationUpsertOne) ClearTenantID() *ClientApplicationUpsertOne {
+	return u.Update(func(s *ClientApplicationUpsert) {
+		s.ClearTenantID()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *ClientApplicationUpsertOne) SetName(v string) *ClientApplicationUpsertOne {
 	return u.Update(func(s *ClientApplicationUpsert) {
@@ -580,6 +679,34 @@ func (u *ClientApplicationUpsertOne) SetScopes(v []string) *ClientApplicationUps
 func (u *ClientApplicationUpsertOne) UpdateScopes() *ClientApplicationUpsertOne {
 	return u.Update(func(s *ClientApplicationUpsert) {
 		s.UpdateScopes()
+	})
+}
+
+// SetClientType sets the "client_type" field.
+func (u *ClientApplicationUpsertOne) SetClientType(v clientapplication.ClientType) *ClientApplicationUpsertOne {
+	return u.Update(func(s *ClientApplicationUpsert) {
+		s.SetClientType(v)
+	})
+}
+
+// UpdateClientType sets the "client_type" field to the value that was provided on create.
+func (u *ClientApplicationUpsertOne) UpdateClientType() *ClientApplicationUpsertOne {
+	return u.Update(func(s *ClientApplicationUpsert) {
+		s.UpdateClientType()
+	})
+}
+
+// SetApplicationScope sets the "application_scope" field.
+func (u *ClientApplicationUpsertOne) SetApplicationScope(v clientapplication.ApplicationScope) *ClientApplicationUpsertOne {
+	return u.Update(func(s *ClientApplicationUpsert) {
+		s.SetApplicationScope(v)
+	})
+}
+
+// UpdateApplicationScope sets the "application_scope" field to the value that was provided on create.
+func (u *ClientApplicationUpsertOne) UpdateApplicationScope() *ClientApplicationUpsertOne {
+	return u.Update(func(s *ClientApplicationUpsert) {
+		s.UpdateApplicationScope()
 	})
 }
 
@@ -864,6 +991,13 @@ func (u *ClientApplicationUpsertBulk) UpdateTenantID() *ClientApplicationUpsertB
 	})
 }
 
+// ClearTenantID clears the value of the "tenant_id" field.
+func (u *ClientApplicationUpsertBulk) ClearTenantID() *ClientApplicationUpsertBulk {
+	return u.Update(func(s *ClientApplicationUpsert) {
+		s.ClearTenantID()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *ClientApplicationUpsertBulk) SetName(v string) *ClientApplicationUpsertBulk {
 	return u.Update(func(s *ClientApplicationUpsert) {
@@ -917,6 +1051,34 @@ func (u *ClientApplicationUpsertBulk) SetScopes(v []string) *ClientApplicationUp
 func (u *ClientApplicationUpsertBulk) UpdateScopes() *ClientApplicationUpsertBulk {
 	return u.Update(func(s *ClientApplicationUpsert) {
 		s.UpdateScopes()
+	})
+}
+
+// SetClientType sets the "client_type" field.
+func (u *ClientApplicationUpsertBulk) SetClientType(v clientapplication.ClientType) *ClientApplicationUpsertBulk {
+	return u.Update(func(s *ClientApplicationUpsert) {
+		s.SetClientType(v)
+	})
+}
+
+// UpdateClientType sets the "client_type" field to the value that was provided on create.
+func (u *ClientApplicationUpsertBulk) UpdateClientType() *ClientApplicationUpsertBulk {
+	return u.Update(func(s *ClientApplicationUpsert) {
+		s.UpdateClientType()
+	})
+}
+
+// SetApplicationScope sets the "application_scope" field.
+func (u *ClientApplicationUpsertBulk) SetApplicationScope(v clientapplication.ApplicationScope) *ClientApplicationUpsertBulk {
+	return u.Update(func(s *ClientApplicationUpsert) {
+		s.SetApplicationScope(v)
+	})
+}
+
+// UpdateApplicationScope sets the "application_scope" field to the value that was provided on create.
+func (u *ClientApplicationUpsertBulk) UpdateApplicationScope() *ClientApplicationUpsertBulk {
+	return u.Update(func(s *ClientApplicationUpsert) {
+		s.UpdateApplicationScope()
 	})
 }
 

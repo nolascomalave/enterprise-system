@@ -31,4 +31,5 @@ var routeScopes = map[string]string{
 	"POST /api/v1/employees":                 auth.ScopeOrgWrite,
 	"POST /api/v1/documents":                 auth.ScopeDocumentsWrite,
 	"POST /api/v1/client-applications":       auth.ScopeAdminWrite,
+	"GET /api/v1/platform/status":            auth.ScopePlatformAdmin,
 }

@@ -194,11 +194,13 @@ var (
 		{Name: "client_id", Type: field.TypeString, Unique: true},
 		{Name: "client_secret_hash", Type: field.TypeString},
 		{Name: "scopes", Type: field.TypeJSON, SchemaType: map[string]string{"postgres": "text[]"}},
+		{Name: "client_type", Type: field.TypeEnum, Enums: []string{"FIRST_PARTY", "THIRD_PARTY"}, Default: "THIRD_PARTY"},
+		{Name: "application_scope", Type: field.TypeEnum, Enums: []string{"PLATFORM", "TENANT_SPECIFIC"}, Default: "TENANT_SPECIFIC"},
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
-		{Name: "tenant_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// ClientApplicationsTable holds the schema information for the "client_applications" table.
 	ClientApplicationsTable = &schema.Table{
@@ -208,7 +210,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "client_applications_subscriptions_client_applications",
-				Columns:    []*schema.Column{ClientApplicationsColumns[9]},
+				Columns:    []*schema.Column{ClientApplicationsColumns[11]},
 				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -217,7 +219,7 @@ var (
 			{
 				Name:    "clientapplication_tenant_id",
 				Unique:  false,
-				Columns: []*schema.Column{ClientApplicationsColumns[9]},
+				Columns: []*schema.Column{ClientApplicationsColumns[11]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},

@@ -250,6 +250,23 @@ definitions:
     - job_id
     - party_id
     type: object
+  enterprise-system_internal_delivery_http_dto.CreateFirstPartyApplicationRequest:
+    properties:
+      application_scope:
+        type: string
+      name:
+        type: string
+      scopes:
+        items:
+          type: string
+        type: array
+      tenant_id:
+        type: string
+    required:
+    - application_scope
+    - name
+    - scopes
+    type: object
   enterprise-system_internal_delivery_http_dto.CreateJobRequest:
     properties:
       code:
@@ -310,9 +327,13 @@ definitions:
     type: object
   enterprise-system_internal_delivery_http_dto.CreatedClientApplicationResponse:
     properties:
+      application_scope:
+        type: string
       client_id:
         type: string
       client_secret:
+        type: string
+      client_type:
         type: string
       created_at:
         type: string
@@ -1142,6 +1163,46 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a client application
+      tags:
+      - OAuth
+  /client-applications/first-party:
+    post:
+      consumes:
+      - application/json
+      description: Platform-admin only. Creates an official FIRST_PARTY app, either
+        PLATFORM (no tenant) or TENANT_SPECIFIC.
+      parameters:
+      - description: Platform administrator key
+        in: header
+        name: X-Platform-Admin-Key
+        required: true
+        type: string
+      - description: First-party application data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CreateFirstPartyApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ClientApplicationEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      summary: Create a first-party client application
       tags:
       - OAuth
   /corporate-groups:
@@ -2082,6 +2143,31 @@ paths:
       summary: Merge a party into a Golden Record
       tags:
       - Parties
+  /platform/status:
+    get:
+      description: Minimal endpoint protected by the FIRST_PARTY/PLATFORM scope platform:admin.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Platform status
+      tags:
+      - Platform
   /role-types:
     get:
       description: Returns the global role type catalog localized by Accept-Language

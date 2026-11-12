@@ -10,6 +10,8 @@ const (
 	ScopeDocumentsWrite = "documents:write"
 	ScopeLocationsRead  = "locations:read"
 	ScopeAdminWrite     = "admin:write"
+	ScopePlatformAdmin  = "platform:admin"
+	ScopeReportsGlobal  = "reports:global"
 )
 
 var knownScopes = map[string]struct{}{
@@ -21,6 +23,14 @@ var knownScopes = map[string]struct{}{
 	ScopeDocumentsWrite: {},
 	ScopeLocationsRead:  {},
 	ScopeAdminWrite:     {},
+	ScopePlatformAdmin:  {},
+	ScopeReportsGlobal:  {},
+}
+
+// IsPlatformScope reports whether a scope is reserved for first-party
+// platform applications.
+func IsPlatformScope(scope string) bool {
+	return scope == ScopePlatformAdmin || scope == ScopeReportsGlobal
 }
 
 // IsKnownScope reports whether a scope is part of the supported catalog.

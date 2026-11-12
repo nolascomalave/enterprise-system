@@ -3,6 +3,8 @@ package http
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -38,9 +40,12 @@ func TestCreateClientApplicationHandler(t *testing.T) {
 	tenantID := uuid.New()
 	token := accessToken(t, manager, tenantID, uuid.New(), uuid.New())
 	now := time.Date(2026, 11, 12, 12, 0, 0, 0, time.UTC)
+	applicationTenant := tenantID
 	application := &domain.ClientApplication{
-		ID: uuid.New(), TenantID: tenantID, Name: "Website", ClientID: "client-123",
-		Scopes: []string{"parties:read"}, IsActive: true, CreatedAt: now, UpdatedAt: now,
+		ID: uuid.New(), TenantID: &applicationTenant, Name: "Website", ClientID: "client-123",
+		Scopes: []string{"parties:read"}, ClientType: domain.ClientTypeThirdParty,
+		ApplicationScope: domain.ApplicationScopeTenantSpecific,
+		IsActive:         true, CreatedAt: now, UpdatedAt: now,
 	}
 	uc := &fakeOAuthUseCase{created: &usecase.CreatedClientApplication{
 		Application: application, ClientSecret: "plain-secret-once",
@@ -51,7 +56,8 @@ func TestCreateClientApplicationHandler(t *testing.T) {
 		[]byte(`{"name":"Website","scopes":["parties:read"]}`), token)
 
 	require.Equal(t, http.StatusCreated, recorder.Code)
-	assert.Equal(t, tenantID, uc.createInput.TenantID)
+	require.NotNil(t, uc.createInput.TenantID)
+	assert.Equal(t, tenantID, *uc.createInput.TenantID)
 	assert.Equal(t, "Website", uc.createInput.Name)
 	assert.Equal(t, []string{"parties:read"}, uc.createInput.Scopes)
 	body := decodeBody(t, recorder)["data"].(map[string]any)
@@ -75,4 +81,42 @@ func TestOAuthTokenHandler(t *testing.T) {
 	assert.Equal(t, "jwt-token", body["access_token"])
 	assert.Equal(t, "Bearer", body["token_type"])
 	assert.Equal(t, "parties:read org:read", body["scope"])
+}
+
+func TestCreateFirstPartyApplicationRequiresPlatformKey(t *testing.T) {
+	uc := &fakeOAuthUseCase{}
+	router := NewRouter(Dependencies{OAuthUseCase: uc, PlatformAdminKey: "test-key"})
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/client-applications/first-party",
+		strings.NewReader(`{"name":"Official","scopes":["platform:admin"],"application_scope":"PLATFORM"}`))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+
+	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
+}
+
+func TestCreateFirstPartyApplicationWithPlatformKey(t *testing.T) {
+	now := time.Date(2026, 11, 12, 12, 0, 0, 0, time.UTC)
+	application := &domain.ClientApplication{
+		ID: uuid.New(), Name: "Official", ClientID: "client-first",
+		Scopes: []string{"platform:admin"}, ClientType: domain.ClientTypeFirstParty,
+		ApplicationScope: domain.ApplicationScopePlatform, IsActive: true, CreatedAt: now, UpdatedAt: now,
+	}
+	uc := &fakeOAuthUseCase{created: &usecase.CreatedClientApplication{
+		Application: application, ClientSecret: "secret-once",
+	}}
+	router := NewRouter(Dependencies{OAuthUseCase: uc, PlatformAdminKey: "test-key"})
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/client-applications/first-party",
+		strings.NewReader(`{"name":"Official","scopes":["platform:admin"],"application_scope":"PLATFORM"}`))
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Platform-Admin-Key", "test-key")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+
+	require.Equal(t, http.StatusCreated, recorder.Code)
+	assert.Equal(t, domain.ClientTypeFirstParty, uc.createInput.ClientType)
+	assert.Equal(t, domain.ApplicationScopePlatform, uc.createInput.ApplicationScope)
+	assert.Nil(t, uc.createInput.TenantID)
 }

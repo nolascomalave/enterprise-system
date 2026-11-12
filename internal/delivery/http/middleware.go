@@ -220,11 +220,15 @@ func TenantMiddleware(manager *auth.Manager) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		tenantID, err := uuid.Parse(clientClaims.TenantID)
-		if err != nil {
-			c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid tenant claim")))
-			c.Abort()
-			return
+		tenantID := uuid.Nil
+		if clientClaims.ApplicationScope == "TENANT_SPECIFIC" {
+			parsed, parseErr := uuid.Parse(clientClaims.TenantID)
+			if parseErr != nil {
+				c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid tenant claim")))
+				c.Abort()
+				return
+			}
+			tenantID = parsed
 		}
 		fullPath := c.FullPath()
 		if fullPath == "" {
