@@ -8,6 +8,7 @@ import (
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
+	"enterprise-system/ent/partyidentitydocument"
 	"enterprise-system/ent/predicate"
 	"errors"
 	"fmt"
@@ -204,6 +205,21 @@ func (_u *LocationUpdate) AddAddresses(v ...*Address) *LocationUpdate {
 	return _u.AddAddressIDs(ids...)
 }
 
+// AddIdentityDocumentIDs adds the "identity_documents" edge to the PartyIdentityDocument entity by IDs.
+func (_u *LocationUpdate) AddIdentityDocumentIDs(ids ...uuid.UUID) *LocationUpdate {
+	_u.mutation.AddIdentityDocumentIDs(ids...)
+	return _u
+}
+
+// AddIdentityDocuments adds the "identity_documents" edges to the PartyIdentityDocument entity.
+func (_u *LocationUpdate) AddIdentityDocuments(v ...*PartyIdentityDocument) *LocationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddIdentityDocumentIDs(ids...)
+}
+
 // Mutation returns the LocationMutation object of the builder.
 func (_u *LocationUpdate) Mutation() *LocationMutation {
 	return _u.mutation
@@ -276,6 +292,27 @@ func (_u *LocationUpdate) RemoveAddresses(v ...*Address) *LocationUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAddressIDs(ids...)
+}
+
+// ClearIdentityDocuments clears all "identity_documents" edges to the PartyIdentityDocument entity.
+func (_u *LocationUpdate) ClearIdentityDocuments() *LocationUpdate {
+	_u.mutation.ClearIdentityDocuments()
+	return _u
+}
+
+// RemoveIdentityDocumentIDs removes the "identity_documents" edge to PartyIdentityDocument entities by IDs.
+func (_u *LocationUpdate) RemoveIdentityDocumentIDs(ids ...uuid.UUID) *LocationUpdate {
+	_u.mutation.RemoveIdentityDocumentIDs(ids...)
+	return _u
+}
+
+// RemoveIdentityDocuments removes "identity_documents" edges to PartyIdentityDocument entities.
+func (_u *LocationUpdate) RemoveIdentityDocuments(v ...*PartyIdentityDocument) *LocationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveIdentityDocumentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -553,6 +590,54 @@ func (_u *LocationUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.IdentityDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.IdentityDocumentsTable,
+			Columns: []string{location.IdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedIdentityDocumentsIDs(); len(nodes) > 0 && !_u.mutation.IdentityDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.IdentityDocumentsTable,
+			Columns: []string{location.IdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.IdentityDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.IdentityDocumentsTable,
+			Columns: []string{location.IdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Location
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -747,6 +832,21 @@ func (_u *LocationUpdateOne) AddAddresses(v ...*Address) *LocationUpdateOne {
 	return _u.AddAddressIDs(ids...)
 }
 
+// AddIdentityDocumentIDs adds the "identity_documents" edge to the PartyIdentityDocument entity by IDs.
+func (_u *LocationUpdateOne) AddIdentityDocumentIDs(ids ...uuid.UUID) *LocationUpdateOne {
+	_u.mutation.AddIdentityDocumentIDs(ids...)
+	return _u
+}
+
+// AddIdentityDocuments adds the "identity_documents" edges to the PartyIdentityDocument entity.
+func (_u *LocationUpdateOne) AddIdentityDocuments(v ...*PartyIdentityDocument) *LocationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddIdentityDocumentIDs(ids...)
+}
+
 // Mutation returns the LocationMutation object of the builder.
 func (_u *LocationUpdateOne) Mutation() *LocationMutation {
 	return _u.mutation
@@ -819,6 +919,27 @@ func (_u *LocationUpdateOne) RemoveAddresses(v ...*Address) *LocationUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAddressIDs(ids...)
+}
+
+// ClearIdentityDocuments clears all "identity_documents" edges to the PartyIdentityDocument entity.
+func (_u *LocationUpdateOne) ClearIdentityDocuments() *LocationUpdateOne {
+	_u.mutation.ClearIdentityDocuments()
+	return _u
+}
+
+// RemoveIdentityDocumentIDs removes the "identity_documents" edge to PartyIdentityDocument entities by IDs.
+func (_u *LocationUpdateOne) RemoveIdentityDocumentIDs(ids ...uuid.UUID) *LocationUpdateOne {
+	_u.mutation.RemoveIdentityDocumentIDs(ids...)
+	return _u
+}
+
+// RemoveIdentityDocuments removes "identity_documents" edges to PartyIdentityDocument entities.
+func (_u *LocationUpdateOne) RemoveIdentityDocuments(v ...*PartyIdentityDocument) *LocationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveIdentityDocumentIDs(ids...)
 }
 
 // Where appends a list predicates to the LocationUpdate builder.
@@ -1121,6 +1242,54 @@ func (_u *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err 
 			},
 		}
 		edge.Schema = _u.schemaConfig.Address
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.IdentityDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.IdentityDocumentsTable,
+			Columns: []string{location.IdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedIdentityDocumentsIDs(); len(nodes) > 0 && !_u.mutation.IdentityDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.IdentityDocumentsTable,
+			Columns: []string{location.IdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.IdentityDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.IdentityDocumentsTable,
+			Columns: []string{location.IdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

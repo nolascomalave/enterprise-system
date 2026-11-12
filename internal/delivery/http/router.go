@@ -21,6 +21,7 @@ type Dependencies struct {
 	DocumentUseCase     DocumentUseCase
 	PartyNameUseCase    PartyNameUseCase
 	LocationUseCase     LocationUseCase
+	IdentityUseCase     IdentityUseCase
 	TokenManager        *auth.Manager
 
 	CookieSecure   bool
@@ -71,6 +72,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	documentHandler := NewDocumentHandler(deps.DocumentUseCase)
 	partyNameHandler := NewPartyNameHandler(deps.PartyNameUseCase)
 	locationHandler := NewLocationHandler(deps.LocationUseCase)
+	identityHandler := NewIdentityHandler(deps.IdentityUseCase)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -110,6 +112,8 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.POST("/documents", documentHandler.Create)
 		protected.POST("/parties/:id/names", partyNameHandler.Create)
 		protected.PUT("/parties/:id/names/:name_id/validity", partyNameHandler.UpdateValidity)
+		protected.POST("/parties/:id/nationalities", identityHandler.AddNationality)
+		protected.POST("/parties/:id/identity-documents", identityHandler.AddIdentityDocument)
 		protected.POST("/auth/change-password", accountHandler.ChangePassword)
 	}
 

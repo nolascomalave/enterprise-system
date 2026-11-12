@@ -99,6 +99,12 @@ func (Subscription) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("party_contact_mechanism_validities", PartyContactMechanismValidity.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("party_nationalities", PartyNationality.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("party_identity_documents", PartyIdentityDocument.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("party_identity_document_validities", PartyIdentityDocumentValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

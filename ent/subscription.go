@@ -81,9 +81,15 @@ type SubscriptionEdges struct {
 	PartyNameValidities []*PartyNameValidity `json:"party_name_validities,omitempty"`
 	// PartyContactMechanismValidities holds the value of the party_contact_mechanism_validities edge.
 	PartyContactMechanismValidities []*PartyContactMechanismValidity `json:"party_contact_mechanism_validities,omitempty"`
+	// PartyNationalities holds the value of the party_nationalities edge.
+	PartyNationalities []*PartyNationality `json:"party_nationalities,omitempty"`
+	// PartyIdentityDocuments holds the value of the party_identity_documents edge.
+	PartyIdentityDocuments []*PartyIdentityDocument `json:"party_identity_documents,omitempty"`
+	// PartyIdentityDocumentValidities holds the value of the party_identity_document_validities edge.
+	PartyIdentityDocumentValidities []*PartyIdentityDocumentValidity `json:"party_identity_document_validities,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [21]bool
+	loadedTypes [24]bool
 }
 
 // PartiesOrErr returns the Parties value or an error if the edge
@@ -275,6 +281,33 @@ func (e SubscriptionEdges) PartyContactMechanismValiditiesOrErr() ([]*PartyConta
 	return nil, &NotLoadedError{edge: "party_contact_mechanism_validities"}
 }
 
+// PartyNationalitiesOrErr returns the PartyNationalities value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) PartyNationalitiesOrErr() ([]*PartyNationality, error) {
+	if e.loadedTypes[21] {
+		return e.PartyNationalities, nil
+	}
+	return nil, &NotLoadedError{edge: "party_nationalities"}
+}
+
+// PartyIdentityDocumentsOrErr returns the PartyIdentityDocuments value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) PartyIdentityDocumentsOrErr() ([]*PartyIdentityDocument, error) {
+	if e.loadedTypes[22] {
+		return e.PartyIdentityDocuments, nil
+	}
+	return nil, &NotLoadedError{edge: "party_identity_documents"}
+}
+
+// PartyIdentityDocumentValiditiesOrErr returns the PartyIdentityDocumentValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) PartyIdentityDocumentValiditiesOrErr() ([]*PartyIdentityDocumentValidity, error) {
+	if e.loadedTypes[23] {
+		return e.PartyIdentityDocumentValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "party_identity_document_validities"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Subscription) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -460,6 +493,21 @@ func (_m *Subscription) QueryPartyNameValidities() *PartyNameValidityQuery {
 // QueryPartyContactMechanismValidities queries the "party_contact_mechanism_validities" edge of the Subscription entity.
 func (_m *Subscription) QueryPartyContactMechanismValidities() *PartyContactMechanismValidityQuery {
 	return NewSubscriptionClient(_m.config).QueryPartyContactMechanismValidities(_m)
+}
+
+// QueryPartyNationalities queries the "party_nationalities" edge of the Subscription entity.
+func (_m *Subscription) QueryPartyNationalities() *PartyNationalityQuery {
+	return NewSubscriptionClient(_m.config).QueryPartyNationalities(_m)
+}
+
+// QueryPartyIdentityDocuments queries the "party_identity_documents" edge of the Subscription entity.
+func (_m *Subscription) QueryPartyIdentityDocuments() *PartyIdentityDocumentQuery {
+	return NewSubscriptionClient(_m.config).QueryPartyIdentityDocuments(_m)
+}
+
+// QueryPartyIdentityDocumentValidities queries the "party_identity_document_validities" edge of the Subscription entity.
+func (_m *Subscription) QueryPartyIdentityDocumentValidities() *PartyIdentityDocumentValidityQuery {
+	return NewSubscriptionClient(_m.config).QueryPartyIdentityDocumentValidities(_m)
 }
 
 // Update returns a builder for updating this Subscription.

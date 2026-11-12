@@ -971,6 +971,93 @@ func HasPartyContactMechanismValiditiesWith(preds ...predicate.PartyContactMecha
 	})
 }
 
+// HasPartyNationalities applies the HasEdge predicate on the "party_nationalities" edge.
+func HasPartyNationalities() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyNationalitiesTable, PartyNationalitiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyNationality
+		step.Edge.Schema = schemaConfig.PartyNationality
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartyNationalitiesWith applies the HasEdge predicate on the "party_nationalities" edge with a given conditions (other predicates).
+func HasPartyNationalitiesWith(preds ...predicate.PartyNationality) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newPartyNationalitiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyNationality
+		step.Edge.Schema = schemaConfig.PartyNationality
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPartyIdentityDocuments applies the HasEdge predicate on the "party_identity_documents" edge.
+func HasPartyIdentityDocuments() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyIdentityDocumentsTable, PartyIdentityDocumentsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyIdentityDocument
+		step.Edge.Schema = schemaConfig.PartyIdentityDocument
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartyIdentityDocumentsWith applies the HasEdge predicate on the "party_identity_documents" edge with a given conditions (other predicates).
+func HasPartyIdentityDocumentsWith(preds ...predicate.PartyIdentityDocument) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newPartyIdentityDocumentsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyIdentityDocument
+		step.Edge.Schema = schemaConfig.PartyIdentityDocument
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPartyIdentityDocumentValidities applies the HasEdge predicate on the "party_identity_document_validities" edge.
+func HasPartyIdentityDocumentValidities() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyIdentityDocumentValiditiesTable, PartyIdentityDocumentValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyIdentityDocumentValidity
+		step.Edge.Schema = schemaConfig.PartyIdentityDocumentValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartyIdentityDocumentValiditiesWith applies the HasEdge predicate on the "party_identity_document_validities" edge with a given conditions (other predicates).
+func HasPartyIdentityDocumentValiditiesWith(preds ...predicate.PartyIdentityDocumentValidity) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newPartyIdentityDocumentValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyIdentityDocumentValidity
+		step.Edge.Schema = schemaConfig.PartyIdentityDocumentValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Subscription) predicate.Subscription {
 	return predicate.Subscription(sql.AndPredicates(predicates...))

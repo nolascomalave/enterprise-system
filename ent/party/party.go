@@ -46,6 +46,12 @@ const (
 	EdgeNames = "names"
 	// EdgeNameValidities holds the string denoting the name_validities edge name in mutations.
 	EdgeNameValidities = "name_validities"
+	// EdgeNationalities holds the string denoting the nationalities edge name in mutations.
+	EdgeNationalities = "nationalities"
+	// EdgeIdentityDocuments holds the string denoting the identity_documents edge name in mutations.
+	EdgeIdentityDocuments = "identity_documents"
+	// EdgeIdentityDocumentValidities holds the string denoting the identity_document_validities edge name in mutations.
+	EdgeIdentityDocumentValidities = "identity_document_validities"
 	// EdgeAddresses holds the string denoting the addresses edge name in mutations.
 	EdgeAddresses = "addresses"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
@@ -119,6 +125,27 @@ const (
 	NameValiditiesInverseTable = "party_name_validities"
 	// NameValiditiesColumn is the table column denoting the name_validities relation/edge.
 	NameValiditiesColumn = "party_id"
+	// NationalitiesTable is the table that holds the nationalities relation/edge.
+	NationalitiesTable = "party_nationalities"
+	// NationalitiesInverseTable is the table name for the PartyNationality entity.
+	// It exists in this package in order to avoid circular dependency with the "partynationality" package.
+	NationalitiesInverseTable = "party_nationalities"
+	// NationalitiesColumn is the table column denoting the nationalities relation/edge.
+	NationalitiesColumn = "party_id"
+	// IdentityDocumentsTable is the table that holds the identity_documents relation/edge.
+	IdentityDocumentsTable = "party_identity_documents"
+	// IdentityDocumentsInverseTable is the table name for the PartyIdentityDocument entity.
+	// It exists in this package in order to avoid circular dependency with the "partyidentitydocument" package.
+	IdentityDocumentsInverseTable = "party_identity_documents"
+	// IdentityDocumentsColumn is the table column denoting the identity_documents relation/edge.
+	IdentityDocumentsColumn = "party_id"
+	// IdentityDocumentValiditiesTable is the table that holds the identity_document_validities relation/edge.
+	IdentityDocumentValiditiesTable = "party_identity_document_validities"
+	// IdentityDocumentValiditiesInverseTable is the table name for the PartyIdentityDocumentValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "partyidentitydocumentvalidity" package.
+	IdentityDocumentValiditiesInverseTable = "party_identity_document_validities"
+	// IdentityDocumentValiditiesColumn is the table column denoting the identity_document_validities relation/edge.
+	IdentityDocumentValiditiesColumn = "party_id"
 	// AddressesTable is the table that holds the addresses relation/edge.
 	AddressesTable = "addresses"
 	// AddressesInverseTable is the table name for the Address entity.
@@ -403,6 +430,48 @@ func ByNameValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByNationalitiesCount orders the results by nationalities count.
+func ByNationalitiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNationalitiesStep(), opts...)
+	}
+}
+
+// ByNationalities orders the results by nationalities terms.
+func ByNationalities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNationalitiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByIdentityDocumentsCount orders the results by identity_documents count.
+func ByIdentityDocumentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIdentityDocumentsStep(), opts...)
+	}
+}
+
+// ByIdentityDocuments orders the results by identity_documents terms.
+func ByIdentityDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIdentityDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByIdentityDocumentValiditiesCount orders the results by identity_document_validities count.
+func ByIdentityDocumentValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIdentityDocumentValiditiesStep(), opts...)
+	}
+}
+
+// ByIdentityDocumentValidities orders the results by identity_document_validities terms.
+func ByIdentityDocumentValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIdentityDocumentValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAddressesCount orders the results by addresses count.
 func ByAddressesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -589,6 +658,27 @@ func newNameValiditiesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NameValiditiesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, NameValiditiesTable, NameValiditiesColumn),
+	)
+}
+func newNationalitiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NationalitiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NationalitiesTable, NationalitiesColumn),
+	)
+}
+func newIdentityDocumentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IdentityDocumentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IdentityDocumentsTable, IdentityDocumentsColumn),
+	)
+}
+func newIdentityDocumentValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IdentityDocumentValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IdentityDocumentValiditiesTable, IdentityDocumentValiditiesColumn),
 	)
 }
 func newAddressesStep() *sqlgraph.Step {

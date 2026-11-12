@@ -9,9 +9,12 @@ import (
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partycontactmechanismvalidity"
+	"enterprise-system/ent/partyidentitydocument"
+	"enterprise-system/ent/partyidentitydocumentvalidity"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyname"
 	"enterprise-system/ent/partynamevalidity"
+	"enterprise-system/ent/partynationality"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -240,6 +243,51 @@ func (_c *PartyCreate) AddNameValidities(v ...*PartyNameValidity) *PartyCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddNameValidityIDs(ids...)
+}
+
+// AddNationalityIDs adds the "nationalities" edge to the PartyNationality entity by IDs.
+func (_c *PartyCreate) AddNationalityIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddNationalityIDs(ids...)
+	return _c
+}
+
+// AddNationalities adds the "nationalities" edges to the PartyNationality entity.
+func (_c *PartyCreate) AddNationalities(v ...*PartyNationality) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNationalityIDs(ids...)
+}
+
+// AddIdentityDocumentIDs adds the "identity_documents" edge to the PartyIdentityDocument entity by IDs.
+func (_c *PartyCreate) AddIdentityDocumentIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddIdentityDocumentIDs(ids...)
+	return _c
+}
+
+// AddIdentityDocuments adds the "identity_documents" edges to the PartyIdentityDocument entity.
+func (_c *PartyCreate) AddIdentityDocuments(v ...*PartyIdentityDocument) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddIdentityDocumentIDs(ids...)
+}
+
+// AddIdentityDocumentValidityIDs adds the "identity_document_validities" edge to the PartyIdentityDocumentValidity entity by IDs.
+func (_c *PartyCreate) AddIdentityDocumentValidityIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddIdentityDocumentValidityIDs(ids...)
+	return _c
+}
+
+// AddIdentityDocumentValidities adds the "identity_document_validities" edges to the PartyIdentityDocumentValidity entity.
+func (_c *PartyCreate) AddIdentityDocumentValidities(v ...*PartyIdentityDocumentValidity) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddIdentityDocumentValidityIDs(ids...)
 }
 
 // AddAddressIDs adds the "addresses" edge to the Address entity by IDs.
@@ -662,6 +710,57 @@ func (_c *PartyCreate) createSpec() (*Party, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.PartyNameValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NationalitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.NationalitiesTable,
+			Columns: []string{party.NationalitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynationality.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyNationality
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.IdentityDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.IdentityDocumentsTable,
+			Columns: []string{party.IdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.IdentityDocumentValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.IdentityDocumentValiditiesTable,
+			Columns: []string{party.IdentityDocumentValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocumentvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyIdentityDocumentValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

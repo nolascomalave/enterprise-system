@@ -461,6 +461,21 @@ var (
 			},
 		},
 	}
+	// IdentityDocumentTypesColumns holds the columns for the "identity_document_types" table.
+	IdentityDocumentTypesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "code", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "scope", Type: field.TypeEnum, Enums: []string{"PERSON", "ORGANIZATION"}, Default: "PERSON"},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+	}
+	// IdentityDocumentTypesTable holds the schema information for the "identity_document_types" table.
+	IdentityDocumentTypesTable = &schema.Table{
+		Name:       "identity_document_types",
+		Columns:    IdentityDocumentTypesColumns,
+		PrimaryKey: []*schema.Column{IdentityDocumentTypesColumns[0]},
+	}
 	// JobsColumns holds the columns for the "jobs" table.
 	JobsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -909,6 +924,154 @@ var (
 			},
 		},
 	}
+	// PartyIdentityDocumentsColumns holds the columns for the "party_identity_documents" table.
+	PartyIdentityDocumentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "issuing_country_code", Type: field.TypeString},
+		{Name: "document_number", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "document_type_id", Type: field.TypeUUID},
+		{Name: "issuing_jurisdiction_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "party_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// PartyIdentityDocumentsTable holds the schema information for the "party_identity_documents" table.
+	PartyIdentityDocumentsTable = &schema.Table{
+		Name:       "party_identity_documents",
+		Columns:    PartyIdentityDocumentsColumns,
+		PrimaryKey: []*schema.Column{PartyIdentityDocumentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "party_identity_documents_identity_document_types_documents",
+				Columns:    []*schema.Column{PartyIdentityDocumentsColumns[6]},
+				RefColumns: []*schema.Column{IdentityDocumentTypesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "party_identity_documents_locations_identity_documents",
+				Columns:    []*schema.Column{PartyIdentityDocumentsColumns[7]},
+				RefColumns: []*schema.Column{LocationsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "party_identity_documents_parties_identity_documents",
+				Columns:    []*schema.Column{PartyIdentityDocumentsColumns[8]},
+				RefColumns: []*schema.Column{PartiesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "party_identity_documents_subscriptions_party_identity_documents",
+				Columns:    []*schema.Column{PartyIdentityDocumentsColumns[9]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partyidentitydocument_tenant_id_party_id",
+				Unique:  false,
+				Columns: []*schema.Column{PartyIdentityDocumentsColumns[9], PartyIdentityDocumentsColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "partyidentitydocument_tenant_id_document_type_id",
+				Unique:  false,
+				Columns: []*schema.Column{PartyIdentityDocumentsColumns[9], PartyIdentityDocumentsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "partyidentitydocument_tenant_id_issuing_country_code",
+				Unique:  false,
+				Columns: []*schema.Column{PartyIdentityDocumentsColumns[9], PartyIdentityDocumentsColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "partyidentitydocument_tenant_id_issuing_jurisdiction_id",
+				Unique:  false,
+				Columns: []*schema.Column{PartyIdentityDocumentsColumns[9], PartyIdentityDocumentsColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "partyidentitydocument_tenant_id_document_type_id_issuing_country_code_document_number",
+				Unique:  true,
+				Columns: []*schema.Column{PartyIdentityDocumentsColumns[9], PartyIdentityDocumentsColumns[6], PartyIdentityDocumentsColumns[1], PartyIdentityDocumentsColumns[2]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
+	// PartyIdentityDocumentValiditiesColumns holds the columns for the "party_identity_document_validities" table.
+	PartyIdentityDocumentValiditiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "is_primary", Type: field.TypeBool, Default: false},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "party_id", Type: field.TypeUUID},
+		{Name: "party_identity_document_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// PartyIdentityDocumentValiditiesTable holds the schema information for the "party_identity_document_validities" table.
+	PartyIdentityDocumentValiditiesTable = &schema.Table{
+		Name:       "party_identity_document_validities",
+		Columns:    PartyIdentityDocumentValiditiesColumns,
+		PrimaryKey: []*schema.Column{PartyIdentityDocumentValiditiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "party_identity_document_validities_parties_identity_document_validities",
+				Columns:    []*schema.Column{PartyIdentityDocumentValiditiesColumns[6]},
+				RefColumns: []*schema.Column{PartiesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "party_identity_document_validities_party_identity_documents_validities",
+				Columns:    []*schema.Column{PartyIdentityDocumentValiditiesColumns[7]},
+				RefColumns: []*schema.Column{PartyIdentityDocumentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "party_identity_document_validities_subscriptions_party_identity_document_validities",
+				Columns:    []*schema.Column{PartyIdentityDocumentValiditiesColumns[8]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partyidentitydocumentvalidity_tenant_id_party_identity_document_id_start_date",
+				Unique:  false,
+				Columns: []*schema.Column{PartyIdentityDocumentValiditiesColumns[8], PartyIdentityDocumentValiditiesColumns[7], PartyIdentityDocumentValiditiesColumns[2]},
+			},
+			{
+				Name:    "partyidentitydocumentvalidity_tenant_id_party_identity_document_id",
+				Unique:  true,
+				Columns: []*schema.Column{PartyIdentityDocumentValiditiesColumns[8], PartyIdentityDocumentValiditiesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "end_date IS NULL",
+				},
+			},
+			{
+				Name:    "partyidentitydocumentvalidity_tenant_id_party_id",
+				Unique:  true,
+				Columns: []*schema.Column{PartyIdentityDocumentValiditiesColumns[8], PartyIdentityDocumentValiditiesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_primary AND end_date IS NULL",
+				},
+			},
+		},
+	}
 	// PartyMergeLogColumns holds the columns for the "party_merge_log" table.
 	PartyMergeLogColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -1097,6 +1260,53 @@ var (
 				Annotation: &entsql.IndexAnnotation{
 					Where: "is_primary AND end_date IS NULL",
 				},
+			},
+		},
+	}
+	// PartyNationalitiesColumns holds the columns for the "party_nationalities" table.
+	PartyNationalitiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "country_code", Type: field.TypeString},
+		{Name: "is_primary", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "party_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// PartyNationalitiesTable holds the schema information for the "party_nationalities" table.
+	PartyNationalitiesTable = &schema.Table{
+		Name:       "party_nationalities",
+		Columns:    PartyNationalitiesColumns,
+		PrimaryKey: []*schema.Column{PartyNationalitiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "party_nationalities_parties_nationalities",
+				Columns:    []*schema.Column{PartyNationalitiesColumns[5]},
+				RefColumns: []*schema.Column{PartiesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "party_nationalities_subscriptions_party_nationalities",
+				Columns:    []*schema.Column{PartyNationalitiesColumns[6]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "partynationality_tenant_id_party_id_country_code",
+				Unique:  true,
+				Columns: []*schema.Column{PartyNationalitiesColumns[6], PartyNationalitiesColumns[5], PartyNationalitiesColumns[1]},
+			},
+			{
+				Name:    "partynationality_tenant_id_party_id",
+				Unique:  true,
+				Columns: []*schema.Column{PartyNationalitiesColumns[6], PartyNationalitiesColumns[5]},
+			},
+			{
+				Name:    "partynationality_tenant_id_party_id",
+				Unique:  false,
+				Columns: []*schema.Column{PartyNationalitiesColumns[6], PartyNationalitiesColumns[5]},
 			},
 		},
 	}
@@ -1411,6 +1621,7 @@ var (
 		DepartmentGroupAssignmentsTable,
 		EmployeesTable,
 		EmployeeAssignmentsTable,
+		IdentityDocumentTypesTable,
 		JobsTable,
 		JobFamiliesTable,
 		LocationsTable,
@@ -1420,9 +1631,12 @@ var (
 		PartiesTable,
 		PartyContactMechanismsTable,
 		PartyContactMechanismValiditiesTable,
+		PartyIdentityDocumentsTable,
+		PartyIdentityDocumentValiditiesTable,
 		PartyMergeLogTable,
 		PartyNamesTable,
 		PartyNameValiditiesTable,
+		PartyNationalitiesTable,
 		PartyRolesTable,
 		PasswordResetTokensTable,
 		PersonProfilesTable,
@@ -1477,6 +1691,9 @@ func init() {
 	EmployeeAssignmentsTable.Annotation = &entsql.Annotation{
 		Table: "employee_assignments",
 	}
+	IdentityDocumentTypesTable.Annotation = &entsql.Annotation{
+		Table: "identity_document_types",
+	}
 	JobsTable.ForeignKeys[0].RefTable = JobFamiliesTable
 	JobsTable.ForeignKeys[1].RefTable = SubscriptionsTable
 	JobsTable.Annotation = &entsql.Annotation{
@@ -1519,6 +1736,19 @@ func init() {
 	PartyContactMechanismValiditiesTable.Annotation = &entsql.Annotation{
 		Table: "party_contact_mechanism_validities",
 	}
+	PartyIdentityDocumentsTable.ForeignKeys[0].RefTable = IdentityDocumentTypesTable
+	PartyIdentityDocumentsTable.ForeignKeys[1].RefTable = LocationsTable
+	PartyIdentityDocumentsTable.ForeignKeys[2].RefTable = PartiesTable
+	PartyIdentityDocumentsTable.ForeignKeys[3].RefTable = SubscriptionsTable
+	PartyIdentityDocumentsTable.Annotation = &entsql.Annotation{
+		Table: "party_identity_documents",
+	}
+	PartyIdentityDocumentValiditiesTable.ForeignKeys[0].RefTable = PartiesTable
+	PartyIdentityDocumentValiditiesTable.ForeignKeys[1].RefTable = PartyIdentityDocumentsTable
+	PartyIdentityDocumentValiditiesTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	PartyIdentityDocumentValiditiesTable.Annotation = &entsql.Annotation{
+		Table: "party_identity_document_validities",
+	}
 	PartyMergeLogTable.ForeignKeys[0].RefTable = PartiesTable
 	PartyMergeLogTable.ForeignKeys[1].RefTable = PartiesTable
 	PartyMergeLogTable.ForeignKeys[2].RefTable = SubscriptionsTable
@@ -1539,6 +1769,11 @@ func init() {
 	PartyNameValiditiesTable.ForeignKeys[4].RefTable = SubscriptionsTable
 	PartyNameValiditiesTable.Annotation = &entsql.Annotation{
 		Table: "party_name_validities",
+	}
+	PartyNationalitiesTable.ForeignKeys[0].RefTable = PartiesTable
+	PartyNationalitiesTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	PartyNationalitiesTable.Annotation = &entsql.Annotation{
+		Table: "party_nationalities",
 	}
 	PartyRolesTable.ForeignKeys[0].RefTable = PartiesTable
 	PartyRolesTable.ForeignKeys[1].RefTable = RoleTypesTable

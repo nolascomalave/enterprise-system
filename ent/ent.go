@@ -12,6 +12,7 @@ import (
 	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/identitydocumenttype"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/location"
@@ -21,9 +22,12 @@ import (
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partycontactmechanismvalidity"
+	"enterprise-system/ent/partyidentitydocument"
+	"enterprise-system/ent/partyidentitydocumentvalidity"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyname"
 	"enterprise-system/ent/partynamevalidity"
+	"enterprise-system/ent/partynationality"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -107,6 +111,7 @@ func checkColumn(t, c string) error {
 			departmentgroupassignment.Table:     departmentgroupassignment.ValidColumn,
 			employee.Table:                      employee.ValidColumn,
 			employeeassignment.Table:            employeeassignment.ValidColumn,
+			identitydocumenttype.Table:          identitydocumenttype.ValidColumn,
 			job.Table:                           job.ValidColumn,
 			jobfamily.Table:                     jobfamily.ValidColumn,
 			location.Table:                      location.ValidColumn,
@@ -116,9 +121,12 @@ func checkColumn(t, c string) error {
 			party.Table:                         party.ValidColumn,
 			partycontactmechanism.Table:         partycontactmechanism.ValidColumn,
 			partycontactmechanismvalidity.Table: partycontactmechanismvalidity.ValidColumn,
+			partyidentitydocument.Table:         partyidentitydocument.ValidColumn,
+			partyidentitydocumentvalidity.Table: partyidentitydocumentvalidity.ValidColumn,
 			partymergelog.Table:                 partymergelog.ValidColumn,
 			partyname.Table:                     partyname.ValidColumn,
 			partynamevalidity.Table:             partynamevalidity.ValidColumn,
+			partynationality.Table:              partynationality.ValidColumn,
 			partyrole.Table:                     partyrole.ValidColumn,
 			passwordresettoken.Table:            passwordresettoken.ValidColumn,
 			personprofile.Table:                 personprofile.ValidColumn,

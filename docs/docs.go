@@ -1230,6 +1230,82 @@ const docTemplate = `{
                 }
             }
         },
+        "/parties/{id}/identity-documents": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Registers an identity document and opens its initial validity. The jurisdiction, if provided, must belong to the issuing country.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Party Identity"
+                ],
+                "summary": "Add a party identity document",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Party UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Identity document data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.AddPartyIdentityDocumentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/parties/{id}/names": {
             "post": {
                 "security": [
@@ -1382,9 +1458,98 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/parties/{id}/nationalities": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds a nationality for the party. Only one nationality can be primary.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Party Identity"
+                ],
+                "summary": "Add a party nationality",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Party UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Nationality data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.AddPartyNationalityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyNationalityEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "enterprise-system_internal_delivery_http_dto.AddPartyIdentityDocumentRequest": {
+            "type": "object",
+            "required": [
+                "document_number",
+                "document_type",
+                "issuing_country_code"
+            ],
+            "properties": {
+                "document_number": {
+                    "type": "string"
+                },
+                "document_type": {
+                    "type": "string"
+                },
+                "is_primary": {
+                    "type": "boolean"
+                },
+                "issuing_country_code": {
+                    "type": "string"
+                },
+                "issuing_jurisdiction_id": {
+                    "type": "string"
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.AddPartyNameRequest": {
             "type": "object",
             "required": [
@@ -1403,6 +1568,20 @@ const docTemplate = `{
                 },
                 "value": {
                     "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.AddPartyNationalityRequest": {
+            "type": "object",
+            "required": [
+                "country_code"
+            ],
+            "properties": {
+                "country_code": {
+                    "type": "string"
+                },
+                "is_primary": {
+                    "type": "boolean"
                 }
             }
         },
@@ -2072,6 +2251,63 @@ const docTemplate = `{
                 }
             }
         },
+        "enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "document_number": {
+                    "type": "string"
+                },
+                "document_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "issuing_country_code": {
+                    "type": "string"
+                },
+                "issuing_jurisdiction_id": {
+                    "type": "string"
+                },
+                "party_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "validity": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentValidityResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentValidityResponse": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_primary": {
+                    "type": "boolean"
+                },
+                "start_date": {
+                    "type": "string"
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.PartyListEnvelope": {
             "type": "object",
             "properties": {
@@ -2139,6 +2375,37 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "start_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PartyNationalityEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyNationalityResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PartyNationalityResponse": {
+            "type": "object",
+            "properties": {
+                "country_code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_primary": {
+                    "type": "boolean"
+                },
+                "party_id": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }

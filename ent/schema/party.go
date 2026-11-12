@@ -82,6 +82,12 @@ func (Party) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("name_validities", PartyNameValidity.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("nationalities", PartyNationality.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("identity_documents", PartyIdentityDocument.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("identity_document_validities", PartyIdentityDocumentValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("addresses", Address.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("sessions", Session.Type).

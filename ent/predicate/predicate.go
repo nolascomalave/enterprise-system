@@ -30,6 +30,9 @@ type Employee func(*sql.Selector)
 // EmployeeAssignment is the predicate function for employeeassignment builders.
 type EmployeeAssignment func(*sql.Selector)
 
+// IdentityDocumentType is the predicate function for identitydocumenttype builders.
+type IdentityDocumentType func(*sql.Selector)
+
 // Job is the predicate function for job builders.
 type Job func(*sql.Selector)
 
@@ -57,6 +60,12 @@ type PartyContactMechanism func(*sql.Selector)
 // PartyContactMechanismValidity is the predicate function for partycontactmechanismvalidity builders.
 type PartyContactMechanismValidity func(*sql.Selector)
 
+// PartyIdentityDocument is the predicate function for partyidentitydocument builders.
+type PartyIdentityDocument func(*sql.Selector)
+
+// PartyIdentityDocumentValidity is the predicate function for partyidentitydocumentvalidity builders.
+type PartyIdentityDocumentValidity func(*sql.Selector)
+
 // PartyMergeLog is the predicate function for partymergelog builders.
 type PartyMergeLog func(*sql.Selector)
 
@@ -65,6 +74,9 @@ type PartyName func(*sql.Selector)
 
 // PartyNameValidity is the predicate function for partynamevalidity builders.
 type PartyNameValidity func(*sql.Selector)
+
+// PartyNationality is the predicate function for partynationality builders.
+type PartyNationality func(*sql.Selector)
 
 // PartyRole is the predicate function for partyrole builders.
 type PartyRole func(*sql.Selector)
