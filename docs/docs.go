@@ -923,6 +923,12 @@ const docTemplate = `{
                         "description": "Parent location UUID",
                         "name": "parent_id",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Locale BCP 47 (es, en, pt-BR)",
+                        "name": "Accept-Language",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2125,7 +2131,13 @@ const docTemplate = `{
                 "iso_code": {
                     "type": "string"
                 },
+                "locale": {
+                    "type": "string"
+                },
                 "location_type": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 },
                 "parent_id": {

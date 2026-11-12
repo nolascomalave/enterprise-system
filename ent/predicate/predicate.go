@@ -39,6 +39,9 @@ type Job func(*sql.Selector)
 // JobFamily is the predicate function for jobfamily builders.
 type JobFamily func(*sql.Selector)
 
+// Locale is the predicate function for locale builders.
+type Locale func(*sql.Selector)
+
 // Location is the predicate function for location builders.
 type Location func(*sql.Selector)
 

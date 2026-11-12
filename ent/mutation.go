@@ -15,6 +15,7 @@ import (
 	"enterprise-system/ent/identitydocumenttype"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/nametype"
@@ -67,6 +68,7 @@ const (
 	TypeIdentityDocumentType          = "IdentityDocumentType"
 	TypeJob                           = "Job"
 	TypeJobFamily                     = "JobFamily"
+	TypeLocale                        = "Locale"
 	TypeLocation                      = "Location"
 	TypeLocationTranslation           = "LocationTranslation"
 	TypeNameType                      = "NameType"
@@ -10511,6 +10513,593 @@ func (m *JobFamilyMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown JobFamily edge %s", name)
 }
 
+// LocaleMutation represents an operation that mutates the Locale nodes in the graph.
+type LocaleMutation struct {
+	config
+	op                           Op
+	typ                          string
+	id                           *string
+	name                         *string
+	is_default                   *bool
+	created_at                   *time.Time
+	updated_at                   *time.Time
+	clearedFields                map[string]struct{}
+	location_translations        map[uuid.UUID]struct{}
+	removedlocation_translations map[uuid.UUID]struct{}
+	clearedlocation_translations bool
+	done                         bool
+	oldValue                     func(context.Context) (*Locale, error)
+	predicates                   []predicate.Locale
+}
+
+var _ ent.Mutation = (*LocaleMutation)(nil)
+
+// localeOption allows management of the mutation configuration using functional options.
+type localeOption func(*LocaleMutation)
+
+// newLocaleMutation creates new mutation for the Locale entity.
+func newLocaleMutation(c config, op Op, opts ...localeOption) *LocaleMutation {
+	m := &LocaleMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLocale,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLocaleID sets the ID field of the mutation.
+func withLocaleID(id string) localeOption {
+	return func(m *LocaleMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Locale
+		)
+		m.oldValue = func(ctx context.Context) (*Locale, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Locale.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLocale sets the old Locale of the mutation.
+func withLocale(node *Locale) localeOption {
+	return func(m *LocaleMutation) {
+		m.oldValue = func(context.Context) (*Locale, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LocaleMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LocaleMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Locale entities.
+func (m *LocaleMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LocaleMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LocaleMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Locale.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *LocaleMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *LocaleMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Locale entity.
+// If the Locale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocaleMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *LocaleMutation) ResetName() {
+	m.name = nil
+}
+
+// SetIsDefault sets the "is_default" field.
+func (m *LocaleMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *LocaleMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the Locale entity.
+// If the Locale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocaleMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *LocaleMutation) ResetIsDefault() {
+	m.is_default = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LocaleMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LocaleMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Locale entity.
+// If the Locale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocaleMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LocaleMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LocaleMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LocaleMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Locale entity.
+// If the Locale object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocaleMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LocaleMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// AddLocationTranslationIDs adds the "location_translations" edge to the LocationTranslation entity by ids.
+func (m *LocaleMutation) AddLocationTranslationIDs(ids ...uuid.UUID) {
+	if m.location_translations == nil {
+		m.location_translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.location_translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLocationTranslations clears the "location_translations" edge to the LocationTranslation entity.
+func (m *LocaleMutation) ClearLocationTranslations() {
+	m.clearedlocation_translations = true
+}
+
+// LocationTranslationsCleared reports if the "location_translations" edge to the LocationTranslation entity was cleared.
+func (m *LocaleMutation) LocationTranslationsCleared() bool {
+	return m.clearedlocation_translations
+}
+
+// RemoveLocationTranslationIDs removes the "location_translations" edge to the LocationTranslation entity by IDs.
+func (m *LocaleMutation) RemoveLocationTranslationIDs(ids ...uuid.UUID) {
+	if m.removedlocation_translations == nil {
+		m.removedlocation_translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.location_translations, ids[i])
+		m.removedlocation_translations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLocationTranslations returns the removed IDs of the "location_translations" edge to the LocationTranslation entity.
+func (m *LocaleMutation) RemovedLocationTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedlocation_translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LocationTranslationsIDs returns the "location_translations" edge IDs in the mutation.
+func (m *LocaleMutation) LocationTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.location_translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLocationTranslations resets all changes to the "location_translations" edge.
+func (m *LocaleMutation) ResetLocationTranslations() {
+	m.location_translations = nil
+	m.clearedlocation_translations = false
+	m.removedlocation_translations = nil
+}
+
+// Where appends a list predicates to the LocaleMutation builder.
+func (m *LocaleMutation) Where(ps ...predicate.Locale) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LocaleMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LocaleMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Locale, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LocaleMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LocaleMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Locale).
+func (m *LocaleMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LocaleMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.name != nil {
+		fields = append(fields, locale.FieldName)
+	}
+	if m.is_default != nil {
+		fields = append(fields, locale.FieldIsDefault)
+	}
+	if m.created_at != nil {
+		fields = append(fields, locale.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, locale.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LocaleMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case locale.FieldName:
+		return m.Name()
+	case locale.FieldIsDefault:
+		return m.IsDefault()
+	case locale.FieldCreatedAt:
+		return m.CreatedAt()
+	case locale.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LocaleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case locale.FieldName:
+		return m.OldName(ctx)
+	case locale.FieldIsDefault:
+		return m.OldIsDefault(ctx)
+	case locale.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case locale.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Locale field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LocaleMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case locale.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case locale.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
+		return nil
+	case locale.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case locale.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Locale field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LocaleMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LocaleMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LocaleMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Locale numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LocaleMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LocaleMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LocaleMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Locale nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LocaleMutation) ResetField(name string) error {
+	switch name {
+	case locale.FieldName:
+		m.ResetName()
+		return nil
+	case locale.FieldIsDefault:
+		m.ResetIsDefault()
+		return nil
+	case locale.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case locale.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Locale field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LocaleMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.location_translations != nil {
+		edges = append(edges, locale.EdgeLocationTranslations)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LocaleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case locale.EdgeLocationTranslations:
+		ids := make([]ent.Value, 0, len(m.location_translations))
+		for id := range m.location_translations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LocaleMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedlocation_translations != nil {
+		edges = append(edges, locale.EdgeLocationTranslations)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LocaleMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case locale.EdgeLocationTranslations:
+		ids := make([]ent.Value, 0, len(m.removedlocation_translations))
+		for id := range m.removedlocation_translations {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LocaleMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedlocation_translations {
+		edges = append(edges, locale.EdgeLocationTranslations)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LocaleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case locale.EdgeLocationTranslations:
+		return m.clearedlocation_translations
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LocaleMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Locale unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LocaleMutation) ResetEdge(name string) error {
+	switch name {
+	case locale.EdgeLocationTranslations:
+		m.ResetLocationTranslations()
+		return nil
+	}
+	return fmt.Errorf("unknown Locale edge %s", name)
+}
+
 // LocationMutation represents an operation that mutates the Location nodes in the graph.
 type LocationMutation struct {
 	config
@@ -11729,13 +12318,14 @@ type LocationTranslationMutation struct {
 	op              Op
 	typ             string
 	id              *uuid.UUID
-	language_code   *string
 	name            *string
 	created_at      *time.Time
 	updated_at      *time.Time
 	clearedFields   map[string]struct{}
 	location        *uuid.UUID
 	clearedlocation bool
+	locale          *string
+	clearedlocale   bool
 	done            bool
 	oldValue        func(context.Context) (*LocationTranslation, error)
 	predicates      []predicate.LocationTranslation
@@ -11883,12 +12473,12 @@ func (m *LocationTranslationMutation) ResetLocationID() {
 
 // SetLanguageCode sets the "language_code" field.
 func (m *LocationTranslationMutation) SetLanguageCode(s string) {
-	m.language_code = &s
+	m.locale = &s
 }
 
 // LanguageCode returns the value of the "language_code" field in the mutation.
 func (m *LocationTranslationMutation) LanguageCode() (r string, exists bool) {
-	v := m.language_code
+	v := m.locale
 	if v == nil {
 		return
 	}
@@ -11914,7 +12504,7 @@ func (m *LocationTranslationMutation) OldLanguageCode(ctx context.Context) (v st
 
 // ResetLanguageCode resets all changes to the "language_code" field.
 func (m *LocationTranslationMutation) ResetLanguageCode() {
-	m.language_code = nil
+	m.locale = nil
 }
 
 // SetName sets the "name" field.
@@ -12052,6 +12642,46 @@ func (m *LocationTranslationMutation) ResetLocation() {
 	m.clearedlocation = false
 }
 
+// SetLocaleID sets the "locale" edge to the Locale entity by id.
+func (m *LocationTranslationMutation) SetLocaleID(id string) {
+	m.locale = &id
+}
+
+// ClearLocale clears the "locale" edge to the Locale entity.
+func (m *LocationTranslationMutation) ClearLocale() {
+	m.clearedlocale = true
+	m.clearedFields[locationtranslation.FieldLanguageCode] = struct{}{}
+}
+
+// LocaleCleared reports if the "locale" edge to the Locale entity was cleared.
+func (m *LocationTranslationMutation) LocaleCleared() bool {
+	return m.clearedlocale
+}
+
+// LocaleID returns the "locale" edge ID in the mutation.
+func (m *LocationTranslationMutation) LocaleID() (id string, exists bool) {
+	if m.locale != nil {
+		return *m.locale, true
+	}
+	return
+}
+
+// LocaleIDs returns the "locale" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LocaleID instead. It exists only for internal usage by the builders.
+func (m *LocationTranslationMutation) LocaleIDs() (ids []string) {
+	if id := m.locale; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocale resets all changes to the "locale" edge.
+func (m *LocationTranslationMutation) ResetLocale() {
+	m.locale = nil
+	m.clearedlocale = false
+}
+
 // Where appends a list predicates to the LocationTranslationMutation builder.
 func (m *LocationTranslationMutation) Where(ps ...predicate.LocationTranslation) {
 	m.predicates = append(m.predicates, ps...)
@@ -12090,7 +12720,7 @@ func (m *LocationTranslationMutation) Fields() []string {
 	if m.location != nil {
 		fields = append(fields, locationtranslation.FieldLocationID)
 	}
-	if m.language_code != nil {
+	if m.locale != nil {
 		fields = append(fields, locationtranslation.FieldLanguageCode)
 	}
 	if m.name != nil {
@@ -12253,9 +12883,12 @@ func (m *LocationTranslationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LocationTranslationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.location != nil {
 		edges = append(edges, locationtranslation.EdgeLocation)
+	}
+	if m.locale != nil {
+		edges = append(edges, locationtranslation.EdgeLocale)
 	}
 	return edges
 }
@@ -12268,13 +12901,17 @@ func (m *LocationTranslationMutation) AddedIDs(name string) []ent.Value {
 		if id := m.location; id != nil {
 			return []ent.Value{*id}
 		}
+	case locationtranslation.EdgeLocale:
+		if id := m.locale; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LocationTranslationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -12286,9 +12923,12 @@ func (m *LocationTranslationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LocationTranslationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedlocation {
 		edges = append(edges, locationtranslation.EdgeLocation)
+	}
+	if m.clearedlocale {
+		edges = append(edges, locationtranslation.EdgeLocale)
 	}
 	return edges
 }
@@ -12299,6 +12939,8 @@ func (m *LocationTranslationMutation) EdgeCleared(name string) bool {
 	switch name {
 	case locationtranslation.EdgeLocation:
 		return m.clearedlocation
+	case locationtranslation.EdgeLocale:
+		return m.clearedlocale
 	}
 	return false
 }
@@ -12310,6 +12952,9 @@ func (m *LocationTranslationMutation) ClearEdge(name string) error {
 	case locationtranslation.EdgeLocation:
 		m.ClearLocation()
 		return nil
+	case locationtranslation.EdgeLocale:
+		m.ClearLocale()
+		return nil
 	}
 	return fmt.Errorf("unknown LocationTranslation unique edge %s", name)
 }
@@ -12320,6 +12965,9 @@ func (m *LocationTranslationMutation) ResetEdge(name string) error {
 	switch name {
 	case locationtranslation.EdgeLocation:
 		m.ResetLocation()
+		return nil
+	case locationtranslation.EdgeLocale:
+		m.ResetLocale()
 		return nil
 	}
 	return fmt.Errorf("unknown LocationTranslation edge %s", name)

@@ -53,6 +53,11 @@ func (LocationTranslation) Edges() []ent.Edge {
 			Field("location_id").
 			Unique().
 			Required(),
+		edge.From("locale", Locale.Type).
+			Ref("location_translations").
+			Field("language_code").
+			Unique().
+			Required(),
 	}
 }
 

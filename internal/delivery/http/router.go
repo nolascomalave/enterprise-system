@@ -48,6 +48,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 			})
 		}),
 		SecurityHeaders(),
+		LocaleMiddleware(),
 		ErrorMiddleware(),
 	)
 

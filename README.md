@@ -138,6 +138,7 @@ Los archivos `docs/docs.go`, `docs/swagger.json` y `docs/swagger.yaml` se versio
 | Método | Ruta | Auth | Descripción |
 |---|---|---|---|
 | `GET` | `/api/v1/health` | No | Liveness |
+| `GET` | `/api/v1/locations` | No | Jerarquía geográfica; acepta `country`, `parent_id` y `Accept-Language` |
 | `POST` | `/api/v1/auth/login` | No | Login; puede devolver `temp_token` para 2FA |
 | `POST` | `/api/v1/auth/2fa/verify` | No | Verificación TOTP/backup code |
 | `POST` | `/api/v1/auth/refresh` | Cookie | Rota refresh token |
@@ -163,6 +164,30 @@ Los endpoints protegidos esperan:
 ```http
 Authorization: Bearer <access_token>
 ```
+
+## Multilingüismo (i18n)
+
+Los textos localizados se resuelven en la capa de aplicación con el header
+`Accept-Language`:
+
+1. Se toma el primer locale soportado del header (`es`, `en`, `pt-BR`).
+2. Si no hay coincidencia o el header falta, se usa `es`.
+3. Para cada ubicación se busca la traducción del locale solicitado.
+4. Si no existe, se usa la traducción del locale marcado
+   `global.locales.is_default = true`.
+5. Si tampoco existe, se devuelve `global.locations.default_name`.
+
+Ejemplo:
+
+```http
+GET /api/v1/locations?country=VE
+Accept-Language: en-US,en;q=0.9
+```
+
+La respuesta incluye `name` (nombre resuelto), `default_name` (valor base) y
+`locale` (locale efectivo usado). El middleware `LocaleMiddleware` inyecta el
+locale en el `context.Context`; el caso de uso
+`GetTranslatedLocation` aplica la cadena de fallback.
 
 ## CORS
 

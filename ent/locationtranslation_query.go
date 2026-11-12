@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/internal"
+	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/predicate"
@@ -26,6 +27,7 @@ type LocationTranslationQuery struct {
 	inters       []Interceptor
 	predicates   []predicate.LocationTranslation
 	withLocation *LocationQuery
+	withLocale   *LocaleQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -80,6 +82,31 @@ func (_q *LocationTranslationQuery) QueryLocation() *LocationQuery {
 		)
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.Location
+		step.Edge.Schema = schemaConfig.LocationTranslation
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLocale chains the current query on the "locale" edge.
+func (_q *LocationTranslationQuery) QueryLocale() *LocaleQuery {
+	query := (&LocaleClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locationtranslation.Table, locationtranslation.FieldID, selector),
+			sqlgraph.To(locale.Table, locale.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, locationtranslation.LocaleTable, locationtranslation.LocaleColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.Locale
 		step.Edge.Schema = schemaConfig.LocationTranslation
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -280,6 +307,7 @@ func (_q *LocationTranslationQuery) Clone() *LocationTranslationQuery {
 		inters:       append([]Interceptor{}, _q.inters...),
 		predicates:   append([]predicate.LocationTranslation{}, _q.predicates...),
 		withLocation: _q.withLocation.Clone(),
+		withLocale:   _q.withLocale.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -294,6 +322,17 @@ func (_q *LocationTranslationQuery) WithLocation(opts ...func(*LocationQuery)) *
 		opt(query)
 	}
 	_q.withLocation = query
+	return _q
+}
+
+// WithLocale tells the query-builder to eager-load the nodes that are connected to
+// the "locale" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *LocationTranslationQuery) WithLocale(opts ...func(*LocaleQuery)) *LocationTranslationQuery {
+	query := (&LocaleClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withLocale = query
 	return _q
 }
 
@@ -375,8 +414,9 @@ func (_q *LocationTranslationQuery) sqlAll(ctx context.Context, hooks ...queryHo
 	var (
 		nodes       = []*LocationTranslation{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withLocation != nil,
+			_q.withLocale != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -405,6 +445,12 @@ func (_q *LocationTranslationQuery) sqlAll(ctx context.Context, hooks ...queryHo
 			return nil, err
 		}
 	}
+	if query := _q.withLocale; query != nil {
+		if err := _q.loadLocale(ctx, query, nodes, nil,
+			func(n *LocationTranslation, e *Locale) { n.Edges.Locale = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -430,6 +476,35 @@ func (_q *LocationTranslationQuery) loadLocation(ctx context.Context, query *Loc
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "location_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (_q *LocationTranslationQuery) loadLocale(ctx context.Context, query *LocaleQuery, nodes []*LocationTranslation, init func(*LocationTranslation), assign func(*LocationTranslation, *Locale)) error {
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*LocationTranslation)
+	for i := range nodes {
+		fk := nodes[i].LanguageCode
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(locale.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "language_code" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -467,6 +542,9 @@ func (_q *LocationTranslationQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withLocation != nil {
 			_spec.Node.AddColumnOnce(locationtranslation.FieldLocationID)
+		}
+		if _q.withLocale != nil {
+			_spec.Node.AddColumnOnce(locationtranslation.FieldLanguageCode)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

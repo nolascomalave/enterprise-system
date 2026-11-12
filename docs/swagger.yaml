@@ -397,7 +397,11 @@ definitions:
         type: string
       iso_code:
         type: string
+      locale:
+        type: string
       location_type:
+        type: string
+      name:
         type: string
       parent_id:
         type: string
@@ -1316,6 +1320,10 @@ paths:
       - description: Parent location UUID
         in: query
         name: parent_id
+        type: string
+      - description: Locale BCP 47 (es, en, pt-BR)
+        in: header
+        name: Accept-Language
         type: string
       produces:
       - application/json

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
 	"errors"
@@ -90,6 +91,17 @@ func (_c *LocationTranslationCreate) SetLocation(v *Location) *LocationTranslati
 	return _c.SetLocationID(v.ID)
 }
 
+// SetLocaleID sets the "locale" edge to the Locale entity by ID.
+func (_c *LocationTranslationCreate) SetLocaleID(id string) *LocationTranslationCreate {
+	_c.mutation.SetLocaleID(id)
+	return _c
+}
+
+// SetLocale sets the "locale" edge to the Locale entity.
+func (_c *LocationTranslationCreate) SetLocale(v *Locale) *LocationTranslationCreate {
+	return _c.SetLocaleID(v.ID)
+}
+
 // Mutation returns the LocationTranslationMutation object of the builder.
 func (_c *LocationTranslationCreate) Mutation() *LocationTranslationMutation {
 	return _c.mutation
@@ -163,6 +175,9 @@ func (_c *LocationTranslationCreate) check() error {
 	if len(_c.mutation.LocationIDs()) == 0 {
 		return &ValidationError{Name: "location", err: errors.New(`ent: missing required edge "LocationTranslation.location"`)}
 	}
+	if len(_c.mutation.LocaleIDs()) == 0 {
+		return &ValidationError{Name: "locale", err: errors.New(`ent: missing required edge "LocationTranslation.locale"`)}
+	}
 	return nil
 }
 
@@ -200,10 +215,6 @@ func (_c *LocationTranslationCreate) createSpec() (*LocationTranslation, *sqlgra
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := _c.mutation.LanguageCode(); ok {
-		_spec.SetField(locationtranslation.FieldLanguageCode, field.TypeString, value)
-		_node.LanguageCode = value
-	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(locationtranslation.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -232,6 +243,24 @@ func (_c *LocationTranslationCreate) createSpec() (*LocationTranslation, *sqlgra
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.LocationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LocaleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   locationtranslation.LocaleTable,
+			Columns: []string{locationtranslation.LocaleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locale.FieldID, field.TypeString),
+			},
+		}
+		edge.Schema = _c.schemaConfig.LocationTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.LanguageCode = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -14,6 +14,7 @@ import (
 
 type LocationUseCase interface {
 	List(ctx context.Context, countryCode string, parentID *uuid.UUID) ([]*domain.Location, error)
+	ListLocalized(ctx context.Context, countryCode string, parentID *uuid.UUID, locale string) ([]*domain.TranslatedLocation, error)
 }
 
 type LocationHandler struct {
@@ -31,6 +32,7 @@ func NewLocationHandler(uc LocationUseCase) *LocationHandler {
 // @Produce      json
 // @Param        country query string true "ISO 3166-1 alpha-2 country code"
 // @Param        parent_id query string false "Parent location UUID"
+// @Param        Accept-Language header string false "Locale BCP 47 (es, en, pt-BR)"
 // @Success      200 {object} dto.LocationListEnvelope
 // @Failure      400 {object} dto.ErrorResponse
 // @Failure      500 {object} dto.ErrorResponse
@@ -51,10 +53,10 @@ func (h *LocationHandler) List(c *gin.Context) {
 		parentID = &parsed
 	}
 
-	locations, err := h.uc.List(c.Request.Context(), country, parentID)
+	locations, err := h.uc.ListLocalized(c.Request.Context(), country, parentID, LocaleFromContext(c.Request.Context()))
 	if err != nil {
 		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, dto.LocationListEnvelope{Data: dto.NewLocationListResponse(locations)})
+	c.JSON(http.StatusOK, dto.LocationListEnvelope{Data: dto.NewLocalizedLocationListResponse(locations)})
 }

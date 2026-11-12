@@ -36,6 +36,8 @@ type Tx struct {
 	Job *JobClient
 	// JobFamily is the client for interacting with the JobFamily builders.
 	JobFamily *JobFamilyClient
+	// Locale is the client for interacting with the Locale builders.
+	Locale *LocaleClient
 	// Location is the client for interacting with the Location builders.
 	Location *LocationClient
 	// LocationTranslation is the client for interacting with the LocationTranslation builders.
@@ -218,6 +220,7 @@ func (tx *Tx) init() {
 	tx.IdentityDocumentType = NewIdentityDocumentTypeClient(tx.config)
 	tx.Job = NewJobClient(tx.config)
 	tx.JobFamily = NewJobFamilyClient(tx.config)
+	tx.Locale = NewLocaleClient(tx.config)
 	tx.Location = NewLocationClient(tx.config)
 	tx.LocationTranslation = NewLocationTranslationClient(tx.config)
 	tx.NameType = NewNameTypeClient(tx.config)

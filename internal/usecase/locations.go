@@ -125,6 +125,121 @@ func (s *LocationService) List(ctx context.Context, countryCode string, parentID
 	})
 }
 
+// GetTranslatedLocation resolves a localized name with the fallback chain:
+// requested locale -> default locale -> locations.default_name.
+func (s *LocationService) GetTranslatedLocation(
+	ctx context.Context,
+	locationID uuid.UUID,
+	locale string,
+) (*domain.TranslatedLocation, error) {
+	if locationID == uuid.Nil {
+		return nil, fmt.Errorf("%w: id is required", domain.ErrInvalidLocation)
+	}
+	locale = normalizeLocale(locale)
+	return readWithinTransaction(ctx, s.tx, func(ctx context.Context) (*domain.TranslatedLocation, error) {
+		location, err := s.repo.GetLocation(ctx, locationID)
+		if err != nil {
+			return nil, err
+		}
+		defaultLocale, err := s.defaultLocale(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return s.resolveTranslation(ctx, location, locale, defaultLocale)
+	})
+}
+
+// ListLocalized lists children and applies the translation fallback to each
+// one using a single transaction.
+func (s *LocationService) ListLocalized(
+	ctx context.Context,
+	countryCode string,
+	parentID *uuid.UUID,
+	locale string,
+) ([]*domain.TranslatedLocation, error) {
+	country := strings.ToUpper(strings.TrimSpace(countryCode))
+	if !locationCountryCode.MatchString(country) {
+		return nil, fmt.Errorf("%w: country must be ISO 3166-1 alpha-2", domain.ErrInvalidLocation)
+	}
+	locale = normalizeLocale(locale)
+	return readWithinTransaction(ctx, s.tx, func(ctx context.Context) ([]*domain.TranslatedLocation, error) {
+		locations, err := s.repo.ListLocations(ctx, country, parentID)
+		if err != nil {
+			return nil, err
+		}
+		defaultLocale, err := s.defaultLocale(ctx)
+		if err != nil {
+			return nil, err
+		}
+		result := make([]*domain.TranslatedLocation, 0, len(locations))
+		for _, location := range locations {
+			translated, err := s.resolveTranslation(ctx, location, locale, defaultLocale)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, translated)
+		}
+		return result, nil
+	})
+}
+
+func (s *LocationService) defaultLocale(ctx context.Context) (string, error) {
+	locale, err := s.repo.GetDefaultLocale(ctx)
+	if errors.Is(err, domain.ErrDefaultLocaleNotFound) {
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("get default locale: %w", err)
+	}
+	return normalizeLocale(locale), nil
+}
+
+func (s *LocationService) resolveTranslation(
+	ctx context.Context,
+	location *domain.Location,
+	locale, defaultLocale string,
+) (*domain.TranslatedLocation, error) {
+	if locale != "" {
+		name, err := s.repo.GetLocationTranslation(ctx, location.ID, locale)
+		switch {
+		case err == nil:
+			return &domain.TranslatedLocation{Location: location, Name: name, Locale: locale}, nil
+		case !errors.Is(err, domain.ErrTranslationNotFound):
+			return nil, fmt.Errorf("get location translation: %w", err)
+		}
+	}
+	if defaultLocale != "" && defaultLocale != locale {
+		name, err := s.repo.GetLocationTranslation(ctx, location.ID, defaultLocale)
+		switch {
+		case err == nil:
+			return &domain.TranslatedLocation{Location: location, Name: name, Locale: defaultLocale}, nil
+		case !errors.Is(err, domain.ErrTranslationNotFound):
+			return nil, fmt.Errorf("get default location translation: %w", err)
+		}
+	}
+	return &domain.TranslatedLocation{Location: location, Name: location.DefaultName}, nil
+}
+
+// normalizeLocale maps common BCP 47 variants to the locales we support.
+func normalizeLocale(locale string) string {
+	locale = strings.TrimSpace(locale)
+	if locale == "" {
+		return ""
+	}
+	lower := strings.ToLower(locale)
+	if lower == "pt-br" || strings.HasPrefix(lower, "pt-") || lower == "pt" {
+		return "pt-BR"
+	}
+	switch {
+	case strings.HasPrefix(lower, "es"):
+		return "es"
+	case strings.HasPrefix(lower, "en"):
+		return "en"
+	default:
+		return locale
+	}
+}
+
 // locationSlug converts a display name into a valid ltree label: lowercase,
 // without diacritics, using underscores instead of spaces/punctuation.
 func locationSlug(value string) string {

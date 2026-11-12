@@ -5,7 +5,9 @@ import (
 	"errors"
 
 	"enterprise-system/ent"
+	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
+	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/internal/domain"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -129,6 +131,49 @@ func toDomainLocation(e *ent.Location) *domain.Location {
 		DefaultName: e.DefaultName, Path: e.Path,
 		CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt,
 	}
+}
+
+func (r *LocationRepository) GetLocationTranslation(
+	ctx context.Context,
+	locationID uuid.UUID,
+	localeCode string,
+) (string, error) {
+	var result string
+	err := execute(ctx, r.client, func(client *ent.Client) error {
+		row, err := client.LocationTranslation.Query().
+			Where(
+				locationtranslation.LocationID(locationID),
+				locationtranslation.LanguageCodeEQ(localeCode),
+			).
+			Only(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+		result = row.Name
+		return nil
+	})
+	if ent.IsNotFound(err) {
+		return "", domain.ErrTranslationNotFound
+	}
+	return result, err
+}
+
+func (r *LocationRepository) GetDefaultLocale(ctx context.Context) (string, error) {
+	var result string
+	err := execute(ctx, r.client, func(client *ent.Client) error {
+		row, err := client.Locale.Query().
+			Where(locale.IsDefault(true)).
+			Only(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+		result = row.ID
+		return nil
+	})
+	if ent.IsNotFound(err) {
+		return "", domain.ErrDefaultLocaleNotFound
+	}
+	return result, err
 }
 
 func derefString(value *string) string {

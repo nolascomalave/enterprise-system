@@ -13,13 +13,19 @@ import (
 )
 
 type fakeLocationRepo struct {
-	locations map[uuid.UUID]*domain.Location
-	err       error
-	created   int
+	locations     map[uuid.UUID]*domain.Location
+	translations  map[uuid.UUID]map[string]string
+	defaultLocale string
+	err           error
+	created       int
 }
 
 func newFakeLocationRepo() *fakeLocationRepo {
-	return &fakeLocationRepo{locations: make(map[uuid.UUID]*domain.Location)}
+	return &fakeLocationRepo{
+		locations:     make(map[uuid.UUID]*domain.Location),
+		translations:  make(map[uuid.UUID]map[string]string),
+		defaultLocale: "es",
+	}
 }
 
 func (r *fakeLocationRepo) CreateLocation(ctx context.Context, location *domain.Location) error {
@@ -183,4 +189,93 @@ func TestGetLocationHierarchyReturnsAncestors(t *testing.T) {
 	assert.Equal(t, country.ID, hierarchy[0].ID)
 	assert.Equal(t, state.ID, hierarchy[1].ID)
 	assert.Equal(t, city.ID, hierarchy[2].ID)
+}
+
+func (r *fakeLocationRepo) GetLocationTranslation(ctx context.Context, locationID uuid.UUID, locale string) (string, error) {
+	if translations, ok := r.translations[locationID]; ok {
+		if name, ok := translations[locale]; ok {
+			return name, nil
+		}
+	}
+	return "", domain.ErrTranslationNotFound
+}
+
+func (r *fakeLocationRepo) GetDefaultLocale(ctx context.Context) (string, error) {
+	if r.defaultLocale == "" {
+		return "", domain.ErrDefaultLocaleNotFound
+	}
+	return r.defaultLocale, nil
+}
+
+func TestGetTranslatedLocationDirect(t *testing.T) {
+	repo := newFakeLocationRepo()
+	uc := NewLocationService(repo, newFakeTxManager(), locationTestNow)
+	location, err := uc.Create(context.Background(), CreateLocationInput{
+		LocationType: domain.LocationTypeCity, CountryCode: "VE", DefaultName: "Caracas",
+	})
+	require.NoError(t, err)
+	repo.translations[location.ID] = map[string]string{"en": "Caracas (EN)"}
+
+	translated, err := uc.GetTranslatedLocation(context.Background(), location.ID, "en")
+
+	require.NoError(t, err)
+	assert.Equal(t, "Caracas (EN)", translated.Name)
+	assert.Equal(t, "en", translated.Locale)
+}
+
+func TestGetTranslatedLocationFallsBackToDefaultLocale(t *testing.T) {
+	repo := newFakeLocationRepo()
+	uc := NewLocationService(repo, newFakeTxManager(), locationTestNow)
+	location, err := uc.Create(context.Background(), CreateLocationInput{
+		LocationType: domain.LocationTypeCity, CountryCode: "VE", DefaultName: "Caracas",
+	})
+	require.NoError(t, err)
+	repo.translations[location.ID] = map[string]string{"es": "Caracas (ES)"}
+
+	translated, err := uc.GetTranslatedLocation(context.Background(), location.ID, "en")
+
+	require.NoError(t, err)
+	assert.Equal(t, "Caracas (ES)", translated.Name)
+	assert.Equal(t, "es", translated.Locale)
+}
+
+func TestGetTranslatedLocationFallsBackToDefaultName(t *testing.T) {
+	repo := newFakeLocationRepo()
+	uc := NewLocationService(repo, newFakeTxManager(), locationTestNow)
+	location, err := uc.Create(context.Background(), CreateLocationInput{
+		LocationType: domain.LocationTypeCity, CountryCode: "VE", DefaultName: "Caracas",
+	})
+	require.NoError(t, err)
+
+	translated, err := uc.GetTranslatedLocation(context.Background(), location.ID, "en")
+
+	require.NoError(t, err)
+	assert.Equal(t, "Caracas", translated.Name)
+	assert.Empty(t, translated.Locale)
+}
+
+func TestListLocalizedAppliesFallbackPerLocation(t *testing.T) {
+	repo := newFakeLocationRepo()
+	uc := NewLocationService(repo, newFakeTxManager(), locationTestNow)
+	withTranslation, err := uc.Create(context.Background(), CreateLocationInput{
+		LocationType: domain.LocationTypeCity, CountryCode: "VE", DefaultName: "Caracas",
+	})
+	require.NoError(t, err)
+	withoutTranslation, err := uc.Create(context.Background(), CreateLocationInput{
+		LocationType: domain.LocationTypeCity, CountryCode: "VE", DefaultName: "Valencia",
+	})
+	require.NoError(t, err)
+	repo.translations[withTranslation.ID] = map[string]string{"en": "Caracas (EN)"}
+
+	list, err := uc.ListLocalized(context.Background(), "VE", nil, "en")
+
+	require.NoError(t, err)
+	require.Len(t, list, 2)
+	names := map[string]string{}
+	for _, item := range list {
+		names[item.Location.DefaultName] = item.Name
+	}
+	assert.Equal(t, "Caracas (EN)", names["Caracas"])
+	assert.Equal(t, "Valencia", names["Valencia"])
+	_ = withoutTranslation
 }

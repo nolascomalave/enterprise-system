@@ -341,6 +341,35 @@ func HasLocationWith(preds ...predicate.Location) predicate.LocationTranslation 
 	})
 }
 
+// HasLocale applies the HasEdge predicate on the "locale" edge.
+func HasLocale() predicate.LocationTranslation {
+	return predicate.LocationTranslation(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, LocaleTable, LocaleColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Locale
+		step.Edge.Schema = schemaConfig.LocationTranslation
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLocaleWith applies the HasEdge predicate on the "locale" edge with a given conditions (other predicates).
+func HasLocaleWith(preds ...predicate.Locale) predicate.LocationTranslation {
+	return predicate.LocationTranslation(func(s *sql.Selector) {
+		step := newLocaleStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Locale
+		step.Edge.Schema = schemaConfig.LocationTranslation
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.LocationTranslation) predicate.LocationTranslation {
 	return predicate.LocationTranslation(sql.AndPredicates(predicates...))

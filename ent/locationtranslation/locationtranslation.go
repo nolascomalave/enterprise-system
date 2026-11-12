@@ -27,6 +27,10 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeLocation holds the string denoting the location edge name in mutations.
 	EdgeLocation = "location"
+	// EdgeLocale holds the string denoting the locale edge name in mutations.
+	EdgeLocale = "locale"
+	// LocaleFieldID holds the string denoting the ID field of the Locale.
+	LocaleFieldID = "code"
 	// Table holds the table name of the locationtranslation in the database.
 	Table = "location_translations"
 	// LocationTable is the table that holds the location relation/edge.
@@ -36,6 +40,13 @@ const (
 	LocationInverseTable = "locations"
 	// LocationColumn is the table column denoting the location relation/edge.
 	LocationColumn = "location_id"
+	// LocaleTable is the table that holds the locale relation/edge.
+	LocaleTable = "location_translations"
+	// LocaleInverseTable is the table name for the Locale entity.
+	// It exists in this package in order to avoid circular dependency with the "locale" package.
+	LocaleInverseTable = "locales"
+	// LocaleColumn is the table column denoting the locale relation/edge.
+	LocaleColumn = "language_code"
 )
 
 // Columns holds all SQL columns for locationtranslation fields.
@@ -112,10 +123,24 @@ func ByLocationField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLocationStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByLocaleField orders the results by locale field.
+func ByLocaleField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLocaleStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newLocationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LocationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, LocationTable, LocationColumn),
+	)
+}
+func newLocaleStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LocaleInverseTable, LocaleFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, LocaleTable, LocaleColumn),
 	)
 }

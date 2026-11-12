@@ -52,4 +52,6 @@ var (
 	ErrIdentityDocumentTypeNotFound  = errors.New("identity document type not found")
 	ErrIdentityDocumentExists        = errors.New("identity document already exists")
 	ErrJurisdictionCountryMismatch   = errors.New("issuing jurisdiction does not belong to the issuing country")
+	ErrTranslationNotFound           = errors.New("translation not found")
+	ErrDefaultLocaleNotFound         = errors.New("default locale not found")
 )

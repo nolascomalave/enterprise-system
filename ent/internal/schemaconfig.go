@@ -18,6 +18,7 @@ type SchemaConfig struct {
 	IdentityDocumentType          string // IdentityDocumentType table.
 	Job                           string // Job table.
 	JobFamily                     string // JobFamily table.
+	Locale                        string // Locale table.
 	Location                      string // Location table.
 	LocationTranslation           string // LocationTranslation table.
 	NameType                      string // NameType table.

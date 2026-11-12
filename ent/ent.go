@@ -15,6 +15,7 @@ import (
 	"enterprise-system/ent/identitydocumenttype"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/nametype"
@@ -114,6 +115,7 @@ func checkColumn(t, c string) error {
 			identitydocumenttype.Table:          identitydocumenttype.ValidColumn,
 			job.Table:                           job.ValidColumn,
 			jobfamily.Table:                     jobfamily.ValidColumn,
+			locale.Table:                        locale.ValidColumn,
 			location.Table:                      location.ValidColumn,
 			locationtranslation.Table:           locationtranslation.ValidColumn,
 			nametype.Table:                      nametype.ValidColumn,
