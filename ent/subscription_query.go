@@ -8,6 +8,7 @@ import (
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
+	"enterprise-system/ent/clientapplication"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/departmentaddress"
@@ -83,6 +84,7 @@ type SubscriptionQuery struct {
 	withDepartmentContactMechanismValidities *DepartmentContactMechanismValidityQuery
 	withDepartmentAddresses                  *DepartmentAddressQuery
 	withDepartmentAddressValidities          *DepartmentAddressValidityQuery
+	withClientApplications                   *ClientApplicationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -844,6 +846,31 @@ func (_q *SubscriptionQuery) QueryDepartmentAddressValidities() *DepartmentAddre
 	return query
 }
 
+// QueryClientApplications chains the current query on the "client_applications" edge.
+func (_q *SubscriptionQuery) QueryClientApplications() *ClientApplicationQuery {
+	query := (&ClientApplicationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(clientapplication.Table, clientapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.ClientApplicationsTable, subscription.ClientApplicationsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.ClientApplication
+		step.Edge.Schema = schemaConfig.ClientApplication
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Subscription entity from the query.
 // Returns a *NotFoundError when no Subscription was found.
 func (_q *SubscriptionQuery) First(ctx context.Context) (*Subscription, error) {
@@ -1065,6 +1092,7 @@ func (_q *SubscriptionQuery) Clone() *SubscriptionQuery {
 		withDepartmentContactMechanismValidities: _q.withDepartmentContactMechanismValidities.Clone(),
 		withDepartmentAddresses:                  _q.withDepartmentAddresses.Clone(),
 		withDepartmentAddressValidities:          _q.withDepartmentAddressValidities.Clone(),
+		withClientApplications:                   _q.withClientApplications.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1390,6 +1418,17 @@ func (_q *SubscriptionQuery) WithDepartmentAddressValidities(opts ...func(*Depar
 	return _q
 }
 
+// WithClientApplications tells the query-builder to eager-load the nodes that are connected to
+// the "client_applications" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithClientApplications(opts ...func(*ClientApplicationQuery)) *SubscriptionQuery {
+	query := (&ClientApplicationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withClientApplications = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1468,7 +1507,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Subscription{}
 		_spec       = _q.querySpec()
-		loadedTypes = [29]bool{
+		loadedTypes = [30]bool{
 			_q.withParties != nil,
 			_q.withPersonProfiles != nil,
 			_q.withOrganizationProfiles != nil,
@@ -1498,6 +1537,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withDepartmentContactMechanismValidities != nil,
 			_q.withDepartmentAddresses != nil,
 			_q.withDepartmentAddressValidities != nil,
+			_q.withClientApplications != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1755,6 +1795,15 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Subscription) { n.Edges.DepartmentAddressValidities = []*DepartmentAddressValidity{} },
 			func(n *Subscription, e *DepartmentAddressValidity) {
 				n.Edges.DepartmentAddressValidities = append(n.Edges.DepartmentAddressValidities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withClientApplications; query != nil {
+		if err := _q.loadClientApplications(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.ClientApplications = []*ClientApplication{} },
+			func(n *Subscription, e *ClientApplication) {
+				n.Edges.ClientApplications = append(n.Edges.ClientApplications, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2620,6 +2669,36 @@ func (_q *SubscriptionQuery) loadDepartmentAddressValidities(ctx context.Context
 	}
 	query.Where(predicate.DepartmentAddressValidity(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(subscription.DepartmentAddressValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadClientApplications(ctx context.Context, query *ClientApplicationQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *ClientApplication)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(clientapplication.FieldTenantID)
+	}
+	query.Where(predicate.ClientApplication(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.ClientApplicationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

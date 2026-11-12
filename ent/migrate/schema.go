@@ -187,6 +187,43 @@ var (
 			},
 		},
 	}
+	// ClientApplicationsColumns holds the columns for the "client_applications" table.
+	ClientApplicationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "name", Type: field.TypeString},
+		{Name: "client_id", Type: field.TypeString, Unique: true},
+		{Name: "client_secret_hash", Type: field.TypeString},
+		{Name: "scopes", Type: field.TypeJSON, SchemaType: map[string]string{"postgres": "text[]"}},
+		{Name: "is_active", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// ClientApplicationsTable holds the schema information for the "client_applications" table.
+	ClientApplicationsTable = &schema.Table{
+		Name:       "client_applications",
+		Columns:    ClientApplicationsColumns,
+		PrimaryKey: []*schema.Column{ClientApplicationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "client_applications_subscriptions_client_applications",
+				Columns:    []*schema.Column{ClientApplicationsColumns[9]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "clientapplication_tenant_id",
+				Unique:  false,
+				Columns: []*schema.Column{ClientApplicationsColumns[9]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
 	// ContactMechanismsColumns holds the columns for the "contact_mechanisms" table.
 	ContactMechanismsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -1926,6 +1963,7 @@ var (
 		AddressesTable,
 		AddressValiditiesTable,
 		AttachedDocumentsTable,
+		ClientApplicationsTable,
 		ContactMechanismsTable,
 		CorporateGroupsTable,
 		DepartmentsTable,
@@ -1979,6 +2017,10 @@ func init() {
 	AttachedDocumentsTable.ForeignKeys[0].RefTable = SubscriptionsTable
 	AttachedDocumentsTable.Annotation = &entsql.Annotation{
 		Table: "attached_documents",
+	}
+	ClientApplicationsTable.ForeignKeys[0].RefTable = SubscriptionsTable
+	ClientApplicationsTable.Annotation = &entsql.Annotation{
+		Table: "client_applications",
 	}
 	ContactMechanismsTable.Annotation = &entsql.Annotation{
 		Table: "contact_mechanisms",

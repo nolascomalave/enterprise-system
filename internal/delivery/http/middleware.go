@@ -70,6 +70,8 @@ func mapError(err error) (int, string, string) {
 // have not been classified with apperror yet.
 func mapSentinelError(err error) (int, string) {
 	switch {
+	case errors.Is(err, auth.ErrInsufficientScope):
+		return http.StatusForbidden, "forbidden"
 	case errors.Is(err, ErrUnauthorized):
 		return http.StatusUnauthorized, "unauthorized"
 	case errors.Is(err, auth.ErrInvalidCredentials),
@@ -161,6 +163,8 @@ func safeMessage(status int) string {
 		return "bad request"
 	case http.StatusUnauthorized:
 		return "unauthorized"
+	case http.StatusForbidden:
+		return "forbidden"
 	case http.StatusNotFound:
 		return "not found"
 	case http.StatusConflict:
@@ -175,8 +179,8 @@ func safeMessage(status int) string {
 }
 
 // TenantMiddleware validates the Bearer access token and injects its tenant,
-// user and session claims into the request context. Requests without a valid
-// token are rejected before reaching any handler.
+// user and session claims into the request context. Client-credentials tokens
+// also inject their tenant but must satisfy the route's OAuth scope.
 func TenantMiddleware(manager *auth.Manager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		raw := bearerToken(c.GetHeader("Authorization"))
@@ -186,40 +190,64 @@ func TenantMiddleware(manager *auth.Manager) gin.HandlerFunc {
 			return
 		}
 
-		claims, err := manager.ParseAccessToken(raw)
+		if claims, err := manager.ParseAccessToken(raw); err == nil {
+			tenantID, parseErr := uuid.Parse(claims.TenantID)
+			if parseErr != nil {
+				c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid tenant claim")))
+				c.Abort()
+				return
+			}
+			userID, parseErr := uuid.Parse(claims.UserID)
+			if parseErr != nil {
+				c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid user claim")))
+				c.Abort()
+				return
+			}
+			sessionID, parseErr := uuid.Parse(claims.SessionID)
+			if parseErr != nil {
+				c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid session claim")))
+				c.Abort()
+				return
+			}
+			bindTenantSession(c, tenantID, userID, sessionID)
+			c.Next()
+			return
+		}
+
+		clientClaims, err := manager.ParseClientToken(raw)
 		if err != nil {
 			c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid access token")))
 			c.Abort()
 			return
 		}
-
-		tenantID, err := uuid.Parse(claims.TenantID)
+		tenantID, err := uuid.Parse(clientClaims.TenantID)
 		if err != nil {
 			c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid tenant claim")))
 			c.Abort()
 			return
 		}
-		userID, err := uuid.Parse(claims.UserID)
-		if err != nil {
-			c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid user claim")))
+		fullPath := c.FullPath()
+		if fullPath == "" {
+			fullPath = c.Request.URL.Path
+		}
+		scope, ok := requiredScope(c.Request.Method, fullPath)
+		if !ok || !auth.HasScope(clientClaims.Scopes, scope) {
+			c.Error(fmt.Errorf("%w: client credentials cannot access this route", auth.ErrInsufficientScope))
 			c.Abort()
 			return
 		}
-		sessionID, err := uuid.Parse(claims.SessionID)
-		if err != nil {
-			c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid session claim")))
-			c.Abort()
-			return
-		}
-
-		sessionContext := enttenant.SessionContext{
-			TenantID: tenantID, UserID: userID, SessionID: sessionID,
-		}
-		ctx := enttenant.WithSessionContext(c.Request.Context(), sessionContext)
-		c.Request = c.Request.WithContext(ctx)
-		c.Set("session_context", sessionContext)
+		bindTenantSession(c, tenantID, uuid.Nil, uuid.Nil)
 		c.Next()
 	}
+}
+
+func bindTenantSession(c *gin.Context, tenantID, userID, sessionID uuid.UUID) {
+	sessionContext := enttenant.SessionContext{
+		TenantID: tenantID, UserID: userID, SessionID: sessionID,
+	}
+	ctx := enttenant.WithSessionContext(c.Request.Context(), sessionContext)
+	c.Request = c.Request.WithContext(ctx)
+	c.Set("session_context", sessionContext)
 }
 
 func bearerToken(header string) string {

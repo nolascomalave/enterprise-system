@@ -7,6 +7,7 @@ import (
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
+	"enterprise-system/ent/clientapplication"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/departmentaddress"
@@ -560,6 +561,21 @@ func (_u *SubscriptionUpdate) AddDepartmentAddressValidities(v ...*DepartmentAdd
 		ids[i] = v[i].ID
 	}
 	return _u.AddDepartmentAddressValidityIDs(ids...)
+}
+
+// AddClientApplicationIDs adds the "client_applications" edge to the ClientApplication entity by IDs.
+func (_u *SubscriptionUpdate) AddClientApplicationIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddClientApplicationIDs(ids...)
+	return _u
+}
+
+// AddClientApplications adds the "client_applications" edges to the ClientApplication entity.
+func (_u *SubscriptionUpdate) AddClientApplications(v ...*ClientApplication) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddClientApplicationIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -1174,6 +1190,27 @@ func (_u *SubscriptionUpdate) RemoveDepartmentAddressValidities(v ...*Department
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveDepartmentAddressValidityIDs(ids...)
+}
+
+// ClearClientApplications clears all "client_applications" edges to the ClientApplication entity.
+func (_u *SubscriptionUpdate) ClearClientApplications() *SubscriptionUpdate {
+	_u.mutation.ClearClientApplications()
+	return _u
+}
+
+// RemoveClientApplicationIDs removes the "client_applications" edge to ClientApplication entities by IDs.
+func (_u *SubscriptionUpdate) RemoveClientApplicationIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveClientApplicationIDs(ids...)
+	return _u
+}
+
+// RemoveClientApplications removes "client_applications" edges to ClientApplication entities.
+func (_u *SubscriptionUpdate) RemoveClientApplications(v ...*ClientApplication) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveClientApplicationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2654,6 +2691,54 @@ func (_u *SubscriptionUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.ClientApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.ClientApplicationsTable,
+			Columns: []string{subscription.ClientApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(clientapplication.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.ClientApplication
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedClientApplicationsIDs(); len(nodes) > 0 && !_u.mutation.ClientApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.ClientApplicationsTable,
+			Columns: []string{subscription.ClientApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(clientapplication.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.ClientApplication
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ClientApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.ClientApplicationsTable,
+			Columns: []string{subscription.ClientApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(clientapplication.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.ClientApplication
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Subscription
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -3177,6 +3262,21 @@ func (_u *SubscriptionUpdateOne) AddDepartmentAddressValidities(v ...*Department
 		ids[i] = v[i].ID
 	}
 	return _u.AddDepartmentAddressValidityIDs(ids...)
+}
+
+// AddClientApplicationIDs adds the "client_applications" edge to the ClientApplication entity by IDs.
+func (_u *SubscriptionUpdateOne) AddClientApplicationIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddClientApplicationIDs(ids...)
+	return _u
+}
+
+// AddClientApplications adds the "client_applications" edges to the ClientApplication entity.
+func (_u *SubscriptionUpdateOne) AddClientApplications(v ...*ClientApplication) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddClientApplicationIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -3791,6 +3891,27 @@ func (_u *SubscriptionUpdateOne) RemoveDepartmentAddressValidities(v ...*Departm
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveDepartmentAddressValidityIDs(ids...)
+}
+
+// ClearClientApplications clears all "client_applications" edges to the ClientApplication entity.
+func (_u *SubscriptionUpdateOne) ClearClientApplications() *SubscriptionUpdateOne {
+	_u.mutation.ClearClientApplications()
+	return _u
+}
+
+// RemoveClientApplicationIDs removes the "client_applications" edge to ClientApplication entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveClientApplicationIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveClientApplicationIDs(ids...)
+	return _u
+}
+
+// RemoveClientApplications removes "client_applications" edges to ClientApplication entities.
+func (_u *SubscriptionUpdateOne) RemoveClientApplications(v ...*ClientApplication) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveClientApplicationIDs(ids...)
 }
 
 // Where appends a list predicates to the SubscriptionUpdate builder.
@@ -5296,6 +5417,54 @@ func (_u *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscripti
 			},
 		}
 		edge.Schema = _u.schemaConfig.DepartmentAddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ClientApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.ClientApplicationsTable,
+			Columns: []string{subscription.ClientApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(clientapplication.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.ClientApplication
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedClientApplicationsIDs(); len(nodes) > 0 && !_u.mutation.ClientApplicationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.ClientApplicationsTable,
+			Columns: []string{subscription.ClientApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(clientapplication.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.ClientApplication
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ClientApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.ClientApplicationsTable,
+			Columns: []string{subscription.ClientApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(clientapplication.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.ClientApplication
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

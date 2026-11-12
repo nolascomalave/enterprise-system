@@ -1203,6 +1203,35 @@ func HasDepartmentAddressValiditiesWith(preds ...predicate.DepartmentAddressVali
 	})
 }
 
+// HasClientApplications applies the HasEdge predicate on the "client_applications" edge.
+func HasClientApplications() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ClientApplicationsTable, ClientApplicationsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ClientApplication
+		step.Edge.Schema = schemaConfig.ClientApplication
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasClientApplicationsWith applies the HasEdge predicate on the "client_applications" edge with a given conditions (other predicates).
+func HasClientApplicationsWith(preds ...predicate.ClientApplication) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newClientApplicationsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.ClientApplication
+		step.Edge.Schema = schemaConfig.ClientApplication
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Subscription) predicate.Subscription {
 	return predicate.Subscription(sql.AndPredicates(predicates...))

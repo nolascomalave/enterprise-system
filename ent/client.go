@@ -14,6 +14,7 @@ import (
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
+	"enterprise-system/ent/clientapplication"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
@@ -70,6 +71,8 @@ type Client struct {
 	AddressValidity *AddressValidityClient
 	// AttachedDocument is the client for interacting with the AttachedDocument builders.
 	AttachedDocument *AttachedDocumentClient
+	// ClientApplication is the client for interacting with the ClientApplication builders.
+	ClientApplication *ClientApplicationClient
 	// ContactMechanism is the client for interacting with the ContactMechanism builders.
 	ContactMechanism *ContactMechanismClient
 	// CorporateGroup is the client for interacting with the CorporateGroup builders.
@@ -152,6 +155,7 @@ func (c *Client) init() {
 	c.Address = NewAddressClient(c.config)
 	c.AddressValidity = NewAddressValidityClient(c.config)
 	c.AttachedDocument = NewAttachedDocumentClient(c.config)
+	c.ClientApplication = NewClientApplicationClient(c.config)
 	c.ContactMechanism = NewContactMechanismClient(c.config)
 	c.CorporateGroup = NewCorporateGroupClient(c.config)
 	c.Department = NewDepartmentClient(c.config)
@@ -284,6 +288,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Address:                            NewAddressClient(cfg),
 		AddressValidity:                    NewAddressValidityClient(cfg),
 		AttachedDocument:                   NewAttachedDocumentClient(cfg),
+		ClientApplication:                  NewClientApplicationClient(cfg),
 		ContactMechanism:                   NewContactMechanismClient(cfg),
 		CorporateGroup:                     NewCorporateGroupClient(cfg),
 		Department:                         NewDepartmentClient(cfg),
@@ -340,6 +345,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Address:                            NewAddressClient(cfg),
 		AddressValidity:                    NewAddressValidityClient(cfg),
 		AttachedDocument:                   NewAttachedDocumentClient(cfg),
+		ClientApplication:                  NewClientApplicationClient(cfg),
 		ContactMechanism:                   NewContactMechanismClient(cfg),
 		CorporateGroup:                     NewCorporateGroupClient(cfg),
 		Department:                         NewDepartmentClient(cfg),
@@ -403,8 +409,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Address, c.AddressValidity, c.AttachedDocument, c.ContactMechanism,
-		c.CorporateGroup, c.Department, c.DepartmentAddress,
+		c.Address, c.AddressValidity, c.AttachedDocument, c.ClientApplication,
+		c.ContactMechanism, c.CorporateGroup, c.Department, c.DepartmentAddress,
 		c.DepartmentAddressValidity, c.DepartmentContactMechanism,
 		c.DepartmentContactMechanismValidity, c.DepartmentGroupAssignment, c.Employee,
 		c.EmployeeAssignment, c.IdentityDocumentType, c.Job, c.JobFamily, c.Locale,
@@ -423,8 +429,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Address, c.AddressValidity, c.AttachedDocument, c.ContactMechanism,
-		c.CorporateGroup, c.Department, c.DepartmentAddress,
+		c.Address, c.AddressValidity, c.AttachedDocument, c.ClientApplication,
+		c.ContactMechanism, c.CorporateGroup, c.Department, c.DepartmentAddress,
 		c.DepartmentAddressValidity, c.DepartmentContactMechanism,
 		c.DepartmentContactMechanismValidity, c.DepartmentGroupAssignment, c.Employee,
 		c.EmployeeAssignment, c.IdentityDocumentType, c.Job, c.JobFamily, c.Locale,
@@ -448,6 +454,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AddressValidity.mutate(ctx, m)
 	case *AttachedDocumentMutation:
 		return c.AttachedDocument.mutate(ctx, m)
+	case *ClientApplicationMutation:
+		return c.ClientApplication.mutate(ctx, m)
 	case *ContactMechanismMutation:
 		return c.ContactMechanism.mutate(ctx, m)
 	case *CorporateGroupMutation:
@@ -1069,6 +1077,158 @@ func (c *AttachedDocumentClient) mutate(ctx context.Context, m *AttachedDocument
 		return (&AttachedDocumentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AttachedDocument mutation op: %q", m.Op())
+	}
+}
+
+// ClientApplicationClient is a client for the ClientApplication schema.
+type ClientApplicationClient struct {
+	config
+}
+
+// NewClientApplicationClient returns a client for the ClientApplication from the given config.
+func NewClientApplicationClient(c config) *ClientApplicationClient {
+	return &ClientApplicationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `clientapplication.Hooks(f(g(h())))`.
+func (c *ClientApplicationClient) Use(hooks ...Hook) {
+	c.hooks.ClientApplication = append(c.hooks.ClientApplication, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `clientapplication.Intercept(f(g(h())))`.
+func (c *ClientApplicationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ClientApplication = append(c.inters.ClientApplication, interceptors...)
+}
+
+// Create returns a builder for creating a ClientApplication entity.
+func (c *ClientApplicationClient) Create() *ClientApplicationCreate {
+	mutation := newClientApplicationMutation(c.config, OpCreate)
+	return &ClientApplicationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ClientApplication entities.
+func (c *ClientApplicationClient) CreateBulk(builders ...*ClientApplicationCreate) *ClientApplicationCreateBulk {
+	return &ClientApplicationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ClientApplicationClient) MapCreateBulk(slice any, setFunc func(*ClientApplicationCreate, int)) *ClientApplicationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ClientApplicationCreateBulk{err: fmt.Errorf("calling to ClientApplicationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ClientApplicationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ClientApplicationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ClientApplication.
+func (c *ClientApplicationClient) Update() *ClientApplicationUpdate {
+	mutation := newClientApplicationMutation(c.config, OpUpdate)
+	return &ClientApplicationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ClientApplicationClient) UpdateOne(_m *ClientApplication) *ClientApplicationUpdateOne {
+	mutation := newClientApplicationMutation(c.config, OpUpdateOne, withClientApplication(_m))
+	return &ClientApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ClientApplicationClient) UpdateOneID(id uuid.UUID) *ClientApplicationUpdateOne {
+	mutation := newClientApplicationMutation(c.config, OpUpdateOne, withClientApplicationID(id))
+	return &ClientApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ClientApplication.
+func (c *ClientApplicationClient) Delete() *ClientApplicationDelete {
+	mutation := newClientApplicationMutation(c.config, OpDelete)
+	return &ClientApplicationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ClientApplicationClient) DeleteOne(_m *ClientApplication) *ClientApplicationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ClientApplicationClient) DeleteOneID(id uuid.UUID) *ClientApplicationDeleteOne {
+	builder := c.Delete().Where(clientapplication.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ClientApplicationDeleteOne{builder}
+}
+
+// Query returns a query builder for ClientApplication.
+func (c *ClientApplicationClient) Query() *ClientApplicationQuery {
+	return &ClientApplicationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeClientApplication},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ClientApplication entity by its id.
+func (c *ClientApplicationClient) Get(ctx context.Context, id uuid.UUID) (*ClientApplication, error) {
+	return c.Query().Where(clientapplication.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ClientApplicationClient) GetX(ctx context.Context, id uuid.UUID) *ClientApplication {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a ClientApplication.
+func (c *ClientApplicationClient) QueryTenant(_m *ClientApplication) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clientapplication.Table, clientapplication.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, clientapplication.TenantTable, clientapplication.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.ClientApplication
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ClientApplicationClient) Hooks() []Hook {
+	return c.hooks.ClientApplication
+}
+
+// Interceptors returns the client interceptors.
+func (c *ClientApplicationClient) Interceptors() []Interceptor {
+	return c.inters.ClientApplication
+}
+
+func (c *ClientApplicationClient) mutate(ctx context.Context, m *ClientApplicationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ClientApplicationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ClientApplicationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ClientApplicationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ClientApplicationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ClientApplication mutation op: %q", m.Op())
 	}
 }
 
@@ -8324,6 +8484,25 @@ func (c *SubscriptionClient) QueryDepartmentAddressValidities(_m *Subscription) 
 	return query
 }
 
+// QueryClientApplications queries the client_applications edge of a Subscription.
+func (c *SubscriptionClient) QueryClientApplications(_m *Subscription) *ClientApplicationQuery {
+	query := (&ClientApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(clientapplication.Table, clientapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.ClientApplicationsTable, subscription.ClientApplicationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.ClientApplication
+		step.Edge.Schema = schemaConfig.ClientApplication
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SubscriptionClient) Hooks() []Hook {
 	return c.hooks.Subscription
@@ -8542,8 +8721,8 @@ func (c *UserCredentialsClient) mutate(ctx context.Context, m *UserCredentialsMu
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Address, AddressValidity, AttachedDocument, ContactMechanism, CorporateGroup,
-		Department, DepartmentAddress, DepartmentAddressValidity,
+		Address, AddressValidity, AttachedDocument, ClientApplication, ContactMechanism,
+		CorporateGroup, Department, DepartmentAddress, DepartmentAddressValidity,
 		DepartmentContactMechanism, DepartmentContactMechanismValidity,
 		DepartmentGroupAssignment, Employee, EmployeeAssignment, IdentityDocumentType,
 		Job, JobFamily, Locale, Location, LocationTranslation, NameType,
@@ -8554,8 +8733,8 @@ type (
 		Session, Subscription, UserCredentials []ent.Hook
 	}
 	inters struct {
-		Address, AddressValidity, AttachedDocument, ContactMechanism, CorporateGroup,
-		Department, DepartmentAddress, DepartmentAddressValidity,
+		Address, AddressValidity, AttachedDocument, ClientApplication, ContactMechanism,
+		CorporateGroup, Department, DepartmentAddress, DepartmentAddressValidity,
 		DepartmentContactMechanism, DepartmentContactMechanismValidity,
 		DepartmentGroupAssignment, Employee, EmployeeAssignment, IdentityDocumentType,
 		Job, JobFamily, Locale, Location, LocationTranslation, NameType,
@@ -8573,6 +8752,7 @@ var (
 		Address:                            tableSchemas[1],
 		AddressValidity:                    tableSchemas[1],
 		AttachedDocument:                   tableSchemas[1],
+		ClientApplication:                  tableSchemas[0],
 		ContactMechanism:                   tableSchemas[0],
 		CorporateGroup:                     tableSchemas[1],
 		Department:                         tableSchemas[1],
