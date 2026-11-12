@@ -365,6 +365,65 @@ const docTemplate = `{
                 }
             }
         },
+        "/client-applications/first-party": {
+            "post": {
+                "description": "Platform-admin only. Creates an official FIRST_PARTY app, either PLATFORM (no tenant) or TENANT_SPECIFIC.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "Create a first-party client application",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Platform administrator key",
+                        "name": "X-Platform-Admin-Key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "First-party application data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CreateFirstPartyApplicationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ClientApplicationEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/corporate-groups": {
             "post": {
                 "security": [
@@ -1806,6 +1865,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/platform/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Minimal endpoint protected by the FIRST_PARTY/PLATFORM scope platform:admin.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Platform status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/role-types": {
             "get": {
                 "description": "Returns the global role type catalog localized by Accept-Language with fallback to the default locale and then to the code.",
@@ -2218,6 +2317,31 @@ const docTemplate = `{
                 }
             }
         },
+        "enterprise-system_internal_delivery_http_dto.CreateFirstPartyApplicationRequest": {
+            "type": "object",
+            "required": [
+                "application_scope",
+                "name",
+                "scopes"
+            ],
+            "properties": {
+                "application_scope": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tenant_id": {
+                    "type": "string"
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.CreateJobRequest": {
             "type": "object",
             "required": [
@@ -2308,10 +2432,16 @@ const docTemplate = `{
         "enterprise-system_internal_delivery_http_dto.CreatedClientApplicationResponse": {
             "type": "object",
             "properties": {
+                "application_scope": {
+                    "type": "string"
+                },
                 "client_id": {
                     "type": "string"
                 },
                 "client_secret": {
+                    "type": "string"
+                },
+                "client_type": {
                     "type": "string"
                 },
                 "created_at": {

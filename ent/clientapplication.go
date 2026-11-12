@@ -20,8 +20,8 @@ type ClientApplication struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// TenantID holds the value of the "tenant_id" field.
-	TenantID uuid.UUID `json:"tenant_id,omitempty"`
+	// Null for PLATFORM applications
+	TenantID *uuid.UUID `json:"tenant_id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// ClientID holds the value of the "client_id" field.
@@ -30,6 +30,10 @@ type ClientApplication struct {
 	ClientSecretHash string `json:"-"`
 	// Scopes holds the value of the "scopes" field.
 	Scopes []string `json:"scopes,omitempty"`
+	// ClientType holds the value of the "client_type" field.
+	ClientType clientapplication.ClientType `json:"client_type,omitempty"`
+	// ApplicationScope holds the value of the "application_scope" field.
+	ApplicationScope clientapplication.ApplicationScope `json:"application_scope,omitempty"`
 	// IsActive holds the value of the "is_active" field.
 	IsActive bool `json:"is_active,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -69,15 +73,17 @@ func (*ClientApplication) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case clientapplication.FieldTenantID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case clientapplication.FieldScopes:
 			values[i] = new([]byte)
 		case clientapplication.FieldIsActive:
 			values[i] = new(sql.NullBool)
-		case clientapplication.FieldName, clientapplication.FieldClientID, clientapplication.FieldClientSecretHash:
+		case clientapplication.FieldName, clientapplication.FieldClientID, clientapplication.FieldClientSecretHash, clientapplication.FieldClientType, clientapplication.FieldApplicationScope:
 			values[i] = new(sql.NullString)
 		case clientapplication.FieldCreatedAt, clientapplication.FieldUpdatedAt, clientapplication.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case clientapplication.FieldID, clientapplication.FieldTenantID:
+		case clientapplication.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -101,10 +107,11 @@ func (_m *ClientApplication) assignValues(columns []string, values []any) error 
 				_m.ID = *value
 			}
 		case clientapplication.FieldTenantID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field tenant_id", values[i])
-			} else if value != nil {
-				_m.TenantID = *value
+			} else if value.Valid {
+				_m.TenantID = new(uuid.UUID)
+				*_m.TenantID = *value.S.(*uuid.UUID)
 			}
 		case clientapplication.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -131,6 +138,18 @@ func (_m *ClientApplication) assignValues(columns []string, values []any) error 
 				if err := json.Unmarshal(*value, &_m.Scopes); err != nil {
 					return fmt.Errorf("unmarshal field scopes: %w", err)
 				}
+			}
+		case clientapplication.FieldClientType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field client_type", values[i])
+			} else if value.Valid {
+				_m.ClientType = clientapplication.ClientType(value.String)
+			}
+		case clientapplication.FieldApplicationScope:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field application_scope", values[i])
+			} else if value.Valid {
+				_m.ApplicationScope = clientapplication.ApplicationScope(value.String)
 			}
 		case clientapplication.FieldIsActive:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -198,8 +217,10 @@ func (_m *ClientApplication) String() string {
 	var builder strings.Builder
 	builder.WriteString("ClientApplication(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("tenant_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TenantID))
+	if v := _m.TenantID; v != nil {
+		builder.WriteString("tenant_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
@@ -211,6 +232,12 @@ func (_m *ClientApplication) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("scopes=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Scopes))
+	builder.WriteString(", ")
+	builder.WriteString("client_type=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ClientType))
+	builder.WriteString(", ")
+	builder.WriteString("application_scope=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ApplicationScope))
 	builder.WriteString(", ")
 	builder.WriteString("is_active=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsActive))

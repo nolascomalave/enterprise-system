@@ -2755,9 +2755,12 @@ func (_q *SubscriptionQuery) loadClientApplications(ctx context.Context, query *
 	}
 	for _, n := range neighbors {
 		fk := n.TenantID
-		node, ok := nodeids[fk]
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "tenant_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

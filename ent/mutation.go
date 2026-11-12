@@ -3345,6 +3345,8 @@ type ClientApplicationMutation struct {
 	client_secret_hash *string
 	scopes             *[]string
 	appendscopes       []string
+	client_type        *clientapplication.ClientType
+	application_scope  *clientapplication.ApplicationScope
 	is_active          *bool
 	created_at         *time.Time
 	updated_at         *time.Time
@@ -3478,7 +3480,7 @@ func (m *ClientApplicationMutation) TenantID() (r uuid.UUID, exists bool) {
 // OldTenantID returns the old "tenant_id" field's value of the ClientApplication entity.
 // If the ClientApplication object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClientApplicationMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *ClientApplicationMutation) OldTenantID(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
 	}
@@ -3492,9 +3494,22 @@ func (m *ClientApplicationMutation) OldTenantID(ctx context.Context) (v uuid.UUI
 	return oldValue.TenantID, nil
 }
 
+// ClearTenantID clears the value of the "tenant_id" field.
+func (m *ClientApplicationMutation) ClearTenantID() {
+	m.tenant = nil
+	m.clearedFields[clientapplication.FieldTenantID] = struct{}{}
+}
+
+// TenantIDCleared returns if the "tenant_id" field was cleared in this mutation.
+func (m *ClientApplicationMutation) TenantIDCleared() bool {
+	_, ok := m.clearedFields[clientapplication.FieldTenantID]
+	return ok
+}
+
 // ResetTenantID resets all changes to the "tenant_id" field.
 func (m *ClientApplicationMutation) ResetTenantID() {
 	m.tenant = nil
+	delete(m.clearedFields, clientapplication.FieldTenantID)
 }
 
 // SetName sets the "name" field.
@@ -3654,6 +3669,78 @@ func (m *ClientApplicationMutation) AppendedScopes() ([]string, bool) {
 func (m *ClientApplicationMutation) ResetScopes() {
 	m.scopes = nil
 	m.appendscopes = nil
+}
+
+// SetClientType sets the "client_type" field.
+func (m *ClientApplicationMutation) SetClientType(ct clientapplication.ClientType) {
+	m.client_type = &ct
+}
+
+// ClientType returns the value of the "client_type" field in the mutation.
+func (m *ClientApplicationMutation) ClientType() (r clientapplication.ClientType, exists bool) {
+	v := m.client_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientType returns the old "client_type" field's value of the ClientApplication entity.
+// If the ClientApplication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ClientApplicationMutation) OldClientType(ctx context.Context) (v clientapplication.ClientType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientType: %w", err)
+	}
+	return oldValue.ClientType, nil
+}
+
+// ResetClientType resets all changes to the "client_type" field.
+func (m *ClientApplicationMutation) ResetClientType() {
+	m.client_type = nil
+}
+
+// SetApplicationScope sets the "application_scope" field.
+func (m *ClientApplicationMutation) SetApplicationScope(cs clientapplication.ApplicationScope) {
+	m.application_scope = &cs
+}
+
+// ApplicationScope returns the value of the "application_scope" field in the mutation.
+func (m *ClientApplicationMutation) ApplicationScope() (r clientapplication.ApplicationScope, exists bool) {
+	v := m.application_scope
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApplicationScope returns the old "application_scope" field's value of the ClientApplication entity.
+// If the ClientApplication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ClientApplicationMutation) OldApplicationScope(ctx context.Context) (v clientapplication.ApplicationScope, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApplicationScope is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApplicationScope requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApplicationScope: %w", err)
+	}
+	return oldValue.ApplicationScope, nil
+}
+
+// ResetApplicationScope resets all changes to the "application_scope" field.
+func (m *ClientApplicationMutation) ResetApplicationScope() {
+	m.application_scope = nil
 }
 
 // SetIsActive sets the "is_active" field.
@@ -3821,7 +3908,7 @@ func (m *ClientApplicationMutation) ClearTenant() {
 
 // TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
 func (m *ClientApplicationMutation) TenantCleared() bool {
-	return m.clearedtenant
+	return m.TenantIDCleared() || m.clearedtenant
 }
 
 // TenantIDs returns the "tenant" edge IDs in the mutation.
@@ -3874,7 +3961,7 @@ func (m *ClientApplicationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ClientApplicationMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 11)
 	if m.tenant != nil {
 		fields = append(fields, clientapplication.FieldTenantID)
 	}
@@ -3889,6 +3976,12 @@ func (m *ClientApplicationMutation) Fields() []string {
 	}
 	if m.scopes != nil {
 		fields = append(fields, clientapplication.FieldScopes)
+	}
+	if m.client_type != nil {
+		fields = append(fields, clientapplication.FieldClientType)
+	}
+	if m.application_scope != nil {
+		fields = append(fields, clientapplication.FieldApplicationScope)
 	}
 	if m.is_active != nil {
 		fields = append(fields, clientapplication.FieldIsActive)
@@ -3920,6 +4013,10 @@ func (m *ClientApplicationMutation) Field(name string) (ent.Value, bool) {
 		return m.ClientSecretHash()
 	case clientapplication.FieldScopes:
 		return m.Scopes()
+	case clientapplication.FieldClientType:
+		return m.ClientType()
+	case clientapplication.FieldApplicationScope:
+		return m.ApplicationScope()
 	case clientapplication.FieldIsActive:
 		return m.IsActive()
 	case clientapplication.FieldCreatedAt:
@@ -3947,6 +4044,10 @@ func (m *ClientApplicationMutation) OldField(ctx context.Context, name string) (
 		return m.OldClientSecretHash(ctx)
 	case clientapplication.FieldScopes:
 		return m.OldScopes(ctx)
+	case clientapplication.FieldClientType:
+		return m.OldClientType(ctx)
+	case clientapplication.FieldApplicationScope:
+		return m.OldApplicationScope(ctx)
 	case clientapplication.FieldIsActive:
 		return m.OldIsActive(ctx)
 	case clientapplication.FieldCreatedAt:
@@ -3998,6 +4099,20 @@ func (m *ClientApplicationMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetScopes(v)
+		return nil
+	case clientapplication.FieldClientType:
+		v, ok := value.(clientapplication.ClientType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientType(v)
+		return nil
+	case clientapplication.FieldApplicationScope:
+		v, ok := value.(clientapplication.ApplicationScope)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApplicationScope(v)
 		return nil
 	case clientapplication.FieldIsActive:
 		v, ok := value.(bool)
@@ -4057,6 +4172,9 @@ func (m *ClientApplicationMutation) AddField(name string, value ent.Value) error
 // mutation.
 func (m *ClientApplicationMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(clientapplication.FieldTenantID) {
+		fields = append(fields, clientapplication.FieldTenantID)
+	}
 	if m.FieldCleared(clientapplication.FieldDeletedAt) {
 		fields = append(fields, clientapplication.FieldDeletedAt)
 	}
@@ -4074,6 +4192,9 @@ func (m *ClientApplicationMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ClientApplicationMutation) ClearField(name string) error {
 	switch name {
+	case clientapplication.FieldTenantID:
+		m.ClearTenantID()
+		return nil
 	case clientapplication.FieldDeletedAt:
 		m.ClearDeletedAt()
 		return nil
@@ -4099,6 +4220,12 @@ func (m *ClientApplicationMutation) ResetField(name string) error {
 		return nil
 	case clientapplication.FieldScopes:
 		m.ResetScopes()
+		return nil
+	case clientapplication.FieldClientType:
+		m.ResetClientType()
+		return nil
+	case clientapplication.FieldApplicationScope:
+		m.ResetApplicationScope()
 		return nil
 	case clientapplication.FieldIsActive:
 		m.ResetIsActive()

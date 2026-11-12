@@ -65,10 +65,12 @@ type TempClaims struct {
 }
 
 type ClientClaims struct {
-	TenantID  string   `json:"tenant_id"`
-	ClientID  string   `json:"client_id"`
-	Scopes    []string `json:"scopes"`
-	TokenType string   `json:"typ"`
+	TenantID         string   `json:"tenant_id,omitempty"`
+	ClientID         string   `json:"client_id"`
+	ClientType       string   `json:"client_type"`
+	ApplicationScope string   `json:"application_scope"`
+	Scopes           []string `json:"scopes"`
+	TokenType        string   `json:"typ"`
 	jwt.RegisteredClaims
 }
 
@@ -178,13 +180,23 @@ func (m *Manager) ParseAccessToken(raw string) (*AccessClaims, error) {
 	return claims, nil
 }
 
-func (m *Manager) IssueClientToken(tenantID uuid.UUID, clientID string, scopes []string) (string, error) {
+func (m *Manager) IssueClientToken(
+	tenantID *uuid.UUID,
+	clientID, clientType, applicationScope string,
+	scopes []string,
+) (string, error) {
 	now := m.now().UTC()
+	tenant := ""
+	if tenantID != nil {
+		tenant = tenantID.String()
+	}
 	claims := ClientClaims{
-		TenantID:  tenantID.String(),
-		ClientID:  clientID,
-		Scopes:    scopes,
-		TokenType: TokenTypeClientCredentials,
+		TenantID:         tenant,
+		ClientID:         clientID,
+		ClientType:       clientType,
+		ApplicationScope: applicationScope,
+		Scopes:           scopes,
+		TokenType:        TokenTypeClientCredentials,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    m.issuer,
 			Subject:   clientID,
@@ -214,10 +226,25 @@ func (m *Manager) ParseClientToken(raw string) (*ClientClaims, error) {
 		strings.TrimSpace(claims.ClientID) == "" {
 		return nil, ErrInvalidToken
 	}
-	if _, err := uuid.Parse(claims.TenantID); err != nil {
+	if !validClientType(claims.ClientType) || !validApplicationScope(claims.ApplicationScope) {
+		return nil, ErrInvalidToken
+	}
+	if claims.ApplicationScope == "PLATFORM" {
+		if claims.TenantID != "" {
+			return nil, ErrInvalidToken
+		}
+	} else if _, err := uuid.Parse(claims.TenantID); err != nil {
 		return nil, ErrInvalidToken
 	}
 	return claims, nil
+}
+
+func validClientType(value string) bool {
+	return value == "FIRST_PARTY" || value == "THIRD_PARTY"
+}
+
+func validApplicationScope(value string) bool {
+	return value == "PLATFORM" || value == "TENANT_SPECIFIC"
 }
 
 // GenerateClientCredentials creates an opaque client_id and a high-entropy

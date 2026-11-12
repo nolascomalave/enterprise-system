@@ -3,6 +3,7 @@
 package clientapplication
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -25,6 +26,10 @@ const (
 	FieldClientSecretHash = "client_secret_hash"
 	// FieldScopes holds the string denoting the scopes field in the database.
 	FieldScopes = "scopes"
+	// FieldClientType holds the string denoting the client_type field in the database.
+	FieldClientType = "client_type"
+	// FieldApplicationScope holds the string denoting the application_scope field in the database.
+	FieldApplicationScope = "application_scope"
 	// FieldIsActive holds the string denoting the is_active field in the database.
 	FieldIsActive = "is_active"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -54,6 +59,8 @@ var Columns = []string{
 	FieldClientID,
 	FieldClientSecretHash,
 	FieldScopes,
+	FieldClientType,
+	FieldApplicationScope,
 	FieldIsActive,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -89,6 +96,58 @@ var (
 	DefaultID func() uuid.UUID
 )
 
+// ClientType defines the type for the "client_type" enum field.
+type ClientType string
+
+// ClientTypeTHIRD_PARTY is the default value of the ClientType enum.
+const DefaultClientType = ClientTypeTHIRD_PARTY
+
+// ClientType values.
+const (
+	ClientTypeFIRST_PARTY ClientType = "FIRST_PARTY"
+	ClientTypeTHIRD_PARTY ClientType = "THIRD_PARTY"
+)
+
+func (ct ClientType) String() string {
+	return string(ct)
+}
+
+// ClientTypeValidator is a validator for the "client_type" field enum values. It is called by the builders before save.
+func ClientTypeValidator(ct ClientType) error {
+	switch ct {
+	case ClientTypeFIRST_PARTY, ClientTypeTHIRD_PARTY:
+		return nil
+	default:
+		return fmt.Errorf("clientapplication: invalid enum value for client_type field: %q", ct)
+	}
+}
+
+// ApplicationScope defines the type for the "application_scope" enum field.
+type ApplicationScope string
+
+// ApplicationScopeTENANT_SPECIFIC is the default value of the ApplicationScope enum.
+const DefaultApplicationScope = ApplicationScopeTENANT_SPECIFIC
+
+// ApplicationScope values.
+const (
+	ApplicationScopePLATFORM        ApplicationScope = "PLATFORM"
+	ApplicationScopeTENANT_SPECIFIC ApplicationScope = "TENANT_SPECIFIC"
+)
+
+func (as ApplicationScope) String() string {
+	return string(as)
+}
+
+// ApplicationScopeValidator is a validator for the "application_scope" field enum values. It is called by the builders before save.
+func ApplicationScopeValidator(as ApplicationScope) error {
+	switch as {
+	case ApplicationScopePLATFORM, ApplicationScopeTENANT_SPECIFIC:
+		return nil
+	default:
+		return fmt.Errorf("clientapplication: invalid enum value for application_scope field: %q", as)
+	}
+}
+
 // OrderOption defines the ordering options for the ClientApplication queries.
 type OrderOption func(*sql.Selector)
 
@@ -115,6 +174,16 @@ func ByClientID(opts ...sql.OrderTermOption) OrderOption {
 // ByClientSecretHash orders the results by the client_secret_hash field.
 func ByClientSecretHash(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldClientSecretHash, opts...).ToFunc()
+}
+
+// ByClientType orders the results by the client_type field.
+func ByClientType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClientType, opts...).ToFunc()
+}
+
+// ByApplicationScope orders the results by the application_scope field.
+func ByApplicationScope(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldApplicationScope, opts...).ToFunc()
 }
 
 // ByIsActive orders the results by the is_active field.

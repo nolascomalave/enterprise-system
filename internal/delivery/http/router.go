@@ -25,6 +25,7 @@ type Dependencies struct {
 	DepartmentMDMUseCase DepartmentMDMUseCase
 	OAuthUseCase         OAuthUseCase
 	CatalogUseCase       CatalogUseCase
+	PlatformAdminKey     string
 	TokenManager         *auth.Manager
 
 	CookieSecure   bool
@@ -87,6 +88,8 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	api.GET("/health", Health)
 	api.GET("/locations", locationHandler.List)
 	api.POST("/oauth/token", oauthHandler.Token)
+	api.POST("/client-applications/first-party",
+		PlatformAdminMiddleware(deps.PlatformAdminKey), oauthHandler.CreateFirstPartyApplication)
 	api.GET("/identity-document-types", catalogHandler.ListIdentityDocumentTypes)
 	api.GET("/role-types", catalogHandler.ListRoleTypes)
 
@@ -127,6 +130,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.POST("/parties/:id/nationalities", identityHandler.AddNationality)
 		protected.POST("/parties/:id/identity-documents", identityHandler.AddIdentityDocument)
 		protected.POST("/client-applications", oauthHandler.CreateClientApplication)
+		protected.GET("/platform/status", oauthHandler.PlatformStatus)
 		protected.POST("/auth/change-password", accountHandler.ChangePassword)
 	}
 

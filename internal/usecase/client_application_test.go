@@ -60,7 +60,7 @@ func TestCreateClientApplicationReturnsSecretOnce(t *testing.T) {
 	tenantID := uuid.New()
 
 	created, err := service.Create(context.Background(), CreateClientApplicationInput{
-		TenantID: tenantID, Name: "Marketing site", Scopes: []string{"parties:read", "parties:read", "locations:read"},
+		TenantID: &tenantID, Name: "Marketing site", Scopes: []string{"parties:read", "parties:read", "locations:read"},
 	})
 
 	require.NoError(t, err)
@@ -71,7 +71,8 @@ func TestCreateClientApplicationReturnsSecretOnce(t *testing.T) {
 	assert.Equal(t, []string{"parties:read", "locations:read"}, created.Application.Scopes)
 	stored, ok := repo.applications[created.Application.ClientID]
 	require.True(t, ok)
-	assert.Equal(t, tenantID, stored.TenantID)
+	require.NotNil(t, stored.TenantID)
+	assert.Equal(t, tenantID, *stored.TenantID)
 	assert.True(t, stored.IsActive)
 }
 
@@ -80,7 +81,7 @@ func TestCreateClientApplicationRejectsUnknownScope(t *testing.T) {
 		newFakeTxManager(), time.Now)
 
 	_, err := service.Create(context.Background(), CreateClientApplicationInput{
-		TenantID: uuid.New(), Name: "App", Scopes: []string{"unknown:write"},
+		TenantID: ptrUUID(uuid.New()), Name: "App", Scopes: []string{"unknown:write"},
 	})
 
 	require.ErrorIs(t, err, domain.ErrInvalidClientApplication)
@@ -91,7 +92,7 @@ func TestCreateClientApplicationRejectsEmptyScopes(t *testing.T) {
 		newFakeTxManager(), time.Now)
 
 	_, err := service.Create(context.Background(), CreateClientApplicationInput{
-		TenantID: uuid.New(), Name: "App",
+		TenantID: ptrUUID(uuid.New()), Name: "App",
 	})
 
 	require.ErrorIs(t, err, domain.ErrInvalidClientApplication)
@@ -102,7 +103,7 @@ func TestIssueClientToken(t *testing.T) {
 	manager := clientApplicationTestManager(t)
 	service := NewClientApplicationService(repo, manager, newFakeTxManager(), time.Now)
 	created, err := service.Create(context.Background(), CreateClientApplicationInput{
-		TenantID: uuid.New(), Name: "App", Scopes: []string{"parties:read", "org:read"},
+		TenantID: ptrUUID(uuid.New()), Name: "App", Scopes: []string{"parties:read", "org:read"},
 	})
 	require.NoError(t, err)
 
@@ -114,9 +115,12 @@ func TestIssueClientToken(t *testing.T) {
 	assert.Equal(t, created.Application.Scopes, token.Scopes)
 	claims, err := manager.ParseClientToken(token.AccessToken)
 	require.NoError(t, err)
+	require.NotNil(t, created.Application.TenantID)
 	assert.Equal(t, created.Application.TenantID.String(), claims.TenantID)
 	assert.Equal(t, created.Application.ClientID, claims.ClientID)
 	assert.Equal(t, created.Application.Scopes, claims.Scopes)
+	assert.Equal(t, "THIRD_PARTY", claims.ClientType)
+	assert.Equal(t, "TENANT_SPECIFIC", claims.ApplicationScope)
 }
 
 func TestIssueClientTokenRejectsInvalidSecret(t *testing.T) {
@@ -124,7 +128,7 @@ func TestIssueClientTokenRejectsInvalidSecret(t *testing.T) {
 	manager := clientApplicationTestManager(t)
 	service := NewClientApplicationService(repo, manager, newFakeTxManager(), time.Now)
 	created, err := service.Create(context.Background(), CreateClientApplicationInput{
-		TenantID: uuid.New(), Name: "App", Scopes: []string{"parties:read"},
+		TenantID: ptrUUID(uuid.New()), Name: "App", Scopes: []string{"parties:read"},
 	})
 	require.NoError(t, err)
 
@@ -141,7 +145,7 @@ func TestIssueClientTokenRejectsInactiveApplication(t *testing.T) {
 	hash, err := manager.HashPassword(secret)
 	require.NoError(t, err)
 	app := &domain.ClientApplication{
-		ID: uuid.New(), TenantID: uuid.New(), Name: "App", ClientID: "client",
+		ID: uuid.New(), TenantID: ptrUUID(uuid.New()), Name: "App", ClientID: "client",
 		ClientSecretHash: hash, Scopes: []string{"parties:read"}, IsActive: false,
 	}
 	repo.applications[app.ClientID] = app
@@ -149,4 +153,67 @@ func TestIssueClientTokenRejectsInactiveApplication(t *testing.T) {
 	_, err = service.IssueToken(context.Background(), app.ClientID, secret)
 
 	require.ErrorIs(t, err, auth.ErrInvalidCredentials)
+}
+
+func ptrUUID(id uuid.UUID) *uuid.UUID { return &id }
+
+func TestCreatePlatformFirstPartyApplication(t *testing.T) {
+	repo := newFakeClientApplicationRepo()
+	manager := clientApplicationTestManager(t)
+	service := NewClientApplicationService(repo, manager, newFakeTxManager(), time.Now)
+
+	created, err := service.Create(context.Background(), CreateClientApplicationInput{
+		Name: "Official Flutter", Scopes: []string{"platform:admin", "reports:global"},
+		ClientType: domain.ClientTypeFirstParty, ApplicationScope: domain.ApplicationScopePlatform,
+	})
+
+	require.NoError(t, err)
+	assert.Nil(t, created.Application.TenantID)
+	assert.Equal(t, domain.ClientTypeFirstParty, created.Application.ClientType)
+	assert.Equal(t, domain.ApplicationScopePlatform, created.Application.ApplicationScope)
+
+	token, err := service.IssueToken(context.Background(), created.Application.ClientID, created.ClientSecret)
+	require.NoError(t, err)
+	claims, err := manager.ParseClientToken(token.AccessToken)
+	require.NoError(t, err)
+	assert.Empty(t, claims.TenantID)
+	assert.Equal(t, "FIRST_PARTY", claims.ClientType)
+	assert.Equal(t, "PLATFORM", claims.ApplicationScope)
+}
+
+func TestCreatePlatformRejectsThirdParty(t *testing.T) {
+	service := NewClientApplicationService(newFakeClientApplicationRepo(), clientApplicationTestManager(t),
+		newFakeTxManager(), time.Now)
+
+	_, err := service.Create(context.Background(), CreateClientApplicationInput{
+		Name: "Bad platform", Scopes: []string{"platform:admin"},
+		ClientType: domain.ClientTypeThirdParty, ApplicationScope: domain.ApplicationScopePlatform,
+	})
+
+	require.ErrorIs(t, err, domain.ErrInvalidClientApplication)
+}
+
+func TestCreateTenantSpecificRequiresTenant(t *testing.T) {
+	service := NewClientApplicationService(newFakeClientApplicationRepo(), clientApplicationTestManager(t),
+		newFakeTxManager(), time.Now)
+
+	_, err := service.Create(context.Background(), CreateClientApplicationInput{
+		Name: "No tenant", Scopes: []string{"parties:read"},
+		ClientType: domain.ClientTypeThirdParty, ApplicationScope: domain.ApplicationScopeTenantSpecific,
+	})
+
+	require.ErrorIs(t, err, domain.ErrInvalidClientApplication)
+}
+
+func TestPlatformScopesRejectedForThirdParty(t *testing.T) {
+	tenantID := uuid.New()
+	service := NewClientApplicationService(newFakeClientApplicationRepo(), clientApplicationTestManager(t),
+		newFakeTxManager(), time.Now)
+
+	_, err := service.Create(context.Background(), CreateClientApplicationInput{
+		TenantID: &tenantID, Name: "Third party", Scopes: []string{"platform:admin"},
+		ClientType: domain.ClientTypeThirdParty, ApplicationScope: domain.ApplicationScopeTenantSpecific,
+	})
+
+	require.ErrorIs(t, err, domain.ErrInvalidClientApplication)
 }

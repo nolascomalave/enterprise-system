@@ -46,6 +46,12 @@ func (_u *ClientApplicationUpdate) SetNillableTenantID(v *uuid.UUID) *ClientAppl
 	return _u
 }
 
+// ClearTenantID clears the value of the "tenant_id" field.
+func (_u *ClientApplicationUpdate) ClearTenantID() *ClientApplicationUpdate {
+	_u.mutation.ClearTenantID()
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *ClientApplicationUpdate) SetName(v string) *ClientApplicationUpdate {
 	_u.mutation.SetName(v)
@@ -97,6 +103,34 @@ func (_u *ClientApplicationUpdate) SetScopes(v []string) *ClientApplicationUpdat
 // AppendScopes appends value to the "scopes" field.
 func (_u *ClientApplicationUpdate) AppendScopes(v []string) *ClientApplicationUpdate {
 	_u.mutation.AppendScopes(v)
+	return _u
+}
+
+// SetClientType sets the "client_type" field.
+func (_u *ClientApplicationUpdate) SetClientType(v clientapplication.ClientType) *ClientApplicationUpdate {
+	_u.mutation.SetClientType(v)
+	return _u
+}
+
+// SetNillableClientType sets the "client_type" field if the given value is not nil.
+func (_u *ClientApplicationUpdate) SetNillableClientType(v *clientapplication.ClientType) *ClientApplicationUpdate {
+	if v != nil {
+		_u.SetClientType(*v)
+	}
+	return _u
+}
+
+// SetApplicationScope sets the "application_scope" field.
+func (_u *ClientApplicationUpdate) SetApplicationScope(v clientapplication.ApplicationScope) *ClientApplicationUpdate {
+	_u.mutation.SetApplicationScope(v)
+	return _u
+}
+
+// SetNillableApplicationScope sets the "application_scope" field if the given value is not nil.
+func (_u *ClientApplicationUpdate) SetNillableApplicationScope(v *clientapplication.ApplicationScope) *ClientApplicationUpdate {
+	if v != nil {
+		_u.SetApplicationScope(*v)
+	}
 	return _u
 }
 
@@ -209,8 +243,15 @@ func (_u *ClientApplicationUpdate) check() error {
 			return &ValidationError{Name: "client_secret_hash", err: fmt.Errorf(`ent: validator failed for field "ClientApplication.client_secret_hash": %w`, err)}
 		}
 	}
-	if _u.mutation.TenantCleared() && len(_u.mutation.TenantIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "ClientApplication.tenant"`)
+	if v, ok := _u.mutation.ClientType(); ok {
+		if err := clientapplication.ClientTypeValidator(v); err != nil {
+			return &ValidationError{Name: "client_type", err: fmt.Errorf(`ent: validator failed for field "ClientApplication.client_type": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ApplicationScope(); ok {
+		if err := clientapplication.ApplicationScopeValidator(v); err != nil {
+			return &ValidationError{Name: "application_scope", err: fmt.Errorf(`ent: validator failed for field "ClientApplication.application_scope": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -243,6 +284,12 @@ func (_u *ClientApplicationUpdate) sqlSave(ctx context.Context) (_node int, err 
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, clientapplication.FieldScopes, value)
 		})
+	}
+	if value, ok := _u.mutation.ClientType(); ok {
+		_spec.SetField(clientapplication.FieldClientType, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.ApplicationScope(); ok {
+		_spec.SetField(clientapplication.FieldApplicationScope, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(clientapplication.FieldIsActive, field.TypeBool, value)
@@ -323,6 +370,12 @@ func (_u *ClientApplicationUpdateOne) SetNillableTenantID(v *uuid.UUID) *ClientA
 	return _u
 }
 
+// ClearTenantID clears the value of the "tenant_id" field.
+func (_u *ClientApplicationUpdateOne) ClearTenantID() *ClientApplicationUpdateOne {
+	_u.mutation.ClearTenantID()
+	return _u
+}
+
 // SetName sets the "name" field.
 func (_u *ClientApplicationUpdateOne) SetName(v string) *ClientApplicationUpdateOne {
 	_u.mutation.SetName(v)
@@ -374,6 +427,34 @@ func (_u *ClientApplicationUpdateOne) SetScopes(v []string) *ClientApplicationUp
 // AppendScopes appends value to the "scopes" field.
 func (_u *ClientApplicationUpdateOne) AppendScopes(v []string) *ClientApplicationUpdateOne {
 	_u.mutation.AppendScopes(v)
+	return _u
+}
+
+// SetClientType sets the "client_type" field.
+func (_u *ClientApplicationUpdateOne) SetClientType(v clientapplication.ClientType) *ClientApplicationUpdateOne {
+	_u.mutation.SetClientType(v)
+	return _u
+}
+
+// SetNillableClientType sets the "client_type" field if the given value is not nil.
+func (_u *ClientApplicationUpdateOne) SetNillableClientType(v *clientapplication.ClientType) *ClientApplicationUpdateOne {
+	if v != nil {
+		_u.SetClientType(*v)
+	}
+	return _u
+}
+
+// SetApplicationScope sets the "application_scope" field.
+func (_u *ClientApplicationUpdateOne) SetApplicationScope(v clientapplication.ApplicationScope) *ClientApplicationUpdateOne {
+	_u.mutation.SetApplicationScope(v)
+	return _u
+}
+
+// SetNillableApplicationScope sets the "application_scope" field if the given value is not nil.
+func (_u *ClientApplicationUpdateOne) SetNillableApplicationScope(v *clientapplication.ApplicationScope) *ClientApplicationUpdateOne {
+	if v != nil {
+		_u.SetApplicationScope(*v)
+	}
 	return _u
 }
 
@@ -499,8 +580,15 @@ func (_u *ClientApplicationUpdateOne) check() error {
 			return &ValidationError{Name: "client_secret_hash", err: fmt.Errorf(`ent: validator failed for field "ClientApplication.client_secret_hash": %w`, err)}
 		}
 	}
-	if _u.mutation.TenantCleared() && len(_u.mutation.TenantIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "ClientApplication.tenant"`)
+	if v, ok := _u.mutation.ClientType(); ok {
+		if err := clientapplication.ClientTypeValidator(v); err != nil {
+			return &ValidationError{Name: "client_type", err: fmt.Errorf(`ent: validator failed for field "ClientApplication.client_type": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ApplicationScope(); ok {
+		if err := clientapplication.ApplicationScopeValidator(v); err != nil {
+			return &ValidationError{Name: "application_scope", err: fmt.Errorf(`ent: validator failed for field "ClientApplication.application_scope": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -550,6 +638,12 @@ func (_u *ClientApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Clien
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, clientapplication.FieldScopes, value)
 		})
+	}
+	if value, ok := _u.mutation.ClientType(); ok {
+		_spec.SetField(clientapplication.FieldClientType, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.ApplicationScope(); ok {
+		_spec.SetField(clientapplication.FieldApplicationScope, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.IsActive(); ok {
 		_spec.SetField(clientapplication.FieldIsActive, field.TypeBool, value)

@@ -117,6 +117,16 @@ func TenantIDNotIn(vs ...uuid.UUID) predicate.ClientApplication {
 	return predicate.ClientApplication(sql.FieldNotIn(FieldTenantID, vs...))
 }
 
+// TenantIDIsNil applies the IsNil predicate on the "tenant_id" field.
+func TenantIDIsNil() predicate.ClientApplication {
+	return predicate.ClientApplication(sql.FieldIsNull(FieldTenantID))
+}
+
+// TenantIDNotNil applies the NotNil predicate on the "tenant_id" field.
+func TenantIDNotNil() predicate.ClientApplication {
+	return predicate.ClientApplication(sql.FieldNotNull(FieldTenantID))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.ClientApplication {
 	return predicate.ClientApplication(sql.FieldEQ(FieldName, v))
@@ -310,6 +320,46 @@ func ClientSecretHashEqualFold(v string) predicate.ClientApplication {
 // ClientSecretHashContainsFold applies the ContainsFold predicate on the "client_secret_hash" field.
 func ClientSecretHashContainsFold(v string) predicate.ClientApplication {
 	return predicate.ClientApplication(sql.FieldContainsFold(FieldClientSecretHash, v))
+}
+
+// ClientTypeEQ applies the EQ predicate on the "client_type" field.
+func ClientTypeEQ(v ClientType) predicate.ClientApplication {
+	return predicate.ClientApplication(sql.FieldEQ(FieldClientType, v))
+}
+
+// ClientTypeNEQ applies the NEQ predicate on the "client_type" field.
+func ClientTypeNEQ(v ClientType) predicate.ClientApplication {
+	return predicate.ClientApplication(sql.FieldNEQ(FieldClientType, v))
+}
+
+// ClientTypeIn applies the In predicate on the "client_type" field.
+func ClientTypeIn(vs ...ClientType) predicate.ClientApplication {
+	return predicate.ClientApplication(sql.FieldIn(FieldClientType, vs...))
+}
+
+// ClientTypeNotIn applies the NotIn predicate on the "client_type" field.
+func ClientTypeNotIn(vs ...ClientType) predicate.ClientApplication {
+	return predicate.ClientApplication(sql.FieldNotIn(FieldClientType, vs...))
+}
+
+// ApplicationScopeEQ applies the EQ predicate on the "application_scope" field.
+func ApplicationScopeEQ(v ApplicationScope) predicate.ClientApplication {
+	return predicate.ClientApplication(sql.FieldEQ(FieldApplicationScope, v))
+}
+
+// ApplicationScopeNEQ applies the NEQ predicate on the "application_scope" field.
+func ApplicationScopeNEQ(v ApplicationScope) predicate.ClientApplication {
+	return predicate.ClientApplication(sql.FieldNEQ(FieldApplicationScope, v))
+}
+
+// ApplicationScopeIn applies the In predicate on the "application_scope" field.
+func ApplicationScopeIn(vs ...ApplicationScope) predicate.ClientApplication {
+	return predicate.ClientApplication(sql.FieldIn(FieldApplicationScope, vs...))
+}
+
+// ApplicationScopeNotIn applies the NotIn predicate on the "application_scope" field.
+func ApplicationScopeNotIn(vs ...ApplicationScope) predicate.ClientApplication {
+	return predicate.ClientApplication(sql.FieldNotIn(FieldApplicationScope, vs...))
 }
 
 // IsActiveEQ applies the EQ predicate on the "is_active" field.

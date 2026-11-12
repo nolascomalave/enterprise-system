@@ -146,6 +146,7 @@ func main() {
 		DepartmentMDMUseCase: departmentMDMService,
 		OAuthUseCase:         clientApplicationService,
 		CatalogUseCase:       catalogService,
+		PlatformAdminKey:     os.Getenv("PLATFORM_ADMIN_KEY"),
 		TokenManager:         tokenManager,
 		CookieSecure:         os.Getenv("COOKIE_SECURE") != "false",
 		RefreshTTL:           30 * 24 * time.Hour,
