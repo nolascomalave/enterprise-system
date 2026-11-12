@@ -19,7 +19,7 @@ VALUES
   ('reports:global',    'Reportes globales',        'Permite acceder a reportes de plataforma',      'PLATFORM'),
   ('rbac:admin',        'Administrar RBAC',         'Permite gestionar roles, menús y permisos',     'TENANT'),
   ('rbac:read',         'Leer RBAC',                'Permite consultar roles y permisos propios',    'TENANT')
-ON CONFLICT (code) DO UPDATE SET
+ON CONFLICT (code) WHERE deleted_at IS NULL DO UPDATE SET
   name = EXCLUDED.name,
   description = EXCLUDED.description,
   function_scope = EXCLUDED.function_scope,

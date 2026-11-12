@@ -9,7 +9,7 @@ VALUES
   ('ADMIN_PERSONNEL', 'Administración de Personal', 'FIRST_PARTY', 'TENANT_SPECIFIC'),
   ('PLATFORM_ADMIN',  'Administración de Plataforma', 'FIRST_PARTY', 'PLATFORM'),
   ('THIRD_PARTY_INTEGRATION', 'Integración de Terceros', 'THIRD_PARTY', 'TENANT_SPECIFIC')
-ON CONFLICT (code) DO UPDATE SET
+ON CONFLICT (code) WHERE deleted_at IS NULL DO UPDATE SET
   name = EXCLUDED.name,
   client_type = EXCLUDED.client_type,
   application_scope = EXCLUDED.application_scope,
