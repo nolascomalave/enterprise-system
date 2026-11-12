@@ -10,6 +10,7 @@ type SchemaConfig struct {
 	Address                            string // Address table.
 	AddressValidity                    string // AddressValidity table.
 	AttachedDocument                   string // AttachedDocument table.
+	ClientApplication                  string // ClientApplication table.
 	ContactMechanism                   string // ContactMechanism table.
 	CorporateGroup                     string // CorporateGroup table.
 	Department                         string // Department table.

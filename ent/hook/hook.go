@@ -44,6 +44,18 @@ func (f AttachedDocumentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AttachedDocumentMutation", m)
 }
 
+// The ClientApplicationFunc type is an adapter to allow the use of ordinary
+// function as ClientApplication mutator.
+type ClientApplicationFunc func(context.Context, *ent.ClientApplicationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ClientApplicationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ClientApplicationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ClientApplicationMutation", m)
+}
+
 // The ContactMechanismFunc type is an adapter to allow the use of ordinary
 // function as ContactMechanism mutator.
 type ContactMechanismFunc func(context.Context, *ent.ContactMechanismMutation) (ent.Value, error)

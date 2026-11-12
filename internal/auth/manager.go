@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	TokenTypeAccess = "access"
-	TokenTypeTemp   = "2fa"
+	TokenTypeAccess            = "access"
+	TokenTypeTemp              = "2fa"
+	TokenTypeClientCredentials = "client_credentials"
 )
 
 type Config struct {
@@ -30,6 +31,7 @@ type Config struct {
 	RefreshTTL time.Duration
 	TempTTL    time.Duration
 	ResetTTL   time.Duration
+	ClientTTL  time.Duration
 	BcryptCost int
 	Now        func() time.Time
 }
@@ -41,6 +43,7 @@ type Manager struct {
 	refreshTTL time.Duration
 	tempTTL    time.Duration
 	resetTTL   time.Duration
+	clientTTL  time.Duration
 	bcryptCost int
 	dummyHash  []byte
 	now        func() time.Time
@@ -58,6 +61,14 @@ type TempClaims struct {
 	TenantID  string `json:"tenant_id"`
 	UserID    string `json:"user_id"`
 	TokenType string `json:"typ"`
+	jwt.RegisteredClaims
+}
+
+type ClientClaims struct {
+	TenantID  string   `json:"tenant_id"`
+	ClientID  string   `json:"client_id"`
+	Scopes    []string `json:"scopes"`
+	TokenType string   `json:"typ"`
 	jwt.RegisteredClaims
 }
 
@@ -80,6 +91,9 @@ func NewManager(cfg Config) (*Manager, error) {
 	if cfg.ResetTTL <= 0 {
 		cfg.ResetTTL = time.Hour
 	}
+	if cfg.ClientTTL <= 0 {
+		cfg.ClientTTL = 5 * time.Minute
+	}
 	if cfg.BcryptCost == 0 {
 		cfg.BcryptCost = 12
 	}
@@ -100,6 +114,7 @@ func NewManager(cfg Config) (*Manager, error) {
 		refreshTTL: cfg.RefreshTTL,
 		tempTTL:    cfg.TempTTL,
 		resetTTL:   cfg.ResetTTL,
+		clientTTL:  cfg.ClientTTL,
 		bcryptCost: cfg.BcryptCost,
 		dummyHash:  dummyHash,
 		now:        cfg.Now,
@@ -109,6 +124,7 @@ func NewManager(cfg Config) (*Manager, error) {
 func (m *Manager) AccessTTL() time.Duration  { return m.accessTTL }
 func (m *Manager) RefreshTTL() time.Duration { return m.refreshTTL }
 func (m *Manager) ResetTTL() time.Duration   { return m.resetTTL }
+func (m *Manager) ClientTTL() time.Duration  { return m.clientTTL }
 
 func (m *Manager) IssueAccessToken(tenantID, userID, sessionID uuid.UUID) (string, error) {
 	now := m.now().UTC()
@@ -160,6 +176,70 @@ func (m *Manager) ParseAccessToken(raw string) (*AccessClaims, error) {
 		return nil, ErrInvalidToken
 	}
 	return claims, nil
+}
+
+func (m *Manager) IssueClientToken(tenantID uuid.UUID, clientID string, scopes []string) (string, error) {
+	now := m.now().UTC()
+	claims := ClientClaims{
+		TenantID:  tenantID.String(),
+		ClientID:  clientID,
+		Scopes:    scopes,
+		TokenType: TokenTypeClientCredentials,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    m.issuer,
+			Subject:   clientID,
+			ExpiresAt: jwt.NewNumericDate(now.Add(m.clientTTL)),
+			IssuedAt:  jwt.NewNumericDate(now),
+			NotBefore: jwt.NewNumericDate(now),
+			ID:        uuid.NewString(),
+		},
+	}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(m.secret)
+}
+
+func (m *Manager) ParseClientToken(raw string) (*ClientClaims, error) {
+	claims := &ClientClaims{}
+	token, err := jwt.ParseWithClaims(raw, claims, m.keyFunc,
+		jwt.WithIssuer(m.issuer),
+		jwt.WithExpirationRequired(),
+		jwt.WithTimeFunc(m.now),
+	)
+	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrExpiredToken
+		}
+		return nil, ErrInvalidToken
+	}
+	if !token.Valid || claims.TokenType != TokenTypeClientCredentials ||
+		strings.TrimSpace(claims.ClientID) == "" {
+		return nil, ErrInvalidToken
+	}
+	if _, err := uuid.Parse(claims.TenantID); err != nil {
+		return nil, ErrInvalidToken
+	}
+	return claims, nil
+}
+
+// GenerateClientCredentials creates an opaque client_id and a high-entropy
+// client_secret. The caller must hash the secret before persisting it.
+func GenerateClientCredentials() (clientID, clientSecret string, err error) {
+	clientID, err = randomToken(24)
+	if err != nil {
+		return "", "", fmt.Errorf("generate client_id: %w", err)
+	}
+	clientSecret, err = randomToken(32)
+	if err != nil {
+		return "", "", fmt.Errorf("generate client_secret: %w", err)
+	}
+	return clientID, clientSecret, nil
+}
+
+func randomToken(size int) (string, error) {
+	buffer := make([]byte, size)
+	if _, err := rand.Read(buffer); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(buffer), nil
 }
 
 func (m *Manager) IssueTempToken(tenantID, userID uuid.UUID) (string, error) {

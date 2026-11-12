@@ -147,6 +147,8 @@ Los archivos `docs/docs.go`, `docs/swagger.json` y `docs/swagger.yaml` se versio
 | `POST` | `/api/v1/auth/reset-password` | No | Consume token de reset |
 | `POST` | `/api/v1/auth/change-password` | JWT | Cambia contraseña |
 | `POST` | `/api/v1/onboarding/register` | No | Provisiona tenant + admin |
+| `POST` | `/api/v1/client-applications` | JWT | Crea una app cliente OAuth M2M |
+| `POST` | `/api/v1/oauth/token` | No | Client Credentials: emite JWT M2M |
 | `POST` | `/api/v1/parties` | JWT | Crea party |
 | `GET` | `/api/v1/parties` | JWT | Lista parties |
 | `GET` | `/api/v1/parties/{id}` | JWT | Obtiene party |
@@ -196,6 +198,21 @@ Las direcciones de Parties conservan su historial en
 Los contactos y direcciones de Departments usan el mismo patrón mediante
 `department_contact_mechanism_validities` y
 `department_address_validities`.
+
+## OAuth 2.0 M2M (Client Credentials)
+
+1. Un administrador autenticado crea la app:
+   `POST /api/v1/client-applications` con `name` y `scopes`.
+   La respuesta incluye `client_secret` **una sola vez**; solo se guarda su
+   hash bcrypt en `global.client_applications`.
+2. La app intercambia credenciales:
+   `POST /api/v1/oauth/token` con `client_id` y `client_secret`.
+3. El servidor emite un JWT corto (`client_credentials`) con `tenant_id`,
+   `client_id` y `scopes`.
+4. `TenantMiddleware` acepta ese token, inyecta el tenant y exige el scope de
+   la ruta (`parties:read`, `parties:write`, `identity:write`, `org:read`,
+   `org:write`, `documents:write`, `admin:write`). Una ruta sin scope asignado
+   se rechaza con `403 forbidden`.
 
 ## CORS
 

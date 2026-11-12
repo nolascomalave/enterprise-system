@@ -15,6 +15,9 @@ type AddressValidity func(*sql.Selector)
 // AttachedDocument is the predicate function for attacheddocument builders.
 type AttachedDocument func(*sql.Selector)
 
+// ClientApplication is the predicate function for clientapplication builders.
+type ClientApplication func(*sql.Selector)
+
 // ContactMechanism is the predicate function for contactmechanism builders.
 type ContactMechanism func(*sql.Selector)
 

@@ -20,6 +20,8 @@ type Tx struct {
 	AddressValidity *AddressValidityClient
 	// AttachedDocument is the client for interacting with the AttachedDocument builders.
 	AttachedDocument *AttachedDocumentClient
+	// ClientApplication is the client for interacting with the ClientApplication builders.
+	ClientApplication *ClientApplicationClient
 	// ContactMechanism is the client for interacting with the ContactMechanism builders.
 	ContactMechanism *ContactMechanismClient
 	// CorporateGroup is the client for interacting with the CorporateGroup builders.
@@ -222,6 +224,7 @@ func (tx *Tx) init() {
 	tx.Address = NewAddressClient(tx.config)
 	tx.AddressValidity = NewAddressValidityClient(tx.config)
 	tx.AttachedDocument = NewAttachedDocumentClient(tx.config)
+	tx.ClientApplication = NewClientApplicationClient(tx.config)
 	tx.ContactMechanism = NewContactMechanismClient(tx.config)
 	tx.CorporateGroup = NewCorporateGroupClient(tx.config)
 	tx.Department = NewDepartmentClient(tx.config)

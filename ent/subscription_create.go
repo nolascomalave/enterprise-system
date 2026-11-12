@@ -7,6 +7,7 @@ import (
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
+	"enterprise-system/ent/clientapplication"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/departmentaddress"
@@ -568,6 +569,21 @@ func (_c *SubscriptionCreate) AddDepartmentAddressValidities(v ...*DepartmentAdd
 		ids[i] = v[i].ID
 	}
 	return _c.AddDepartmentAddressValidityIDs(ids...)
+}
+
+// AddClientApplicationIDs adds the "client_applications" edge to the ClientApplication entity by IDs.
+func (_c *SubscriptionCreate) AddClientApplicationIDs(ids ...uuid.UUID) *SubscriptionCreate {
+	_c.mutation.AddClientApplicationIDs(ids...)
+	return _c
+}
+
+// AddClientApplications adds the "client_applications" edges to the ClientApplication entity.
+func (_c *SubscriptionCreate) AddClientApplications(v ...*ClientApplication) *SubscriptionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddClientApplicationIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -1198,6 +1214,23 @@ func (_c *SubscriptionCreate) createSpec() (*Subscription, *sqlgraph.CreateSpec)
 			},
 		}
 		edge.Schema = _c.schemaConfig.DepartmentAddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ClientApplicationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.ClientApplicationsTable,
+			Columns: []string{subscription.ClientApplicationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(clientapplication.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.ClientApplication
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

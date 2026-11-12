@@ -7,6 +7,7 @@ import (
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
+	"enterprise-system/ent/clientapplication"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
@@ -112,6 +113,7 @@ func checkColumn(t, c string) error {
 			address.Table:                            address.ValidColumn,
 			addressvalidity.Table:                    addressvalidity.ValidColumn,
 			attacheddocument.Table:                   attacheddocument.ValidColumn,
+			clientapplication.Table:                  clientapplication.ValidColumn,
 			contactmechanism.Table:                   contactmechanism.ValidColumn,
 			corporategroup.Table:                     corporategroup.ValidColumn,
 			department.Table:                         department.ValidColumn,

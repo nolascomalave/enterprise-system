@@ -130,6 +130,32 @@ definitions:
     - current_password
     - new_password
     type: object
+  enterprise-system_internal_delivery_http_dto.ClientApplicationEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CreatedClientApplicationResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.ClientCredentialsRequest:
+    properties:
+      client_id:
+        type: string
+      client_secret:
+        type: string
+    required:
+    - client_id
+    - client_secret
+    type: object
+  enterprise-system_internal_delivery_http_dto.ClientTokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      scope:
+        type: string
+      token_type:
+        type: string
+    type: object
   enterprise-system_internal_delivery_http_dto.CorporateGroupEnvelope:
     properties:
       data:
@@ -151,6 +177,18 @@ definitions:
         type: string
       updated_at:
         type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.CreateClientApplicationRequest:
+    properties:
+      name:
+        type: string
+      scopes:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    - scopes
     type: object
   enterprise-system_internal_delivery_http_dto.CreateCorporateGroupRequest:
     properties:
@@ -261,6 +299,27 @@ definitions:
       middle_name:
         type: string
       second_last_name:
+        type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.CreatedClientApplicationResponse:
+    properties:
+      client_id:
+        type: string
+      client_secret:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      scopes:
+        items:
+          type: string
+        type: array
+      tenant_id:
         type: string
     type: object
   enterprise-system_internal_delivery_http_dto.DepartmentAddressEnvelope:
@@ -1028,6 +1087,43 @@ paths:
       summary: Reset a password with a one-time token
       tags:
       - Account
+  /client-applications:
+    post:
+      consumes:
+      - application/json
+      description: Creates an OAuth2 M2M client. The client_secret is returned only
+        once.
+      parameters:
+      - description: Client application data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CreateClientApplicationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ClientApplicationEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a client application
+      tags:
+      - OAuth
   /corporate-groups:
     post:
       consumes:
@@ -1537,6 +1633,37 @@ paths:
       summary: List locations
       tags:
       - Locations
+  /oauth/token:
+    post:
+      consumes:
+      - application/json
+      description: Exchanges client_id/client_secret for a short-lived JWT with tenant_id,
+        client_id and scopes.
+      parameters:
+      - description: Client credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ClientCredentialsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ClientTokenResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      summary: OAuth2 client credentials token
+      tags:
+      - OAuth
   /onboarding/register:
     post:
       consumes:

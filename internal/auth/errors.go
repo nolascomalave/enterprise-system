@@ -19,4 +19,5 @@ var (
 	// ErrConcurrentModification means another request changed the same record
 	// between the read and the conditional write.
 	ErrConcurrentModification = errors.New("record modified concurrently")
+	ErrInsufficientScope      = errors.New("insufficient scope")
 )

@@ -6,6 +6,7 @@ import (
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
+	"enterprise-system/ent/clientapplication"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
@@ -146,6 +147,38 @@ func init() {
 	attacheddocumentDescID := attacheddocumentFields[0].Descriptor()
 	// attacheddocument.DefaultID holds the default value on creation for the id field.
 	attacheddocument.DefaultID = attacheddocumentDescID.Default.(func() uuid.UUID)
+	clientapplicationFields := schema.ClientApplication{}.Fields()
+	_ = clientapplicationFields
+	// clientapplicationDescName is the schema descriptor for name field.
+	clientapplicationDescName := clientapplicationFields[2].Descriptor()
+	// clientapplication.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	clientapplication.NameValidator = clientapplicationDescName.Validators[0].(func(string) error)
+	// clientapplicationDescClientID is the schema descriptor for client_id field.
+	clientapplicationDescClientID := clientapplicationFields[3].Descriptor()
+	// clientapplication.ClientIDValidator is a validator for the "client_id" field. It is called by the builders before save.
+	clientapplication.ClientIDValidator = clientapplicationDescClientID.Validators[0].(func(string) error)
+	// clientapplicationDescClientSecretHash is the schema descriptor for client_secret_hash field.
+	clientapplicationDescClientSecretHash := clientapplicationFields[4].Descriptor()
+	// clientapplication.ClientSecretHashValidator is a validator for the "client_secret_hash" field. It is called by the builders before save.
+	clientapplication.ClientSecretHashValidator = clientapplicationDescClientSecretHash.Validators[0].(func(string) error)
+	// clientapplicationDescIsActive is the schema descriptor for is_active field.
+	clientapplicationDescIsActive := clientapplicationFields[6].Descriptor()
+	// clientapplication.DefaultIsActive holds the default value on creation for the is_active field.
+	clientapplication.DefaultIsActive = clientapplicationDescIsActive.Default.(bool)
+	// clientapplicationDescCreatedAt is the schema descriptor for created_at field.
+	clientapplicationDescCreatedAt := clientapplicationFields[7].Descriptor()
+	// clientapplication.DefaultCreatedAt holds the default value on creation for the created_at field.
+	clientapplication.DefaultCreatedAt = clientapplicationDescCreatedAt.Default.(func() time.Time)
+	// clientapplicationDescUpdatedAt is the schema descriptor for updated_at field.
+	clientapplicationDescUpdatedAt := clientapplicationFields[8].Descriptor()
+	// clientapplication.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	clientapplication.DefaultUpdatedAt = clientapplicationDescUpdatedAt.Default.(func() time.Time)
+	// clientapplication.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	clientapplication.UpdateDefaultUpdatedAt = clientapplicationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// clientapplicationDescID is the schema descriptor for id field.
+	clientapplicationDescID := clientapplicationFields[0].Descriptor()
+	// clientapplication.DefaultID holds the default value on creation for the id field.
+	clientapplication.DefaultID = clientapplicationDescID.Default.(func() uuid.UUID)
 	contactmechanismFields := schema.ContactMechanism{}.Fields()
 	_ = contactmechanismFields
 	// contactmechanismDescValue is the schema descriptor for value field.

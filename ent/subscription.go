@@ -97,9 +97,11 @@ type SubscriptionEdges struct {
 	DepartmentAddresses []*DepartmentAddress `json:"department_addresses,omitempty"`
 	// DepartmentAddressValidities holds the value of the department_address_validities edge.
 	DepartmentAddressValidities []*DepartmentAddressValidity `json:"department_address_validities,omitempty"`
+	// ClientApplications holds the value of the client_applications edge.
+	ClientApplications []*ClientApplication `json:"client_applications,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [29]bool
+	loadedTypes [30]bool
 }
 
 // PartiesOrErr returns the Parties value or an error if the edge
@@ -363,6 +365,15 @@ func (e SubscriptionEdges) DepartmentAddressValiditiesOrErr() ([]*DepartmentAddr
 	return nil, &NotLoadedError{edge: "department_address_validities"}
 }
 
+// ClientApplicationsOrErr returns the ClientApplications value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) ClientApplicationsOrErr() ([]*ClientApplication, error) {
+	if e.loadedTypes[29] {
+		return e.ClientApplications, nil
+	}
+	return nil, &NotLoadedError{edge: "client_applications"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Subscription) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -588,6 +599,11 @@ func (_m *Subscription) QueryDepartmentAddresses() *DepartmentAddressQuery {
 // QueryDepartmentAddressValidities queries the "department_address_validities" edge of the Subscription entity.
 func (_m *Subscription) QueryDepartmentAddressValidities() *DepartmentAddressValidityQuery {
 	return NewSubscriptionClient(_m.config).QueryDepartmentAddressValidities(_m)
+}
+
+// QueryClientApplications queries the "client_applications" edge of the Subscription entity.
+func (_m *Subscription) QueryClientApplications() *ClientApplicationQuery {
+	return NewSubscriptionClient(_m.config).QueryClientApplications(_m)
 }
 
 // Update returns a builder for updating this Subscription.

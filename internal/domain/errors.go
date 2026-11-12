@@ -59,4 +59,6 @@ var (
 	ErrInvalidDepartmentAddress      = errors.New("invalid department address")
 	ErrDepartmentContactNotFound     = errors.New("department contact not found")
 	ErrDepartmentAddressNotFound     = errors.New("department address not found")
+	ErrInvalidClientApplication      = errors.New("invalid client application")
+	ErrClientApplicationNotFound     = errors.New("client application not found")
 )

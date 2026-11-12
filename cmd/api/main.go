@@ -118,6 +118,9 @@ func main() {
 	departmentMDMService := usecase.NewDepartmentMDMService(
 		repository.NewDepartmentMDMRepository(client), txManager, time.Now,
 	)
+	clientApplicationService := usecase.NewClientApplicationService(
+		repository.NewClientApplicationRepository(client), tokenManager, txManager, time.Now,
+	)
 
 	allowedOrigins := splitCSV(os.Getenv("CORS_ALLOWED_ORIGINS"))
 	if len(allowedOrigins) == 0 {
@@ -136,6 +139,7 @@ func main() {
 		LocationUseCase:      locationService,
 		IdentityUseCase:      identityService,
 		DepartmentMDMUseCase: departmentMDMService,
+		OAuthUseCase:         clientApplicationService,
 		TokenManager:         tokenManager,
 		CookieSecure:         os.Getenv("COOKIE_SECURE") != "false",
 		RefreshTTL:           30 * 24 * time.Hour,
