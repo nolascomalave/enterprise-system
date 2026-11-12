@@ -22,4 +22,8 @@ type PartyContactRepository interface {
 	GetAddress(ctx context.Context, id uuid.UUID) (*Address, error)
 	ListAddresses(ctx context.Context, partyID uuid.UUID) ([]*Address, error)
 	UpdateAddress(ctx context.Context, address *Address) error
+	GetOpenAddressValidity(ctx context.Context, tenantID, addressID uuid.UUID) (*AddressValidity, error)
+	GetOpenPrimaryAddressValidity(ctx context.Context, tenantID, partyID uuid.UUID, addressType AddressType) (*AddressValidity, error)
+	CreateAddressValidity(ctx context.Context, validity *AddressValidity) error
+	CloseAddressValidity(ctx context.Context, tenantID, validityID uuid.UUID, at time.Time) error
 }

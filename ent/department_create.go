@@ -5,6 +5,10 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentaddress"
+	"enterprise-system/ent/departmentaddressvalidity"
+	"enterprise-system/ent/departmentcontactmechanism"
+	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -245,6 +249,66 @@ func (_c *DepartmentCreate) AddGroupAssignments(v ...*DepartmentGroupAssignment)
 		ids[i] = v[i].ID
 	}
 	return _c.AddGroupAssignmentIDs(ids...)
+}
+
+// AddContactMechanismIDs adds the "contact_mechanisms" edge to the DepartmentContactMechanism entity by IDs.
+func (_c *DepartmentCreate) AddContactMechanismIDs(ids ...uuid.UUID) *DepartmentCreate {
+	_c.mutation.AddContactMechanismIDs(ids...)
+	return _c
+}
+
+// AddContactMechanisms adds the "contact_mechanisms" edges to the DepartmentContactMechanism entity.
+func (_c *DepartmentCreate) AddContactMechanisms(v ...*DepartmentContactMechanism) *DepartmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddContactMechanismIDs(ids...)
+}
+
+// AddContactMechanismValidityIDs adds the "contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity by IDs.
+func (_c *DepartmentCreate) AddContactMechanismValidityIDs(ids ...uuid.UUID) *DepartmentCreate {
+	_c.mutation.AddContactMechanismValidityIDs(ids...)
+	return _c
+}
+
+// AddContactMechanismValidities adds the "contact_mechanism_validities" edges to the DepartmentContactMechanismValidity entity.
+func (_c *DepartmentCreate) AddContactMechanismValidities(v ...*DepartmentContactMechanismValidity) *DepartmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddContactMechanismValidityIDs(ids...)
+}
+
+// AddAddressIDs adds the "addresses" edge to the DepartmentAddress entity by IDs.
+func (_c *DepartmentCreate) AddAddressIDs(ids ...uuid.UUID) *DepartmentCreate {
+	_c.mutation.AddAddressIDs(ids...)
+	return _c
+}
+
+// AddAddresses adds the "addresses" edges to the DepartmentAddress entity.
+func (_c *DepartmentCreate) AddAddresses(v ...*DepartmentAddress) *DepartmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAddressIDs(ids...)
+}
+
+// AddAddressValidityIDs adds the "address_validities" edge to the DepartmentAddressValidity entity by IDs.
+func (_c *DepartmentCreate) AddAddressValidityIDs(ids ...uuid.UUID) *DepartmentCreate {
+	_c.mutation.AddAddressValidityIDs(ids...)
+	return _c
+}
+
+// AddAddressValidities adds the "address_validities" edges to the DepartmentAddressValidity entity.
+func (_c *DepartmentCreate) AddAddressValidities(v ...*DepartmentAddressValidity) *DepartmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAddressValidityIDs(ids...)
 }
 
 // Mutation returns the DepartmentMutation object of the builder.
@@ -510,6 +574,74 @@ func (_c *DepartmentCreate) createSpec() (*Department, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.DepartmentGroupAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ContactMechanismsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.ContactMechanismsTable,
+			Columns: []string{department.ContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ContactMechanismValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.ContactMechanismValiditiesTable,
+			Columns: []string{department.ContactMechanismValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentContactMechanismValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AddressesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.AddressesTable,
+			Columns: []string{department.AddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentAddress
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AddressValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.AddressValiditiesTable,
+			Columns: []string{department.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentAddressValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

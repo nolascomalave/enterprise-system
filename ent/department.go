@@ -60,9 +60,17 @@ type DepartmentEdges struct {
 	Assignments []*EmployeeAssignment `json:"assignments,omitempty"`
 	// GroupAssignments holds the value of the group_assignments edge.
 	GroupAssignments []*DepartmentGroupAssignment `json:"group_assignments,omitempty"`
+	// ContactMechanisms holds the value of the contact_mechanisms edge.
+	ContactMechanisms []*DepartmentContactMechanism `json:"contact_mechanisms,omitempty"`
+	// ContactMechanismValidities holds the value of the contact_mechanism_validities edge.
+	ContactMechanismValidities []*DepartmentContactMechanismValidity `json:"contact_mechanism_validities,omitempty"`
+	// Addresses holds the value of the addresses edge.
+	Addresses []*DepartmentAddress `json:"addresses,omitempty"`
+	// AddressValidities holds the value of the address_validities edge.
+	AddressValidities []*DepartmentAddressValidity `json:"address_validities,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [11]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -132,6 +140,42 @@ func (e DepartmentEdges) GroupAssignmentsOrErr() ([]*DepartmentGroupAssignment, 
 		return e.GroupAssignments, nil
 	}
 	return nil, &NotLoadedError{edge: "group_assignments"}
+}
+
+// ContactMechanismsOrErr returns the ContactMechanisms value or an error if the edge
+// was not loaded in eager-loading.
+func (e DepartmentEdges) ContactMechanismsOrErr() ([]*DepartmentContactMechanism, error) {
+	if e.loadedTypes[7] {
+		return e.ContactMechanisms, nil
+	}
+	return nil, &NotLoadedError{edge: "contact_mechanisms"}
+}
+
+// ContactMechanismValiditiesOrErr returns the ContactMechanismValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e DepartmentEdges) ContactMechanismValiditiesOrErr() ([]*DepartmentContactMechanismValidity, error) {
+	if e.loadedTypes[8] {
+		return e.ContactMechanismValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "contact_mechanism_validities"}
+}
+
+// AddressesOrErr returns the Addresses value or an error if the edge
+// was not loaded in eager-loading.
+func (e DepartmentEdges) AddressesOrErr() ([]*DepartmentAddress, error) {
+	if e.loadedTypes[9] {
+		return e.Addresses, nil
+	}
+	return nil, &NotLoadedError{edge: "addresses"}
+}
+
+// AddressValiditiesOrErr returns the AddressValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e DepartmentEdges) AddressValiditiesOrErr() ([]*DepartmentAddressValidity, error) {
+	if e.loadedTypes[10] {
+		return e.AddressValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "address_validities"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -271,6 +315,26 @@ func (_m *Department) QueryAssignments() *EmployeeAssignmentQuery {
 // QueryGroupAssignments queries the "group_assignments" edge of the Department entity.
 func (_m *Department) QueryGroupAssignments() *DepartmentGroupAssignmentQuery {
 	return NewDepartmentClient(_m.config).QueryGroupAssignments(_m)
+}
+
+// QueryContactMechanisms queries the "contact_mechanisms" edge of the Department entity.
+func (_m *Department) QueryContactMechanisms() *DepartmentContactMechanismQuery {
+	return NewDepartmentClient(_m.config).QueryContactMechanisms(_m)
+}
+
+// QueryContactMechanismValidities queries the "contact_mechanism_validities" edge of the Department entity.
+func (_m *Department) QueryContactMechanismValidities() *DepartmentContactMechanismValidityQuery {
+	return NewDepartmentClient(_m.config).QueryContactMechanismValidities(_m)
+}
+
+// QueryAddresses queries the "addresses" edge of the Department entity.
+func (_m *Department) QueryAddresses() *DepartmentAddressQuery {
+	return NewDepartmentClient(_m.config).QueryAddresses(_m)
+}
+
+// QueryAddressValidities queries the "address_validities" edge of the Department entity.
+func (_m *Department) QueryAddressValidities() *DepartmentAddressValidityQuery {
+	return NewDepartmentClient(_m.config).QueryAddressValidities(_m)
 }
 
 // Update returns a builder for updating this Department.

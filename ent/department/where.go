@@ -660,6 +660,122 @@ func HasGroupAssignmentsWith(preds ...predicate.DepartmentGroupAssignment) predi
 	})
 }
 
+// HasContactMechanisms applies the HasEdge predicate on the "contact_mechanisms" edge.
+func HasContactMechanisms() predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ContactMechanismsTable, ContactMechanismsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasContactMechanismsWith applies the HasEdge predicate on the "contact_mechanisms" edge with a given conditions (other predicates).
+func HasContactMechanismsWith(preds ...predicate.DepartmentContactMechanism) predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := newContactMechanismsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasContactMechanismValidities applies the HasEdge predicate on the "contact_mechanism_validities" edge.
+func HasContactMechanismValidities() predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ContactMechanismValiditiesTable, ContactMechanismValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentContactMechanismValidity
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasContactMechanismValiditiesWith applies the HasEdge predicate on the "contact_mechanism_validities" edge with a given conditions (other predicates).
+func HasContactMechanismValiditiesWith(preds ...predicate.DepartmentContactMechanismValidity) predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := newContactMechanismValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentContactMechanismValidity
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAddresses applies the HasEdge predicate on the "addresses" edge.
+func HasAddresses() predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AddressesTable, AddressesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAddressesWith applies the HasEdge predicate on the "addresses" edge with a given conditions (other predicates).
+func HasAddressesWith(preds ...predicate.DepartmentAddress) predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := newAddressesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAddressValidities applies the HasEdge predicate on the "address_validities" edge.
+func HasAddressValidities() predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AddressValiditiesTable, AddressValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentAddressValidity
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAddressValiditiesWith applies the HasEdge predicate on the "address_validities" edge with a given conditions (other predicates).
+func HasAddressValiditiesWith(preds ...predicate.DepartmentAddressValidity) predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := newAddressValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentAddressValidity
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Department) predicate.Department {
 	return predicate.Department(sql.AndPredicates(predicates...))

@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
@@ -294,6 +295,21 @@ func (_u *PartyUpdate) AddIdentityDocumentValidities(v ...*PartyIdentityDocument
 		ids[i] = v[i].ID
 	}
 	return _u.AddIdentityDocumentValidityIDs(ids...)
+}
+
+// AddAddressValidityIDs adds the "address_validities" edge to the AddressValidity entity by IDs.
+func (_u *PartyUpdate) AddAddressValidityIDs(ids ...uuid.UUID) *PartyUpdate {
+	_u.mutation.AddAddressValidityIDs(ids...)
+	return _u
+}
+
+// AddAddressValidities adds the "address_validities" edges to the AddressValidity entity.
+func (_u *PartyUpdate) AddAddressValidities(v ...*AddressValidity) *PartyUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAddressValidityIDs(ids...)
 }
 
 // AddAddressIDs adds the "addresses" edge to the Address entity by IDs.
@@ -623,6 +639,27 @@ func (_u *PartyUpdate) RemoveIdentityDocumentValidities(v ...*PartyIdentityDocum
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveIdentityDocumentValidityIDs(ids...)
+}
+
+// ClearAddressValidities clears all "address_validities" edges to the AddressValidity entity.
+func (_u *PartyUpdate) ClearAddressValidities() *PartyUpdate {
+	_u.mutation.ClearAddressValidities()
+	return _u
+}
+
+// RemoveAddressValidityIDs removes the "address_validities" edge to AddressValidity entities by IDs.
+func (_u *PartyUpdate) RemoveAddressValidityIDs(ids ...uuid.UUID) *PartyUpdate {
+	_u.mutation.RemoveAddressValidityIDs(ids...)
+	return _u
+}
+
+// RemoveAddressValidities removes "address_validities" edges to AddressValidity entities.
+func (_u *PartyUpdate) RemoveAddressValidities(v ...*AddressValidity) *PartyUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAddressValidityIDs(ids...)
 }
 
 // ClearAddresses clears all "addresses" edges to the Address entity.
@@ -1339,6 +1376,54 @@ func (_u *PartyUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			},
 		}
 		edge.Schema = _u.schemaConfig.PartyIdentityDocumentValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.AddressValiditiesTable,
+			Columns: []string{party.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAddressValiditiesIDs(); len(nodes) > 0 && !_u.mutation.AddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.AddressValiditiesTable,
+			Columns: []string{party.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AddressValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.AddressValiditiesTable,
+			Columns: []string{party.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -2110,6 +2195,21 @@ func (_u *PartyUpdateOne) AddIdentityDocumentValidities(v ...*PartyIdentityDocum
 	return _u.AddIdentityDocumentValidityIDs(ids...)
 }
 
+// AddAddressValidityIDs adds the "address_validities" edge to the AddressValidity entity by IDs.
+func (_u *PartyUpdateOne) AddAddressValidityIDs(ids ...uuid.UUID) *PartyUpdateOne {
+	_u.mutation.AddAddressValidityIDs(ids...)
+	return _u
+}
+
+// AddAddressValidities adds the "address_validities" edges to the AddressValidity entity.
+func (_u *PartyUpdateOne) AddAddressValidities(v ...*AddressValidity) *PartyUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAddressValidityIDs(ids...)
+}
+
 // AddAddressIDs adds the "addresses" edge to the Address entity by IDs.
 func (_u *PartyUpdateOne) AddAddressIDs(ids ...uuid.UUID) *PartyUpdateOne {
 	_u.mutation.AddAddressIDs(ids...)
@@ -2437,6 +2537,27 @@ func (_u *PartyUpdateOne) RemoveIdentityDocumentValidities(v ...*PartyIdentityDo
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveIdentityDocumentValidityIDs(ids...)
+}
+
+// ClearAddressValidities clears all "address_validities" edges to the AddressValidity entity.
+func (_u *PartyUpdateOne) ClearAddressValidities() *PartyUpdateOne {
+	_u.mutation.ClearAddressValidities()
+	return _u
+}
+
+// RemoveAddressValidityIDs removes the "address_validities" edge to AddressValidity entities by IDs.
+func (_u *PartyUpdateOne) RemoveAddressValidityIDs(ids ...uuid.UUID) *PartyUpdateOne {
+	_u.mutation.RemoveAddressValidityIDs(ids...)
+	return _u
+}
+
+// RemoveAddressValidities removes "address_validities" edges to AddressValidity entities.
+func (_u *PartyUpdateOne) RemoveAddressValidities(v ...*AddressValidity) *PartyUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAddressValidityIDs(ids...)
 }
 
 // ClearAddresses clears all "addresses" edges to the Address entity.
@@ -3183,6 +3304,54 @@ func (_u *PartyUpdateOne) sqlSave(ctx context.Context) (_node *Party, err error)
 			},
 		}
 		edge.Schema = _u.schemaConfig.PartyIdentityDocumentValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.AddressValiditiesTable,
+			Columns: []string{party.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAddressValiditiesIDs(); len(nodes) > 0 && !_u.mutation.AddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.AddressValiditiesTable,
+			Columns: []string{party.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AddressValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.AddressValiditiesTable,
+			Columns: []string{party.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

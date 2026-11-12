@@ -21,6 +21,8 @@ const (
 	FieldValue = "value"
 	// EdgePartyContactMechanisms holds the string denoting the party_contact_mechanisms edge name in mutations.
 	EdgePartyContactMechanisms = "party_contact_mechanisms"
+	// EdgeDepartmentContactMechanisms holds the string denoting the department_contact_mechanisms edge name in mutations.
+	EdgeDepartmentContactMechanisms = "department_contact_mechanisms"
 	// Table holds the table name of the contactmechanism in the database.
 	Table = "contact_mechanisms"
 	// PartyContactMechanismsTable is the table that holds the party_contact_mechanisms relation/edge.
@@ -30,6 +32,13 @@ const (
 	PartyContactMechanismsInverseTable = "party_contact_mechanisms"
 	// PartyContactMechanismsColumn is the table column denoting the party_contact_mechanisms relation/edge.
 	PartyContactMechanismsColumn = "contact_mechanism_id"
+	// DepartmentContactMechanismsTable is the table that holds the department_contact_mechanisms relation/edge.
+	DepartmentContactMechanismsTable = "department_contact_mechanisms"
+	// DepartmentContactMechanismsInverseTable is the table name for the DepartmentContactMechanism entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentcontactmechanism" package.
+	DepartmentContactMechanismsInverseTable = "department_contact_mechanisms"
+	// DepartmentContactMechanismsColumn is the table column denoting the department_contact_mechanisms relation/edge.
+	DepartmentContactMechanismsColumn = "contact_mechanism_id"
 )
 
 // Columns holds all SQL columns for contactmechanism fields.
@@ -113,10 +122,31 @@ func ByPartyContactMechanisms(term sql.OrderTerm, terms ...sql.OrderTerm) OrderO
 		sqlgraph.OrderByNeighborTerms(s, newPartyContactMechanismsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByDepartmentContactMechanismsCount orders the results by department_contact_mechanisms count.
+func ByDepartmentContactMechanismsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentContactMechanismsStep(), opts...)
+	}
+}
+
+// ByDepartmentContactMechanisms orders the results by department_contact_mechanisms terms.
+func ByDepartmentContactMechanisms(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentContactMechanismsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPartyContactMechanismsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartyContactMechanismsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PartyContactMechanismsTable, PartyContactMechanismsColumn),
+	)
+}
+func newDepartmentContactMechanismsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentContactMechanismsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentContactMechanismsTable, DepartmentContactMechanismsColumn),
 	)
 }

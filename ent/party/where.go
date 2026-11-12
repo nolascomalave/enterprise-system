@@ -662,6 +662,35 @@ func HasIdentityDocumentValiditiesWith(preds ...predicate.PartyIdentityDocumentV
 	})
 }
 
+// HasAddressValidities applies the HasEdge predicate on the "address_validities" edge.
+func HasAddressValidities() predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AddressValiditiesTable, AddressValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAddressValiditiesWith applies the HasEdge predicate on the "address_validities" edge with a given conditions (other predicates).
+func HasAddressValiditiesWith(preds ...predicate.AddressValidity) predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := newAddressValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasAddresses applies the HasEdge predicate on the "addresses" edge.
 func HasAddresses() predicate.Party {
 	return predicate.Party(func(s *sql.Selector) {

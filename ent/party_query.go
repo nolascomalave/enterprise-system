@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
@@ -51,6 +52,7 @@ type PartyQuery struct {
 	withNationalities                   *PartyNationalityQuery
 	withIdentityDocuments               *PartyIdentityDocumentQuery
 	withIdentityDocumentValidities      *PartyIdentityDocumentValidityQuery
+	withAddressValidities               *AddressValidityQuery
 	withAddresses                       *AddressQuery
 	withSessions                        *SessionQuery
 	withCredentials                     *UserCredentialsQuery
@@ -342,6 +344,31 @@ func (_q *PartyQuery) QueryIdentityDocumentValidities() *PartyIdentityDocumentVa
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.PartyIdentityDocumentValidity
 		step.Edge.Schema = schemaConfig.PartyIdentityDocumentValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAddressValidities chains the current query on the "address_validities" edge.
+func (_q *PartyQuery) QueryAddressValidities() *AddressValidityQuery {
+	query := (&AddressValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(party.Table, party.FieldID, selector),
+			sqlgraph.To(addressvalidity.Table, addressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, party.AddressValiditiesTable, party.AddressValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -825,6 +852,7 @@ func (_q *PartyQuery) Clone() *PartyQuery {
 		withNationalities:                   _q.withNationalities.Clone(),
 		withIdentityDocuments:               _q.withIdentityDocuments.Clone(),
 		withIdentityDocumentValidities:      _q.withIdentityDocumentValidities.Clone(),
+		withAddressValidities:               _q.withAddressValidities.Clone(),
 		withAddresses:                       _q.withAddresses.Clone(),
 		withSessions:                        _q.withSessions.Clone(),
 		withCredentials:                     _q.withCredentials.Clone(),
@@ -949,6 +977,17 @@ func (_q *PartyQuery) WithIdentityDocumentValidities(opts ...func(*PartyIdentity
 		opt(query)
 	}
 	_q.withIdentityDocumentValidities = query
+	return _q
+}
+
+// WithAddressValidities tells the query-builder to eager-load the nodes that are connected to
+// the "address_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartyQuery) WithAddressValidities(opts ...func(*AddressValidityQuery)) *PartyQuery {
+	query := (&AddressValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAddressValidities = query
 	return _q
 }
 
@@ -1151,7 +1190,7 @@ func (_q *PartyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Party,
 	var (
 		nodes       = []*Party{}
 		_spec       = _q.querySpec()
-		loadedTypes = [21]bool{
+		loadedTypes = [22]bool{
 			_q.withTenant != nil,
 			_q.withPersonProfile != nil,
 			_q.withOrganizationProfile != nil,
@@ -1162,6 +1201,7 @@ func (_q *PartyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Party,
 			_q.withNationalities != nil,
 			_q.withIdentityDocuments != nil,
 			_q.withIdentityDocumentValidities != nil,
+			_q.withAddressValidities != nil,
 			_q.withAddresses != nil,
 			_q.withSessions != nil,
 			_q.withCredentials != nil,
@@ -1265,6 +1305,13 @@ func (_q *PartyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Party,
 			func(n *Party, e *PartyIdentityDocumentValidity) {
 				n.Edges.IdentityDocumentValidities = append(n.Edges.IdentityDocumentValidities, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAddressValidities; query != nil {
+		if err := _q.loadAddressValidities(ctx, query, nodes,
+			func(n *Party) { n.Edges.AddressValidities = []*AddressValidity{} },
+			func(n *Party, e *AddressValidity) { n.Edges.AddressValidities = append(n.Edges.AddressValidities, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1632,6 +1679,36 @@ func (_q *PartyQuery) loadIdentityDocumentValidities(ctx context.Context, query 
 	}
 	query.Where(predicate.PartyIdentityDocumentValidity(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(party.IdentityDocumentValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartyID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "party_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartyQuery) loadAddressValidities(ctx context.Context, query *AddressValidityQuery, nodes []*Party, init func(*Party), assign func(*Party, *AddressValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Party)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(addressvalidity.FieldPartyID)
+	}
+	query.Where(predicate.AddressValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(party.AddressValiditiesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
@@ -288,6 +289,21 @@ func (_c *PartyCreate) AddIdentityDocumentValidities(v ...*PartyIdentityDocument
 		ids[i] = v[i].ID
 	}
 	return _c.AddIdentityDocumentValidityIDs(ids...)
+}
+
+// AddAddressValidityIDs adds the "address_validities" edge to the AddressValidity entity by IDs.
+func (_c *PartyCreate) AddAddressValidityIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddAddressValidityIDs(ids...)
+	return _c
+}
+
+// AddAddressValidities adds the "address_validities" edges to the AddressValidity entity.
+func (_c *PartyCreate) AddAddressValidities(v ...*AddressValidity) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAddressValidityIDs(ids...)
 }
 
 // AddAddressIDs adds the "addresses" edge to the Address entity by IDs.
@@ -761,6 +777,23 @@ func (_c *PartyCreate) createSpec() (*Party, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.PartyIdentityDocumentValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AddressValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.AddressValiditiesTable,
+			Columns: []string{party.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.AddressValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

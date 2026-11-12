@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/departmentaddress"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
@@ -220,6 +221,21 @@ func (_u *LocationUpdate) AddIdentityDocuments(v ...*PartyIdentityDocument) *Loc
 	return _u.AddIdentityDocumentIDs(ids...)
 }
 
+// AddDepartmentAddressIDs adds the "department_addresses" edge to the DepartmentAddress entity by IDs.
+func (_u *LocationUpdate) AddDepartmentAddressIDs(ids ...uuid.UUID) *LocationUpdate {
+	_u.mutation.AddDepartmentAddressIDs(ids...)
+	return _u
+}
+
+// AddDepartmentAddresses adds the "department_addresses" edges to the DepartmentAddress entity.
+func (_u *LocationUpdate) AddDepartmentAddresses(v ...*DepartmentAddress) *LocationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentAddressIDs(ids...)
+}
+
 // Mutation returns the LocationMutation object of the builder.
 func (_u *LocationUpdate) Mutation() *LocationMutation {
 	return _u.mutation
@@ -313,6 +329,27 @@ func (_u *LocationUpdate) RemoveIdentityDocuments(v ...*PartyIdentityDocument) *
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveIdentityDocumentIDs(ids...)
+}
+
+// ClearDepartmentAddresses clears all "department_addresses" edges to the DepartmentAddress entity.
+func (_u *LocationUpdate) ClearDepartmentAddresses() *LocationUpdate {
+	_u.mutation.ClearDepartmentAddresses()
+	return _u
+}
+
+// RemoveDepartmentAddressIDs removes the "department_addresses" edge to DepartmentAddress entities by IDs.
+func (_u *LocationUpdate) RemoveDepartmentAddressIDs(ids ...uuid.UUID) *LocationUpdate {
+	_u.mutation.RemoveDepartmentAddressIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentAddresses removes "department_addresses" edges to DepartmentAddress entities.
+func (_u *LocationUpdate) RemoveDepartmentAddresses(v ...*DepartmentAddress) *LocationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentAddressIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -638,6 +675,54 @@ func (_u *LocationUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.DepartmentAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.DepartmentAddressesTable,
+			Columns: []string{location.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentAddressesIDs(); len(nodes) > 0 && !_u.mutation.DepartmentAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.DepartmentAddressesTable,
+			Columns: []string{location.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentAddressesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.DepartmentAddressesTable,
+			Columns: []string{location.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Location
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -847,6 +932,21 @@ func (_u *LocationUpdateOne) AddIdentityDocuments(v ...*PartyIdentityDocument) *
 	return _u.AddIdentityDocumentIDs(ids...)
 }
 
+// AddDepartmentAddressIDs adds the "department_addresses" edge to the DepartmentAddress entity by IDs.
+func (_u *LocationUpdateOne) AddDepartmentAddressIDs(ids ...uuid.UUID) *LocationUpdateOne {
+	_u.mutation.AddDepartmentAddressIDs(ids...)
+	return _u
+}
+
+// AddDepartmentAddresses adds the "department_addresses" edges to the DepartmentAddress entity.
+func (_u *LocationUpdateOne) AddDepartmentAddresses(v ...*DepartmentAddress) *LocationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentAddressIDs(ids...)
+}
+
 // Mutation returns the LocationMutation object of the builder.
 func (_u *LocationUpdateOne) Mutation() *LocationMutation {
 	return _u.mutation
@@ -940,6 +1040,27 @@ func (_u *LocationUpdateOne) RemoveIdentityDocuments(v ...*PartyIdentityDocument
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveIdentityDocumentIDs(ids...)
+}
+
+// ClearDepartmentAddresses clears all "department_addresses" edges to the DepartmentAddress entity.
+func (_u *LocationUpdateOne) ClearDepartmentAddresses() *LocationUpdateOne {
+	_u.mutation.ClearDepartmentAddresses()
+	return _u
+}
+
+// RemoveDepartmentAddressIDs removes the "department_addresses" edge to DepartmentAddress entities by IDs.
+func (_u *LocationUpdateOne) RemoveDepartmentAddressIDs(ids ...uuid.UUID) *LocationUpdateOne {
+	_u.mutation.RemoveDepartmentAddressIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentAddresses removes "department_addresses" edges to DepartmentAddress entities.
+func (_u *LocationUpdateOne) RemoveDepartmentAddresses(v ...*DepartmentAddress) *LocationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentAddressIDs(ids...)
 }
 
 // Where appends a list predicates to the LocationUpdate builder.
@@ -1290,6 +1411,54 @@ func (_u *LocationUpdateOne) sqlSave(ctx context.Context) (_node *Location, err 
 			},
 		}
 		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.DepartmentAddressesTable,
+			Columns: []string{location.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentAddressesIDs(); len(nodes) > 0 && !_u.mutation.DepartmentAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.DepartmentAddressesTable,
+			Columns: []string{location.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentAddressesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.DepartmentAddressesTable,
+			Columns: []string{location.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

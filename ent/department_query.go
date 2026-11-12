@@ -6,6 +6,10 @@ import (
 	"context"
 	"database/sql/driver"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentaddress"
+	"enterprise-system/ent/departmentaddressvalidity"
+	"enterprise-system/ent/departmentcontactmechanism"
+	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -25,17 +29,21 @@ import (
 // DepartmentQuery is the builder for querying Department entities.
 type DepartmentQuery struct {
 	config
-	ctx                  *QueryContext
-	order                []department.OrderOption
-	inters               []Interceptor
-	predicates           []predicate.Department
-	withTenant           *SubscriptionQuery
-	withChildren         *DepartmentQuery
-	withParent           *DepartmentQuery
-	withManager          *EmployeeQuery
-	withEmployees        *EmployeeQuery
-	withAssignments      *EmployeeAssignmentQuery
-	withGroupAssignments *DepartmentGroupAssignmentQuery
+	ctx                            *QueryContext
+	order                          []department.OrderOption
+	inters                         []Interceptor
+	predicates                     []predicate.Department
+	withTenant                     *SubscriptionQuery
+	withChildren                   *DepartmentQuery
+	withParent                     *DepartmentQuery
+	withManager                    *EmployeeQuery
+	withEmployees                  *EmployeeQuery
+	withAssignments                *EmployeeAssignmentQuery
+	withGroupAssignments           *DepartmentGroupAssignmentQuery
+	withContactMechanisms          *DepartmentContactMechanismQuery
+	withContactMechanismValidities *DepartmentContactMechanismValidityQuery
+	withAddresses                  *DepartmentAddressQuery
+	withAddressValidities          *DepartmentAddressValidityQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -247,6 +255,106 @@ func (_q *DepartmentQuery) QueryGroupAssignments() *DepartmentGroupAssignmentQue
 	return query
 }
 
+// QueryContactMechanisms chains the current query on the "contact_mechanisms" edge.
+func (_q *DepartmentQuery) QueryContactMechanisms() *DepartmentContactMechanismQuery {
+	query := (&DepartmentContactMechanismClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, selector),
+			sqlgraph.To(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.ContactMechanismsTable, department.ContactMechanismsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryContactMechanismValidities chains the current query on the "contact_mechanism_validities" edge.
+func (_q *DepartmentQuery) QueryContactMechanismValidities() *DepartmentContactMechanismValidityQuery {
+	query := (&DepartmentContactMechanismValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, selector),
+			sqlgraph.To(departmentcontactmechanismvalidity.Table, departmentcontactmechanismvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.ContactMechanismValiditiesTable, department.ContactMechanismValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanismValidity
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAddresses chains the current query on the "addresses" edge.
+func (_q *DepartmentQuery) QueryAddresses() *DepartmentAddressQuery {
+	query := (&DepartmentAddressClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, selector),
+			sqlgraph.To(departmentaddress.Table, departmentaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.AddressesTable, department.AddressesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAddressValidities chains the current query on the "address_validities" edge.
+func (_q *DepartmentQuery) QueryAddressValidities() *DepartmentAddressValidityQuery {
+	query := (&DepartmentAddressValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, selector),
+			sqlgraph.To(departmentaddressvalidity.Table, departmentaddressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.AddressValiditiesTable, department.AddressValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddressValidity
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Department entity from the query.
 // Returns a *NotFoundError when no Department was found.
 func (_q *DepartmentQuery) First(ctx context.Context) (*Department, error) {
@@ -434,18 +542,22 @@ func (_q *DepartmentQuery) Clone() *DepartmentQuery {
 		return nil
 	}
 	return &DepartmentQuery{
-		config:               _q.config,
-		ctx:                  _q.ctx.Clone(),
-		order:                append([]department.OrderOption{}, _q.order...),
-		inters:               append([]Interceptor{}, _q.inters...),
-		predicates:           append([]predicate.Department{}, _q.predicates...),
-		withTenant:           _q.withTenant.Clone(),
-		withChildren:         _q.withChildren.Clone(),
-		withParent:           _q.withParent.Clone(),
-		withManager:          _q.withManager.Clone(),
-		withEmployees:        _q.withEmployees.Clone(),
-		withAssignments:      _q.withAssignments.Clone(),
-		withGroupAssignments: _q.withGroupAssignments.Clone(),
+		config:                         _q.config,
+		ctx:                            _q.ctx.Clone(),
+		order:                          append([]department.OrderOption{}, _q.order...),
+		inters:                         append([]Interceptor{}, _q.inters...),
+		predicates:                     append([]predicate.Department{}, _q.predicates...),
+		withTenant:                     _q.withTenant.Clone(),
+		withChildren:                   _q.withChildren.Clone(),
+		withParent:                     _q.withParent.Clone(),
+		withManager:                    _q.withManager.Clone(),
+		withEmployees:                  _q.withEmployees.Clone(),
+		withAssignments:                _q.withAssignments.Clone(),
+		withGroupAssignments:           _q.withGroupAssignments.Clone(),
+		withContactMechanisms:          _q.withContactMechanisms.Clone(),
+		withContactMechanismValidities: _q.withContactMechanismValidities.Clone(),
+		withAddresses:                  _q.withAddresses.Clone(),
+		withAddressValidities:          _q.withAddressValidities.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -529,6 +641,50 @@ func (_q *DepartmentQuery) WithGroupAssignments(opts ...func(*DepartmentGroupAss
 	return _q
 }
 
+// WithContactMechanisms tells the query-builder to eager-load the nodes that are connected to
+// the "contact_mechanisms" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *DepartmentQuery) WithContactMechanisms(opts ...func(*DepartmentContactMechanismQuery)) *DepartmentQuery {
+	query := (&DepartmentContactMechanismClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withContactMechanisms = query
+	return _q
+}
+
+// WithContactMechanismValidities tells the query-builder to eager-load the nodes that are connected to
+// the "contact_mechanism_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *DepartmentQuery) WithContactMechanismValidities(opts ...func(*DepartmentContactMechanismValidityQuery)) *DepartmentQuery {
+	query := (&DepartmentContactMechanismValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withContactMechanismValidities = query
+	return _q
+}
+
+// WithAddresses tells the query-builder to eager-load the nodes that are connected to
+// the "addresses" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *DepartmentQuery) WithAddresses(opts ...func(*DepartmentAddressQuery)) *DepartmentQuery {
+	query := (&DepartmentAddressClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAddresses = query
+	return _q
+}
+
+// WithAddressValidities tells the query-builder to eager-load the nodes that are connected to
+// the "address_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *DepartmentQuery) WithAddressValidities(opts ...func(*DepartmentAddressValidityQuery)) *DepartmentQuery {
+	query := (&DepartmentAddressValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAddressValidities = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -607,7 +763,7 @@ func (_q *DepartmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 	var (
 		nodes       = []*Department{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [11]bool{
 			_q.withTenant != nil,
 			_q.withChildren != nil,
 			_q.withParent != nil,
@@ -615,6 +771,10 @@ func (_q *DepartmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 			_q.withEmployees != nil,
 			_q.withAssignments != nil,
 			_q.withGroupAssignments != nil,
+			_q.withContactMechanisms != nil,
+			_q.withContactMechanismValidities != nil,
+			_q.withAddresses != nil,
+			_q.withAddressValidities != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -681,6 +841,40 @@ func (_q *DepartmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 			func(n *Department) { n.Edges.GroupAssignments = []*DepartmentGroupAssignment{} },
 			func(n *Department, e *DepartmentGroupAssignment) {
 				n.Edges.GroupAssignments = append(n.Edges.GroupAssignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withContactMechanisms; query != nil {
+		if err := _q.loadContactMechanisms(ctx, query, nodes,
+			func(n *Department) { n.Edges.ContactMechanisms = []*DepartmentContactMechanism{} },
+			func(n *Department, e *DepartmentContactMechanism) {
+				n.Edges.ContactMechanisms = append(n.Edges.ContactMechanisms, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withContactMechanismValidities; query != nil {
+		if err := _q.loadContactMechanismValidities(ctx, query, nodes,
+			func(n *Department) { n.Edges.ContactMechanismValidities = []*DepartmentContactMechanismValidity{} },
+			func(n *Department, e *DepartmentContactMechanismValidity) {
+				n.Edges.ContactMechanismValidities = append(n.Edges.ContactMechanismValidities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAddresses; query != nil {
+		if err := _q.loadAddresses(ctx, query, nodes,
+			func(n *Department) { n.Edges.Addresses = []*DepartmentAddress{} },
+			func(n *Department, e *DepartmentAddress) { n.Edges.Addresses = append(n.Edges.Addresses, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAddressValidities; query != nil {
+		if err := _q.loadAddressValidities(ctx, query, nodes,
+			func(n *Department) { n.Edges.AddressValidities = []*DepartmentAddressValidity{} },
+			func(n *Department, e *DepartmentAddressValidity) {
+				n.Edges.AddressValidities = append(n.Edges.AddressValidities, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -889,6 +1083,126 @@ func (_q *DepartmentQuery) loadGroupAssignments(ctx context.Context, query *Depa
 	}
 	query.Where(predicate.DepartmentGroupAssignment(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(department.GroupAssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DepartmentID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "department_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *DepartmentQuery) loadContactMechanisms(ctx context.Context, query *DepartmentContactMechanismQuery, nodes []*Department, init func(*Department), assign func(*Department, *DepartmentContactMechanism)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Department)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentcontactmechanism.FieldDepartmentID)
+	}
+	query.Where(predicate.DepartmentContactMechanism(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(department.ContactMechanismsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DepartmentID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "department_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *DepartmentQuery) loadContactMechanismValidities(ctx context.Context, query *DepartmentContactMechanismValidityQuery, nodes []*Department, init func(*Department), assign func(*Department, *DepartmentContactMechanismValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Department)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentcontactmechanismvalidity.FieldDepartmentID)
+	}
+	query.Where(predicate.DepartmentContactMechanismValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(department.ContactMechanismValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DepartmentID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "department_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *DepartmentQuery) loadAddresses(ctx context.Context, query *DepartmentAddressQuery, nodes []*Department, init func(*Department), assign func(*Department, *DepartmentAddress)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Department)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentaddress.FieldDepartmentID)
+	}
+	query.Where(predicate.DepartmentAddress(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(department.AddressesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DepartmentID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "department_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *DepartmentQuery) loadAddressValidities(ctx context.Context, query *DepartmentAddressValidityQuery, nodes []*Department, init func(*Department), assign func(*Department, *DepartmentAddressValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Department)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentaddressvalidity.FieldDepartmentID)
+	}
+	query.Where(predicate.DepartmentAddressValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(department.AddressValiditiesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

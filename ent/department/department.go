@@ -48,6 +48,14 @@ const (
 	EdgeAssignments = "assignments"
 	// EdgeGroupAssignments holds the string denoting the group_assignments edge name in mutations.
 	EdgeGroupAssignments = "group_assignments"
+	// EdgeContactMechanisms holds the string denoting the contact_mechanisms edge name in mutations.
+	EdgeContactMechanisms = "contact_mechanisms"
+	// EdgeContactMechanismValidities holds the string denoting the contact_mechanism_validities edge name in mutations.
+	EdgeContactMechanismValidities = "contact_mechanism_validities"
+	// EdgeAddresses holds the string denoting the addresses edge name in mutations.
+	EdgeAddresses = "addresses"
+	// EdgeAddressValidities holds the string denoting the address_validities edge name in mutations.
+	EdgeAddressValidities = "address_validities"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the department in the database.
@@ -95,6 +103,34 @@ const (
 	GroupAssignmentsInverseTable = "department_group_assignments"
 	// GroupAssignmentsColumn is the table column denoting the group_assignments relation/edge.
 	GroupAssignmentsColumn = "department_id"
+	// ContactMechanismsTable is the table that holds the contact_mechanisms relation/edge.
+	ContactMechanismsTable = "department_contact_mechanisms"
+	// ContactMechanismsInverseTable is the table name for the DepartmentContactMechanism entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentcontactmechanism" package.
+	ContactMechanismsInverseTable = "department_contact_mechanisms"
+	// ContactMechanismsColumn is the table column denoting the contact_mechanisms relation/edge.
+	ContactMechanismsColumn = "department_id"
+	// ContactMechanismValiditiesTable is the table that holds the contact_mechanism_validities relation/edge.
+	ContactMechanismValiditiesTable = "department_contact_mechanism_validities"
+	// ContactMechanismValiditiesInverseTable is the table name for the DepartmentContactMechanismValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentcontactmechanismvalidity" package.
+	ContactMechanismValiditiesInverseTable = "department_contact_mechanism_validities"
+	// ContactMechanismValiditiesColumn is the table column denoting the contact_mechanism_validities relation/edge.
+	ContactMechanismValiditiesColumn = "department_id"
+	// AddressesTable is the table that holds the addresses relation/edge.
+	AddressesTable = "department_addresses"
+	// AddressesInverseTable is the table name for the DepartmentAddress entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentaddress" package.
+	AddressesInverseTable = "department_addresses"
+	// AddressesColumn is the table column denoting the addresses relation/edge.
+	AddressesColumn = "department_id"
+	// AddressValiditiesTable is the table that holds the address_validities relation/edge.
+	AddressValiditiesTable = "department_address_validities"
+	// AddressValiditiesInverseTable is the table name for the DepartmentAddressValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentaddressvalidity" package.
+	AddressValiditiesInverseTable = "department_address_validities"
+	// AddressValiditiesColumn is the table column denoting the address_validities relation/edge.
+	AddressValiditiesColumn = "department_id"
 )
 
 // Columns holds all SQL columns for department fields.
@@ -293,6 +329,62 @@ func ByGroupAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newGroupAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByContactMechanismsCount orders the results by contact_mechanisms count.
+func ByContactMechanismsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newContactMechanismsStep(), opts...)
+	}
+}
+
+// ByContactMechanisms orders the results by contact_mechanisms terms.
+func ByContactMechanisms(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newContactMechanismsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByContactMechanismValiditiesCount orders the results by contact_mechanism_validities count.
+func ByContactMechanismValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newContactMechanismValiditiesStep(), opts...)
+	}
+}
+
+// ByContactMechanismValidities orders the results by contact_mechanism_validities terms.
+func ByContactMechanismValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newContactMechanismValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAddressesCount orders the results by addresses count.
+func ByAddressesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAddressesStep(), opts...)
+	}
+}
+
+// ByAddresses orders the results by addresses terms.
+func ByAddresses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAddressesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByAddressValiditiesCount orders the results by address_validities count.
+func ByAddressValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAddressValiditiesStep(), opts...)
+	}
+}
+
+// ByAddressValidities orders the results by address_validities terms.
+func ByAddressValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAddressValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -340,5 +432,33 @@ func newGroupAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(GroupAssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, GroupAssignmentsTable, GroupAssignmentsColumn),
+	)
+}
+func newContactMechanismsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ContactMechanismsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ContactMechanismsTable, ContactMechanismsColumn),
+	)
+}
+func newContactMechanismValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ContactMechanismValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ContactMechanismValiditiesTable, ContactMechanismValiditiesColumn),
+	)
+}
+func newAddressesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AddressesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AddressesTable, AddressesColumn),
+	)
+}
+func newAddressValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AddressValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AddressValiditiesTable, AddressValiditiesColumn),
 	)
 }

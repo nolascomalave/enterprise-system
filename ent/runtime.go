@@ -4,10 +4,15 @@ package ent
 
 import (
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentaddress"
+	"enterprise-system/ent/departmentaddressvalidity"
+	"enterprise-system/ent/departmentcontactmechanism"
+	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -69,16 +74,12 @@ func init() {
 			return nil
 		}
 	}()
-	// addressDescIsPrimary is the schema descriptor for is_primary field.
-	addressDescIsPrimary := addressFields[9].Descriptor()
-	// address.DefaultIsPrimary holds the default value on creation for the is_primary field.
-	address.DefaultIsPrimary = addressDescIsPrimary.Default.(bool)
 	// addressDescCreatedAt is the schema descriptor for created_at field.
-	addressDescCreatedAt := addressFields[10].Descriptor()
+	addressDescCreatedAt := addressFields[9].Descriptor()
 	// address.DefaultCreatedAt holds the default value on creation for the created_at field.
 	address.DefaultCreatedAt = addressDescCreatedAt.Default.(func() time.Time)
 	// addressDescUpdatedAt is the schema descriptor for updated_at field.
-	addressDescUpdatedAt := addressFields[11].Descriptor()
+	addressDescUpdatedAt := addressFields[10].Descriptor()
 	// address.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	address.DefaultUpdatedAt = addressDescUpdatedAt.Default.(func() time.Time)
 	// address.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -87,6 +88,20 @@ func init() {
 	addressDescID := addressFields[0].Descriptor()
 	// address.DefaultID holds the default value on creation for the id field.
 	address.DefaultID = addressDescID.Default.(func() uuid.UUID)
+	addressvalidityFields := schema.AddressValidity{}.Fields()
+	_ = addressvalidityFields
+	// addressvalidityDescIsPrimary is the schema descriptor for is_primary field.
+	addressvalidityDescIsPrimary := addressvalidityFields[5].Descriptor()
+	// addressvalidity.DefaultIsPrimary holds the default value on creation for the is_primary field.
+	addressvalidity.DefaultIsPrimary = addressvalidityDescIsPrimary.Default.(bool)
+	// addressvalidityDescCreatedAt is the schema descriptor for created_at field.
+	addressvalidityDescCreatedAt := addressvalidityFields[8].Descriptor()
+	// addressvalidity.DefaultCreatedAt holds the default value on creation for the created_at field.
+	addressvalidity.DefaultCreatedAt = addressvalidityDescCreatedAt.Default.(func() time.Time)
+	// addressvalidityDescID is the schema descriptor for id field.
+	addressvalidityDescID := addressvalidityFields[0].Descriptor()
+	// addressvalidity.DefaultID holds the default value on creation for the id field.
+	addressvalidity.DefaultID = addressvalidityDescID.Default.(func() uuid.UUID)
 	attacheddocumentFields := schema.AttachedDocument{}.Fields()
 	_ = attacheddocumentFields
 	// attacheddocumentDescOriginTable is the schema descriptor for origin_table field.
@@ -185,6 +200,92 @@ func init() {
 	departmentDescID := departmentFields[0].Descriptor()
 	// department.DefaultID holds the default value on creation for the id field.
 	department.DefaultID = departmentDescID.Default.(func() uuid.UUID)
+	departmentaddressFields := schema.DepartmentAddress{}.Fields()
+	_ = departmentaddressFields
+	// departmentaddressDescLine1 is the schema descriptor for line1 field.
+	departmentaddressDescLine1 := departmentaddressFields[5].Descriptor()
+	// departmentaddress.Line1Validator is a validator for the "line1" field. It is called by the builders before save.
+	departmentaddress.Line1Validator = departmentaddressDescLine1.Validators[0].(func(string) error)
+	// departmentaddressDescCreatedAt is the schema descriptor for created_at field.
+	departmentaddressDescCreatedAt := departmentaddressFields[7].Descriptor()
+	// departmentaddress.DefaultCreatedAt holds the default value on creation for the created_at field.
+	departmentaddress.DefaultCreatedAt = departmentaddressDescCreatedAt.Default.(func() time.Time)
+	// departmentaddressDescUpdatedAt is the schema descriptor for updated_at field.
+	departmentaddressDescUpdatedAt := departmentaddressFields[8].Descriptor()
+	// departmentaddress.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	departmentaddress.DefaultUpdatedAt = departmentaddressDescUpdatedAt.Default.(func() time.Time)
+	// departmentaddress.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	departmentaddress.UpdateDefaultUpdatedAt = departmentaddressDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// departmentaddressDescID is the schema descriptor for id field.
+	departmentaddressDescID := departmentaddressFields[0].Descriptor()
+	// departmentaddress.DefaultID holds the default value on creation for the id field.
+	departmentaddress.DefaultID = departmentaddressDescID.Default.(func() uuid.UUID)
+	departmentaddressvalidityFields := schema.DepartmentAddressValidity{}.Fields()
+	_ = departmentaddressvalidityFields
+	// departmentaddressvalidityDescIsPrimary is the schema descriptor for is_primary field.
+	departmentaddressvalidityDescIsPrimary := departmentaddressvalidityFields[5].Descriptor()
+	// departmentaddressvalidity.DefaultIsPrimary holds the default value on creation for the is_primary field.
+	departmentaddressvalidity.DefaultIsPrimary = departmentaddressvalidityDescIsPrimary.Default.(bool)
+	// departmentaddressvalidityDescCreatedAt is the schema descriptor for created_at field.
+	departmentaddressvalidityDescCreatedAt := departmentaddressvalidityFields[8].Descriptor()
+	// departmentaddressvalidity.DefaultCreatedAt holds the default value on creation for the created_at field.
+	departmentaddressvalidity.DefaultCreatedAt = departmentaddressvalidityDescCreatedAt.Default.(func() time.Time)
+	// departmentaddressvalidityDescUpdatedAt is the schema descriptor for updated_at field.
+	departmentaddressvalidityDescUpdatedAt := departmentaddressvalidityFields[9].Descriptor()
+	// departmentaddressvalidity.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	departmentaddressvalidity.DefaultUpdatedAt = departmentaddressvalidityDescUpdatedAt.Default.(func() time.Time)
+	// departmentaddressvalidity.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	departmentaddressvalidity.UpdateDefaultUpdatedAt = departmentaddressvalidityDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// departmentaddressvalidityDescID is the schema descriptor for id field.
+	departmentaddressvalidityDescID := departmentaddressvalidityFields[0].Descriptor()
+	// departmentaddressvalidity.DefaultID holds the default value on creation for the id field.
+	departmentaddressvalidity.DefaultID = departmentaddressvalidityDescID.Default.(func() uuid.UUID)
+	departmentcontactmechanismFields := schema.DepartmentContactMechanism{}.Fields()
+	_ = departmentcontactmechanismFields
+	// departmentcontactmechanismDescContactMechanismOrder is the schema descriptor for contact_mechanism_order field.
+	departmentcontactmechanismDescContactMechanismOrder := departmentcontactmechanismFields[4].Descriptor()
+	// departmentcontactmechanism.DefaultContactMechanismOrder holds the default value on creation for the contact_mechanism_order field.
+	departmentcontactmechanism.DefaultContactMechanismOrder = departmentcontactmechanismDescContactMechanismOrder.Default.(int)
+	// departmentcontactmechanism.ContactMechanismOrderValidator is a validator for the "contact_mechanism_order" field. It is called by the builders before save.
+	departmentcontactmechanism.ContactMechanismOrderValidator = departmentcontactmechanismDescContactMechanismOrder.Validators[0].(func(int) error)
+	// departmentcontactmechanismDescIsPrimary is the schema descriptor for is_primary field.
+	departmentcontactmechanismDescIsPrimary := departmentcontactmechanismFields[5].Descriptor()
+	// departmentcontactmechanism.DefaultIsPrimary holds the default value on creation for the is_primary field.
+	departmentcontactmechanism.DefaultIsPrimary = departmentcontactmechanismDescIsPrimary.Default.(bool)
+	// departmentcontactmechanismDescCreatedAt is the schema descriptor for created_at field.
+	departmentcontactmechanismDescCreatedAt := departmentcontactmechanismFields[6].Descriptor()
+	// departmentcontactmechanism.DefaultCreatedAt holds the default value on creation for the created_at field.
+	departmentcontactmechanism.DefaultCreatedAt = departmentcontactmechanismDescCreatedAt.Default.(func() time.Time)
+	// departmentcontactmechanismDescUpdatedAt is the schema descriptor for updated_at field.
+	departmentcontactmechanismDescUpdatedAt := departmentcontactmechanismFields[7].Descriptor()
+	// departmentcontactmechanism.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	departmentcontactmechanism.DefaultUpdatedAt = departmentcontactmechanismDescUpdatedAt.Default.(func() time.Time)
+	// departmentcontactmechanism.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	departmentcontactmechanism.UpdateDefaultUpdatedAt = departmentcontactmechanismDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// departmentcontactmechanismDescID is the schema descriptor for id field.
+	departmentcontactmechanismDescID := departmentcontactmechanismFields[0].Descriptor()
+	// departmentcontactmechanism.DefaultID holds the default value on creation for the id field.
+	departmentcontactmechanism.DefaultID = departmentcontactmechanismDescID.Default.(func() uuid.UUID)
+	departmentcontactmechanismvalidityFields := schema.DepartmentContactMechanismValidity{}.Fields()
+	_ = departmentcontactmechanismvalidityFields
+	// departmentcontactmechanismvalidityDescIsPrimary is the schema descriptor for is_primary field.
+	departmentcontactmechanismvalidityDescIsPrimary := departmentcontactmechanismvalidityFields[5].Descriptor()
+	// departmentcontactmechanismvalidity.DefaultIsPrimary holds the default value on creation for the is_primary field.
+	departmentcontactmechanismvalidity.DefaultIsPrimary = departmentcontactmechanismvalidityDescIsPrimary.Default.(bool)
+	// departmentcontactmechanismvalidityDescCreatedAt is the schema descriptor for created_at field.
+	departmentcontactmechanismvalidityDescCreatedAt := departmentcontactmechanismvalidityFields[8].Descriptor()
+	// departmentcontactmechanismvalidity.DefaultCreatedAt holds the default value on creation for the created_at field.
+	departmentcontactmechanismvalidity.DefaultCreatedAt = departmentcontactmechanismvalidityDescCreatedAt.Default.(func() time.Time)
+	// departmentcontactmechanismvalidityDescUpdatedAt is the schema descriptor for updated_at field.
+	departmentcontactmechanismvalidityDescUpdatedAt := departmentcontactmechanismvalidityFields[9].Descriptor()
+	// departmentcontactmechanismvalidity.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	departmentcontactmechanismvalidity.DefaultUpdatedAt = departmentcontactmechanismvalidityDescUpdatedAt.Default.(func() time.Time)
+	// departmentcontactmechanismvalidity.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	departmentcontactmechanismvalidity.UpdateDefaultUpdatedAt = departmentcontactmechanismvalidityDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// departmentcontactmechanismvalidityDescID is the schema descriptor for id field.
+	departmentcontactmechanismvalidityDescID := departmentcontactmechanismvalidityFields[0].Descriptor()
+	// departmentcontactmechanismvalidity.DefaultID holds the default value on creation for the id field.
+	departmentcontactmechanismvalidity.DefaultID = departmentcontactmechanismvalidityDescID.Default.(func() uuid.UUID)
 	departmentgroupassignmentFields := schema.DepartmentGroupAssignment{}.Fields()
 	_ = departmentgroupassignmentFields
 	// departmentgroupassignmentDescCreatedAt is the schema descriptor for created_at field.

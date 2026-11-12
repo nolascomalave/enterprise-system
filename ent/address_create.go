@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/subscription"
@@ -91,20 +92,6 @@ func (_c *AddressCreate) SetCountry(v string) *AddressCreate {
 	return _c
 }
 
-// SetIsPrimary sets the "is_primary" field.
-func (_c *AddressCreate) SetIsPrimary(v bool) *AddressCreate {
-	_c.mutation.SetIsPrimary(v)
-	return _c
-}
-
-// SetNillableIsPrimary sets the "is_primary" field if the given value is not nil.
-func (_c *AddressCreate) SetNillableIsPrimary(v *bool) *AddressCreate {
-	if v != nil {
-		_c.SetIsPrimary(*v)
-	}
-	return _c
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (_c *AddressCreate) SetCreatedAt(v time.Time) *AddressCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -176,6 +163,21 @@ func (_c *AddressCreate) SetCityLocation(v *Location) *AddressCreate {
 	return _c.SetCityLocationID(v.ID)
 }
 
+// AddValidityIDs adds the "validities" edge to the AddressValidity entity by IDs.
+func (_c *AddressCreate) AddValidityIDs(ids ...uuid.UUID) *AddressCreate {
+	_c.mutation.AddValidityIDs(ids...)
+	return _c
+}
+
+// AddValidities adds the "validities" edges to the AddressValidity entity.
+func (_c *AddressCreate) AddValidities(v ...*AddressValidity) *AddressCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddValidityIDs(ids...)
+}
+
 // Mutation returns the AddressMutation object of the builder.
 func (_c *AddressCreate) Mutation() *AddressMutation {
 	return _c.mutation
@@ -211,10 +213,6 @@ func (_c *AddressCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *AddressCreate) defaults() {
-	if _, ok := _c.mutation.IsPrimary(); !ok {
-		v := address.DefaultIsPrimary
-		_c.mutation.SetIsPrimary(v)
-	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := address.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -263,9 +261,6 @@ func (_c *AddressCreate) check() error {
 		if err := address.CountryValidator(v); err != nil {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Address.country": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.IsPrimary(); !ok {
-		return &ValidationError{Name: "is_primary", err: errors.New(`ent: missing required field "Address.is_primary"`)}
 	}
 	if len(_c.mutation.TenantIDs()) == 0 {
 		return &ValidationError{Name: "tenant", err: errors.New(`ent: missing required edge "Address.tenant"`)}
@@ -333,10 +328,6 @@ func (_c *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 		_spec.SetField(address.FieldCountry, field.TypeString, value)
 		_node.Country = value
 	}
-	if value, ok := _c.mutation.IsPrimary(); ok {
-		_spec.SetField(address.FieldIsPrimary, field.TypeBool, value)
-		_node.IsPrimary = value
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(address.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -401,6 +392,23 @@ func (_c *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.CityLocationID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   address.ValiditiesTable,
+			Columns: []string{address.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.AddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -560,18 +568,6 @@ func (u *AddressUpsert) SetCountry(v string) *AddressUpsert {
 // UpdateCountry sets the "country" field to the value that was provided on create.
 func (u *AddressUpsert) UpdateCountry() *AddressUpsert {
 	u.SetExcluded(address.FieldCountry)
-	return u
-}
-
-// SetIsPrimary sets the "is_primary" field.
-func (u *AddressUpsert) SetIsPrimary(v bool) *AddressUpsert {
-	u.Set(address.FieldIsPrimary, v)
-	return u
-}
-
-// UpdateIsPrimary sets the "is_primary" field to the value that was provided on create.
-func (u *AddressUpsert) UpdateIsPrimary() *AddressUpsert {
-	u.SetExcluded(address.FieldIsPrimary)
 	return u
 }
 
@@ -779,20 +775,6 @@ func (u *AddressUpsertOne) SetCountry(v string) *AddressUpsertOne {
 func (u *AddressUpsertOne) UpdateCountry() *AddressUpsertOne {
 	return u.Update(func(s *AddressUpsert) {
 		s.UpdateCountry()
-	})
-}
-
-// SetIsPrimary sets the "is_primary" field.
-func (u *AddressUpsertOne) SetIsPrimary(v bool) *AddressUpsertOne {
-	return u.Update(func(s *AddressUpsert) {
-		s.SetIsPrimary(v)
-	})
-}
-
-// UpdateIsPrimary sets the "is_primary" field to the value that was provided on create.
-func (u *AddressUpsertOne) UpdateIsPrimary() *AddressUpsertOne {
-	return u.Update(func(s *AddressUpsert) {
-		s.UpdateIsPrimary()
 	})
 }
 
@@ -1172,20 +1154,6 @@ func (u *AddressUpsertBulk) SetCountry(v string) *AddressUpsertBulk {
 func (u *AddressUpsertBulk) UpdateCountry() *AddressUpsertBulk {
 	return u.Update(func(s *AddressUpsert) {
 		s.UpdateCountry()
-	})
-}
-
-// SetIsPrimary sets the "is_primary" field.
-func (u *AddressUpsertBulk) SetIsPrimary(v bool) *AddressUpsertBulk {
-	return u.Update(func(s *AddressUpsert) {
-		s.SetIsPrimary(v)
-	})
-}
-
-// UpdateIsPrimary sets the "is_primary" field to the value that was provided on create.
-func (u *AddressUpsertBulk) UpdateIsPrimary() *AddressUpsertBulk {
-	return u.Update(func(s *AddressUpsert) {
-		s.UpdateIsPrimary()
 	})
 }
 

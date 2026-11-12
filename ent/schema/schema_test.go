@@ -326,19 +326,28 @@ func TestEmployeeAssignmentHasOpenAssignmentUniqueIndex(t *testing.T) {
 	assert.True(t, found, "employee_assignments debe tener unicidad parcial de end_date IS NULL")
 }
 
-func TestAddressHasOnePrimaryUniqueIndex(t *testing.T) {
-	var found bool
-	for _, idx := range (Address{}).Indexes() {
+func TestAddressValidityPartials(t *testing.T) {
+	var primary, open bool
+	for _, idx := range (AddressValidity{}).Indexes() {
 		if !idx.Descriptor().Unique {
 			continue
 		}
 		for _, a := range idx.Descriptor().Annotations {
-			if ant, ok := a.(*entsql.IndexAnnotation); ok && strings.Contains(ant.Where, "is_primary") && strings.Contains(ant.Where, "deleted_at IS NULL") {
-				found = true
+			ant, ok := a.(*entsql.IndexAnnotation)
+			if !ok {
+				continue
+			}
+			if strings.Contains(ant.Where, "is_primary AND end_date IS NULL AND deleted_at IS NULL") {
+				primary = true
+			}
+			if strings.Contains(ant.Where, "end_date IS NULL AND deleted_at IS NULL") &&
+				!strings.Contains(ant.Where, "is_primary") {
+				open = true
 			}
 		}
 	}
-	assert.True(t, found, "addresses debe tener unicidad parcial de is_primary")
+	assert.True(t, primary, "address_validities debe tener una primaria vigente por party/tipo")
+	assert.True(t, open, "address_validities debe tener una vigencia abierta por address")
 }
 
 func TestPartyContactMechanismValidityPartials(t *testing.T) {
@@ -363,4 +372,38 @@ func TestPartyContactMechanismValidityPartials(t *testing.T) {
 	}
 	assert.True(t, primary, "debe existir un único contacto primario vigente por party/tipo")
 	assert.True(t, open, "debe existir una única vigencia abierta por contacto")
+}
+
+func TestDepartmentValidityPartials(t *testing.T) {
+	assertValidityPartials := func(t *testing.T, indexes []ent.Index, uniquePrimary, uniqueOpen string) {
+		var primary, open bool
+		for _, idx := range indexes {
+			if !idx.Descriptor().Unique {
+				continue
+			}
+			for _, a := range idx.Descriptor().Annotations {
+				ant, ok := a.(*entsql.IndexAnnotation)
+				if !ok {
+					continue
+				}
+				if ant.Where == uniquePrimary {
+					primary = true
+				}
+				if ant.Where == uniqueOpen {
+					open = true
+				}
+			}
+		}
+		assert.True(t, primary, "debe existir índice único de primario vigente")
+		assert.True(t, open, "debe existir índice único de vigencia abierta")
+	}
+
+	t.Run("contacts", func(t *testing.T) {
+		assertValidityPartials(t, (DepartmentContactMechanismValidity{}).Indexes(),
+			"is_primary AND end_date IS NULL", "end_date IS NULL")
+	})
+	t.Run("addresses", func(t *testing.T) {
+		assertValidityPartials(t, (DepartmentAddressValidity{}).Indexes(),
+			"is_primary AND end_date IS NULL", "end_date IS NULL")
+	})
 }

@@ -147,15 +147,15 @@ func (d *PartyIdentityDocument) Validate() error {
 }
 
 type PartyIdentityDocumentValidity struct {
-	ID                     uuid.UUID
-	TenantID               uuid.UUID
+	ID                      uuid.UUID
+	TenantID                uuid.UUID
 	PartyIdentityDocumentID uuid.UUID
-	PartyID                uuid.UUID
-	IsPrimary              bool
-	StartDate              time.Time
-	EndDate                *time.Time
-	CreatedAt              time.Time
-	UpdatedAt              time.Time
+	PartyID                 uuid.UUID
+	IsPrimary               bool
+	StartDate               time.Time
+	EndDate                 *time.Time
+	CreatedAt               time.Time
+	UpdatedAt               time.Time
 }
 
 func NewPartyIdentityDocumentValidity(

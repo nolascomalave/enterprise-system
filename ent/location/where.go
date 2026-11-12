@@ -717,6 +717,35 @@ func HasIdentityDocumentsWith(preds ...predicate.PartyIdentityDocument) predicat
 	})
 }
 
+// HasDepartmentAddresses applies the HasEdge predicate on the "department_addresses" edge.
+func HasDepartmentAddresses() predicate.Location {
+	return predicate.Location(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentAddressesTable, DepartmentAddressesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentAddressesWith applies the HasEdge predicate on the "department_addresses" edge with a given conditions (other predicates).
+func HasDepartmentAddressesWith(preds ...predicate.DepartmentAddress) predicate.Location {
+	return predicate.Location(func(s *sql.Selector) {
+		step := newDepartmentAddressesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Location) predicate.Location {
 	return predicate.Location(sql.AndPredicates(predicates...))

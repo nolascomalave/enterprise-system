@@ -67,6 +67,8 @@ type PartyEdges struct {
 	IdentityDocuments []*PartyIdentityDocument `json:"identity_documents,omitempty"`
 	// IdentityDocumentValidities holds the value of the identity_document_validities edge.
 	IdentityDocumentValidities []*PartyIdentityDocumentValidity `json:"identity_document_validities,omitempty"`
+	// AddressValidities holds the value of the address_validities edge.
+	AddressValidities []*AddressValidity `json:"address_validities,omitempty"`
 	// Addresses holds the value of the addresses edge.
 	Addresses []*Address `json:"addresses,omitempty"`
 	// Sessions holds the value of the sessions edge.
@@ -91,7 +93,7 @@ type PartyEdges struct {
 	MergeTargets []*PartyMergeLog `json:"merge_targets,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [21]bool
+	loadedTypes [22]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -190,10 +192,19 @@ func (e PartyEdges) IdentityDocumentValiditiesOrErr() ([]*PartyIdentityDocumentV
 	return nil, &NotLoadedError{edge: "identity_document_validities"}
 }
 
+// AddressValiditiesOrErr returns the AddressValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartyEdges) AddressValiditiesOrErr() ([]*AddressValidity, error) {
+	if e.loadedTypes[10] {
+		return e.AddressValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "address_validities"}
+}
+
 // AddressesOrErr returns the Addresses value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartyEdges) AddressesOrErr() ([]*Address, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.Addresses, nil
 	}
 	return nil, &NotLoadedError{edge: "addresses"}
@@ -202,7 +213,7 @@ func (e PartyEdges) AddressesOrErr() ([]*Address, error) {
 // SessionsOrErr returns the Sessions value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartyEdges) SessionsOrErr() ([]*Session, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		return e.Sessions, nil
 	}
 	return nil, &NotLoadedError{edge: "sessions"}
@@ -213,7 +224,7 @@ func (e PartyEdges) SessionsOrErr() ([]*Session, error) {
 func (e PartyEdges) CredentialsOrErr() (*UserCredentials, error) {
 	if e.Credentials != nil {
 		return e.Credentials, nil
-	} else if e.loadedTypes[12] {
+	} else if e.loadedTypes[13] {
 		return nil, &NotFoundError{label: usercredentials.Label}
 	}
 	return nil, &NotLoadedError{edge: "credentials"}
@@ -222,7 +233,7 @@ func (e PartyEdges) CredentialsOrErr() (*UserCredentials, error) {
 // PasswordResetTokensOrErr returns the PasswordResetTokens value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartyEdges) PasswordResetTokensOrErr() ([]*PasswordResetToken, error) {
-	if e.loadedTypes[13] {
+	if e.loadedTypes[14] {
 		return e.PasswordResetTokens, nil
 	}
 	return nil, &NotLoadedError{edge: "password_reset_tokens"}
@@ -231,7 +242,7 @@ func (e PartyEdges) PasswordResetTokensOrErr() ([]*PasswordResetToken, error) {
 // PartyNamesOrErr returns the PartyNames value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartyEdges) PartyNamesOrErr() ([]*PartyName, error) {
-	if e.loadedTypes[14] {
+	if e.loadedTypes[15] {
 		return e.PartyNames, nil
 	}
 	return nil, &NotLoadedError{edge: "party_names"}
@@ -240,7 +251,7 @@ func (e PartyEdges) PartyNamesOrErr() ([]*PartyName, error) {
 // PartyNameValiditiesOrErr returns the PartyNameValidities value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartyEdges) PartyNameValiditiesOrErr() ([]*PartyNameValidity, error) {
-	if e.loadedTypes[15] {
+	if e.loadedTypes[16] {
 		return e.PartyNameValidities, nil
 	}
 	return nil, &NotLoadedError{edge: "party_name_validities"}
@@ -249,7 +260,7 @@ func (e PartyEdges) PartyNameValiditiesOrErr() ([]*PartyNameValidity, error) {
 // PartyContactMechanismValiditiesOrErr returns the PartyContactMechanismValidities value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartyEdges) PartyContactMechanismValiditiesOrErr() ([]*PartyContactMechanismValidity, error) {
-	if e.loadedTypes[16] {
+	if e.loadedTypes[17] {
 		return e.PartyContactMechanismValidities, nil
 	}
 	return nil, &NotLoadedError{edge: "party_contact_mechanism_validities"}
@@ -258,7 +269,7 @@ func (e PartyEdges) PartyContactMechanismValiditiesOrErr() ([]*PartyContactMecha
 // MergedPartiesOrErr returns the MergedParties value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartyEdges) MergedPartiesOrErr() ([]*Party, error) {
-	if e.loadedTypes[17] {
+	if e.loadedTypes[18] {
 		return e.MergedParties, nil
 	}
 	return nil, &NotLoadedError{edge: "merged_parties"}
@@ -269,7 +280,7 @@ func (e PartyEdges) MergedPartiesOrErr() ([]*Party, error) {
 func (e PartyEdges) CanonicalPartyOrErr() (*Party, error) {
 	if e.CanonicalParty != nil {
 		return e.CanonicalParty, nil
-	} else if e.loadedTypes[18] {
+	} else if e.loadedTypes[19] {
 		return nil, &NotFoundError{label: party.Label}
 	}
 	return nil, &NotLoadedError{edge: "canonical_party"}
@@ -278,7 +289,7 @@ func (e PartyEdges) CanonicalPartyOrErr() (*Party, error) {
 // MergeSourcesOrErr returns the MergeSources value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartyEdges) MergeSourcesOrErr() ([]*PartyMergeLog, error) {
-	if e.loadedTypes[19] {
+	if e.loadedTypes[20] {
 		return e.MergeSources, nil
 	}
 	return nil, &NotLoadedError{edge: "merge_sources"}
@@ -287,7 +298,7 @@ func (e PartyEdges) MergeSourcesOrErr() ([]*PartyMergeLog, error) {
 // MergeTargetsOrErr returns the MergeTargets value or an error if the edge
 // was not loaded in eager-loading.
 func (e PartyEdges) MergeTargetsOrErr() ([]*PartyMergeLog, error) {
-	if e.loadedTypes[20] {
+	if e.loadedTypes[21] {
 		return e.MergeTargets, nil
 	}
 	return nil, &NotLoadedError{edge: "merge_targets"}
@@ -438,6 +449,11 @@ func (_m *Party) QueryIdentityDocuments() *PartyIdentityDocumentQuery {
 // QueryIdentityDocumentValidities queries the "identity_document_validities" edge of the Party entity.
 func (_m *Party) QueryIdentityDocumentValidities() *PartyIdentityDocumentValidityQuery {
 	return NewPartyClient(_m.config).QueryIdentityDocumentValidities(_m)
+}
+
+// QueryAddressValidities queries the "address_validities" edge of the Party entity.
+func (_m *Party) QueryAddressValidities() *AddressValidityQuery {
+	return NewPartyClient(_m.config).QueryAddressValidities(_m)
 }
 
 // QueryAddresses queries the "addresses" edge of the Party entity.

@@ -16,6 +16,8 @@ type Tx struct {
 	config
 	// Address is the client for interacting with the Address builders.
 	Address *AddressClient
+	// AddressValidity is the client for interacting with the AddressValidity builders.
+	AddressValidity *AddressValidityClient
 	// AttachedDocument is the client for interacting with the AttachedDocument builders.
 	AttachedDocument *AttachedDocumentClient
 	// ContactMechanism is the client for interacting with the ContactMechanism builders.
@@ -24,6 +26,14 @@ type Tx struct {
 	CorporateGroup *CorporateGroupClient
 	// Department is the client for interacting with the Department builders.
 	Department *DepartmentClient
+	// DepartmentAddress is the client for interacting with the DepartmentAddress builders.
+	DepartmentAddress *DepartmentAddressClient
+	// DepartmentAddressValidity is the client for interacting with the DepartmentAddressValidity builders.
+	DepartmentAddressValidity *DepartmentAddressValidityClient
+	// DepartmentContactMechanism is the client for interacting with the DepartmentContactMechanism builders.
+	DepartmentContactMechanism *DepartmentContactMechanismClient
+	// DepartmentContactMechanismValidity is the client for interacting with the DepartmentContactMechanismValidity builders.
+	DepartmentContactMechanismValidity *DepartmentContactMechanismValidityClient
 	// DepartmentGroupAssignment is the client for interacting with the DepartmentGroupAssignment builders.
 	DepartmentGroupAssignment *DepartmentGroupAssignmentClient
 	// Employee is the client for interacting with the Employee builders.
@@ -210,10 +220,15 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Address = NewAddressClient(tx.config)
+	tx.AddressValidity = NewAddressValidityClient(tx.config)
 	tx.AttachedDocument = NewAttachedDocumentClient(tx.config)
 	tx.ContactMechanism = NewContactMechanismClient(tx.config)
 	tx.CorporateGroup = NewCorporateGroupClient(tx.config)
 	tx.Department = NewDepartmentClient(tx.config)
+	tx.DepartmentAddress = NewDepartmentAddressClient(tx.config)
+	tx.DepartmentAddressValidity = NewDepartmentAddressValidityClient(tx.config)
+	tx.DepartmentContactMechanism = NewDepartmentContactMechanismClient(tx.config)
+	tx.DepartmentContactMechanismValidity = NewDepartmentContactMechanismValidityClient(tx.config)
 	tx.DepartmentGroupAssignment = NewDepartmentGroupAssignmentClient(tx.config)
 	tx.Employee = NewEmployeeClient(tx.config)
 	tx.EmployeeAssignment = NewEmployeeAssignmentClient(tx.config)

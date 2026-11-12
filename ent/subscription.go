@@ -87,9 +87,19 @@ type SubscriptionEdges struct {
 	PartyIdentityDocuments []*PartyIdentityDocument `json:"party_identity_documents,omitempty"`
 	// PartyIdentityDocumentValidities holds the value of the party_identity_document_validities edge.
 	PartyIdentityDocumentValidities []*PartyIdentityDocumentValidity `json:"party_identity_document_validities,omitempty"`
+	// AddressValidities holds the value of the address_validities edge.
+	AddressValidities []*AddressValidity `json:"address_validities,omitempty"`
+	// DepartmentContactMechanisms holds the value of the department_contact_mechanisms edge.
+	DepartmentContactMechanisms []*DepartmentContactMechanism `json:"department_contact_mechanisms,omitempty"`
+	// DepartmentContactMechanismValidities holds the value of the department_contact_mechanism_validities edge.
+	DepartmentContactMechanismValidities []*DepartmentContactMechanismValidity `json:"department_contact_mechanism_validities,omitempty"`
+	// DepartmentAddresses holds the value of the department_addresses edge.
+	DepartmentAddresses []*DepartmentAddress `json:"department_addresses,omitempty"`
+	// DepartmentAddressValidities holds the value of the department_address_validities edge.
+	DepartmentAddressValidities []*DepartmentAddressValidity `json:"department_address_validities,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [24]bool
+	loadedTypes [29]bool
 }
 
 // PartiesOrErr returns the Parties value or an error if the edge
@@ -308,6 +318,51 @@ func (e SubscriptionEdges) PartyIdentityDocumentValiditiesOrErr() ([]*PartyIdent
 	return nil, &NotLoadedError{edge: "party_identity_document_validities"}
 }
 
+// AddressValiditiesOrErr returns the AddressValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) AddressValiditiesOrErr() ([]*AddressValidity, error) {
+	if e.loadedTypes[24] {
+		return e.AddressValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "address_validities"}
+}
+
+// DepartmentContactMechanismsOrErr returns the DepartmentContactMechanisms value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) DepartmentContactMechanismsOrErr() ([]*DepartmentContactMechanism, error) {
+	if e.loadedTypes[25] {
+		return e.DepartmentContactMechanisms, nil
+	}
+	return nil, &NotLoadedError{edge: "department_contact_mechanisms"}
+}
+
+// DepartmentContactMechanismValiditiesOrErr returns the DepartmentContactMechanismValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) DepartmentContactMechanismValiditiesOrErr() ([]*DepartmentContactMechanismValidity, error) {
+	if e.loadedTypes[26] {
+		return e.DepartmentContactMechanismValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "department_contact_mechanism_validities"}
+}
+
+// DepartmentAddressesOrErr returns the DepartmentAddresses value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) DepartmentAddressesOrErr() ([]*DepartmentAddress, error) {
+	if e.loadedTypes[27] {
+		return e.DepartmentAddresses, nil
+	}
+	return nil, &NotLoadedError{edge: "department_addresses"}
+}
+
+// DepartmentAddressValiditiesOrErr returns the DepartmentAddressValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) DepartmentAddressValiditiesOrErr() ([]*DepartmentAddressValidity, error) {
+	if e.loadedTypes[28] {
+		return e.DepartmentAddressValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "department_address_validities"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Subscription) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -508,6 +563,31 @@ func (_m *Subscription) QueryPartyIdentityDocuments() *PartyIdentityDocumentQuer
 // QueryPartyIdentityDocumentValidities queries the "party_identity_document_validities" edge of the Subscription entity.
 func (_m *Subscription) QueryPartyIdentityDocumentValidities() *PartyIdentityDocumentValidityQuery {
 	return NewSubscriptionClient(_m.config).QueryPartyIdentityDocumentValidities(_m)
+}
+
+// QueryAddressValidities queries the "address_validities" edge of the Subscription entity.
+func (_m *Subscription) QueryAddressValidities() *AddressValidityQuery {
+	return NewSubscriptionClient(_m.config).QueryAddressValidities(_m)
+}
+
+// QueryDepartmentContactMechanisms queries the "department_contact_mechanisms" edge of the Subscription entity.
+func (_m *Subscription) QueryDepartmentContactMechanisms() *DepartmentContactMechanismQuery {
+	return NewSubscriptionClient(_m.config).QueryDepartmentContactMechanisms(_m)
+}
+
+// QueryDepartmentContactMechanismValidities queries the "department_contact_mechanism_validities" edge of the Subscription entity.
+func (_m *Subscription) QueryDepartmentContactMechanismValidities() *DepartmentContactMechanismValidityQuery {
+	return NewSubscriptionClient(_m.config).QueryDepartmentContactMechanismValidities(_m)
+}
+
+// QueryDepartmentAddresses queries the "department_addresses" edge of the Subscription entity.
+func (_m *Subscription) QueryDepartmentAddresses() *DepartmentAddressQuery {
+	return NewSubscriptionClient(_m.config).QueryDepartmentAddresses(_m)
+}
+
+// QueryDepartmentAddressValidities queries the "department_address_validities" edge of the Subscription entity.
+func (_m *Subscription) QueryDepartmentAddressValidities() *DepartmentAddressValidityQuery {
+	return NewSubscriptionClient(_m.config).QueryDepartmentAddressValidities(_m)
 }
 
 // Update returns a builder for updating this Subscription.

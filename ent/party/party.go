@@ -52,6 +52,8 @@ const (
 	EdgeIdentityDocuments = "identity_documents"
 	// EdgeIdentityDocumentValidities holds the string denoting the identity_document_validities edge name in mutations.
 	EdgeIdentityDocumentValidities = "identity_document_validities"
+	// EdgeAddressValidities holds the string denoting the address_validities edge name in mutations.
+	EdgeAddressValidities = "address_validities"
 	// EdgeAddresses holds the string denoting the addresses edge name in mutations.
 	EdgeAddresses = "addresses"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
@@ -146,6 +148,13 @@ const (
 	IdentityDocumentValiditiesInverseTable = "party_identity_document_validities"
 	// IdentityDocumentValiditiesColumn is the table column denoting the identity_document_validities relation/edge.
 	IdentityDocumentValiditiesColumn = "party_id"
+	// AddressValiditiesTable is the table that holds the address_validities relation/edge.
+	AddressValiditiesTable = "address_validities"
+	// AddressValiditiesInverseTable is the table name for the AddressValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "addressvalidity" package.
+	AddressValiditiesInverseTable = "address_validities"
+	// AddressValiditiesColumn is the table column denoting the address_validities relation/edge.
+	AddressValiditiesColumn = "party_id"
 	// AddressesTable is the table that holds the addresses relation/edge.
 	AddressesTable = "addresses"
 	// AddressesInverseTable is the table name for the Address entity.
@@ -472,6 +481,20 @@ func ByIdentityDocumentValidities(term sql.OrderTerm, terms ...sql.OrderTerm) Or
 	}
 }
 
+// ByAddressValiditiesCount orders the results by address_validities count.
+func ByAddressValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAddressValiditiesStep(), opts...)
+	}
+}
+
+// ByAddressValidities orders the results by address_validities terms.
+func ByAddressValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAddressValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAddressesCount orders the results by addresses count.
 func ByAddressesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -679,6 +702,13 @@ func newIdentityDocumentValiditiesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(IdentityDocumentValiditiesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, IdentityDocumentValiditiesTable, IdentityDocumentValiditiesColumn),
+	)
+}
+func newAddressValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AddressValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AddressValiditiesTable, AddressValiditiesColumn),
 	)
 }
 func newAddressesStep() *sqlgraph.Step {

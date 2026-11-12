@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"enterprise-system/ent/contactmechanism"
+	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/predicate"
@@ -22,11 +23,12 @@ import (
 // ContactMechanismQuery is the builder for querying ContactMechanism entities.
 type ContactMechanismQuery struct {
 	config
-	ctx                        *QueryContext
-	order                      []contactmechanism.OrderOption
-	inters                     []Interceptor
-	predicates                 []predicate.ContactMechanism
-	withPartyContactMechanisms *PartyContactMechanismQuery
+	ctx                             *QueryContext
+	order                           []contactmechanism.OrderOption
+	inters                          []Interceptor
+	predicates                      []predicate.ContactMechanism
+	withPartyContactMechanisms      *PartyContactMechanismQuery
+	withDepartmentContactMechanisms *DepartmentContactMechanismQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -82,6 +84,31 @@ func (_q *ContactMechanismQuery) QueryPartyContactMechanisms() *PartyContactMech
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.PartyContactMechanism
 		step.Edge.Schema = schemaConfig.PartyContactMechanism
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartmentContactMechanisms chains the current query on the "department_contact_mechanisms" edge.
+func (_q *ContactMechanismQuery) QueryDepartmentContactMechanisms() *DepartmentContactMechanismQuery {
+	query := (&DepartmentContactMechanismClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(contactmechanism.Table, contactmechanism.FieldID, selector),
+			sqlgraph.To(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, contactmechanism.DepartmentContactMechanismsTable, contactmechanism.DepartmentContactMechanismsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -275,12 +302,13 @@ func (_q *ContactMechanismQuery) Clone() *ContactMechanismQuery {
 		return nil
 	}
 	return &ContactMechanismQuery{
-		config:                     _q.config,
-		ctx:                        _q.ctx.Clone(),
-		order:                      append([]contactmechanism.OrderOption{}, _q.order...),
-		inters:                     append([]Interceptor{}, _q.inters...),
-		predicates:                 append([]predicate.ContactMechanism{}, _q.predicates...),
-		withPartyContactMechanisms: _q.withPartyContactMechanisms.Clone(),
+		config:                          _q.config,
+		ctx:                             _q.ctx.Clone(),
+		order:                           append([]contactmechanism.OrderOption{}, _q.order...),
+		inters:                          append([]Interceptor{}, _q.inters...),
+		predicates:                      append([]predicate.ContactMechanism{}, _q.predicates...),
+		withPartyContactMechanisms:      _q.withPartyContactMechanisms.Clone(),
+		withDepartmentContactMechanisms: _q.withDepartmentContactMechanisms.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -295,6 +323,17 @@ func (_q *ContactMechanismQuery) WithPartyContactMechanisms(opts ...func(*PartyC
 		opt(query)
 	}
 	_q.withPartyContactMechanisms = query
+	return _q
+}
+
+// WithDepartmentContactMechanisms tells the query-builder to eager-load the nodes that are connected to
+// the "department_contact_mechanisms" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ContactMechanismQuery) WithDepartmentContactMechanisms(opts ...func(*DepartmentContactMechanismQuery)) *ContactMechanismQuery {
+	query := (&DepartmentContactMechanismClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentContactMechanisms = query
 	return _q
 }
 
@@ -376,8 +415,9 @@ func (_q *ContactMechanismQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 	var (
 		nodes       = []*ContactMechanism{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withPartyContactMechanisms != nil,
+			_q.withDepartmentContactMechanisms != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -409,6 +449,15 @@ func (_q *ContactMechanismQuery) sqlAll(ctx context.Context, hooks ...queryHook)
 			return nil, err
 		}
 	}
+	if query := _q.withDepartmentContactMechanisms; query != nil {
+		if err := _q.loadDepartmentContactMechanisms(ctx, query, nodes,
+			func(n *ContactMechanism) { n.Edges.DepartmentContactMechanisms = []*DepartmentContactMechanism{} },
+			func(n *ContactMechanism, e *DepartmentContactMechanism) {
+				n.Edges.DepartmentContactMechanisms = append(n.Edges.DepartmentContactMechanisms, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -427,6 +476,36 @@ func (_q *ContactMechanismQuery) loadPartyContactMechanisms(ctx context.Context,
 	}
 	query.Where(predicate.PartyContactMechanism(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(contactmechanism.PartyContactMechanismsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ContactMechanismID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "contact_mechanism_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *ContactMechanismQuery) loadDepartmentContactMechanisms(ctx context.Context, query *DepartmentContactMechanismQuery, nodes []*ContactMechanism, init func(*ContactMechanism), assign func(*ContactMechanism, *DepartmentContactMechanism)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*ContactMechanism)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentcontactmechanism.FieldContactMechanismID)
+	}
+	query.Where(predicate.DepartmentContactMechanism(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(contactmechanism.DepartmentContactMechanismsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

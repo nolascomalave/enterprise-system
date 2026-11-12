@@ -32,8 +32,6 @@ const (
 	FieldPostalCode = "postal_code"
 	// FieldCountry holds the string denoting the country field in the database.
 	FieldCountry = "country"
-	// FieldIsPrimary holds the string denoting the is_primary field in the database.
-	FieldIsPrimary = "is_primary"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -46,6 +44,8 @@ const (
 	EdgeParty = "party"
 	// EdgeCityLocation holds the string denoting the city_location edge name in mutations.
 	EdgeCityLocation = "city_location"
+	// EdgeValidities holds the string denoting the validities edge name in mutations.
+	EdgeValidities = "validities"
 	// Table holds the table name of the address in the database.
 	Table = "addresses"
 	// TenantTable is the table that holds the tenant relation/edge.
@@ -69,6 +69,13 @@ const (
 	CityLocationInverseTable = "locations"
 	// CityLocationColumn is the table column denoting the city_location relation/edge.
 	CityLocationColumn = "city_location_id"
+	// ValiditiesTable is the table that holds the validities relation/edge.
+	ValiditiesTable = "address_validities"
+	// ValiditiesInverseTable is the table name for the AddressValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "addressvalidity" package.
+	ValiditiesInverseTable = "address_validities"
+	// ValiditiesColumn is the table column denoting the validities relation/edge.
+	ValiditiesColumn = "address_id"
 )
 
 // Columns holds all SQL columns for address fields.
@@ -82,7 +89,6 @@ var Columns = []string{
 	FieldCityLocationID,
 	FieldPostalCode,
 	FieldCountry,
-	FieldIsPrimary,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 	FieldDeletedAt,
@@ -103,8 +109,6 @@ var (
 	Line1Validator func(string) error
 	// CountryValidator is a validator for the "country" field. It is called by the builders before save.
 	CountryValidator func(string) error
-	// DefaultIsPrimary holds the default value on creation for the "is_primary" field.
-	DefaultIsPrimary bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -188,11 +192,6 @@ func ByCountry(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCountry, opts...).ToFunc()
 }
 
-// ByIsPrimary orders the results by the is_primary field.
-func ByIsPrimary(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldIsPrimary, opts...).ToFunc()
-}
-
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -228,6 +227,20 @@ func ByCityLocationField(field string, opts ...sql.OrderTermOption) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newCityLocationStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByValiditiesCount orders the results by validities count.
+func ByValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newValiditiesStep(), opts...)
+	}
+}
+
+// ByValidities orders the results by validities terms.
+func ByValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -247,5 +260,12 @@ func newCityLocationStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CityLocationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CityLocationTable, CityLocationColumn),
+	)
+}
+func newValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ValiditiesTable, ValiditiesColumn),
 	)
 }

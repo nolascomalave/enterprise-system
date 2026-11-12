@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/departmentaddress"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/partyidentitydocument"
@@ -198,6 +199,21 @@ func (_c *LocationCreate) AddIdentityDocuments(v ...*PartyIdentityDocument) *Loc
 		ids[i] = v[i].ID
 	}
 	return _c.AddIdentityDocumentIDs(ids...)
+}
+
+// AddDepartmentAddressIDs adds the "department_addresses" edge to the DepartmentAddress entity by IDs.
+func (_c *LocationCreate) AddDepartmentAddressIDs(ids ...uuid.UUID) *LocationCreate {
+	_c.mutation.AddDepartmentAddressIDs(ids...)
+	return _c
+}
+
+// AddDepartmentAddresses adds the "department_addresses" edges to the DepartmentAddress entity.
+func (_c *LocationCreate) AddDepartmentAddresses(v ...*DepartmentAddress) *LocationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDepartmentAddressIDs(ids...)
 }
 
 // Mutation returns the LocationMutation object of the builder.
@@ -433,6 +449,23 @@ func (_c *LocationCreate) createSpec() (*Location, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DepartmentAddressesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   location.DepartmentAddressesTable,
+			Columns: []string{location.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentAddress
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

@@ -83,6 +83,14 @@ func (Department) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("group_assignments", DepartmentGroupAssignment.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("contact_mechanisms", DepartmentContactMechanism.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("contact_mechanism_validities", DepartmentContactMechanismValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("addresses", DepartmentAddress.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("address_validities", DepartmentAddressValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

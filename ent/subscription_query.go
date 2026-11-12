@@ -6,9 +6,14 @@ import (
 	"context"
 	"database/sql/driver"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentaddress"
+	"enterprise-system/ent/departmentaddressvalidity"
+	"enterprise-system/ent/departmentcontactmechanism"
+	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -45,34 +50,39 @@ import (
 // SubscriptionQuery is the builder for querying Subscription entities.
 type SubscriptionQuery struct {
 	config
-	ctx                                 *QueryContext
-	order                               []subscription.OrderOption
-	inters                              []Interceptor
-	predicates                          []predicate.Subscription
-	withParties                         *PartyQuery
-	withPersonProfiles                  *PersonProfileQuery
-	withOrganizationProfiles            *OrganizationProfileQuery
-	withPartyRoles                      *PartyRoleQuery
-	withPartyMergeLogs                  *PartyMergeLogQuery
-	withJobFamilies                     *JobFamilyQuery
-	withJobs                            *JobQuery
-	withEmployees                       *EmployeeQuery
-	withDepartments                     *DepartmentQuery
-	withEmployeeAssignments             *EmployeeAssignmentQuery
-	withPartyContactMechanisms          *PartyContactMechanismQuery
-	withAddresses                       *AddressQuery
-	withSessions                        *SessionQuery
-	withUserCredentials                 *UserCredentialsQuery
-	withPasswordResetTokens             *PasswordResetTokenQuery
-	withAttachedDocuments               *AttachedDocumentQuery
-	withCorporateGroups                 *CorporateGroupQuery
-	withDepartmentGroupAssignments      *DepartmentGroupAssignmentQuery
-	withPartyNames                      *PartyNameQuery
-	withPartyNameValidities             *PartyNameValidityQuery
-	withPartyContactMechanismValidities *PartyContactMechanismValidityQuery
-	withPartyNationalities              *PartyNationalityQuery
-	withPartyIdentityDocuments          *PartyIdentityDocumentQuery
-	withPartyIdentityDocumentValidities *PartyIdentityDocumentValidityQuery
+	ctx                                      *QueryContext
+	order                                    []subscription.OrderOption
+	inters                                   []Interceptor
+	predicates                               []predicate.Subscription
+	withParties                              *PartyQuery
+	withPersonProfiles                       *PersonProfileQuery
+	withOrganizationProfiles                 *OrganizationProfileQuery
+	withPartyRoles                           *PartyRoleQuery
+	withPartyMergeLogs                       *PartyMergeLogQuery
+	withJobFamilies                          *JobFamilyQuery
+	withJobs                                 *JobQuery
+	withEmployees                            *EmployeeQuery
+	withDepartments                          *DepartmentQuery
+	withEmployeeAssignments                  *EmployeeAssignmentQuery
+	withPartyContactMechanisms               *PartyContactMechanismQuery
+	withAddresses                            *AddressQuery
+	withSessions                             *SessionQuery
+	withUserCredentials                      *UserCredentialsQuery
+	withPasswordResetTokens                  *PasswordResetTokenQuery
+	withAttachedDocuments                    *AttachedDocumentQuery
+	withCorporateGroups                      *CorporateGroupQuery
+	withDepartmentGroupAssignments           *DepartmentGroupAssignmentQuery
+	withPartyNames                           *PartyNameQuery
+	withPartyNameValidities                  *PartyNameValidityQuery
+	withPartyContactMechanismValidities      *PartyContactMechanismValidityQuery
+	withPartyNationalities                   *PartyNationalityQuery
+	withPartyIdentityDocuments               *PartyIdentityDocumentQuery
+	withPartyIdentityDocumentValidities      *PartyIdentityDocumentValidityQuery
+	withAddressValidities                    *AddressValidityQuery
+	withDepartmentContactMechanisms          *DepartmentContactMechanismQuery
+	withDepartmentContactMechanismValidities *DepartmentContactMechanismValidityQuery
+	withDepartmentAddresses                  *DepartmentAddressQuery
+	withDepartmentAddressValidities          *DepartmentAddressValidityQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -709,6 +719,131 @@ func (_q *SubscriptionQuery) QueryPartyIdentityDocumentValidities() *PartyIdenti
 	return query
 }
 
+// QueryAddressValidities chains the current query on the "address_validities" edge.
+func (_q *SubscriptionQuery) QueryAddressValidities() *AddressValidityQuery {
+	query := (&AddressValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(addressvalidity.Table, addressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.AddressValiditiesTable, subscription.AddressValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartmentContactMechanisms chains the current query on the "department_contact_mechanisms" edge.
+func (_q *SubscriptionQuery) QueryDepartmentContactMechanisms() *DepartmentContactMechanismQuery {
+	query := (&DepartmentContactMechanismClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentContactMechanismsTable, subscription.DepartmentContactMechanismsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartmentContactMechanismValidities chains the current query on the "department_contact_mechanism_validities" edge.
+func (_q *SubscriptionQuery) QueryDepartmentContactMechanismValidities() *DepartmentContactMechanismValidityQuery {
+	query := (&DepartmentContactMechanismValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(departmentcontactmechanismvalidity.Table, departmentcontactmechanismvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentContactMechanismValiditiesTable, subscription.DepartmentContactMechanismValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanismValidity
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartmentAddresses chains the current query on the "department_addresses" edge.
+func (_q *SubscriptionQuery) QueryDepartmentAddresses() *DepartmentAddressQuery {
+	query := (&DepartmentAddressClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(departmentaddress.Table, departmentaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentAddressesTable, subscription.DepartmentAddressesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartmentAddressValidities chains the current query on the "department_address_validities" edge.
+func (_q *SubscriptionQuery) QueryDepartmentAddressValidities() *DepartmentAddressValidityQuery {
+	query := (&DepartmentAddressValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(departmentaddressvalidity.Table, departmentaddressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentAddressValiditiesTable, subscription.DepartmentAddressValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddressValidity
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Subscription entity from the query.
 // Returns a *NotFoundError when no Subscription was found.
 func (_q *SubscriptionQuery) First(ctx context.Context) (*Subscription, error) {
@@ -896,35 +1031,40 @@ func (_q *SubscriptionQuery) Clone() *SubscriptionQuery {
 		return nil
 	}
 	return &SubscriptionQuery{
-		config:                              _q.config,
-		ctx:                                 _q.ctx.Clone(),
-		order:                               append([]subscription.OrderOption{}, _q.order...),
-		inters:                              append([]Interceptor{}, _q.inters...),
-		predicates:                          append([]predicate.Subscription{}, _q.predicates...),
-		withParties:                         _q.withParties.Clone(),
-		withPersonProfiles:                  _q.withPersonProfiles.Clone(),
-		withOrganizationProfiles:            _q.withOrganizationProfiles.Clone(),
-		withPartyRoles:                      _q.withPartyRoles.Clone(),
-		withPartyMergeLogs:                  _q.withPartyMergeLogs.Clone(),
-		withJobFamilies:                     _q.withJobFamilies.Clone(),
-		withJobs:                            _q.withJobs.Clone(),
-		withEmployees:                       _q.withEmployees.Clone(),
-		withDepartments:                     _q.withDepartments.Clone(),
-		withEmployeeAssignments:             _q.withEmployeeAssignments.Clone(),
-		withPartyContactMechanisms:          _q.withPartyContactMechanisms.Clone(),
-		withAddresses:                       _q.withAddresses.Clone(),
-		withSessions:                        _q.withSessions.Clone(),
-		withUserCredentials:                 _q.withUserCredentials.Clone(),
-		withPasswordResetTokens:             _q.withPasswordResetTokens.Clone(),
-		withAttachedDocuments:               _q.withAttachedDocuments.Clone(),
-		withCorporateGroups:                 _q.withCorporateGroups.Clone(),
-		withDepartmentGroupAssignments:      _q.withDepartmentGroupAssignments.Clone(),
-		withPartyNames:                      _q.withPartyNames.Clone(),
-		withPartyNameValidities:             _q.withPartyNameValidities.Clone(),
-		withPartyContactMechanismValidities: _q.withPartyContactMechanismValidities.Clone(),
-		withPartyNationalities:              _q.withPartyNationalities.Clone(),
-		withPartyIdentityDocuments:          _q.withPartyIdentityDocuments.Clone(),
-		withPartyIdentityDocumentValidities: _q.withPartyIdentityDocumentValidities.Clone(),
+		config:                                   _q.config,
+		ctx:                                      _q.ctx.Clone(),
+		order:                                    append([]subscription.OrderOption{}, _q.order...),
+		inters:                                   append([]Interceptor{}, _q.inters...),
+		predicates:                               append([]predicate.Subscription{}, _q.predicates...),
+		withParties:                              _q.withParties.Clone(),
+		withPersonProfiles:                       _q.withPersonProfiles.Clone(),
+		withOrganizationProfiles:                 _q.withOrganizationProfiles.Clone(),
+		withPartyRoles:                           _q.withPartyRoles.Clone(),
+		withPartyMergeLogs:                       _q.withPartyMergeLogs.Clone(),
+		withJobFamilies:                          _q.withJobFamilies.Clone(),
+		withJobs:                                 _q.withJobs.Clone(),
+		withEmployees:                            _q.withEmployees.Clone(),
+		withDepartments:                          _q.withDepartments.Clone(),
+		withEmployeeAssignments:                  _q.withEmployeeAssignments.Clone(),
+		withPartyContactMechanisms:               _q.withPartyContactMechanisms.Clone(),
+		withAddresses:                            _q.withAddresses.Clone(),
+		withSessions:                             _q.withSessions.Clone(),
+		withUserCredentials:                      _q.withUserCredentials.Clone(),
+		withPasswordResetTokens:                  _q.withPasswordResetTokens.Clone(),
+		withAttachedDocuments:                    _q.withAttachedDocuments.Clone(),
+		withCorporateGroups:                      _q.withCorporateGroups.Clone(),
+		withDepartmentGroupAssignments:           _q.withDepartmentGroupAssignments.Clone(),
+		withPartyNames:                           _q.withPartyNames.Clone(),
+		withPartyNameValidities:                  _q.withPartyNameValidities.Clone(),
+		withPartyContactMechanismValidities:      _q.withPartyContactMechanismValidities.Clone(),
+		withPartyNationalities:                   _q.withPartyNationalities.Clone(),
+		withPartyIdentityDocuments:               _q.withPartyIdentityDocuments.Clone(),
+		withPartyIdentityDocumentValidities:      _q.withPartyIdentityDocumentValidities.Clone(),
+		withAddressValidities:                    _q.withAddressValidities.Clone(),
+		withDepartmentContactMechanisms:          _q.withDepartmentContactMechanisms.Clone(),
+		withDepartmentContactMechanismValidities: _q.withDepartmentContactMechanismValidities.Clone(),
+		withDepartmentAddresses:                  _q.withDepartmentAddresses.Clone(),
+		withDepartmentAddressValidities:          _q.withDepartmentAddressValidities.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1195,6 +1335,61 @@ func (_q *SubscriptionQuery) WithPartyIdentityDocumentValidities(opts ...func(*P
 	return _q
 }
 
+// WithAddressValidities tells the query-builder to eager-load the nodes that are connected to
+// the "address_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithAddressValidities(opts ...func(*AddressValidityQuery)) *SubscriptionQuery {
+	query := (&AddressValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withAddressValidities = query
+	return _q
+}
+
+// WithDepartmentContactMechanisms tells the query-builder to eager-load the nodes that are connected to
+// the "department_contact_mechanisms" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithDepartmentContactMechanisms(opts ...func(*DepartmentContactMechanismQuery)) *SubscriptionQuery {
+	query := (&DepartmentContactMechanismClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentContactMechanisms = query
+	return _q
+}
+
+// WithDepartmentContactMechanismValidities tells the query-builder to eager-load the nodes that are connected to
+// the "department_contact_mechanism_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithDepartmentContactMechanismValidities(opts ...func(*DepartmentContactMechanismValidityQuery)) *SubscriptionQuery {
+	query := (&DepartmentContactMechanismValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentContactMechanismValidities = query
+	return _q
+}
+
+// WithDepartmentAddresses tells the query-builder to eager-load the nodes that are connected to
+// the "department_addresses" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithDepartmentAddresses(opts ...func(*DepartmentAddressQuery)) *SubscriptionQuery {
+	query := (&DepartmentAddressClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentAddresses = query
+	return _q
+}
+
+// WithDepartmentAddressValidities tells the query-builder to eager-load the nodes that are connected to
+// the "department_address_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithDepartmentAddressValidities(opts ...func(*DepartmentAddressValidityQuery)) *SubscriptionQuery {
+	query := (&DepartmentAddressValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentAddressValidities = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1273,7 +1468,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Subscription{}
 		_spec       = _q.querySpec()
-		loadedTypes = [24]bool{
+		loadedTypes = [29]bool{
 			_q.withParties != nil,
 			_q.withPersonProfiles != nil,
 			_q.withOrganizationProfiles != nil,
@@ -1298,6 +1493,11 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withPartyNationalities != nil,
 			_q.withPartyIdentityDocuments != nil,
 			_q.withPartyIdentityDocumentValidities != nil,
+			_q.withAddressValidities != nil,
+			_q.withDepartmentContactMechanisms != nil,
+			_q.withDepartmentContactMechanismValidities != nil,
+			_q.withDepartmentAddresses != nil,
+			_q.withDepartmentAddressValidities != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1508,6 +1708,53 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Subscription) { n.Edges.PartyIdentityDocumentValidities = []*PartyIdentityDocumentValidity{} },
 			func(n *Subscription, e *PartyIdentityDocumentValidity) {
 				n.Edges.PartyIdentityDocumentValidities = append(n.Edges.PartyIdentityDocumentValidities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withAddressValidities; query != nil {
+		if err := _q.loadAddressValidities(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.AddressValidities = []*AddressValidity{} },
+			func(n *Subscription, e *AddressValidity) {
+				n.Edges.AddressValidities = append(n.Edges.AddressValidities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDepartmentContactMechanisms; query != nil {
+		if err := _q.loadDepartmentContactMechanisms(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.DepartmentContactMechanisms = []*DepartmentContactMechanism{} },
+			func(n *Subscription, e *DepartmentContactMechanism) {
+				n.Edges.DepartmentContactMechanisms = append(n.Edges.DepartmentContactMechanisms, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDepartmentContactMechanismValidities; query != nil {
+		if err := _q.loadDepartmentContactMechanismValidities(ctx, query, nodes,
+			func(n *Subscription) {
+				n.Edges.DepartmentContactMechanismValidities = []*DepartmentContactMechanismValidity{}
+			},
+			func(n *Subscription, e *DepartmentContactMechanismValidity) {
+				n.Edges.DepartmentContactMechanismValidities = append(n.Edges.DepartmentContactMechanismValidities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDepartmentAddresses; query != nil {
+		if err := _q.loadDepartmentAddresses(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.DepartmentAddresses = []*DepartmentAddress{} },
+			func(n *Subscription, e *DepartmentAddress) {
+				n.Edges.DepartmentAddresses = append(n.Edges.DepartmentAddresses, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDepartmentAddressValidities; query != nil {
+		if err := _q.loadDepartmentAddressValidities(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.DepartmentAddressValidities = []*DepartmentAddressValidity{} },
+			func(n *Subscription, e *DepartmentAddressValidity) {
+				n.Edges.DepartmentAddressValidities = append(n.Edges.DepartmentAddressValidities, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2223,6 +2470,156 @@ func (_q *SubscriptionQuery) loadPartyIdentityDocumentValidities(ctx context.Con
 	}
 	query.Where(predicate.PartyIdentityDocumentValidity(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(subscription.PartyIdentityDocumentValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadAddressValidities(ctx context.Context, query *AddressValidityQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *AddressValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(addressvalidity.FieldTenantID)
+	}
+	query.Where(predicate.AddressValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.AddressValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadDepartmentContactMechanisms(ctx context.Context, query *DepartmentContactMechanismQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *DepartmentContactMechanism)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentcontactmechanism.FieldTenantID)
+	}
+	query.Where(predicate.DepartmentContactMechanism(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.DepartmentContactMechanismsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadDepartmentContactMechanismValidities(ctx context.Context, query *DepartmentContactMechanismValidityQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *DepartmentContactMechanismValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentcontactmechanismvalidity.FieldTenantID)
+	}
+	query.Where(predicate.DepartmentContactMechanismValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.DepartmentContactMechanismValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadDepartmentAddresses(ctx context.Context, query *DepartmentAddressQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *DepartmentAddress)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentaddress.FieldTenantID)
+	}
+	query.Where(predicate.DepartmentAddress(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.DepartmentAddressesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadDepartmentAddressValidities(ctx context.Context, query *DepartmentAddressValidityQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *DepartmentAddressValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentaddressvalidity.FieldTenantID)
+	}
+	query.Where(predicate.DepartmentAddressValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.DepartmentAddressValiditiesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 
 	"enterprise-system/ent"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partycontactmechanismvalidity"
@@ -264,7 +265,6 @@ func (r *PartyContactRepository) CreateAddress(ctx context.Context, e *domain.Ad
 			SetCityLocationID(e.CityLocationID).
 			SetPostalCode(e.PostalCode).
 			SetCountry(e.Country).
-			SetIsPrimary(e.IsPrimary).
 			SetCreatedAt(e.CreatedAt).
 			SetUpdatedAt(e.UpdatedAt).
 			Save(ctx)
@@ -282,6 +282,20 @@ func (r *PartyContactRepository) GetAddress(ctx context.Context, id uuid.UUID) (
 			return repoError(err)
 		}
 		result = toDomainAddress(e)
+		validity, err := client.AddressValidity.Query().
+			Where(
+				addressvalidity.TenantID(e.TenantID),
+				addressvalidity.AddressID(id),
+				addressvalidity.EndDateIsNil(),
+				addressvalidity.DeletedAtIsNil(),
+			).
+			First(ctx)
+		switch {
+		case err == nil:
+			result.IsPrimary = validity.IsPrimary
+		case !ent.IsNotFound(err):
+			return repoError(err)
+		}
 		return nil
 	})
 	return result, err
@@ -297,8 +311,30 @@ func (r *PartyContactRepository) ListAddresses(ctx context.Context, partyID uuid
 			return repoError(err)
 		}
 		result = make([]*domain.Address, 0, len(rows))
+		ids := make([]uuid.UUID, 0, len(rows))
 		for _, e := range rows {
 			result = append(result, toDomainAddress(e))
+			ids = append(ids, e.ID)
+		}
+		if len(ids) == 0 {
+			return nil
+		}
+		validities, err := client.AddressValidity.Query().
+			Where(
+				addressvalidity.AddressIDIn(ids...),
+				addressvalidity.EndDateIsNil(),
+				addressvalidity.DeletedAtIsNil(),
+			).
+			All(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+		primary := make(map[uuid.UUID]bool, len(validities))
+		for _, validity := range validities {
+			primary[validity.AddressID] = validity.IsPrimary
+		}
+		for _, address := range result {
+			address.IsPrimary = primary[address.ID]
 		}
 		return nil
 	})
@@ -314,7 +350,6 @@ func (r *PartyContactRepository) UpdateAddress(ctx context.Context, e *domain.Ad
 			SetCityLocationID(e.CityLocationID).
 			SetPostalCode(e.PostalCode).
 			SetCountry(e.Country).
-			SetIsPrimary(e.IsPrimary).
 			SetUpdatedAt(e.UpdatedAt)
 		if e.DeletedAt != nil {
 			update.SetDeletedAt(*e.DeletedAt)
@@ -324,6 +359,117 @@ func (r *PartyContactRepository) UpdateAddress(ctx context.Context, e *domain.Ad
 		_, err := update.Save(ctx)
 		return repoError(err)
 	})
+}
+
+func (r *PartyContactRepository) GetOpenAddressValidity(
+	ctx context.Context,
+	tenantID, addressID uuid.UUID,
+) (*domain.AddressValidity, error) {
+	var result *domain.AddressValidity
+	err := r.withClient(ctx, func(client *ent.Client) error {
+		row, err := client.AddressValidity.Query().
+			Where(
+				addressvalidity.TenantID(tenantID),
+				addressvalidity.AddressID(addressID),
+				addressvalidity.EndDateIsNil(),
+				addressvalidity.DeletedAtIsNil(),
+			).
+			First(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+		result = toDomainAddressValidity(row)
+		return nil
+	})
+	if ent.IsNotFound(err) {
+		return nil, domain.ErrAddressValidityNotFound
+	}
+	return result, err
+}
+
+func (r *PartyContactRepository) GetOpenPrimaryAddressValidity(
+	ctx context.Context,
+	tenantID, partyID uuid.UUID,
+	addressType domain.AddressType,
+) (*domain.AddressValidity, error) {
+	var result *domain.AddressValidity
+	err := r.withClient(ctx, func(client *ent.Client) error {
+		row, err := client.AddressValidity.Query().
+			Where(
+				addressvalidity.TenantID(tenantID),
+				addressvalidity.PartyID(partyID),
+				addressvalidity.TypeEQ(addressvalidity.Type(addressType)),
+				addressvalidity.IsPrimary(true),
+				addressvalidity.EndDateIsNil(),
+				addressvalidity.DeletedAtIsNil(),
+			).
+			Only(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+		result = toDomainAddressValidity(row)
+		return nil
+	})
+	if ent.IsNotFound(err) {
+		return nil, domain.ErrAddressValidityNotFound
+	}
+	return result, err
+}
+
+func (r *PartyContactRepository) CreateAddressValidity(ctx context.Context, validity *domain.AddressValidity) error {
+	if validity == nil {
+		return errors.New("repository: nil address validity")
+	}
+	return r.withClient(ctx, func(client *ent.Client) error {
+		_, err := client.AddressValidity.Create().
+			SetID(validity.ID).
+			SetTenantID(validity.TenantID).
+			SetPartyID(validity.PartyID).
+			SetAddressID(validity.AddressID).
+			SetType(addressvalidity.Type(validity.Type)).
+			SetIsPrimary(validity.IsPrimary).
+			SetStartDate(validity.StartDate).
+			SetCreatedAt(validity.CreatedAt).
+			Save(ctx)
+		return repoError(err)
+	})
+}
+
+func (r *PartyContactRepository) CloseAddressValidity(
+	ctx context.Context,
+	tenantID, validityID uuid.UUID,
+	at time.Time,
+) error {
+	var affected int
+	err := r.withClient(ctx, func(client *ent.Client) error {
+		var err error
+		affected, err = client.AddressValidity.Update().
+			Where(
+				addressvalidity.ID(validityID),
+				addressvalidity.TenantID(tenantID),
+				addressvalidity.EndDateIsNil(),
+				addressvalidity.DeletedAtIsNil(),
+			).
+			SetEndDate(at).
+			Save(ctx)
+		return repoError(err)
+	})
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return domain.ErrAddressValidityNotFound
+	}
+	return nil
+}
+
+func toDomainAddressValidity(e *ent.AddressValidity) *domain.AddressValidity {
+	return &domain.AddressValidity{
+		ID: e.ID, TenantID: e.TenantID, PartyID: e.PartyID, AddressID: e.AddressID,
+		Type: domain.AddressType(e.Type), IsPrimary: e.IsPrimary,
+		StartDate: e.StartDate, EndDate: e.EndDate,
+		CreatedAt: e.CreatedAt, DeletedAt: e.DeletedAt,
+	}
 }
 
 func toDomainContactMechanism(e *ent.ContactMechanism) *domain.ContactMechanism {
@@ -358,7 +504,7 @@ func toDomainAddress(e *ent.Address) *domain.Address {
 		ID: e.ID, TenantID: e.TenantID, PartyID: e.PartyID,
 		Type: domain.AddressType(e.Type), Line1: e.Line1, Line2: e.Line2,
 		CityLocationID: e.CityLocationID, PostalCode: e.PostalCode, Country: e.Country,
-		IsPrimary: e.IsPrimary, CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt,
+		CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt,
 		DeletedAt: e.DeletedAt,
 	}
 }

@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/party"
@@ -157,20 +158,6 @@ func (_u *AddressUpdate) SetNillableCountry(v *string) *AddressUpdate {
 	return _u
 }
 
-// SetIsPrimary sets the "is_primary" field.
-func (_u *AddressUpdate) SetIsPrimary(v bool) *AddressUpdate {
-	_u.mutation.SetIsPrimary(v)
-	return _u
-}
-
-// SetNillableIsPrimary sets the "is_primary" field if the given value is not nil.
-func (_u *AddressUpdate) SetNillableIsPrimary(v *bool) *AddressUpdate {
-	if v != nil {
-		_u.SetIsPrimary(*v)
-	}
-	return _u
-}
-
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *AddressUpdate) SetUpdatedAt(v time.Time) *AddressUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -212,6 +199,21 @@ func (_u *AddressUpdate) SetCityLocation(v *Location) *AddressUpdate {
 	return _u.SetCityLocationID(v.ID)
 }
 
+// AddValidityIDs adds the "validities" edge to the AddressValidity entity by IDs.
+func (_u *AddressUpdate) AddValidityIDs(ids ...uuid.UUID) *AddressUpdate {
+	_u.mutation.AddValidityIDs(ids...)
+	return _u
+}
+
+// AddValidities adds the "validities" edges to the AddressValidity entity.
+func (_u *AddressUpdate) AddValidities(v ...*AddressValidity) *AddressUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddValidityIDs(ids...)
+}
+
 // Mutation returns the AddressMutation object of the builder.
 func (_u *AddressUpdate) Mutation() *AddressMutation {
 	return _u.mutation
@@ -233,6 +235,27 @@ func (_u *AddressUpdate) ClearParty() *AddressUpdate {
 func (_u *AddressUpdate) ClearCityLocation() *AddressUpdate {
 	_u.mutation.ClearCityLocation()
 	return _u
+}
+
+// ClearValidities clears all "validities" edges to the AddressValidity entity.
+func (_u *AddressUpdate) ClearValidities() *AddressUpdate {
+	_u.mutation.ClearValidities()
+	return _u
+}
+
+// RemoveValidityIDs removes the "validities" edge to AddressValidity entities by IDs.
+func (_u *AddressUpdate) RemoveValidityIDs(ids ...uuid.UUID) *AddressUpdate {
+	_u.mutation.RemoveValidityIDs(ids...)
+	return _u
+}
+
+// RemoveValidities removes "validities" edges to AddressValidity entities.
+func (_u *AddressUpdate) RemoveValidities(v ...*AddressValidity) *AddressUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveValidityIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -333,9 +356,6 @@ func (_u *AddressUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Country(); ok {
 		_spec.SetField(address.FieldCountry, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.IsPrimary(); ok {
-		_spec.SetField(address.FieldIsPrimary, field.TypeBool, value)
-	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(address.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -433,6 +453,54 @@ func (_u *AddressUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			},
 		}
 		edge.Schema = _u.schemaConfig.Address
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   address.ValiditiesTable,
+			Columns: []string{address.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedValiditiesIDs(); len(nodes) > 0 && !_u.mutation.ValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   address.ValiditiesTable,
+			Columns: []string{address.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   address.ValiditiesTable,
+			Columns: []string{address.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -584,20 +652,6 @@ func (_u *AddressUpdateOne) SetNillableCountry(v *string) *AddressUpdateOne {
 	return _u
 }
 
-// SetIsPrimary sets the "is_primary" field.
-func (_u *AddressUpdateOne) SetIsPrimary(v bool) *AddressUpdateOne {
-	_u.mutation.SetIsPrimary(v)
-	return _u
-}
-
-// SetNillableIsPrimary sets the "is_primary" field if the given value is not nil.
-func (_u *AddressUpdateOne) SetNillableIsPrimary(v *bool) *AddressUpdateOne {
-	if v != nil {
-		_u.SetIsPrimary(*v)
-	}
-	return _u
-}
-
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *AddressUpdateOne) SetUpdatedAt(v time.Time) *AddressUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
@@ -639,6 +693,21 @@ func (_u *AddressUpdateOne) SetCityLocation(v *Location) *AddressUpdateOne {
 	return _u.SetCityLocationID(v.ID)
 }
 
+// AddValidityIDs adds the "validities" edge to the AddressValidity entity by IDs.
+func (_u *AddressUpdateOne) AddValidityIDs(ids ...uuid.UUID) *AddressUpdateOne {
+	_u.mutation.AddValidityIDs(ids...)
+	return _u
+}
+
+// AddValidities adds the "validities" edges to the AddressValidity entity.
+func (_u *AddressUpdateOne) AddValidities(v ...*AddressValidity) *AddressUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddValidityIDs(ids...)
+}
+
 // Mutation returns the AddressMutation object of the builder.
 func (_u *AddressUpdateOne) Mutation() *AddressMutation {
 	return _u.mutation
@@ -660,6 +729,27 @@ func (_u *AddressUpdateOne) ClearParty() *AddressUpdateOne {
 func (_u *AddressUpdateOne) ClearCityLocation() *AddressUpdateOne {
 	_u.mutation.ClearCityLocation()
 	return _u
+}
+
+// ClearValidities clears all "validities" edges to the AddressValidity entity.
+func (_u *AddressUpdateOne) ClearValidities() *AddressUpdateOne {
+	_u.mutation.ClearValidities()
+	return _u
+}
+
+// RemoveValidityIDs removes the "validities" edge to AddressValidity entities by IDs.
+func (_u *AddressUpdateOne) RemoveValidityIDs(ids ...uuid.UUID) *AddressUpdateOne {
+	_u.mutation.RemoveValidityIDs(ids...)
+	return _u
+}
+
+// RemoveValidities removes "validities" edges to AddressValidity entities.
+func (_u *AddressUpdateOne) RemoveValidities(v ...*AddressValidity) *AddressUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveValidityIDs(ids...)
 }
 
 // Where appends a list predicates to the AddressUpdate builder.
@@ -790,9 +880,6 @@ func (_u *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err er
 	if value, ok := _u.mutation.Country(); ok {
 		_spec.SetField(address.FieldCountry, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.IsPrimary(); ok {
-		_spec.SetField(address.FieldIsPrimary, field.TypeBool, value)
-	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(address.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -890,6 +977,54 @@ func (_u *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err er
 			},
 		}
 		edge.Schema = _u.schemaConfig.Address
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   address.ValiditiesTable,
+			Columns: []string{address.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedValiditiesIDs(); len(nodes) > 0 && !_u.mutation.ValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   address.ValiditiesTable,
+			Columns: []string{address.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   address.ValiditiesTable,
+			Columns: []string{address.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

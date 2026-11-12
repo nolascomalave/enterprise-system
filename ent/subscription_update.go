@@ -5,9 +5,14 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentaddress"
+	"enterprise-system/ent/departmentaddressvalidity"
+	"enterprise-system/ent/departmentcontactmechanism"
+	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -480,6 +485,81 @@ func (_u *SubscriptionUpdate) AddPartyIdentityDocumentValidities(v ...*PartyIden
 		ids[i] = v[i].ID
 	}
 	return _u.AddPartyIdentityDocumentValidityIDs(ids...)
+}
+
+// AddAddressValidityIDs adds the "address_validities" edge to the AddressValidity entity by IDs.
+func (_u *SubscriptionUpdate) AddAddressValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddAddressValidityIDs(ids...)
+	return _u
+}
+
+// AddAddressValidities adds the "address_validities" edges to the AddressValidity entity.
+func (_u *SubscriptionUpdate) AddAddressValidities(v ...*AddressValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAddressValidityIDs(ids...)
+}
+
+// AddDepartmentContactMechanismIDs adds the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity by IDs.
+func (_u *SubscriptionUpdate) AddDepartmentContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddDepartmentContactMechanismIDs(ids...)
+	return _u
+}
+
+// AddDepartmentContactMechanisms adds the "department_contact_mechanisms" edges to the DepartmentContactMechanism entity.
+func (_u *SubscriptionUpdate) AddDepartmentContactMechanisms(v ...*DepartmentContactMechanism) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentContactMechanismIDs(ids...)
+}
+
+// AddDepartmentContactMechanismValidityIDs adds the "department_contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity by IDs.
+func (_u *SubscriptionUpdate) AddDepartmentContactMechanismValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddDepartmentContactMechanismValidityIDs(ids...)
+	return _u
+}
+
+// AddDepartmentContactMechanismValidities adds the "department_contact_mechanism_validities" edges to the DepartmentContactMechanismValidity entity.
+func (_u *SubscriptionUpdate) AddDepartmentContactMechanismValidities(v ...*DepartmentContactMechanismValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentContactMechanismValidityIDs(ids...)
+}
+
+// AddDepartmentAddressIDs adds the "department_addresses" edge to the DepartmentAddress entity by IDs.
+func (_u *SubscriptionUpdate) AddDepartmentAddressIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddDepartmentAddressIDs(ids...)
+	return _u
+}
+
+// AddDepartmentAddresses adds the "department_addresses" edges to the DepartmentAddress entity.
+func (_u *SubscriptionUpdate) AddDepartmentAddresses(v ...*DepartmentAddress) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentAddressIDs(ids...)
+}
+
+// AddDepartmentAddressValidityIDs adds the "department_address_validities" edge to the DepartmentAddressValidity entity by IDs.
+func (_u *SubscriptionUpdate) AddDepartmentAddressValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddDepartmentAddressValidityIDs(ids...)
+	return _u
+}
+
+// AddDepartmentAddressValidities adds the "department_address_validities" edges to the DepartmentAddressValidity entity.
+func (_u *SubscriptionUpdate) AddDepartmentAddressValidities(v ...*DepartmentAddressValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentAddressValidityIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -989,6 +1069,111 @@ func (_u *SubscriptionUpdate) RemovePartyIdentityDocumentValidities(v ...*PartyI
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartyIdentityDocumentValidityIDs(ids...)
+}
+
+// ClearAddressValidities clears all "address_validities" edges to the AddressValidity entity.
+func (_u *SubscriptionUpdate) ClearAddressValidities() *SubscriptionUpdate {
+	_u.mutation.ClearAddressValidities()
+	return _u
+}
+
+// RemoveAddressValidityIDs removes the "address_validities" edge to AddressValidity entities by IDs.
+func (_u *SubscriptionUpdate) RemoveAddressValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveAddressValidityIDs(ids...)
+	return _u
+}
+
+// RemoveAddressValidities removes "address_validities" edges to AddressValidity entities.
+func (_u *SubscriptionUpdate) RemoveAddressValidities(v ...*AddressValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAddressValidityIDs(ids...)
+}
+
+// ClearDepartmentContactMechanisms clears all "department_contact_mechanisms" edges to the DepartmentContactMechanism entity.
+func (_u *SubscriptionUpdate) ClearDepartmentContactMechanisms() *SubscriptionUpdate {
+	_u.mutation.ClearDepartmentContactMechanisms()
+	return _u
+}
+
+// RemoveDepartmentContactMechanismIDs removes the "department_contact_mechanisms" edge to DepartmentContactMechanism entities by IDs.
+func (_u *SubscriptionUpdate) RemoveDepartmentContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveDepartmentContactMechanismIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentContactMechanisms removes "department_contact_mechanisms" edges to DepartmentContactMechanism entities.
+func (_u *SubscriptionUpdate) RemoveDepartmentContactMechanisms(v ...*DepartmentContactMechanism) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentContactMechanismIDs(ids...)
+}
+
+// ClearDepartmentContactMechanismValidities clears all "department_contact_mechanism_validities" edges to the DepartmentContactMechanismValidity entity.
+func (_u *SubscriptionUpdate) ClearDepartmentContactMechanismValidities() *SubscriptionUpdate {
+	_u.mutation.ClearDepartmentContactMechanismValidities()
+	return _u
+}
+
+// RemoveDepartmentContactMechanismValidityIDs removes the "department_contact_mechanism_validities" edge to DepartmentContactMechanismValidity entities by IDs.
+func (_u *SubscriptionUpdate) RemoveDepartmentContactMechanismValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveDepartmentContactMechanismValidityIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentContactMechanismValidities removes "department_contact_mechanism_validities" edges to DepartmentContactMechanismValidity entities.
+func (_u *SubscriptionUpdate) RemoveDepartmentContactMechanismValidities(v ...*DepartmentContactMechanismValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentContactMechanismValidityIDs(ids...)
+}
+
+// ClearDepartmentAddresses clears all "department_addresses" edges to the DepartmentAddress entity.
+func (_u *SubscriptionUpdate) ClearDepartmentAddresses() *SubscriptionUpdate {
+	_u.mutation.ClearDepartmentAddresses()
+	return _u
+}
+
+// RemoveDepartmentAddressIDs removes the "department_addresses" edge to DepartmentAddress entities by IDs.
+func (_u *SubscriptionUpdate) RemoveDepartmentAddressIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveDepartmentAddressIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentAddresses removes "department_addresses" edges to DepartmentAddress entities.
+func (_u *SubscriptionUpdate) RemoveDepartmentAddresses(v ...*DepartmentAddress) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentAddressIDs(ids...)
+}
+
+// ClearDepartmentAddressValidities clears all "department_address_validities" edges to the DepartmentAddressValidity entity.
+func (_u *SubscriptionUpdate) ClearDepartmentAddressValidities() *SubscriptionUpdate {
+	_u.mutation.ClearDepartmentAddressValidities()
+	return _u
+}
+
+// RemoveDepartmentAddressValidityIDs removes the "department_address_validities" edge to DepartmentAddressValidity entities by IDs.
+func (_u *SubscriptionUpdate) RemoveDepartmentAddressValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveDepartmentAddressValidityIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentAddressValidities removes "department_address_validities" edges to DepartmentAddressValidity entities.
+func (_u *SubscriptionUpdate) RemoveDepartmentAddressValidities(v ...*DepartmentAddressValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentAddressValidityIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2229,6 +2414,246 @@ func (_u *SubscriptionUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AddressValiditiesTable,
+			Columns: []string{subscription.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAddressValiditiesIDs(); len(nodes) > 0 && !_u.mutation.AddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AddressValiditiesTable,
+			Columns: []string{subscription.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AddressValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AddressValiditiesTable,
+			Columns: []string{subscription.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentContactMechanismsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismsTable,
+			Columns: []string{subscription.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentContactMechanismsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentContactMechanismsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismsTable,
+			Columns: []string{subscription.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentContactMechanismsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismsTable,
+			Columns: []string{subscription.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentContactMechanismValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismValiditiesTable,
+			Columns: []string{subscription.DepartmentContactMechanismValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanismValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentContactMechanismValiditiesIDs(); len(nodes) > 0 && !_u.mutation.DepartmentContactMechanismValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismValiditiesTable,
+			Columns: []string{subscription.DepartmentContactMechanismValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanismValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentContactMechanismValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismValiditiesTable,
+			Columns: []string{subscription.DepartmentContactMechanismValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanismValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressesTable,
+			Columns: []string{subscription.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentAddressesIDs(); len(nodes) > 0 && !_u.mutation.DepartmentAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressesTable,
+			Columns: []string{subscription.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentAddressesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressesTable,
+			Columns: []string{subscription.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentAddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressValiditiesTable,
+			Columns: []string{subscription.DepartmentAddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddressValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentAddressValiditiesIDs(); len(nodes) > 0 && !_u.mutation.DepartmentAddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressValiditiesTable,
+			Columns: []string{subscription.DepartmentAddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentAddressValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressValiditiesTable,
+			Columns: []string{subscription.DepartmentAddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Subscription
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -2677,6 +3102,81 @@ func (_u *SubscriptionUpdateOne) AddPartyIdentityDocumentValidities(v ...*PartyI
 		ids[i] = v[i].ID
 	}
 	return _u.AddPartyIdentityDocumentValidityIDs(ids...)
+}
+
+// AddAddressValidityIDs adds the "address_validities" edge to the AddressValidity entity by IDs.
+func (_u *SubscriptionUpdateOne) AddAddressValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddAddressValidityIDs(ids...)
+	return _u
+}
+
+// AddAddressValidities adds the "address_validities" edges to the AddressValidity entity.
+func (_u *SubscriptionUpdateOne) AddAddressValidities(v ...*AddressValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAddressValidityIDs(ids...)
+}
+
+// AddDepartmentContactMechanismIDs adds the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity by IDs.
+func (_u *SubscriptionUpdateOne) AddDepartmentContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddDepartmentContactMechanismIDs(ids...)
+	return _u
+}
+
+// AddDepartmentContactMechanisms adds the "department_contact_mechanisms" edges to the DepartmentContactMechanism entity.
+func (_u *SubscriptionUpdateOne) AddDepartmentContactMechanisms(v ...*DepartmentContactMechanism) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentContactMechanismIDs(ids...)
+}
+
+// AddDepartmentContactMechanismValidityIDs adds the "department_contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity by IDs.
+func (_u *SubscriptionUpdateOne) AddDepartmentContactMechanismValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddDepartmentContactMechanismValidityIDs(ids...)
+	return _u
+}
+
+// AddDepartmentContactMechanismValidities adds the "department_contact_mechanism_validities" edges to the DepartmentContactMechanismValidity entity.
+func (_u *SubscriptionUpdateOne) AddDepartmentContactMechanismValidities(v ...*DepartmentContactMechanismValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentContactMechanismValidityIDs(ids...)
+}
+
+// AddDepartmentAddressIDs adds the "department_addresses" edge to the DepartmentAddress entity by IDs.
+func (_u *SubscriptionUpdateOne) AddDepartmentAddressIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddDepartmentAddressIDs(ids...)
+	return _u
+}
+
+// AddDepartmentAddresses adds the "department_addresses" edges to the DepartmentAddress entity.
+func (_u *SubscriptionUpdateOne) AddDepartmentAddresses(v ...*DepartmentAddress) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentAddressIDs(ids...)
+}
+
+// AddDepartmentAddressValidityIDs adds the "department_address_validities" edge to the DepartmentAddressValidity entity by IDs.
+func (_u *SubscriptionUpdateOne) AddDepartmentAddressValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddDepartmentAddressValidityIDs(ids...)
+	return _u
+}
+
+// AddDepartmentAddressValidities adds the "department_address_validities" edges to the DepartmentAddressValidity entity.
+func (_u *SubscriptionUpdateOne) AddDepartmentAddressValidities(v ...*DepartmentAddressValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentAddressValidityIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -3186,6 +3686,111 @@ func (_u *SubscriptionUpdateOne) RemovePartyIdentityDocumentValidities(v ...*Par
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartyIdentityDocumentValidityIDs(ids...)
+}
+
+// ClearAddressValidities clears all "address_validities" edges to the AddressValidity entity.
+func (_u *SubscriptionUpdateOne) ClearAddressValidities() *SubscriptionUpdateOne {
+	_u.mutation.ClearAddressValidities()
+	return _u
+}
+
+// RemoveAddressValidityIDs removes the "address_validities" edge to AddressValidity entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveAddressValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveAddressValidityIDs(ids...)
+	return _u
+}
+
+// RemoveAddressValidities removes "address_validities" edges to AddressValidity entities.
+func (_u *SubscriptionUpdateOne) RemoveAddressValidities(v ...*AddressValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAddressValidityIDs(ids...)
+}
+
+// ClearDepartmentContactMechanisms clears all "department_contact_mechanisms" edges to the DepartmentContactMechanism entity.
+func (_u *SubscriptionUpdateOne) ClearDepartmentContactMechanisms() *SubscriptionUpdateOne {
+	_u.mutation.ClearDepartmentContactMechanisms()
+	return _u
+}
+
+// RemoveDepartmentContactMechanismIDs removes the "department_contact_mechanisms" edge to DepartmentContactMechanism entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentContactMechanismIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveDepartmentContactMechanismIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentContactMechanisms removes "department_contact_mechanisms" edges to DepartmentContactMechanism entities.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentContactMechanisms(v ...*DepartmentContactMechanism) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentContactMechanismIDs(ids...)
+}
+
+// ClearDepartmentContactMechanismValidities clears all "department_contact_mechanism_validities" edges to the DepartmentContactMechanismValidity entity.
+func (_u *SubscriptionUpdateOne) ClearDepartmentContactMechanismValidities() *SubscriptionUpdateOne {
+	_u.mutation.ClearDepartmentContactMechanismValidities()
+	return _u
+}
+
+// RemoveDepartmentContactMechanismValidityIDs removes the "department_contact_mechanism_validities" edge to DepartmentContactMechanismValidity entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentContactMechanismValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveDepartmentContactMechanismValidityIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentContactMechanismValidities removes "department_contact_mechanism_validities" edges to DepartmentContactMechanismValidity entities.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentContactMechanismValidities(v ...*DepartmentContactMechanismValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentContactMechanismValidityIDs(ids...)
+}
+
+// ClearDepartmentAddresses clears all "department_addresses" edges to the DepartmentAddress entity.
+func (_u *SubscriptionUpdateOne) ClearDepartmentAddresses() *SubscriptionUpdateOne {
+	_u.mutation.ClearDepartmentAddresses()
+	return _u
+}
+
+// RemoveDepartmentAddressIDs removes the "department_addresses" edge to DepartmentAddress entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentAddressIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveDepartmentAddressIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentAddresses removes "department_addresses" edges to DepartmentAddress entities.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentAddresses(v ...*DepartmentAddress) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentAddressIDs(ids...)
+}
+
+// ClearDepartmentAddressValidities clears all "department_address_validities" edges to the DepartmentAddressValidity entity.
+func (_u *SubscriptionUpdateOne) ClearDepartmentAddressValidities() *SubscriptionUpdateOne {
+	_u.mutation.ClearDepartmentAddressValidities()
+	return _u
+}
+
+// RemoveDepartmentAddressValidityIDs removes the "department_address_validities" edge to DepartmentAddressValidity entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentAddressValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveDepartmentAddressValidityIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentAddressValidities removes "department_address_validities" edges to DepartmentAddressValidity entities.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentAddressValidities(v ...*DepartmentAddressValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentAddressValidityIDs(ids...)
 }
 
 // Where appends a list predicates to the SubscriptionUpdate builder.
@@ -4451,6 +5056,246 @@ func (_u *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscripti
 			},
 		}
 		edge.Schema = _u.schemaConfig.PartyIdentityDocumentValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AddressValiditiesTable,
+			Columns: []string{subscription.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAddressValiditiesIDs(); len(nodes) > 0 && !_u.mutation.AddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AddressValiditiesTable,
+			Columns: []string{subscription.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AddressValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.AddressValiditiesTable,
+			Columns: []string{subscription.AddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(addressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.AddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentContactMechanismsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismsTable,
+			Columns: []string{subscription.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentContactMechanismsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentContactMechanismsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismsTable,
+			Columns: []string{subscription.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentContactMechanismsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismsTable,
+			Columns: []string{subscription.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentContactMechanismValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismValiditiesTable,
+			Columns: []string{subscription.DepartmentContactMechanismValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanismValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentContactMechanismValiditiesIDs(); len(nodes) > 0 && !_u.mutation.DepartmentContactMechanismValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismValiditiesTable,
+			Columns: []string{subscription.DepartmentContactMechanismValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanismValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentContactMechanismValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentContactMechanismValiditiesTable,
+			Columns: []string{subscription.DepartmentContactMechanismValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanismValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressesTable,
+			Columns: []string{subscription.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentAddressesIDs(); len(nodes) > 0 && !_u.mutation.DepartmentAddressesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressesTable,
+			Columns: []string{subscription.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentAddressesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressesTable,
+			Columns: []string{subscription.DepartmentAddressesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddress.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddress
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentAddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressValiditiesTable,
+			Columns: []string{subscription.DepartmentAddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddressValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentAddressValiditiesIDs(); len(nodes) > 0 && !_u.mutation.DepartmentAddressValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressValiditiesTable,
+			Columns: []string{subscription.DepartmentAddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentAddressValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentAddressValiditiesTable,
+			Columns: []string{subscription.DepartmentAddressValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentaddressvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentAddressValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

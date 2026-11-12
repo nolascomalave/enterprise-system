@@ -50,8 +50,6 @@ func (Address) Fields() []ent.Field {
 		field.String("country").
 			NotEmpty().
 			Match(countryCodePattern),
-		field.Bool("is_primary").
-			Default(false),
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable().
@@ -83,6 +81,8 @@ func (Address) Edges() []ent.Edge {
 			Field("city_location_id").
 			Unique().
 			Required(),
+		edge.To("validities", AddressValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 
@@ -95,9 +95,5 @@ func (Address) Indexes() []ent.Index {
 			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
 		index.Fields("tenant_id", "city_location_id").
 			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
-		index.Fields("tenant_id", "party_id", "type").
-			StorageKey("address_one_primary_uq").
-			Unique().
-			Annotations(entsql.IndexWhere("is_primary AND deleted_at IS NULL")),
 	}
 }
