@@ -42,6 +42,8 @@ const (
 	EdgeTranslations = "translations"
 	// EdgeAddresses holds the string denoting the addresses edge name in mutations.
 	EdgeAddresses = "addresses"
+	// EdgeIdentityDocuments holds the string denoting the identity_documents edge name in mutations.
+	EdgeIdentityDocuments = "identity_documents"
 	// Table holds the table name of the location in the database.
 	Table = "locations"
 	// ChildrenTable is the table that holds the children relation/edge.
@@ -66,6 +68,13 @@ const (
 	AddressesInverseTable = "addresses"
 	// AddressesColumn is the table column denoting the addresses relation/edge.
 	AddressesColumn = "city_location_id"
+	// IdentityDocumentsTable is the table that holds the identity_documents relation/edge.
+	IdentityDocumentsTable = "party_identity_documents"
+	// IdentityDocumentsInverseTable is the table name for the PartyIdentityDocument entity.
+	// It exists in this package in order to avoid circular dependency with the "partyidentitydocument" package.
+	IdentityDocumentsInverseTable = "party_identity_documents"
+	// IdentityDocumentsColumn is the table column denoting the identity_documents relation/edge.
+	IdentityDocumentsColumn = "issuing_jurisdiction_id"
 )
 
 // Columns holds all SQL columns for location fields.
@@ -238,6 +247,20 @@ func ByAddresses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAddressesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByIdentityDocumentsCount orders the results by identity_documents count.
+func ByIdentityDocumentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newIdentityDocumentsStep(), opts...)
+	}
+}
+
+// ByIdentityDocuments orders the results by identity_documents terms.
+func ByIdentityDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newIdentityDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newChildrenStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -264,5 +287,12 @@ func newAddressesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AddressesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AddressesTable, AddressesColumn),
+	)
+}
+func newIdentityDocumentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(IdentityDocumentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, IdentityDocumentsTable, IdentityDocumentsColumn),
 	)
 }

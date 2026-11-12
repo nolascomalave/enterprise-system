@@ -104,6 +104,18 @@ func (f EmployeeAssignmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmployeeAssignmentMutation", m)
 }
 
+// The IdentityDocumentTypeFunc type is an adapter to allow the use of ordinary
+// function as IdentityDocumentType mutator.
+type IdentityDocumentTypeFunc func(context.Context, *ent.IdentityDocumentTypeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IdentityDocumentTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.IdentityDocumentTypeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IdentityDocumentTypeMutation", m)
+}
+
 // The JobFunc type is an adapter to allow the use of ordinary
 // function as Job mutator.
 type JobFunc func(context.Context, *ent.JobMutation) (ent.Value, error)
@@ -212,6 +224,30 @@ func (f PartyContactMechanismValidityFunc) Mutate(ctx context.Context, m ent.Mut
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartyContactMechanismValidityMutation", m)
 }
 
+// The PartyIdentityDocumentFunc type is an adapter to allow the use of ordinary
+// function as PartyIdentityDocument mutator.
+type PartyIdentityDocumentFunc func(context.Context, *ent.PartyIdentityDocumentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartyIdentityDocumentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartyIdentityDocumentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartyIdentityDocumentMutation", m)
+}
+
+// The PartyIdentityDocumentValidityFunc type is an adapter to allow the use of ordinary
+// function as PartyIdentityDocumentValidity mutator.
+type PartyIdentityDocumentValidityFunc func(context.Context, *ent.PartyIdentityDocumentValidityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartyIdentityDocumentValidityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartyIdentityDocumentValidityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartyIdentityDocumentValidityMutation", m)
+}
+
 // The PartyMergeLogFunc type is an adapter to allow the use of ordinary
 // function as PartyMergeLog mutator.
 type PartyMergeLogFunc func(context.Context, *ent.PartyMergeLogMutation) (ent.Value, error)
@@ -246,6 +282,18 @@ func (f PartyNameValidityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartyNameValidityMutation", m)
+}
+
+// The PartyNationalityFunc type is an adapter to allow the use of ordinary
+// function as PartyNationality mutator.
+type PartyNationalityFunc func(context.Context, *ent.PartyNationalityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PartyNationalityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PartyNationalityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PartyNationalityMutation", m)
 }
 
 // The PartyRoleFunc type is an adapter to allow the use of ordinary

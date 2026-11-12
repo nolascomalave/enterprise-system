@@ -15,6 +15,7 @@ type SchemaConfig struct {
 	DepartmentGroupAssignment     string // DepartmentGroupAssignment table.
 	Employee                      string // Employee table.
 	EmployeeAssignment            string // EmployeeAssignment table.
+	IdentityDocumentType          string // IdentityDocumentType table.
 	Job                           string // Job table.
 	JobFamily                     string // JobFamily table.
 	Location                      string // Location table.
@@ -24,9 +25,12 @@ type SchemaConfig struct {
 	Party                         string // Party table.
 	PartyContactMechanism         string // PartyContactMechanism table.
 	PartyContactMechanismValidity string // PartyContactMechanismValidity table.
+	PartyIdentityDocument         string // PartyIdentityDocument table.
+	PartyIdentityDocumentValidity string // PartyIdentityDocumentValidity table.
 	PartyMergeLog                 string // PartyMergeLog table.
 	PartyName                     string // PartyName table.
 	PartyNameValidity             string // PartyNameValidity table.
+	PartyNationality              string // PartyNationality table.
 	PartyRole                     string // PartyRole table.
 	PasswordResetToken            string // PasswordResetToken table.
 	PersonProfile                 string // PersonProfile table.

@@ -19,9 +19,12 @@ import (
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partycontactmechanismvalidity"
+	"enterprise-system/ent/partyidentitydocument"
+	"enterprise-system/ent/partyidentitydocumentvalidity"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyname"
 	"enterprise-system/ent/partynamevalidity"
+	"enterprise-system/ent/partynationality"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -67,6 +70,9 @@ type SubscriptionQuery struct {
 	withPartyNames                      *PartyNameQuery
 	withPartyNameValidities             *PartyNameValidityQuery
 	withPartyContactMechanismValidities *PartyContactMechanismValidityQuery
+	withPartyNationalities              *PartyNationalityQuery
+	withPartyIdentityDocuments          *PartyIdentityDocumentQuery
+	withPartyIdentityDocumentValidities *PartyIdentityDocumentValidityQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -628,6 +634,81 @@ func (_q *SubscriptionQuery) QueryPartyContactMechanismValidities() *PartyContac
 	return query
 }
 
+// QueryPartyNationalities chains the current query on the "party_nationalities" edge.
+func (_q *SubscriptionQuery) QueryPartyNationalities() *PartyNationalityQuery {
+	query := (&PartyNationalityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(partynationality.Table, partynationality.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PartyNationalitiesTable, subscription.PartyNationalitiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyNationality
+		step.Edge.Schema = schemaConfig.PartyNationality
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPartyIdentityDocuments chains the current query on the "party_identity_documents" edge.
+func (_q *SubscriptionQuery) QueryPartyIdentityDocuments() *PartyIdentityDocumentQuery {
+	query := (&PartyIdentityDocumentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(partyidentitydocument.Table, partyidentitydocument.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PartyIdentityDocumentsTable, subscription.PartyIdentityDocumentsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyIdentityDocument
+		step.Edge.Schema = schemaConfig.PartyIdentityDocument
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPartyIdentityDocumentValidities chains the current query on the "party_identity_document_validities" edge.
+func (_q *SubscriptionQuery) QueryPartyIdentityDocumentValidities() *PartyIdentityDocumentValidityQuery {
+	query := (&PartyIdentityDocumentValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(partyidentitydocumentvalidity.Table, partyidentitydocumentvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PartyIdentityDocumentValiditiesTable, subscription.PartyIdentityDocumentValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyIdentityDocumentValidity
+		step.Edge.Schema = schemaConfig.PartyIdentityDocumentValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Subscription entity from the query.
 // Returns a *NotFoundError when no Subscription was found.
 func (_q *SubscriptionQuery) First(ctx context.Context) (*Subscription, error) {
@@ -841,6 +922,9 @@ func (_q *SubscriptionQuery) Clone() *SubscriptionQuery {
 		withPartyNames:                      _q.withPartyNames.Clone(),
 		withPartyNameValidities:             _q.withPartyNameValidities.Clone(),
 		withPartyContactMechanismValidities: _q.withPartyContactMechanismValidities.Clone(),
+		withPartyNationalities:              _q.withPartyNationalities.Clone(),
+		withPartyIdentityDocuments:          _q.withPartyIdentityDocuments.Clone(),
+		withPartyIdentityDocumentValidities: _q.withPartyIdentityDocumentValidities.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1078,6 +1162,39 @@ func (_q *SubscriptionQuery) WithPartyContactMechanismValidities(opts ...func(*P
 	return _q
 }
 
+// WithPartyNationalities tells the query-builder to eager-load the nodes that are connected to
+// the "party_nationalities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithPartyNationalities(opts ...func(*PartyNationalityQuery)) *SubscriptionQuery {
+	query := (&PartyNationalityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPartyNationalities = query
+	return _q
+}
+
+// WithPartyIdentityDocuments tells the query-builder to eager-load the nodes that are connected to
+// the "party_identity_documents" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithPartyIdentityDocuments(opts ...func(*PartyIdentityDocumentQuery)) *SubscriptionQuery {
+	query := (&PartyIdentityDocumentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPartyIdentityDocuments = query
+	return _q
+}
+
+// WithPartyIdentityDocumentValidities tells the query-builder to eager-load the nodes that are connected to
+// the "party_identity_document_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithPartyIdentityDocumentValidities(opts ...func(*PartyIdentityDocumentValidityQuery)) *SubscriptionQuery {
+	query := (&PartyIdentityDocumentValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPartyIdentityDocumentValidities = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1156,7 +1273,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Subscription{}
 		_spec       = _q.querySpec()
-		loadedTypes = [21]bool{
+		loadedTypes = [24]bool{
 			_q.withParties != nil,
 			_q.withPersonProfiles != nil,
 			_q.withOrganizationProfiles != nil,
@@ -1178,6 +1295,9 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withPartyNames != nil,
 			_q.withPartyNameValidities != nil,
 			_q.withPartyContactMechanismValidities != nil,
+			_q.withPartyNationalities != nil,
+			_q.withPartyIdentityDocuments != nil,
+			_q.withPartyIdentityDocumentValidities != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1361,6 +1481,33 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Subscription) { n.Edges.PartyContactMechanismValidities = []*PartyContactMechanismValidity{} },
 			func(n *Subscription, e *PartyContactMechanismValidity) {
 				n.Edges.PartyContactMechanismValidities = append(n.Edges.PartyContactMechanismValidities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPartyNationalities; query != nil {
+		if err := _q.loadPartyNationalities(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.PartyNationalities = []*PartyNationality{} },
+			func(n *Subscription, e *PartyNationality) {
+				n.Edges.PartyNationalities = append(n.Edges.PartyNationalities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPartyIdentityDocuments; query != nil {
+		if err := _q.loadPartyIdentityDocuments(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.PartyIdentityDocuments = []*PartyIdentityDocument{} },
+			func(n *Subscription, e *PartyIdentityDocument) {
+				n.Edges.PartyIdentityDocuments = append(n.Edges.PartyIdentityDocuments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPartyIdentityDocumentValidities; query != nil {
+		if err := _q.loadPartyIdentityDocumentValidities(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.PartyIdentityDocumentValidities = []*PartyIdentityDocumentValidity{} },
+			func(n *Subscription, e *PartyIdentityDocumentValidity) {
+				n.Edges.PartyIdentityDocumentValidities = append(n.Edges.PartyIdentityDocumentValidities, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1986,6 +2133,96 @@ func (_q *SubscriptionQuery) loadPartyContactMechanismValidities(ctx context.Con
 	}
 	query.Where(predicate.PartyContactMechanismValidity(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(subscription.PartyContactMechanismValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadPartyNationalities(ctx context.Context, query *PartyNationalityQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *PartyNationality)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partynationality.FieldTenantID)
+	}
+	query.Where(predicate.PartyNationality(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.PartyNationalitiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadPartyIdentityDocuments(ctx context.Context, query *PartyIdentityDocumentQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *PartyIdentityDocument)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partyidentitydocument.FieldTenantID)
+	}
+	query.Where(predicate.PartyIdentityDocument(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.PartyIdentityDocumentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadPartyIdentityDocumentValidities(ctx context.Context, query *PartyIdentityDocumentValidityQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *PartyIdentityDocumentValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partyidentitydocumentvalidity.FieldTenantID)
+	}
+	query.Where(predicate.PartyIdentityDocumentValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.PartyIdentityDocumentValiditiesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

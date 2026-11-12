@@ -12,6 +12,7 @@ import (
 	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/identitydocumenttype"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/location"
@@ -21,9 +22,12 @@ import (
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partycontactmechanismvalidity"
+	"enterprise-system/ent/partyidentitydocument"
+	"enterprise-system/ent/partyidentitydocumentvalidity"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyname"
 	"enterprise-system/ent/partynamevalidity"
+	"enterprise-system/ent/partynationality"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -60,6 +64,7 @@ const (
 	TypeDepartmentGroupAssignment     = "DepartmentGroupAssignment"
 	TypeEmployee                      = "Employee"
 	TypeEmployeeAssignment            = "EmployeeAssignment"
+	TypeIdentityDocumentType          = "IdentityDocumentType"
 	TypeJob                           = "Job"
 	TypeJobFamily                     = "JobFamily"
 	TypeLocation                      = "Location"
@@ -69,9 +74,12 @@ const (
 	TypeParty                         = "Party"
 	TypePartyContactMechanism         = "PartyContactMechanism"
 	TypePartyContactMechanismValidity = "PartyContactMechanismValidity"
+	TypePartyIdentityDocument         = "PartyIdentityDocument"
+	TypePartyIdentityDocumentValidity = "PartyIdentityDocumentValidity"
 	TypePartyMergeLog                 = "PartyMergeLog"
 	TypePartyName                     = "PartyName"
 	TypePartyNameValidity             = "PartyNameValidity"
+	TypePartyNationality              = "PartyNationality"
 	TypePartyRole                     = "PartyRole"
 	TypePasswordResetToken            = "PasswordResetToken"
 	TypePersonProfile                 = "PersonProfile"
@@ -7861,6 +7869,647 @@ func (m *EmployeeAssignmentMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown EmployeeAssignment edge %s", name)
 }
 
+// IdentityDocumentTypeMutation represents an operation that mutates the IdentityDocumentType nodes in the graph.
+type IdentityDocumentTypeMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	code             *string
+	name             *string
+	scope            *identitydocumenttype.Scope
+	created_at       *time.Time
+	updated_at       *time.Time
+	clearedFields    map[string]struct{}
+	documents        map[uuid.UUID]struct{}
+	removeddocuments map[uuid.UUID]struct{}
+	cleareddocuments bool
+	done             bool
+	oldValue         func(context.Context) (*IdentityDocumentType, error)
+	predicates       []predicate.IdentityDocumentType
+}
+
+var _ ent.Mutation = (*IdentityDocumentTypeMutation)(nil)
+
+// identitydocumenttypeOption allows management of the mutation configuration using functional options.
+type identitydocumenttypeOption func(*IdentityDocumentTypeMutation)
+
+// newIdentityDocumentTypeMutation creates new mutation for the IdentityDocumentType entity.
+func newIdentityDocumentTypeMutation(c config, op Op, opts ...identitydocumenttypeOption) *IdentityDocumentTypeMutation {
+	m := &IdentityDocumentTypeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeIdentityDocumentType,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withIdentityDocumentTypeID sets the ID field of the mutation.
+func withIdentityDocumentTypeID(id uuid.UUID) identitydocumenttypeOption {
+	return func(m *IdentityDocumentTypeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *IdentityDocumentType
+		)
+		m.oldValue = func(ctx context.Context) (*IdentityDocumentType, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().IdentityDocumentType.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withIdentityDocumentType sets the old IdentityDocumentType of the mutation.
+func withIdentityDocumentType(node *IdentityDocumentType) identitydocumenttypeOption {
+	return func(m *IdentityDocumentTypeMutation) {
+		m.oldValue = func(context.Context) (*IdentityDocumentType, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m IdentityDocumentTypeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m IdentityDocumentTypeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of IdentityDocumentType entities.
+func (m *IdentityDocumentTypeMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *IdentityDocumentTypeMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *IdentityDocumentTypeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().IdentityDocumentType.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCode sets the "code" field.
+func (m *IdentityDocumentTypeMutation) SetCode(s string) {
+	m.code = &s
+}
+
+// Code returns the value of the "code" field in the mutation.
+func (m *IdentityDocumentTypeMutation) Code() (r string, exists bool) {
+	v := m.code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCode returns the old "code" field's value of the IdentityDocumentType entity.
+// If the IdentityDocumentType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeMutation) OldCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCode: %w", err)
+	}
+	return oldValue.Code, nil
+}
+
+// ResetCode resets all changes to the "code" field.
+func (m *IdentityDocumentTypeMutation) ResetCode() {
+	m.code = nil
+}
+
+// SetName sets the "name" field.
+func (m *IdentityDocumentTypeMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *IdentityDocumentTypeMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the IdentityDocumentType entity.
+// If the IdentityDocumentType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *IdentityDocumentTypeMutation) ResetName() {
+	m.name = nil
+}
+
+// SetScope sets the "scope" field.
+func (m *IdentityDocumentTypeMutation) SetScope(i identitydocumenttype.Scope) {
+	m.scope = &i
+}
+
+// Scope returns the value of the "scope" field in the mutation.
+func (m *IdentityDocumentTypeMutation) Scope() (r identitydocumenttype.Scope, exists bool) {
+	v := m.scope
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScope returns the old "scope" field's value of the IdentityDocumentType entity.
+// If the IdentityDocumentType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeMutation) OldScope(ctx context.Context) (v identitydocumenttype.Scope, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScope is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScope requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScope: %w", err)
+	}
+	return oldValue.Scope, nil
+}
+
+// ResetScope resets all changes to the "scope" field.
+func (m *IdentityDocumentTypeMutation) ResetScope() {
+	m.scope = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *IdentityDocumentTypeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *IdentityDocumentTypeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the IdentityDocumentType entity.
+// If the IdentityDocumentType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *IdentityDocumentTypeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *IdentityDocumentTypeMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *IdentityDocumentTypeMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the IdentityDocumentType entity.
+// If the IdentityDocumentType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *IdentityDocumentTypeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *IdentityDocumentTypeMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// AddDocumentIDs adds the "documents" edge to the PartyIdentityDocument entity by ids.
+func (m *IdentityDocumentTypeMutation) AddDocumentIDs(ids ...uuid.UUID) {
+	if m.documents == nil {
+		m.documents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.documents[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDocuments clears the "documents" edge to the PartyIdentityDocument entity.
+func (m *IdentityDocumentTypeMutation) ClearDocuments() {
+	m.cleareddocuments = true
+}
+
+// DocumentsCleared reports if the "documents" edge to the PartyIdentityDocument entity was cleared.
+func (m *IdentityDocumentTypeMutation) DocumentsCleared() bool {
+	return m.cleareddocuments
+}
+
+// RemoveDocumentIDs removes the "documents" edge to the PartyIdentityDocument entity by IDs.
+func (m *IdentityDocumentTypeMutation) RemoveDocumentIDs(ids ...uuid.UUID) {
+	if m.removeddocuments == nil {
+		m.removeddocuments = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.documents, ids[i])
+		m.removeddocuments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDocuments returns the removed IDs of the "documents" edge to the PartyIdentityDocument entity.
+func (m *IdentityDocumentTypeMutation) RemovedDocumentsIDs() (ids []uuid.UUID) {
+	for id := range m.removeddocuments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DocumentsIDs returns the "documents" edge IDs in the mutation.
+func (m *IdentityDocumentTypeMutation) DocumentsIDs() (ids []uuid.UUID) {
+	for id := range m.documents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDocuments resets all changes to the "documents" edge.
+func (m *IdentityDocumentTypeMutation) ResetDocuments() {
+	m.documents = nil
+	m.cleareddocuments = false
+	m.removeddocuments = nil
+}
+
+// Where appends a list predicates to the IdentityDocumentTypeMutation builder.
+func (m *IdentityDocumentTypeMutation) Where(ps ...predicate.IdentityDocumentType) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the IdentityDocumentTypeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *IdentityDocumentTypeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.IdentityDocumentType, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *IdentityDocumentTypeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *IdentityDocumentTypeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (IdentityDocumentType).
+func (m *IdentityDocumentTypeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *IdentityDocumentTypeMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.code != nil {
+		fields = append(fields, identitydocumenttype.FieldCode)
+	}
+	if m.name != nil {
+		fields = append(fields, identitydocumenttype.FieldName)
+	}
+	if m.scope != nil {
+		fields = append(fields, identitydocumenttype.FieldScope)
+	}
+	if m.created_at != nil {
+		fields = append(fields, identitydocumenttype.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, identitydocumenttype.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *IdentityDocumentTypeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case identitydocumenttype.FieldCode:
+		return m.Code()
+	case identitydocumenttype.FieldName:
+		return m.Name()
+	case identitydocumenttype.FieldScope:
+		return m.Scope()
+	case identitydocumenttype.FieldCreatedAt:
+		return m.CreatedAt()
+	case identitydocumenttype.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *IdentityDocumentTypeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case identitydocumenttype.FieldCode:
+		return m.OldCode(ctx)
+	case identitydocumenttype.FieldName:
+		return m.OldName(ctx)
+	case identitydocumenttype.FieldScope:
+		return m.OldScope(ctx)
+	case identitydocumenttype.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case identitydocumenttype.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown IdentityDocumentType field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IdentityDocumentTypeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case identitydocumenttype.FieldCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCode(v)
+		return nil
+	case identitydocumenttype.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case identitydocumenttype.FieldScope:
+		v, ok := value.(identitydocumenttype.Scope)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScope(v)
+		return nil
+	case identitydocumenttype.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case identitydocumenttype.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown IdentityDocumentType field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *IdentityDocumentTypeMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *IdentityDocumentTypeMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *IdentityDocumentTypeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown IdentityDocumentType numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *IdentityDocumentTypeMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *IdentityDocumentTypeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *IdentityDocumentTypeMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown IdentityDocumentType nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *IdentityDocumentTypeMutation) ResetField(name string) error {
+	switch name {
+	case identitydocumenttype.FieldCode:
+		m.ResetCode()
+		return nil
+	case identitydocumenttype.FieldName:
+		m.ResetName()
+		return nil
+	case identitydocumenttype.FieldScope:
+		m.ResetScope()
+		return nil
+	case identitydocumenttype.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case identitydocumenttype.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown IdentityDocumentType field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *IdentityDocumentTypeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.documents != nil {
+		edges = append(edges, identitydocumenttype.EdgeDocuments)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *IdentityDocumentTypeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case identitydocumenttype.EdgeDocuments:
+		ids := make([]ent.Value, 0, len(m.documents))
+		for id := range m.documents {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *IdentityDocumentTypeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removeddocuments != nil {
+		edges = append(edges, identitydocumenttype.EdgeDocuments)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *IdentityDocumentTypeMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case identitydocumenttype.EdgeDocuments:
+		ids := make([]ent.Value, 0, len(m.removeddocuments))
+		for id := range m.removeddocuments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *IdentityDocumentTypeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareddocuments {
+		edges = append(edges, identitydocumenttype.EdgeDocuments)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *IdentityDocumentTypeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case identitydocumenttype.EdgeDocuments:
+		return m.cleareddocuments
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *IdentityDocumentTypeMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown IdentityDocumentType unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *IdentityDocumentTypeMutation) ResetEdge(name string) error {
+	switch name {
+	case identitydocumenttype.EdgeDocuments:
+		m.ResetDocuments()
+		return nil
+	}
+	return fmt.Errorf("unknown IdentityDocumentType edge %s", name)
+}
+
 // JobMutation represents an operation that mutates the Job nodes in the graph.
 type JobMutation struct {
 	config
@@ -9865,32 +10514,35 @@ func (m *JobFamilyMutation) ResetEdge(name string) error {
 // LocationMutation represents an operation that mutates the Location nodes in the graph.
 type LocationMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	location_type       *location.LocationType
-	country_code        *string
-	iso_code            *string
-	external_id         *string
-	default_name        *string
-	_path               *string
-	created_at          *time.Time
-	updated_at          *time.Time
-	clearedFields       map[string]struct{}
-	children            map[uuid.UUID]struct{}
-	removedchildren     map[uuid.UUID]struct{}
-	clearedchildren     bool
-	parent              *uuid.UUID
-	clearedparent       bool
-	translations        map[uuid.UUID]struct{}
-	removedtranslations map[uuid.UUID]struct{}
-	clearedtranslations bool
-	addresses           map[uuid.UUID]struct{}
-	removedaddresses    map[uuid.UUID]struct{}
-	clearedaddresses    bool
-	done                bool
-	oldValue            func(context.Context) (*Location, error)
-	predicates          []predicate.Location
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	location_type             *location.LocationType
+	country_code              *string
+	iso_code                  *string
+	external_id               *string
+	default_name              *string
+	_path                     *string
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	children                  map[uuid.UUID]struct{}
+	removedchildren           map[uuid.UUID]struct{}
+	clearedchildren           bool
+	parent                    *uuid.UUID
+	clearedparent             bool
+	translations              map[uuid.UUID]struct{}
+	removedtranslations       map[uuid.UUID]struct{}
+	clearedtranslations       bool
+	addresses                 map[uuid.UUID]struct{}
+	removedaddresses          map[uuid.UUID]struct{}
+	clearedaddresses          bool
+	identity_documents        map[uuid.UUID]struct{}
+	removedidentity_documents map[uuid.UUID]struct{}
+	clearedidentity_documents bool
+	done                      bool
+	oldValue                  func(context.Context) (*Location, error)
+	predicates                []predicate.Location
 }
 
 var _ ent.Mutation = (*LocationMutation)(nil)
@@ -10549,6 +11201,60 @@ func (m *LocationMutation) ResetAddresses() {
 	m.removedaddresses = nil
 }
 
+// AddIdentityDocumentIDs adds the "identity_documents" edge to the PartyIdentityDocument entity by ids.
+func (m *LocationMutation) AddIdentityDocumentIDs(ids ...uuid.UUID) {
+	if m.identity_documents == nil {
+		m.identity_documents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.identity_documents[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIdentityDocuments clears the "identity_documents" edge to the PartyIdentityDocument entity.
+func (m *LocationMutation) ClearIdentityDocuments() {
+	m.clearedidentity_documents = true
+}
+
+// IdentityDocumentsCleared reports if the "identity_documents" edge to the PartyIdentityDocument entity was cleared.
+func (m *LocationMutation) IdentityDocumentsCleared() bool {
+	return m.clearedidentity_documents
+}
+
+// RemoveIdentityDocumentIDs removes the "identity_documents" edge to the PartyIdentityDocument entity by IDs.
+func (m *LocationMutation) RemoveIdentityDocumentIDs(ids ...uuid.UUID) {
+	if m.removedidentity_documents == nil {
+		m.removedidentity_documents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.identity_documents, ids[i])
+		m.removedidentity_documents[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIdentityDocuments returns the removed IDs of the "identity_documents" edge to the PartyIdentityDocument entity.
+func (m *LocationMutation) RemovedIdentityDocumentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedidentity_documents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IdentityDocumentsIDs returns the "identity_documents" edge IDs in the mutation.
+func (m *LocationMutation) IdentityDocumentsIDs() (ids []uuid.UUID) {
+	for id := range m.identity_documents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIdentityDocuments resets all changes to the "identity_documents" edge.
+func (m *LocationMutation) ResetIdentityDocuments() {
+	m.identity_documents = nil
+	m.clearedidentity_documents = false
+	m.removedidentity_documents = nil
+}
+
 // Where appends a list predicates to the LocationMutation builder.
 func (m *LocationMutation) Where(ps ...predicate.Location) {
 	m.predicates = append(m.predicates, ps...)
@@ -10839,7 +11545,7 @@ func (m *LocationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LocationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.children != nil {
 		edges = append(edges, location.EdgeChildren)
 	}
@@ -10851,6 +11557,9 @@ func (m *LocationMutation) AddedEdges() []string {
 	}
 	if m.addresses != nil {
 		edges = append(edges, location.EdgeAddresses)
+	}
+	if m.identity_documents != nil {
+		edges = append(edges, location.EdgeIdentityDocuments)
 	}
 	return edges
 }
@@ -10881,13 +11590,19 @@ func (m *LocationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case location.EdgeIdentityDocuments:
+		ids := make([]ent.Value, 0, len(m.identity_documents))
+		for id := range m.identity_documents {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LocationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedchildren != nil {
 		edges = append(edges, location.EdgeChildren)
 	}
@@ -10896,6 +11611,9 @@ func (m *LocationMutation) RemovedEdges() []string {
 	}
 	if m.removedaddresses != nil {
 		edges = append(edges, location.EdgeAddresses)
+	}
+	if m.removedidentity_documents != nil {
+		edges = append(edges, location.EdgeIdentityDocuments)
 	}
 	return edges
 }
@@ -10922,13 +11640,19 @@ func (m *LocationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case location.EdgeIdentityDocuments:
+		ids := make([]ent.Value, 0, len(m.removedidentity_documents))
+		for id := range m.removedidentity_documents {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LocationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedchildren {
 		edges = append(edges, location.EdgeChildren)
 	}
@@ -10940,6 +11664,9 @@ func (m *LocationMutation) ClearedEdges() []string {
 	}
 	if m.clearedaddresses {
 		edges = append(edges, location.EdgeAddresses)
+	}
+	if m.clearedidentity_documents {
+		edges = append(edges, location.EdgeIdentityDocuments)
 	}
 	return edges
 }
@@ -10956,6 +11683,8 @@ func (m *LocationMutation) EdgeCleared(name string) bool {
 		return m.clearedtranslations
 	case location.EdgeAddresses:
 		return m.clearedaddresses
+	case location.EdgeIdentityDocuments:
+		return m.clearedidentity_documents
 	}
 	return false
 }
@@ -10986,6 +11715,9 @@ func (m *LocationMutation) ResetEdge(name string) error {
 		return nil
 	case location.EdgeAddresses:
 		m.ResetAddresses()
+		return nil
+	case location.EdgeIdentityDocuments:
+		m.ResetIdentityDocuments()
 		return nil
 	}
 	return fmt.Errorf("unknown Location edge %s", name)
@@ -13275,6 +14007,15 @@ type PartyMutation struct {
 	name_validities                           map[uuid.UUID]struct{}
 	removedname_validities                    map[uuid.UUID]struct{}
 	clearedname_validities                    bool
+	nationalities                             map[uuid.UUID]struct{}
+	removednationalities                      map[uuid.UUID]struct{}
+	clearednationalities                      bool
+	identity_documents                        map[uuid.UUID]struct{}
+	removedidentity_documents                 map[uuid.UUID]struct{}
+	clearedidentity_documents                 bool
+	identity_document_validities              map[uuid.UUID]struct{}
+	removedidentity_document_validities       map[uuid.UUID]struct{}
+	clearedidentity_document_validities       bool
 	addresses                                 map[uuid.UUID]struct{}
 	removedaddresses                          map[uuid.UUID]struct{}
 	clearedaddresses                          bool
@@ -14048,6 +14789,168 @@ func (m *PartyMutation) ResetNameValidities() {
 	m.name_validities = nil
 	m.clearedname_validities = false
 	m.removedname_validities = nil
+}
+
+// AddNationalityIDs adds the "nationalities" edge to the PartyNationality entity by ids.
+func (m *PartyMutation) AddNationalityIDs(ids ...uuid.UUID) {
+	if m.nationalities == nil {
+		m.nationalities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.nationalities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNationalities clears the "nationalities" edge to the PartyNationality entity.
+func (m *PartyMutation) ClearNationalities() {
+	m.clearednationalities = true
+}
+
+// NationalitiesCleared reports if the "nationalities" edge to the PartyNationality entity was cleared.
+func (m *PartyMutation) NationalitiesCleared() bool {
+	return m.clearednationalities
+}
+
+// RemoveNationalityIDs removes the "nationalities" edge to the PartyNationality entity by IDs.
+func (m *PartyMutation) RemoveNationalityIDs(ids ...uuid.UUID) {
+	if m.removednationalities == nil {
+		m.removednationalities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.nationalities, ids[i])
+		m.removednationalities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNationalities returns the removed IDs of the "nationalities" edge to the PartyNationality entity.
+func (m *PartyMutation) RemovedNationalitiesIDs() (ids []uuid.UUID) {
+	for id := range m.removednationalities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NationalitiesIDs returns the "nationalities" edge IDs in the mutation.
+func (m *PartyMutation) NationalitiesIDs() (ids []uuid.UUID) {
+	for id := range m.nationalities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNationalities resets all changes to the "nationalities" edge.
+func (m *PartyMutation) ResetNationalities() {
+	m.nationalities = nil
+	m.clearednationalities = false
+	m.removednationalities = nil
+}
+
+// AddIdentityDocumentIDs adds the "identity_documents" edge to the PartyIdentityDocument entity by ids.
+func (m *PartyMutation) AddIdentityDocumentIDs(ids ...uuid.UUID) {
+	if m.identity_documents == nil {
+		m.identity_documents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.identity_documents[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIdentityDocuments clears the "identity_documents" edge to the PartyIdentityDocument entity.
+func (m *PartyMutation) ClearIdentityDocuments() {
+	m.clearedidentity_documents = true
+}
+
+// IdentityDocumentsCleared reports if the "identity_documents" edge to the PartyIdentityDocument entity was cleared.
+func (m *PartyMutation) IdentityDocumentsCleared() bool {
+	return m.clearedidentity_documents
+}
+
+// RemoveIdentityDocumentIDs removes the "identity_documents" edge to the PartyIdentityDocument entity by IDs.
+func (m *PartyMutation) RemoveIdentityDocumentIDs(ids ...uuid.UUID) {
+	if m.removedidentity_documents == nil {
+		m.removedidentity_documents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.identity_documents, ids[i])
+		m.removedidentity_documents[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIdentityDocuments returns the removed IDs of the "identity_documents" edge to the PartyIdentityDocument entity.
+func (m *PartyMutation) RemovedIdentityDocumentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedidentity_documents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IdentityDocumentsIDs returns the "identity_documents" edge IDs in the mutation.
+func (m *PartyMutation) IdentityDocumentsIDs() (ids []uuid.UUID) {
+	for id := range m.identity_documents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIdentityDocuments resets all changes to the "identity_documents" edge.
+func (m *PartyMutation) ResetIdentityDocuments() {
+	m.identity_documents = nil
+	m.clearedidentity_documents = false
+	m.removedidentity_documents = nil
+}
+
+// AddIdentityDocumentValidityIDs adds the "identity_document_validities" edge to the PartyIdentityDocumentValidity entity by ids.
+func (m *PartyMutation) AddIdentityDocumentValidityIDs(ids ...uuid.UUID) {
+	if m.identity_document_validities == nil {
+		m.identity_document_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.identity_document_validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearIdentityDocumentValidities clears the "identity_document_validities" edge to the PartyIdentityDocumentValidity entity.
+func (m *PartyMutation) ClearIdentityDocumentValidities() {
+	m.clearedidentity_document_validities = true
+}
+
+// IdentityDocumentValiditiesCleared reports if the "identity_document_validities" edge to the PartyIdentityDocumentValidity entity was cleared.
+func (m *PartyMutation) IdentityDocumentValiditiesCleared() bool {
+	return m.clearedidentity_document_validities
+}
+
+// RemoveIdentityDocumentValidityIDs removes the "identity_document_validities" edge to the PartyIdentityDocumentValidity entity by IDs.
+func (m *PartyMutation) RemoveIdentityDocumentValidityIDs(ids ...uuid.UUID) {
+	if m.removedidentity_document_validities == nil {
+		m.removedidentity_document_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.identity_document_validities, ids[i])
+		m.removedidentity_document_validities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedIdentityDocumentValidities returns the removed IDs of the "identity_document_validities" edge to the PartyIdentityDocumentValidity entity.
+func (m *PartyMutation) RemovedIdentityDocumentValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedidentity_document_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// IdentityDocumentValiditiesIDs returns the "identity_document_validities" edge IDs in the mutation.
+func (m *PartyMutation) IdentityDocumentValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.identity_document_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetIdentityDocumentValidities resets all changes to the "identity_document_validities" edge.
+func (m *PartyMutation) ResetIdentityDocumentValidities() {
+	m.identity_document_validities = nil
+	m.clearedidentity_document_validities = false
+	m.removedidentity_document_validities = nil
 }
 
 // AddAddressIDs adds the "addresses" edge to the Address entity by ids.
@@ -14869,7 +15772,7 @@ func (m *PartyMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PartyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 18)
+	edges := make([]string, 0, 21)
 	if m.tenant != nil {
 		edges = append(edges, party.EdgeTenant)
 	}
@@ -14890,6 +15793,15 @@ func (m *PartyMutation) AddedEdges() []string {
 	}
 	if m.name_validities != nil {
 		edges = append(edges, party.EdgeNameValidities)
+	}
+	if m.nationalities != nil {
+		edges = append(edges, party.EdgeNationalities)
+	}
+	if m.identity_documents != nil {
+		edges = append(edges, party.EdgeIdentityDocuments)
+	}
+	if m.identity_document_validities != nil {
+		edges = append(edges, party.EdgeIdentityDocumentValidities)
 	}
 	if m.addresses != nil {
 		edges = append(edges, party.EdgeAddresses)
@@ -14967,6 +15879,24 @@ func (m *PartyMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case party.EdgeNationalities:
+		ids := make([]ent.Value, 0, len(m.nationalities))
+		for id := range m.nationalities {
+			ids = append(ids, id)
+		}
+		return ids
+	case party.EdgeIdentityDocuments:
+		ids := make([]ent.Value, 0, len(m.identity_documents))
+		for id := range m.identity_documents {
+			ids = append(ids, id)
+		}
+		return ids
+	case party.EdgeIdentityDocumentValidities:
+		ids := make([]ent.Value, 0, len(m.identity_document_validities))
+		for id := range m.identity_document_validities {
+			ids = append(ids, id)
+		}
+		return ids
 	case party.EdgeAddresses:
 		ids := make([]ent.Value, 0, len(m.addresses))
 		for id := range m.addresses {
@@ -15035,7 +15965,7 @@ func (m *PartyMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PartyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 18)
+	edges := make([]string, 0, 21)
 	if m.removedparty_roles != nil {
 		edges = append(edges, party.EdgePartyRoles)
 	}
@@ -15047,6 +15977,15 @@ func (m *PartyMutation) RemovedEdges() []string {
 	}
 	if m.removedname_validities != nil {
 		edges = append(edges, party.EdgeNameValidities)
+	}
+	if m.removednationalities != nil {
+		edges = append(edges, party.EdgeNationalities)
+	}
+	if m.removedidentity_documents != nil {
+		edges = append(edges, party.EdgeIdentityDocuments)
+	}
+	if m.removedidentity_document_validities != nil {
+		edges = append(edges, party.EdgeIdentityDocumentValidities)
 	}
 	if m.removedaddresses != nil {
 		edges = append(edges, party.EdgeAddresses)
@@ -15103,6 +16042,24 @@ func (m *PartyMutation) RemovedIDs(name string) []ent.Value {
 	case party.EdgeNameValidities:
 		ids := make([]ent.Value, 0, len(m.removedname_validities))
 		for id := range m.removedname_validities {
+			ids = append(ids, id)
+		}
+		return ids
+	case party.EdgeNationalities:
+		ids := make([]ent.Value, 0, len(m.removednationalities))
+		for id := range m.removednationalities {
+			ids = append(ids, id)
+		}
+		return ids
+	case party.EdgeIdentityDocuments:
+		ids := make([]ent.Value, 0, len(m.removedidentity_documents))
+		for id := range m.removedidentity_documents {
+			ids = append(ids, id)
+		}
+		return ids
+	case party.EdgeIdentityDocumentValidities:
+		ids := make([]ent.Value, 0, len(m.removedidentity_document_validities))
+		for id := range m.removedidentity_document_validities {
 			ids = append(ids, id)
 		}
 		return ids
@@ -15166,7 +16123,7 @@ func (m *PartyMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PartyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 18)
+	edges := make([]string, 0, 21)
 	if m.clearedtenant {
 		edges = append(edges, party.EdgeTenant)
 	}
@@ -15187,6 +16144,15 @@ func (m *PartyMutation) ClearedEdges() []string {
 	}
 	if m.clearedname_validities {
 		edges = append(edges, party.EdgeNameValidities)
+	}
+	if m.clearednationalities {
+		edges = append(edges, party.EdgeNationalities)
+	}
+	if m.clearedidentity_documents {
+		edges = append(edges, party.EdgeIdentityDocuments)
+	}
+	if m.clearedidentity_document_validities {
+		edges = append(edges, party.EdgeIdentityDocumentValidities)
 	}
 	if m.clearedaddresses {
 		edges = append(edges, party.EdgeAddresses)
@@ -15242,6 +16208,12 @@ func (m *PartyMutation) EdgeCleared(name string) bool {
 		return m.clearednames
 	case party.EdgeNameValidities:
 		return m.clearedname_validities
+	case party.EdgeNationalities:
+		return m.clearednationalities
+	case party.EdgeIdentityDocuments:
+		return m.clearedidentity_documents
+	case party.EdgeIdentityDocumentValidities:
+		return m.clearedidentity_document_validities
 	case party.EdgeAddresses:
 		return m.clearedaddresses
 	case party.EdgeSessions:
@@ -15315,6 +16287,15 @@ func (m *PartyMutation) ResetEdge(name string) error {
 		return nil
 	case party.EdgeNameValidities:
 		m.ResetNameValidities()
+		return nil
+	case party.EdgeNationalities:
+		m.ResetNationalities()
+		return nil
+	case party.EdgeIdentityDocuments:
+		m.ResetIdentityDocuments()
+		return nil
+	case party.EdgeIdentityDocumentValidities:
+		m.ResetIdentityDocumentValidities()
 		return nil
 	case party.EdgeAddresses:
 		m.ResetAddresses()
@@ -17327,6 +18308,1966 @@ func (m *PartyContactMechanismValidityMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown PartyContactMechanismValidity edge %s", name)
+}
+
+// PartyIdentityDocumentMutation represents an operation that mutates the PartyIdentityDocument nodes in the graph.
+type PartyIdentityDocumentMutation struct {
+	config
+	op                          Op
+	typ                         string
+	id                          *uuid.UUID
+	issuing_country_code        *string
+	document_number             *string
+	created_at                  *time.Time
+	updated_at                  *time.Time
+	deleted_at                  *time.Time
+	clearedFields               map[string]struct{}
+	tenant                      *uuid.UUID
+	clearedtenant               bool
+	party                       *uuid.UUID
+	clearedparty                bool
+	document_type               *uuid.UUID
+	cleareddocument_type        bool
+	issuing_jurisdiction        *uuid.UUID
+	clearedissuing_jurisdiction bool
+	validities                  map[uuid.UUID]struct{}
+	removedvalidities           map[uuid.UUID]struct{}
+	clearedvalidities           bool
+	done                        bool
+	oldValue                    func(context.Context) (*PartyIdentityDocument, error)
+	predicates                  []predicate.PartyIdentityDocument
+}
+
+var _ ent.Mutation = (*PartyIdentityDocumentMutation)(nil)
+
+// partyidentitydocumentOption allows management of the mutation configuration using functional options.
+type partyidentitydocumentOption func(*PartyIdentityDocumentMutation)
+
+// newPartyIdentityDocumentMutation creates new mutation for the PartyIdentityDocument entity.
+func newPartyIdentityDocumentMutation(c config, op Op, opts ...partyidentitydocumentOption) *PartyIdentityDocumentMutation {
+	m := &PartyIdentityDocumentMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePartyIdentityDocument,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPartyIdentityDocumentID sets the ID field of the mutation.
+func withPartyIdentityDocumentID(id uuid.UUID) partyidentitydocumentOption {
+	return func(m *PartyIdentityDocumentMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PartyIdentityDocument
+		)
+		m.oldValue = func(ctx context.Context) (*PartyIdentityDocument, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PartyIdentityDocument.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPartyIdentityDocument sets the old PartyIdentityDocument of the mutation.
+func withPartyIdentityDocument(node *PartyIdentityDocument) partyidentitydocumentOption {
+	return func(m *PartyIdentityDocumentMutation) {
+		m.oldValue = func(context.Context) (*PartyIdentityDocument, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PartyIdentityDocumentMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PartyIdentityDocumentMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PartyIdentityDocument entities.
+func (m *PartyIdentityDocumentMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PartyIdentityDocumentMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PartyIdentityDocumentMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PartyIdentityDocument.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (m *PartyIdentityDocumentMutation) SetTenantID(u uuid.UUID) {
+	m.tenant = &u
+}
+
+// TenantID returns the value of the "tenant_id" field in the mutation.
+func (m *PartyIdentityDocumentMutation) TenantID() (r uuid.UUID, exists bool) {
+	v := m.tenant
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTenantID returns the old "tenant_id" field's value of the PartyIdentityDocument entity.
+// If the PartyIdentityDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTenantID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+	}
+	return oldValue.TenantID, nil
+}
+
+// ResetTenantID resets all changes to the "tenant_id" field.
+func (m *PartyIdentityDocumentMutation) ResetTenantID() {
+	m.tenant = nil
+}
+
+// SetPartyID sets the "party_id" field.
+func (m *PartyIdentityDocumentMutation) SetPartyID(u uuid.UUID) {
+	m.party = &u
+}
+
+// PartyID returns the value of the "party_id" field in the mutation.
+func (m *PartyIdentityDocumentMutation) PartyID() (r uuid.UUID, exists bool) {
+	v := m.party
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPartyID returns the old "party_id" field's value of the PartyIdentityDocument entity.
+// If the PartyIdentityDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentMutation) OldPartyID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPartyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPartyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPartyID: %w", err)
+	}
+	return oldValue.PartyID, nil
+}
+
+// ResetPartyID resets all changes to the "party_id" field.
+func (m *PartyIdentityDocumentMutation) ResetPartyID() {
+	m.party = nil
+}
+
+// SetDocumentTypeID sets the "document_type_id" field.
+func (m *PartyIdentityDocumentMutation) SetDocumentTypeID(u uuid.UUID) {
+	m.document_type = &u
+}
+
+// DocumentTypeID returns the value of the "document_type_id" field in the mutation.
+func (m *PartyIdentityDocumentMutation) DocumentTypeID() (r uuid.UUID, exists bool) {
+	v := m.document_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDocumentTypeID returns the old "document_type_id" field's value of the PartyIdentityDocument entity.
+// If the PartyIdentityDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentMutation) OldDocumentTypeID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDocumentTypeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDocumentTypeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDocumentTypeID: %w", err)
+	}
+	return oldValue.DocumentTypeID, nil
+}
+
+// ResetDocumentTypeID resets all changes to the "document_type_id" field.
+func (m *PartyIdentityDocumentMutation) ResetDocumentTypeID() {
+	m.document_type = nil
+}
+
+// SetIssuingCountryCode sets the "issuing_country_code" field.
+func (m *PartyIdentityDocumentMutation) SetIssuingCountryCode(s string) {
+	m.issuing_country_code = &s
+}
+
+// IssuingCountryCode returns the value of the "issuing_country_code" field in the mutation.
+func (m *PartyIdentityDocumentMutation) IssuingCountryCode() (r string, exists bool) {
+	v := m.issuing_country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIssuingCountryCode returns the old "issuing_country_code" field's value of the PartyIdentityDocument entity.
+// If the PartyIdentityDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentMutation) OldIssuingCountryCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIssuingCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIssuingCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIssuingCountryCode: %w", err)
+	}
+	return oldValue.IssuingCountryCode, nil
+}
+
+// ResetIssuingCountryCode resets all changes to the "issuing_country_code" field.
+func (m *PartyIdentityDocumentMutation) ResetIssuingCountryCode() {
+	m.issuing_country_code = nil
+}
+
+// SetIssuingJurisdictionID sets the "issuing_jurisdiction_id" field.
+func (m *PartyIdentityDocumentMutation) SetIssuingJurisdictionID(u uuid.UUID) {
+	m.issuing_jurisdiction = &u
+}
+
+// IssuingJurisdictionID returns the value of the "issuing_jurisdiction_id" field in the mutation.
+func (m *PartyIdentityDocumentMutation) IssuingJurisdictionID() (r uuid.UUID, exists bool) {
+	v := m.issuing_jurisdiction
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIssuingJurisdictionID returns the old "issuing_jurisdiction_id" field's value of the PartyIdentityDocument entity.
+// If the PartyIdentityDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentMutation) OldIssuingJurisdictionID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIssuingJurisdictionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIssuingJurisdictionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIssuingJurisdictionID: %w", err)
+	}
+	return oldValue.IssuingJurisdictionID, nil
+}
+
+// ClearIssuingJurisdictionID clears the value of the "issuing_jurisdiction_id" field.
+func (m *PartyIdentityDocumentMutation) ClearIssuingJurisdictionID() {
+	m.issuing_jurisdiction = nil
+	m.clearedFields[partyidentitydocument.FieldIssuingJurisdictionID] = struct{}{}
+}
+
+// IssuingJurisdictionIDCleared returns if the "issuing_jurisdiction_id" field was cleared in this mutation.
+func (m *PartyIdentityDocumentMutation) IssuingJurisdictionIDCleared() bool {
+	_, ok := m.clearedFields[partyidentitydocument.FieldIssuingJurisdictionID]
+	return ok
+}
+
+// ResetIssuingJurisdictionID resets all changes to the "issuing_jurisdiction_id" field.
+func (m *PartyIdentityDocumentMutation) ResetIssuingJurisdictionID() {
+	m.issuing_jurisdiction = nil
+	delete(m.clearedFields, partyidentitydocument.FieldIssuingJurisdictionID)
+}
+
+// SetDocumentNumber sets the "document_number" field.
+func (m *PartyIdentityDocumentMutation) SetDocumentNumber(s string) {
+	m.document_number = &s
+}
+
+// DocumentNumber returns the value of the "document_number" field in the mutation.
+func (m *PartyIdentityDocumentMutation) DocumentNumber() (r string, exists bool) {
+	v := m.document_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDocumentNumber returns the old "document_number" field's value of the PartyIdentityDocument entity.
+// If the PartyIdentityDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentMutation) OldDocumentNumber(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDocumentNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDocumentNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDocumentNumber: %w", err)
+	}
+	return oldValue.DocumentNumber, nil
+}
+
+// ResetDocumentNumber resets all changes to the "document_number" field.
+func (m *PartyIdentityDocumentMutation) ResetDocumentNumber() {
+	m.document_number = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PartyIdentityDocumentMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PartyIdentityDocumentMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PartyIdentityDocument entity.
+// If the PartyIdentityDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PartyIdentityDocumentMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PartyIdentityDocumentMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PartyIdentityDocumentMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PartyIdentityDocument entity.
+// If the PartyIdentityDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PartyIdentityDocumentMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *PartyIdentityDocumentMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *PartyIdentityDocumentMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the PartyIdentityDocument entity.
+// If the PartyIdentityDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *PartyIdentityDocumentMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[partyidentitydocument.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *PartyIdentityDocumentMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[partyidentitydocument.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *PartyIdentityDocumentMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, partyidentitydocument.FieldDeletedAt)
+}
+
+// ClearTenant clears the "tenant" edge to the Subscription entity.
+func (m *PartyIdentityDocumentMutation) ClearTenant() {
+	m.clearedtenant = true
+	m.clearedFields[partyidentitydocument.FieldTenantID] = struct{}{}
+}
+
+// TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
+func (m *PartyIdentityDocumentMutation) TenantCleared() bool {
+	return m.clearedtenant
+}
+
+// TenantIDs returns the "tenant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TenantID instead. It exists only for internal usage by the builders.
+func (m *PartyIdentityDocumentMutation) TenantIDs() (ids []uuid.UUID) {
+	if id := m.tenant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTenant resets all changes to the "tenant" edge.
+func (m *PartyIdentityDocumentMutation) ResetTenant() {
+	m.tenant = nil
+	m.clearedtenant = false
+}
+
+// ClearParty clears the "party" edge to the Party entity.
+func (m *PartyIdentityDocumentMutation) ClearParty() {
+	m.clearedparty = true
+	m.clearedFields[partyidentitydocument.FieldPartyID] = struct{}{}
+}
+
+// PartyCleared reports if the "party" edge to the Party entity was cleared.
+func (m *PartyIdentityDocumentMutation) PartyCleared() bool {
+	return m.clearedparty
+}
+
+// PartyIDs returns the "party" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PartyID instead. It exists only for internal usage by the builders.
+func (m *PartyIdentityDocumentMutation) PartyIDs() (ids []uuid.UUID) {
+	if id := m.party; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParty resets all changes to the "party" edge.
+func (m *PartyIdentityDocumentMutation) ResetParty() {
+	m.party = nil
+	m.clearedparty = false
+}
+
+// ClearDocumentType clears the "document_type" edge to the IdentityDocumentType entity.
+func (m *PartyIdentityDocumentMutation) ClearDocumentType() {
+	m.cleareddocument_type = true
+	m.clearedFields[partyidentitydocument.FieldDocumentTypeID] = struct{}{}
+}
+
+// DocumentTypeCleared reports if the "document_type" edge to the IdentityDocumentType entity was cleared.
+func (m *PartyIdentityDocumentMutation) DocumentTypeCleared() bool {
+	return m.cleareddocument_type
+}
+
+// DocumentTypeIDs returns the "document_type" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DocumentTypeID instead. It exists only for internal usage by the builders.
+func (m *PartyIdentityDocumentMutation) DocumentTypeIDs() (ids []uuid.UUID) {
+	if id := m.document_type; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDocumentType resets all changes to the "document_type" edge.
+func (m *PartyIdentityDocumentMutation) ResetDocumentType() {
+	m.document_type = nil
+	m.cleareddocument_type = false
+}
+
+// ClearIssuingJurisdiction clears the "issuing_jurisdiction" edge to the Location entity.
+func (m *PartyIdentityDocumentMutation) ClearIssuingJurisdiction() {
+	m.clearedissuing_jurisdiction = true
+	m.clearedFields[partyidentitydocument.FieldIssuingJurisdictionID] = struct{}{}
+}
+
+// IssuingJurisdictionCleared reports if the "issuing_jurisdiction" edge to the Location entity was cleared.
+func (m *PartyIdentityDocumentMutation) IssuingJurisdictionCleared() bool {
+	return m.IssuingJurisdictionIDCleared() || m.clearedissuing_jurisdiction
+}
+
+// IssuingJurisdictionIDs returns the "issuing_jurisdiction" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// IssuingJurisdictionID instead. It exists only for internal usage by the builders.
+func (m *PartyIdentityDocumentMutation) IssuingJurisdictionIDs() (ids []uuid.UUID) {
+	if id := m.issuing_jurisdiction; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetIssuingJurisdiction resets all changes to the "issuing_jurisdiction" edge.
+func (m *PartyIdentityDocumentMutation) ResetIssuingJurisdiction() {
+	m.issuing_jurisdiction = nil
+	m.clearedissuing_jurisdiction = false
+}
+
+// AddValidityIDs adds the "validities" edge to the PartyIdentityDocumentValidity entity by ids.
+func (m *PartyIdentityDocumentMutation) AddValidityIDs(ids ...uuid.UUID) {
+	if m.validities == nil {
+		m.validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearValidities clears the "validities" edge to the PartyIdentityDocumentValidity entity.
+func (m *PartyIdentityDocumentMutation) ClearValidities() {
+	m.clearedvalidities = true
+}
+
+// ValiditiesCleared reports if the "validities" edge to the PartyIdentityDocumentValidity entity was cleared.
+func (m *PartyIdentityDocumentMutation) ValiditiesCleared() bool {
+	return m.clearedvalidities
+}
+
+// RemoveValidityIDs removes the "validities" edge to the PartyIdentityDocumentValidity entity by IDs.
+func (m *PartyIdentityDocumentMutation) RemoveValidityIDs(ids ...uuid.UUID) {
+	if m.removedvalidities == nil {
+		m.removedvalidities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.validities, ids[i])
+		m.removedvalidities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedValidities returns the removed IDs of the "validities" edge to the PartyIdentityDocumentValidity entity.
+func (m *PartyIdentityDocumentMutation) RemovedValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedvalidities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ValiditiesIDs returns the "validities" edge IDs in the mutation.
+func (m *PartyIdentityDocumentMutation) ValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetValidities resets all changes to the "validities" edge.
+func (m *PartyIdentityDocumentMutation) ResetValidities() {
+	m.validities = nil
+	m.clearedvalidities = false
+	m.removedvalidities = nil
+}
+
+// Where appends a list predicates to the PartyIdentityDocumentMutation builder.
+func (m *PartyIdentityDocumentMutation) Where(ps ...predicate.PartyIdentityDocument) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PartyIdentityDocumentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PartyIdentityDocumentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PartyIdentityDocument, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PartyIdentityDocumentMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PartyIdentityDocumentMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PartyIdentityDocument).
+func (m *PartyIdentityDocumentMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PartyIdentityDocumentMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.tenant != nil {
+		fields = append(fields, partyidentitydocument.FieldTenantID)
+	}
+	if m.party != nil {
+		fields = append(fields, partyidentitydocument.FieldPartyID)
+	}
+	if m.document_type != nil {
+		fields = append(fields, partyidentitydocument.FieldDocumentTypeID)
+	}
+	if m.issuing_country_code != nil {
+		fields = append(fields, partyidentitydocument.FieldIssuingCountryCode)
+	}
+	if m.issuing_jurisdiction != nil {
+		fields = append(fields, partyidentitydocument.FieldIssuingJurisdictionID)
+	}
+	if m.document_number != nil {
+		fields = append(fields, partyidentitydocument.FieldDocumentNumber)
+	}
+	if m.created_at != nil {
+		fields = append(fields, partyidentitydocument.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, partyidentitydocument.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, partyidentitydocument.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PartyIdentityDocumentMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case partyidentitydocument.FieldTenantID:
+		return m.TenantID()
+	case partyidentitydocument.FieldPartyID:
+		return m.PartyID()
+	case partyidentitydocument.FieldDocumentTypeID:
+		return m.DocumentTypeID()
+	case partyidentitydocument.FieldIssuingCountryCode:
+		return m.IssuingCountryCode()
+	case partyidentitydocument.FieldIssuingJurisdictionID:
+		return m.IssuingJurisdictionID()
+	case partyidentitydocument.FieldDocumentNumber:
+		return m.DocumentNumber()
+	case partyidentitydocument.FieldCreatedAt:
+		return m.CreatedAt()
+	case partyidentitydocument.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case partyidentitydocument.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PartyIdentityDocumentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case partyidentitydocument.FieldTenantID:
+		return m.OldTenantID(ctx)
+	case partyidentitydocument.FieldPartyID:
+		return m.OldPartyID(ctx)
+	case partyidentitydocument.FieldDocumentTypeID:
+		return m.OldDocumentTypeID(ctx)
+	case partyidentitydocument.FieldIssuingCountryCode:
+		return m.OldIssuingCountryCode(ctx)
+	case partyidentitydocument.FieldIssuingJurisdictionID:
+		return m.OldIssuingJurisdictionID(ctx)
+	case partyidentitydocument.FieldDocumentNumber:
+		return m.OldDocumentNumber(ctx)
+	case partyidentitydocument.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case partyidentitydocument.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case partyidentitydocument.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown PartyIdentityDocument field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PartyIdentityDocumentMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case partyidentitydocument.FieldTenantID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTenantID(v)
+		return nil
+	case partyidentitydocument.FieldPartyID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPartyID(v)
+		return nil
+	case partyidentitydocument.FieldDocumentTypeID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDocumentTypeID(v)
+		return nil
+	case partyidentitydocument.FieldIssuingCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIssuingCountryCode(v)
+		return nil
+	case partyidentitydocument.FieldIssuingJurisdictionID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIssuingJurisdictionID(v)
+		return nil
+	case partyidentitydocument.FieldDocumentNumber:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDocumentNumber(v)
+		return nil
+	case partyidentitydocument.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case partyidentitydocument.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case partyidentitydocument.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PartyIdentityDocument field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PartyIdentityDocumentMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PartyIdentityDocumentMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PartyIdentityDocumentMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PartyIdentityDocument numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PartyIdentityDocumentMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(partyidentitydocument.FieldIssuingJurisdictionID) {
+		fields = append(fields, partyidentitydocument.FieldIssuingJurisdictionID)
+	}
+	if m.FieldCleared(partyidentitydocument.FieldDeletedAt) {
+		fields = append(fields, partyidentitydocument.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PartyIdentityDocumentMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PartyIdentityDocumentMutation) ClearField(name string) error {
+	switch name {
+	case partyidentitydocument.FieldIssuingJurisdictionID:
+		m.ClearIssuingJurisdictionID()
+		return nil
+	case partyidentitydocument.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyIdentityDocument nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PartyIdentityDocumentMutation) ResetField(name string) error {
+	switch name {
+	case partyidentitydocument.FieldTenantID:
+		m.ResetTenantID()
+		return nil
+	case partyidentitydocument.FieldPartyID:
+		m.ResetPartyID()
+		return nil
+	case partyidentitydocument.FieldDocumentTypeID:
+		m.ResetDocumentTypeID()
+		return nil
+	case partyidentitydocument.FieldIssuingCountryCode:
+		m.ResetIssuingCountryCode()
+		return nil
+	case partyidentitydocument.FieldIssuingJurisdictionID:
+		m.ResetIssuingJurisdictionID()
+		return nil
+	case partyidentitydocument.FieldDocumentNumber:
+		m.ResetDocumentNumber()
+		return nil
+	case partyidentitydocument.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case partyidentitydocument.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case partyidentitydocument.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyIdentityDocument field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PartyIdentityDocumentMutation) AddedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.tenant != nil {
+		edges = append(edges, partyidentitydocument.EdgeTenant)
+	}
+	if m.party != nil {
+		edges = append(edges, partyidentitydocument.EdgeParty)
+	}
+	if m.document_type != nil {
+		edges = append(edges, partyidentitydocument.EdgeDocumentType)
+	}
+	if m.issuing_jurisdiction != nil {
+		edges = append(edges, partyidentitydocument.EdgeIssuingJurisdiction)
+	}
+	if m.validities != nil {
+		edges = append(edges, partyidentitydocument.EdgeValidities)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PartyIdentityDocumentMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case partyidentitydocument.EdgeTenant:
+		if id := m.tenant; id != nil {
+			return []ent.Value{*id}
+		}
+	case partyidentitydocument.EdgeParty:
+		if id := m.party; id != nil {
+			return []ent.Value{*id}
+		}
+	case partyidentitydocument.EdgeDocumentType:
+		if id := m.document_type; id != nil {
+			return []ent.Value{*id}
+		}
+	case partyidentitydocument.EdgeIssuingJurisdiction:
+		if id := m.issuing_jurisdiction; id != nil {
+			return []ent.Value{*id}
+		}
+	case partyidentitydocument.EdgeValidities:
+		ids := make([]ent.Value, 0, len(m.validities))
+		for id := range m.validities {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PartyIdentityDocumentMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.removedvalidities != nil {
+		edges = append(edges, partyidentitydocument.EdgeValidities)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PartyIdentityDocumentMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case partyidentitydocument.EdgeValidities:
+		ids := make([]ent.Value, 0, len(m.removedvalidities))
+		for id := range m.removedvalidities {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PartyIdentityDocumentMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 5)
+	if m.clearedtenant {
+		edges = append(edges, partyidentitydocument.EdgeTenant)
+	}
+	if m.clearedparty {
+		edges = append(edges, partyidentitydocument.EdgeParty)
+	}
+	if m.cleareddocument_type {
+		edges = append(edges, partyidentitydocument.EdgeDocumentType)
+	}
+	if m.clearedissuing_jurisdiction {
+		edges = append(edges, partyidentitydocument.EdgeIssuingJurisdiction)
+	}
+	if m.clearedvalidities {
+		edges = append(edges, partyidentitydocument.EdgeValidities)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PartyIdentityDocumentMutation) EdgeCleared(name string) bool {
+	switch name {
+	case partyidentitydocument.EdgeTenant:
+		return m.clearedtenant
+	case partyidentitydocument.EdgeParty:
+		return m.clearedparty
+	case partyidentitydocument.EdgeDocumentType:
+		return m.cleareddocument_type
+	case partyidentitydocument.EdgeIssuingJurisdiction:
+		return m.clearedissuing_jurisdiction
+	case partyidentitydocument.EdgeValidities:
+		return m.clearedvalidities
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PartyIdentityDocumentMutation) ClearEdge(name string) error {
+	switch name {
+	case partyidentitydocument.EdgeTenant:
+		m.ClearTenant()
+		return nil
+	case partyidentitydocument.EdgeParty:
+		m.ClearParty()
+		return nil
+	case partyidentitydocument.EdgeDocumentType:
+		m.ClearDocumentType()
+		return nil
+	case partyidentitydocument.EdgeIssuingJurisdiction:
+		m.ClearIssuingJurisdiction()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyIdentityDocument unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PartyIdentityDocumentMutation) ResetEdge(name string) error {
+	switch name {
+	case partyidentitydocument.EdgeTenant:
+		m.ResetTenant()
+		return nil
+	case partyidentitydocument.EdgeParty:
+		m.ResetParty()
+		return nil
+	case partyidentitydocument.EdgeDocumentType:
+		m.ResetDocumentType()
+		return nil
+	case partyidentitydocument.EdgeIssuingJurisdiction:
+		m.ResetIssuingJurisdiction()
+		return nil
+	case partyidentitydocument.EdgeValidities:
+		m.ResetValidities()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyIdentityDocument edge %s", name)
+}
+
+// PartyIdentityDocumentValidityMutation represents an operation that mutates the PartyIdentityDocumentValidity nodes in the graph.
+type PartyIdentityDocumentValidityMutation struct {
+	config
+	op                             Op
+	typ                            string
+	id                             *uuid.UUID
+	is_primary                     *bool
+	start_date                     *time.Time
+	end_date                       *time.Time
+	created_at                     *time.Time
+	updated_at                     *time.Time
+	clearedFields                  map[string]struct{}
+	tenant                         *uuid.UUID
+	clearedtenant                  bool
+	party_identity_document        *uuid.UUID
+	clearedparty_identity_document bool
+	party                          *uuid.UUID
+	clearedparty                   bool
+	done                           bool
+	oldValue                       func(context.Context) (*PartyIdentityDocumentValidity, error)
+	predicates                     []predicate.PartyIdentityDocumentValidity
+}
+
+var _ ent.Mutation = (*PartyIdentityDocumentValidityMutation)(nil)
+
+// partyidentitydocumentvalidityOption allows management of the mutation configuration using functional options.
+type partyidentitydocumentvalidityOption func(*PartyIdentityDocumentValidityMutation)
+
+// newPartyIdentityDocumentValidityMutation creates new mutation for the PartyIdentityDocumentValidity entity.
+func newPartyIdentityDocumentValidityMutation(c config, op Op, opts ...partyidentitydocumentvalidityOption) *PartyIdentityDocumentValidityMutation {
+	m := &PartyIdentityDocumentValidityMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePartyIdentityDocumentValidity,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPartyIdentityDocumentValidityID sets the ID field of the mutation.
+func withPartyIdentityDocumentValidityID(id uuid.UUID) partyidentitydocumentvalidityOption {
+	return func(m *PartyIdentityDocumentValidityMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PartyIdentityDocumentValidity
+		)
+		m.oldValue = func(ctx context.Context) (*PartyIdentityDocumentValidity, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PartyIdentityDocumentValidity.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPartyIdentityDocumentValidity sets the old PartyIdentityDocumentValidity of the mutation.
+func withPartyIdentityDocumentValidity(node *PartyIdentityDocumentValidity) partyidentitydocumentvalidityOption {
+	return func(m *PartyIdentityDocumentValidityMutation) {
+		m.oldValue = func(context.Context) (*PartyIdentityDocumentValidity, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PartyIdentityDocumentValidityMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PartyIdentityDocumentValidityMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PartyIdentityDocumentValidity entities.
+func (m *PartyIdentityDocumentValidityMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PartyIdentityDocumentValidityMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PartyIdentityDocumentValidityMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PartyIdentityDocumentValidity.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (m *PartyIdentityDocumentValidityMutation) SetTenantID(u uuid.UUID) {
+	m.tenant = &u
+}
+
+// TenantID returns the value of the "tenant_id" field in the mutation.
+func (m *PartyIdentityDocumentValidityMutation) TenantID() (r uuid.UUID, exists bool) {
+	v := m.tenant
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTenantID returns the old "tenant_id" field's value of the PartyIdentityDocumentValidity entity.
+// If the PartyIdentityDocumentValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentValidityMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTenantID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+	}
+	return oldValue.TenantID, nil
+}
+
+// ResetTenantID resets all changes to the "tenant_id" field.
+func (m *PartyIdentityDocumentValidityMutation) ResetTenantID() {
+	m.tenant = nil
+}
+
+// SetPartyIdentityDocumentID sets the "party_identity_document_id" field.
+func (m *PartyIdentityDocumentValidityMutation) SetPartyIdentityDocumentID(u uuid.UUID) {
+	m.party_identity_document = &u
+}
+
+// PartyIdentityDocumentID returns the value of the "party_identity_document_id" field in the mutation.
+func (m *PartyIdentityDocumentValidityMutation) PartyIdentityDocumentID() (r uuid.UUID, exists bool) {
+	v := m.party_identity_document
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPartyIdentityDocumentID returns the old "party_identity_document_id" field's value of the PartyIdentityDocumentValidity entity.
+// If the PartyIdentityDocumentValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentValidityMutation) OldPartyIdentityDocumentID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPartyIdentityDocumentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPartyIdentityDocumentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPartyIdentityDocumentID: %w", err)
+	}
+	return oldValue.PartyIdentityDocumentID, nil
+}
+
+// ResetPartyIdentityDocumentID resets all changes to the "party_identity_document_id" field.
+func (m *PartyIdentityDocumentValidityMutation) ResetPartyIdentityDocumentID() {
+	m.party_identity_document = nil
+}
+
+// SetPartyID sets the "party_id" field.
+func (m *PartyIdentityDocumentValidityMutation) SetPartyID(u uuid.UUID) {
+	m.party = &u
+}
+
+// PartyID returns the value of the "party_id" field in the mutation.
+func (m *PartyIdentityDocumentValidityMutation) PartyID() (r uuid.UUID, exists bool) {
+	v := m.party
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPartyID returns the old "party_id" field's value of the PartyIdentityDocumentValidity entity.
+// If the PartyIdentityDocumentValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentValidityMutation) OldPartyID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPartyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPartyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPartyID: %w", err)
+	}
+	return oldValue.PartyID, nil
+}
+
+// ResetPartyID resets all changes to the "party_id" field.
+func (m *PartyIdentityDocumentValidityMutation) ResetPartyID() {
+	m.party = nil
+}
+
+// SetIsPrimary sets the "is_primary" field.
+func (m *PartyIdentityDocumentValidityMutation) SetIsPrimary(b bool) {
+	m.is_primary = &b
+}
+
+// IsPrimary returns the value of the "is_primary" field in the mutation.
+func (m *PartyIdentityDocumentValidityMutation) IsPrimary() (r bool, exists bool) {
+	v := m.is_primary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPrimary returns the old "is_primary" field's value of the PartyIdentityDocumentValidity entity.
+// If the PartyIdentityDocumentValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentValidityMutation) OldIsPrimary(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPrimary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPrimary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPrimary: %w", err)
+	}
+	return oldValue.IsPrimary, nil
+}
+
+// ResetIsPrimary resets all changes to the "is_primary" field.
+func (m *PartyIdentityDocumentValidityMutation) ResetIsPrimary() {
+	m.is_primary = nil
+}
+
+// SetStartDate sets the "start_date" field.
+func (m *PartyIdentityDocumentValidityMutation) SetStartDate(t time.Time) {
+	m.start_date = &t
+}
+
+// StartDate returns the value of the "start_date" field in the mutation.
+func (m *PartyIdentityDocumentValidityMutation) StartDate() (r time.Time, exists bool) {
+	v := m.start_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartDate returns the old "start_date" field's value of the PartyIdentityDocumentValidity entity.
+// If the PartyIdentityDocumentValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentValidityMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
+	}
+	return oldValue.StartDate, nil
+}
+
+// ResetStartDate resets all changes to the "start_date" field.
+func (m *PartyIdentityDocumentValidityMutation) ResetStartDate() {
+	m.start_date = nil
+}
+
+// SetEndDate sets the "end_date" field.
+func (m *PartyIdentityDocumentValidityMutation) SetEndDate(t time.Time) {
+	m.end_date = &t
+}
+
+// EndDate returns the value of the "end_date" field in the mutation.
+func (m *PartyIdentityDocumentValidityMutation) EndDate() (r time.Time, exists bool) {
+	v := m.end_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndDate returns the old "end_date" field's value of the PartyIdentityDocumentValidity entity.
+// If the PartyIdentityDocumentValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentValidityMutation) OldEndDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndDate: %w", err)
+	}
+	return oldValue.EndDate, nil
+}
+
+// ClearEndDate clears the value of the "end_date" field.
+func (m *PartyIdentityDocumentValidityMutation) ClearEndDate() {
+	m.end_date = nil
+	m.clearedFields[partyidentitydocumentvalidity.FieldEndDate] = struct{}{}
+}
+
+// EndDateCleared returns if the "end_date" field was cleared in this mutation.
+func (m *PartyIdentityDocumentValidityMutation) EndDateCleared() bool {
+	_, ok := m.clearedFields[partyidentitydocumentvalidity.FieldEndDate]
+	return ok
+}
+
+// ResetEndDate resets all changes to the "end_date" field.
+func (m *PartyIdentityDocumentValidityMutation) ResetEndDate() {
+	m.end_date = nil
+	delete(m.clearedFields, partyidentitydocumentvalidity.FieldEndDate)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PartyIdentityDocumentValidityMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PartyIdentityDocumentValidityMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PartyIdentityDocumentValidity entity.
+// If the PartyIdentityDocumentValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentValidityMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PartyIdentityDocumentValidityMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PartyIdentityDocumentValidityMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PartyIdentityDocumentValidityMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PartyIdentityDocumentValidity entity.
+// If the PartyIdentityDocumentValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyIdentityDocumentValidityMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PartyIdentityDocumentValidityMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearTenant clears the "tenant" edge to the Subscription entity.
+func (m *PartyIdentityDocumentValidityMutation) ClearTenant() {
+	m.clearedtenant = true
+	m.clearedFields[partyidentitydocumentvalidity.FieldTenantID] = struct{}{}
+}
+
+// TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
+func (m *PartyIdentityDocumentValidityMutation) TenantCleared() bool {
+	return m.clearedtenant
+}
+
+// TenantIDs returns the "tenant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TenantID instead. It exists only for internal usage by the builders.
+func (m *PartyIdentityDocumentValidityMutation) TenantIDs() (ids []uuid.UUID) {
+	if id := m.tenant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTenant resets all changes to the "tenant" edge.
+func (m *PartyIdentityDocumentValidityMutation) ResetTenant() {
+	m.tenant = nil
+	m.clearedtenant = false
+}
+
+// ClearPartyIdentityDocument clears the "party_identity_document" edge to the PartyIdentityDocument entity.
+func (m *PartyIdentityDocumentValidityMutation) ClearPartyIdentityDocument() {
+	m.clearedparty_identity_document = true
+	m.clearedFields[partyidentitydocumentvalidity.FieldPartyIdentityDocumentID] = struct{}{}
+}
+
+// PartyIdentityDocumentCleared reports if the "party_identity_document" edge to the PartyIdentityDocument entity was cleared.
+func (m *PartyIdentityDocumentValidityMutation) PartyIdentityDocumentCleared() bool {
+	return m.clearedparty_identity_document
+}
+
+// PartyIdentityDocumentIDs returns the "party_identity_document" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PartyIdentityDocumentID instead. It exists only for internal usage by the builders.
+func (m *PartyIdentityDocumentValidityMutation) PartyIdentityDocumentIDs() (ids []uuid.UUID) {
+	if id := m.party_identity_document; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPartyIdentityDocument resets all changes to the "party_identity_document" edge.
+func (m *PartyIdentityDocumentValidityMutation) ResetPartyIdentityDocument() {
+	m.party_identity_document = nil
+	m.clearedparty_identity_document = false
+}
+
+// ClearParty clears the "party" edge to the Party entity.
+func (m *PartyIdentityDocumentValidityMutation) ClearParty() {
+	m.clearedparty = true
+	m.clearedFields[partyidentitydocumentvalidity.FieldPartyID] = struct{}{}
+}
+
+// PartyCleared reports if the "party" edge to the Party entity was cleared.
+func (m *PartyIdentityDocumentValidityMutation) PartyCleared() bool {
+	return m.clearedparty
+}
+
+// PartyIDs returns the "party" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PartyID instead. It exists only for internal usage by the builders.
+func (m *PartyIdentityDocumentValidityMutation) PartyIDs() (ids []uuid.UUID) {
+	if id := m.party; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParty resets all changes to the "party" edge.
+func (m *PartyIdentityDocumentValidityMutation) ResetParty() {
+	m.party = nil
+	m.clearedparty = false
+}
+
+// Where appends a list predicates to the PartyIdentityDocumentValidityMutation builder.
+func (m *PartyIdentityDocumentValidityMutation) Where(ps ...predicate.PartyIdentityDocumentValidity) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PartyIdentityDocumentValidityMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PartyIdentityDocumentValidityMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PartyIdentityDocumentValidity, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PartyIdentityDocumentValidityMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PartyIdentityDocumentValidityMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PartyIdentityDocumentValidity).
+func (m *PartyIdentityDocumentValidityMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PartyIdentityDocumentValidityMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.tenant != nil {
+		fields = append(fields, partyidentitydocumentvalidity.FieldTenantID)
+	}
+	if m.party_identity_document != nil {
+		fields = append(fields, partyidentitydocumentvalidity.FieldPartyIdentityDocumentID)
+	}
+	if m.party != nil {
+		fields = append(fields, partyidentitydocumentvalidity.FieldPartyID)
+	}
+	if m.is_primary != nil {
+		fields = append(fields, partyidentitydocumentvalidity.FieldIsPrimary)
+	}
+	if m.start_date != nil {
+		fields = append(fields, partyidentitydocumentvalidity.FieldStartDate)
+	}
+	if m.end_date != nil {
+		fields = append(fields, partyidentitydocumentvalidity.FieldEndDate)
+	}
+	if m.created_at != nil {
+		fields = append(fields, partyidentitydocumentvalidity.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, partyidentitydocumentvalidity.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PartyIdentityDocumentValidityMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case partyidentitydocumentvalidity.FieldTenantID:
+		return m.TenantID()
+	case partyidentitydocumentvalidity.FieldPartyIdentityDocumentID:
+		return m.PartyIdentityDocumentID()
+	case partyidentitydocumentvalidity.FieldPartyID:
+		return m.PartyID()
+	case partyidentitydocumentvalidity.FieldIsPrimary:
+		return m.IsPrimary()
+	case partyidentitydocumentvalidity.FieldStartDate:
+		return m.StartDate()
+	case partyidentitydocumentvalidity.FieldEndDate:
+		return m.EndDate()
+	case partyidentitydocumentvalidity.FieldCreatedAt:
+		return m.CreatedAt()
+	case partyidentitydocumentvalidity.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PartyIdentityDocumentValidityMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case partyidentitydocumentvalidity.FieldTenantID:
+		return m.OldTenantID(ctx)
+	case partyidentitydocumentvalidity.FieldPartyIdentityDocumentID:
+		return m.OldPartyIdentityDocumentID(ctx)
+	case partyidentitydocumentvalidity.FieldPartyID:
+		return m.OldPartyID(ctx)
+	case partyidentitydocumentvalidity.FieldIsPrimary:
+		return m.OldIsPrimary(ctx)
+	case partyidentitydocumentvalidity.FieldStartDate:
+		return m.OldStartDate(ctx)
+	case partyidentitydocumentvalidity.FieldEndDate:
+		return m.OldEndDate(ctx)
+	case partyidentitydocumentvalidity.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case partyidentitydocumentvalidity.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown PartyIdentityDocumentValidity field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PartyIdentityDocumentValidityMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case partyidentitydocumentvalidity.FieldTenantID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTenantID(v)
+		return nil
+	case partyidentitydocumentvalidity.FieldPartyIdentityDocumentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPartyIdentityDocumentID(v)
+		return nil
+	case partyidentitydocumentvalidity.FieldPartyID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPartyID(v)
+		return nil
+	case partyidentitydocumentvalidity.FieldIsPrimary:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPrimary(v)
+		return nil
+	case partyidentitydocumentvalidity.FieldStartDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartDate(v)
+		return nil
+	case partyidentitydocumentvalidity.FieldEndDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndDate(v)
+		return nil
+	case partyidentitydocumentvalidity.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case partyidentitydocumentvalidity.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PartyIdentityDocumentValidity field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PartyIdentityDocumentValidityMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PartyIdentityDocumentValidityMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PartyIdentityDocumentValidityMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PartyIdentityDocumentValidity numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PartyIdentityDocumentValidityMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(partyidentitydocumentvalidity.FieldEndDate) {
+		fields = append(fields, partyidentitydocumentvalidity.FieldEndDate)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PartyIdentityDocumentValidityMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PartyIdentityDocumentValidityMutation) ClearField(name string) error {
+	switch name {
+	case partyidentitydocumentvalidity.FieldEndDate:
+		m.ClearEndDate()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyIdentityDocumentValidity nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PartyIdentityDocumentValidityMutation) ResetField(name string) error {
+	switch name {
+	case partyidentitydocumentvalidity.FieldTenantID:
+		m.ResetTenantID()
+		return nil
+	case partyidentitydocumentvalidity.FieldPartyIdentityDocumentID:
+		m.ResetPartyIdentityDocumentID()
+		return nil
+	case partyidentitydocumentvalidity.FieldPartyID:
+		m.ResetPartyID()
+		return nil
+	case partyidentitydocumentvalidity.FieldIsPrimary:
+		m.ResetIsPrimary()
+		return nil
+	case partyidentitydocumentvalidity.FieldStartDate:
+		m.ResetStartDate()
+		return nil
+	case partyidentitydocumentvalidity.FieldEndDate:
+		m.ResetEndDate()
+		return nil
+	case partyidentitydocumentvalidity.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case partyidentitydocumentvalidity.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyIdentityDocumentValidity field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PartyIdentityDocumentValidityMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.tenant != nil {
+		edges = append(edges, partyidentitydocumentvalidity.EdgeTenant)
+	}
+	if m.party_identity_document != nil {
+		edges = append(edges, partyidentitydocumentvalidity.EdgePartyIdentityDocument)
+	}
+	if m.party != nil {
+		edges = append(edges, partyidentitydocumentvalidity.EdgeParty)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PartyIdentityDocumentValidityMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case partyidentitydocumentvalidity.EdgeTenant:
+		if id := m.tenant; id != nil {
+			return []ent.Value{*id}
+		}
+	case partyidentitydocumentvalidity.EdgePartyIdentityDocument:
+		if id := m.party_identity_document; id != nil {
+			return []ent.Value{*id}
+		}
+	case partyidentitydocumentvalidity.EdgeParty:
+		if id := m.party; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PartyIdentityDocumentValidityMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PartyIdentityDocumentValidityMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PartyIdentityDocumentValidityMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedtenant {
+		edges = append(edges, partyidentitydocumentvalidity.EdgeTenant)
+	}
+	if m.clearedparty_identity_document {
+		edges = append(edges, partyidentitydocumentvalidity.EdgePartyIdentityDocument)
+	}
+	if m.clearedparty {
+		edges = append(edges, partyidentitydocumentvalidity.EdgeParty)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PartyIdentityDocumentValidityMutation) EdgeCleared(name string) bool {
+	switch name {
+	case partyidentitydocumentvalidity.EdgeTenant:
+		return m.clearedtenant
+	case partyidentitydocumentvalidity.EdgePartyIdentityDocument:
+		return m.clearedparty_identity_document
+	case partyidentitydocumentvalidity.EdgeParty:
+		return m.clearedparty
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PartyIdentityDocumentValidityMutation) ClearEdge(name string) error {
+	switch name {
+	case partyidentitydocumentvalidity.EdgeTenant:
+		m.ClearTenant()
+		return nil
+	case partyidentitydocumentvalidity.EdgePartyIdentityDocument:
+		m.ClearPartyIdentityDocument()
+		return nil
+	case partyidentitydocumentvalidity.EdgeParty:
+		m.ClearParty()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyIdentityDocumentValidity unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PartyIdentityDocumentValidityMutation) ResetEdge(name string) error {
+	switch name {
+	case partyidentitydocumentvalidity.EdgeTenant:
+		m.ResetTenant()
+		return nil
+	case partyidentitydocumentvalidity.EdgePartyIdentityDocument:
+		m.ResetPartyIdentityDocument()
+		return nil
+	case partyidentitydocumentvalidity.EdgeParty:
+		m.ResetParty()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyIdentityDocumentValidity edge %s", name)
 }
 
 // PartyMergeLogMutation represents an operation that mutates the PartyMergeLog nodes in the graph.
@@ -20074,6 +23015,708 @@ func (m *PartyNameValidityMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown PartyNameValidity edge %s", name)
+}
+
+// PartyNationalityMutation represents an operation that mutates the PartyNationality nodes in the graph.
+type PartyNationalityMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	country_code  *string
+	is_primary    *bool
+	created_at    *time.Time
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	tenant        *uuid.UUID
+	clearedtenant bool
+	party         *uuid.UUID
+	clearedparty  bool
+	done          bool
+	oldValue      func(context.Context) (*PartyNationality, error)
+	predicates    []predicate.PartyNationality
+}
+
+var _ ent.Mutation = (*PartyNationalityMutation)(nil)
+
+// partynationalityOption allows management of the mutation configuration using functional options.
+type partynationalityOption func(*PartyNationalityMutation)
+
+// newPartyNationalityMutation creates new mutation for the PartyNationality entity.
+func newPartyNationalityMutation(c config, op Op, opts ...partynationalityOption) *PartyNationalityMutation {
+	m := &PartyNationalityMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePartyNationality,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPartyNationalityID sets the ID field of the mutation.
+func withPartyNationalityID(id uuid.UUID) partynationalityOption {
+	return func(m *PartyNationalityMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PartyNationality
+		)
+		m.oldValue = func(ctx context.Context) (*PartyNationality, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PartyNationality.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPartyNationality sets the old PartyNationality of the mutation.
+func withPartyNationality(node *PartyNationality) partynationalityOption {
+	return func(m *PartyNationalityMutation) {
+		m.oldValue = func(context.Context) (*PartyNationality, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PartyNationalityMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PartyNationalityMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PartyNationality entities.
+func (m *PartyNationalityMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PartyNationalityMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PartyNationalityMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PartyNationality.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (m *PartyNationalityMutation) SetTenantID(u uuid.UUID) {
+	m.tenant = &u
+}
+
+// TenantID returns the value of the "tenant_id" field in the mutation.
+func (m *PartyNationalityMutation) TenantID() (r uuid.UUID, exists bool) {
+	v := m.tenant
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTenantID returns the old "tenant_id" field's value of the PartyNationality entity.
+// If the PartyNationality object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyNationalityMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTenantID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+	}
+	return oldValue.TenantID, nil
+}
+
+// ResetTenantID resets all changes to the "tenant_id" field.
+func (m *PartyNationalityMutation) ResetTenantID() {
+	m.tenant = nil
+}
+
+// SetPartyID sets the "party_id" field.
+func (m *PartyNationalityMutation) SetPartyID(u uuid.UUID) {
+	m.party = &u
+}
+
+// PartyID returns the value of the "party_id" field in the mutation.
+func (m *PartyNationalityMutation) PartyID() (r uuid.UUID, exists bool) {
+	v := m.party
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPartyID returns the old "party_id" field's value of the PartyNationality entity.
+// If the PartyNationality object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyNationalityMutation) OldPartyID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPartyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPartyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPartyID: %w", err)
+	}
+	return oldValue.PartyID, nil
+}
+
+// ResetPartyID resets all changes to the "party_id" field.
+func (m *PartyNationalityMutation) ResetPartyID() {
+	m.party = nil
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *PartyNationalityMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *PartyNationalityMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the PartyNationality entity.
+// If the PartyNationality object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyNationalityMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *PartyNationalityMutation) ResetCountryCode() {
+	m.country_code = nil
+}
+
+// SetIsPrimary sets the "is_primary" field.
+func (m *PartyNationalityMutation) SetIsPrimary(b bool) {
+	m.is_primary = &b
+}
+
+// IsPrimary returns the value of the "is_primary" field in the mutation.
+func (m *PartyNationalityMutation) IsPrimary() (r bool, exists bool) {
+	v := m.is_primary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPrimary returns the old "is_primary" field's value of the PartyNationality entity.
+// If the PartyNationality object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyNationalityMutation) OldIsPrimary(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPrimary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPrimary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPrimary: %w", err)
+	}
+	return oldValue.IsPrimary, nil
+}
+
+// ResetIsPrimary resets all changes to the "is_primary" field.
+func (m *PartyNationalityMutation) ResetIsPrimary() {
+	m.is_primary = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PartyNationalityMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PartyNationalityMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PartyNationality entity.
+// If the PartyNationality object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyNationalityMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PartyNationalityMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PartyNationalityMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PartyNationalityMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PartyNationality entity.
+// If the PartyNationality object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartyNationalityMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PartyNationalityMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearTenant clears the "tenant" edge to the Subscription entity.
+func (m *PartyNationalityMutation) ClearTenant() {
+	m.clearedtenant = true
+	m.clearedFields[partynationality.FieldTenantID] = struct{}{}
+}
+
+// TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
+func (m *PartyNationalityMutation) TenantCleared() bool {
+	return m.clearedtenant
+}
+
+// TenantIDs returns the "tenant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TenantID instead. It exists only for internal usage by the builders.
+func (m *PartyNationalityMutation) TenantIDs() (ids []uuid.UUID) {
+	if id := m.tenant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTenant resets all changes to the "tenant" edge.
+func (m *PartyNationalityMutation) ResetTenant() {
+	m.tenant = nil
+	m.clearedtenant = false
+}
+
+// ClearParty clears the "party" edge to the Party entity.
+func (m *PartyNationalityMutation) ClearParty() {
+	m.clearedparty = true
+	m.clearedFields[partynationality.FieldPartyID] = struct{}{}
+}
+
+// PartyCleared reports if the "party" edge to the Party entity was cleared.
+func (m *PartyNationalityMutation) PartyCleared() bool {
+	return m.clearedparty
+}
+
+// PartyIDs returns the "party" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PartyID instead. It exists only for internal usage by the builders.
+func (m *PartyNationalityMutation) PartyIDs() (ids []uuid.UUID) {
+	if id := m.party; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParty resets all changes to the "party" edge.
+func (m *PartyNationalityMutation) ResetParty() {
+	m.party = nil
+	m.clearedparty = false
+}
+
+// Where appends a list predicates to the PartyNationalityMutation builder.
+func (m *PartyNationalityMutation) Where(ps ...predicate.PartyNationality) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PartyNationalityMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PartyNationalityMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PartyNationality, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PartyNationalityMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PartyNationalityMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PartyNationality).
+func (m *PartyNationalityMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PartyNationalityMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.tenant != nil {
+		fields = append(fields, partynationality.FieldTenantID)
+	}
+	if m.party != nil {
+		fields = append(fields, partynationality.FieldPartyID)
+	}
+	if m.country_code != nil {
+		fields = append(fields, partynationality.FieldCountryCode)
+	}
+	if m.is_primary != nil {
+		fields = append(fields, partynationality.FieldIsPrimary)
+	}
+	if m.created_at != nil {
+		fields = append(fields, partynationality.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, partynationality.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PartyNationalityMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case partynationality.FieldTenantID:
+		return m.TenantID()
+	case partynationality.FieldPartyID:
+		return m.PartyID()
+	case partynationality.FieldCountryCode:
+		return m.CountryCode()
+	case partynationality.FieldIsPrimary:
+		return m.IsPrimary()
+	case partynationality.FieldCreatedAt:
+		return m.CreatedAt()
+	case partynationality.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PartyNationalityMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case partynationality.FieldTenantID:
+		return m.OldTenantID(ctx)
+	case partynationality.FieldPartyID:
+		return m.OldPartyID(ctx)
+	case partynationality.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case partynationality.FieldIsPrimary:
+		return m.OldIsPrimary(ctx)
+	case partynationality.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case partynationality.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown PartyNationality field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PartyNationalityMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case partynationality.FieldTenantID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTenantID(v)
+		return nil
+	case partynationality.FieldPartyID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPartyID(v)
+		return nil
+	case partynationality.FieldCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryCode(v)
+		return nil
+	case partynationality.FieldIsPrimary:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPrimary(v)
+		return nil
+	case partynationality.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case partynationality.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PartyNationality field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PartyNationalityMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PartyNationalityMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PartyNationalityMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown PartyNationality numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PartyNationalityMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PartyNationalityMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PartyNationalityMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PartyNationality nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PartyNationalityMutation) ResetField(name string) error {
+	switch name {
+	case partynationality.FieldTenantID:
+		m.ResetTenantID()
+		return nil
+	case partynationality.FieldPartyID:
+		m.ResetPartyID()
+		return nil
+	case partynationality.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case partynationality.FieldIsPrimary:
+		m.ResetIsPrimary()
+		return nil
+	case partynationality.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case partynationality.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyNationality field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PartyNationalityMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.tenant != nil {
+		edges = append(edges, partynationality.EdgeTenant)
+	}
+	if m.party != nil {
+		edges = append(edges, partynationality.EdgeParty)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PartyNationalityMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case partynationality.EdgeTenant:
+		if id := m.tenant; id != nil {
+			return []ent.Value{*id}
+		}
+	case partynationality.EdgeParty:
+		if id := m.party; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PartyNationalityMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PartyNationalityMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PartyNationalityMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedtenant {
+		edges = append(edges, partynationality.EdgeTenant)
+	}
+	if m.clearedparty {
+		edges = append(edges, partynationality.EdgeParty)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PartyNationalityMutation) EdgeCleared(name string) bool {
+	switch name {
+	case partynationality.EdgeTenant:
+		return m.clearedtenant
+	case partynationality.EdgeParty:
+		return m.clearedparty
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PartyNationalityMutation) ClearEdge(name string) error {
+	switch name {
+	case partynationality.EdgeTenant:
+		m.ClearTenant()
+		return nil
+	case partynationality.EdgeParty:
+		m.ClearParty()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyNationality unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PartyNationalityMutation) ResetEdge(name string) error {
+	switch name {
+	case partynationality.EdgeTenant:
+		m.ResetTenant()
+		return nil
+	case partynationality.EdgeParty:
+		m.ResetParty()
+		return nil
+	}
+	return fmt.Errorf("unknown PartyNationality edge %s", name)
 }
 
 // PartyRoleMutation represents an operation that mutates the PartyRole nodes in the graph.
@@ -24465,6 +28108,15 @@ type SubscriptionMutation struct {
 	party_contact_mechanism_validities        map[uuid.UUID]struct{}
 	removedparty_contact_mechanism_validities map[uuid.UUID]struct{}
 	clearedparty_contact_mechanism_validities bool
+	party_nationalities                       map[uuid.UUID]struct{}
+	removedparty_nationalities                map[uuid.UUID]struct{}
+	clearedparty_nationalities                bool
+	party_identity_documents                  map[uuid.UUID]struct{}
+	removedparty_identity_documents           map[uuid.UUID]struct{}
+	clearedparty_identity_documents           bool
+	party_identity_document_validities        map[uuid.UUID]struct{}
+	removedparty_identity_document_validities map[uuid.UUID]struct{}
+	clearedparty_identity_document_validities bool
 	done                                      bool
 	oldValue                                  func(context.Context) (*Subscription, error)
 	predicates                                []predicate.Subscription
@@ -25937,6 +29589,168 @@ func (m *SubscriptionMutation) ResetPartyContactMechanismValidities() {
 	m.removedparty_contact_mechanism_validities = nil
 }
 
+// AddPartyNationalityIDs adds the "party_nationalities" edge to the PartyNationality entity by ids.
+func (m *SubscriptionMutation) AddPartyNationalityIDs(ids ...uuid.UUID) {
+	if m.party_nationalities == nil {
+		m.party_nationalities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.party_nationalities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPartyNationalities clears the "party_nationalities" edge to the PartyNationality entity.
+func (m *SubscriptionMutation) ClearPartyNationalities() {
+	m.clearedparty_nationalities = true
+}
+
+// PartyNationalitiesCleared reports if the "party_nationalities" edge to the PartyNationality entity was cleared.
+func (m *SubscriptionMutation) PartyNationalitiesCleared() bool {
+	return m.clearedparty_nationalities
+}
+
+// RemovePartyNationalityIDs removes the "party_nationalities" edge to the PartyNationality entity by IDs.
+func (m *SubscriptionMutation) RemovePartyNationalityIDs(ids ...uuid.UUID) {
+	if m.removedparty_nationalities == nil {
+		m.removedparty_nationalities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.party_nationalities, ids[i])
+		m.removedparty_nationalities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPartyNationalities returns the removed IDs of the "party_nationalities" edge to the PartyNationality entity.
+func (m *SubscriptionMutation) RemovedPartyNationalitiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedparty_nationalities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PartyNationalitiesIDs returns the "party_nationalities" edge IDs in the mutation.
+func (m *SubscriptionMutation) PartyNationalitiesIDs() (ids []uuid.UUID) {
+	for id := range m.party_nationalities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPartyNationalities resets all changes to the "party_nationalities" edge.
+func (m *SubscriptionMutation) ResetPartyNationalities() {
+	m.party_nationalities = nil
+	m.clearedparty_nationalities = false
+	m.removedparty_nationalities = nil
+}
+
+// AddPartyIdentityDocumentIDs adds the "party_identity_documents" edge to the PartyIdentityDocument entity by ids.
+func (m *SubscriptionMutation) AddPartyIdentityDocumentIDs(ids ...uuid.UUID) {
+	if m.party_identity_documents == nil {
+		m.party_identity_documents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.party_identity_documents[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPartyIdentityDocuments clears the "party_identity_documents" edge to the PartyIdentityDocument entity.
+func (m *SubscriptionMutation) ClearPartyIdentityDocuments() {
+	m.clearedparty_identity_documents = true
+}
+
+// PartyIdentityDocumentsCleared reports if the "party_identity_documents" edge to the PartyIdentityDocument entity was cleared.
+func (m *SubscriptionMutation) PartyIdentityDocumentsCleared() bool {
+	return m.clearedparty_identity_documents
+}
+
+// RemovePartyIdentityDocumentIDs removes the "party_identity_documents" edge to the PartyIdentityDocument entity by IDs.
+func (m *SubscriptionMutation) RemovePartyIdentityDocumentIDs(ids ...uuid.UUID) {
+	if m.removedparty_identity_documents == nil {
+		m.removedparty_identity_documents = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.party_identity_documents, ids[i])
+		m.removedparty_identity_documents[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPartyIdentityDocuments returns the removed IDs of the "party_identity_documents" edge to the PartyIdentityDocument entity.
+func (m *SubscriptionMutation) RemovedPartyIdentityDocumentsIDs() (ids []uuid.UUID) {
+	for id := range m.removedparty_identity_documents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PartyIdentityDocumentsIDs returns the "party_identity_documents" edge IDs in the mutation.
+func (m *SubscriptionMutation) PartyIdentityDocumentsIDs() (ids []uuid.UUID) {
+	for id := range m.party_identity_documents {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPartyIdentityDocuments resets all changes to the "party_identity_documents" edge.
+func (m *SubscriptionMutation) ResetPartyIdentityDocuments() {
+	m.party_identity_documents = nil
+	m.clearedparty_identity_documents = false
+	m.removedparty_identity_documents = nil
+}
+
+// AddPartyIdentityDocumentValidityIDs adds the "party_identity_document_validities" edge to the PartyIdentityDocumentValidity entity by ids.
+func (m *SubscriptionMutation) AddPartyIdentityDocumentValidityIDs(ids ...uuid.UUID) {
+	if m.party_identity_document_validities == nil {
+		m.party_identity_document_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.party_identity_document_validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPartyIdentityDocumentValidities clears the "party_identity_document_validities" edge to the PartyIdentityDocumentValidity entity.
+func (m *SubscriptionMutation) ClearPartyIdentityDocumentValidities() {
+	m.clearedparty_identity_document_validities = true
+}
+
+// PartyIdentityDocumentValiditiesCleared reports if the "party_identity_document_validities" edge to the PartyIdentityDocumentValidity entity was cleared.
+func (m *SubscriptionMutation) PartyIdentityDocumentValiditiesCleared() bool {
+	return m.clearedparty_identity_document_validities
+}
+
+// RemovePartyIdentityDocumentValidityIDs removes the "party_identity_document_validities" edge to the PartyIdentityDocumentValidity entity by IDs.
+func (m *SubscriptionMutation) RemovePartyIdentityDocumentValidityIDs(ids ...uuid.UUID) {
+	if m.removedparty_identity_document_validities == nil {
+		m.removedparty_identity_document_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.party_identity_document_validities, ids[i])
+		m.removedparty_identity_document_validities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPartyIdentityDocumentValidities returns the removed IDs of the "party_identity_document_validities" edge to the PartyIdentityDocumentValidity entity.
+func (m *SubscriptionMutation) RemovedPartyIdentityDocumentValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedparty_identity_document_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PartyIdentityDocumentValiditiesIDs returns the "party_identity_document_validities" edge IDs in the mutation.
+func (m *SubscriptionMutation) PartyIdentityDocumentValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.party_identity_document_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPartyIdentityDocumentValidities resets all changes to the "party_identity_document_validities" edge.
+func (m *SubscriptionMutation) ResetPartyIdentityDocumentValidities() {
+	m.party_identity_document_validities = nil
+	m.clearedparty_identity_document_validities = false
+	m.removedparty_identity_document_validities = nil
+}
+
 // Where appends a list predicates to the SubscriptionMutation builder.
 func (m *SubscriptionMutation) Where(ps ...predicate.Subscription) {
 	m.predicates = append(m.predicates, ps...)
@@ -26164,7 +29978,7 @@ func (m *SubscriptionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SubscriptionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 24)
 	if m.parties != nil {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -26227,6 +30041,15 @@ func (m *SubscriptionMutation) AddedEdges() []string {
 	}
 	if m.party_contact_mechanism_validities != nil {
 		edges = append(edges, subscription.EdgePartyContactMechanismValidities)
+	}
+	if m.party_nationalities != nil {
+		edges = append(edges, subscription.EdgePartyNationalities)
+	}
+	if m.party_identity_documents != nil {
+		edges = append(edges, subscription.EdgePartyIdentityDocuments)
+	}
+	if m.party_identity_document_validities != nil {
+		edges = append(edges, subscription.EdgePartyIdentityDocumentValidities)
 	}
 	return edges
 }
@@ -26361,13 +30184,31 @@ func (m *SubscriptionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case subscription.EdgePartyNationalities:
+		ids := make([]ent.Value, 0, len(m.party_nationalities))
+		for id := range m.party_nationalities {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgePartyIdentityDocuments:
+		ids := make([]ent.Value, 0, len(m.party_identity_documents))
+		for id := range m.party_identity_documents {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgePartyIdentityDocumentValidities:
+		ids := make([]ent.Value, 0, len(m.party_identity_document_validities))
+		for id := range m.party_identity_document_validities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SubscriptionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 24)
 	if m.removedparties != nil {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -26430,6 +30271,15 @@ func (m *SubscriptionMutation) RemovedEdges() []string {
 	}
 	if m.removedparty_contact_mechanism_validities != nil {
 		edges = append(edges, subscription.EdgePartyContactMechanismValidities)
+	}
+	if m.removedparty_nationalities != nil {
+		edges = append(edges, subscription.EdgePartyNationalities)
+	}
+	if m.removedparty_identity_documents != nil {
+		edges = append(edges, subscription.EdgePartyIdentityDocuments)
+	}
+	if m.removedparty_identity_document_validities != nil {
+		edges = append(edges, subscription.EdgePartyIdentityDocumentValidities)
 	}
 	return edges
 }
@@ -26564,13 +30414,31 @@ func (m *SubscriptionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case subscription.EdgePartyNationalities:
+		ids := make([]ent.Value, 0, len(m.removedparty_nationalities))
+		for id := range m.removedparty_nationalities {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgePartyIdentityDocuments:
+		ids := make([]ent.Value, 0, len(m.removedparty_identity_documents))
+		for id := range m.removedparty_identity_documents {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgePartyIdentityDocumentValidities:
+		ids := make([]ent.Value, 0, len(m.removedparty_identity_document_validities))
+		for id := range m.removedparty_identity_document_validities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SubscriptionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 24)
 	if m.clearedparties {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -26634,6 +30502,15 @@ func (m *SubscriptionMutation) ClearedEdges() []string {
 	if m.clearedparty_contact_mechanism_validities {
 		edges = append(edges, subscription.EdgePartyContactMechanismValidities)
 	}
+	if m.clearedparty_nationalities {
+		edges = append(edges, subscription.EdgePartyNationalities)
+	}
+	if m.clearedparty_identity_documents {
+		edges = append(edges, subscription.EdgePartyIdentityDocuments)
+	}
+	if m.clearedparty_identity_document_validities {
+		edges = append(edges, subscription.EdgePartyIdentityDocumentValidities)
+	}
 	return edges
 }
 
@@ -26683,6 +30560,12 @@ func (m *SubscriptionMutation) EdgeCleared(name string) bool {
 		return m.clearedparty_name_validities
 	case subscription.EdgePartyContactMechanismValidities:
 		return m.clearedparty_contact_mechanism_validities
+	case subscription.EdgePartyNationalities:
+		return m.clearedparty_nationalities
+	case subscription.EdgePartyIdentityDocuments:
+		return m.clearedparty_identity_documents
+	case subscription.EdgePartyIdentityDocumentValidities:
+		return m.clearedparty_identity_document_validities
 	}
 	return false
 }
@@ -26761,6 +30644,15 @@ func (m *SubscriptionMutation) ResetEdge(name string) error {
 		return nil
 	case subscription.EdgePartyContactMechanismValidities:
 		m.ResetPartyContactMechanismValidities()
+		return nil
+	case subscription.EdgePartyNationalities:
+		m.ResetPartyNationalities()
+		return nil
+	case subscription.EdgePartyIdentityDocuments:
+		m.ResetPartyIdentityDocuments()
+		return nil
+	case subscription.EdgePartyIdentityDocumentValidities:
+		m.ResetPartyIdentityDocumentValidities()
 		return nil
 	}
 	return fmt.Errorf("unknown Subscription edge %s", name)

@@ -9,6 +9,7 @@ import (
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
+	"enterprise-system/ent/partyidentitydocument"
 	"enterprise-system/ent/predicate"
 	"fmt"
 	"math"
@@ -23,14 +24,15 @@ import (
 // LocationQuery is the builder for querying Location entities.
 type LocationQuery struct {
 	config
-	ctx              *QueryContext
-	order            []location.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.Location
-	withChildren     *LocationQuery
-	withParent       *LocationQuery
-	withTranslations *LocationTranslationQuery
-	withAddresses    *AddressQuery
+	ctx                   *QueryContext
+	order                 []location.OrderOption
+	inters                []Interceptor
+	predicates            []predicate.Location
+	withChildren          *LocationQuery
+	withParent            *LocationQuery
+	withTranslations      *LocationTranslationQuery
+	withAddresses         *AddressQuery
+	withIdentityDocuments *PartyIdentityDocumentQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -161,6 +163,31 @@ func (_q *LocationQuery) QueryAddresses() *AddressQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.Address
 		step.Edge.Schema = schemaConfig.Address
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIdentityDocuments chains the current query on the "identity_documents" edge.
+func (_q *LocationQuery) QueryIdentityDocuments() *PartyIdentityDocumentQuery {
+	query := (&PartyIdentityDocumentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, selector),
+			sqlgraph.To(partyidentitydocument.Table, partyidentitydocument.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.IdentityDocumentsTable, location.IdentityDocumentsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyIdentityDocument
+		step.Edge.Schema = schemaConfig.PartyIdentityDocument
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -354,15 +381,16 @@ func (_q *LocationQuery) Clone() *LocationQuery {
 		return nil
 	}
 	return &LocationQuery{
-		config:           _q.config,
-		ctx:              _q.ctx.Clone(),
-		order:            append([]location.OrderOption{}, _q.order...),
-		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.Location{}, _q.predicates...),
-		withChildren:     _q.withChildren.Clone(),
-		withParent:       _q.withParent.Clone(),
-		withTranslations: _q.withTranslations.Clone(),
-		withAddresses:    _q.withAddresses.Clone(),
+		config:                _q.config,
+		ctx:                   _q.ctx.Clone(),
+		order:                 append([]location.OrderOption{}, _q.order...),
+		inters:                append([]Interceptor{}, _q.inters...),
+		predicates:            append([]predicate.Location{}, _q.predicates...),
+		withChildren:          _q.withChildren.Clone(),
+		withParent:            _q.withParent.Clone(),
+		withTranslations:      _q.withTranslations.Clone(),
+		withAddresses:         _q.withAddresses.Clone(),
+		withIdentityDocuments: _q.withIdentityDocuments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -410,6 +438,17 @@ func (_q *LocationQuery) WithAddresses(opts ...func(*AddressQuery)) *LocationQue
 		opt(query)
 	}
 	_q.withAddresses = query
+	return _q
+}
+
+// WithIdentityDocuments tells the query-builder to eager-load the nodes that are connected to
+// the "identity_documents" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *LocationQuery) WithIdentityDocuments(opts ...func(*PartyIdentityDocumentQuery)) *LocationQuery {
+	query := (&PartyIdentityDocumentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withIdentityDocuments = query
 	return _q
 }
 
@@ -491,11 +530,12 @@ func (_q *LocationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Loc
 	var (
 		nodes       = []*Location{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withChildren != nil,
 			_q.withParent != nil,
 			_q.withTranslations != nil,
 			_q.withAddresses != nil,
+			_q.withIdentityDocuments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -542,6 +582,15 @@ func (_q *LocationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Loc
 		if err := _q.loadAddresses(ctx, query, nodes,
 			func(n *Location) { n.Edges.Addresses = []*Address{} },
 			func(n *Location, e *Address) { n.Edges.Addresses = append(n.Edges.Addresses, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withIdentityDocuments; query != nil {
+		if err := _q.loadIdentityDocuments(ctx, query, nodes,
+			func(n *Location) { n.Edges.IdentityDocuments = []*PartyIdentityDocument{} },
+			func(n *Location, e *PartyIdentityDocument) {
+				n.Edges.IdentityDocuments = append(n.Edges.IdentityDocuments, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -668,6 +717,39 @@ func (_q *LocationQuery) loadAddresses(ctx context.Context, query *AddressQuery,
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "city_location_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *LocationQuery) loadIdentityDocuments(ctx context.Context, query *PartyIdentityDocumentQuery, nodes []*Location, init func(*Location), assign func(*Location, *PartyIdentityDocument)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Location)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partyidentitydocument.FieldIssuingJurisdictionID)
+	}
+	query.Where(predicate.PartyIdentityDocument(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(location.IdentityDocumentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.IssuingJurisdictionID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "issuing_jurisdiction_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "issuing_jurisdiction_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

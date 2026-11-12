@@ -11,6 +11,7 @@ import (
 	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/identitydocumenttype"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/location"
@@ -20,9 +21,12 @@ import (
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partycontactmechanismvalidity"
+	"enterprise-system/ent/partyidentitydocument"
+	"enterprise-system/ent/partyidentitydocumentvalidity"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyname"
 	"enterprise-system/ent/partynamevalidity"
+	"enterprise-system/ent/partynationality"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -222,6 +226,30 @@ func init() {
 	employeeassignmentDescID := employeeassignmentFields[0].Descriptor()
 	// employeeassignment.DefaultID holds the default value on creation for the id field.
 	employeeassignment.DefaultID = employeeassignmentDescID.Default.(func() uuid.UUID)
+	identitydocumenttypeFields := schema.IdentityDocumentType{}.Fields()
+	_ = identitydocumenttypeFields
+	// identitydocumenttypeDescCode is the schema descriptor for code field.
+	identitydocumenttypeDescCode := identitydocumenttypeFields[1].Descriptor()
+	// identitydocumenttype.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	identitydocumenttype.CodeValidator = identitydocumenttypeDescCode.Validators[0].(func(string) error)
+	// identitydocumenttypeDescName is the schema descriptor for name field.
+	identitydocumenttypeDescName := identitydocumenttypeFields[2].Descriptor()
+	// identitydocumenttype.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	identitydocumenttype.NameValidator = identitydocumenttypeDescName.Validators[0].(func(string) error)
+	// identitydocumenttypeDescCreatedAt is the schema descriptor for created_at field.
+	identitydocumenttypeDescCreatedAt := identitydocumenttypeFields[4].Descriptor()
+	// identitydocumenttype.DefaultCreatedAt holds the default value on creation for the created_at field.
+	identitydocumenttype.DefaultCreatedAt = identitydocumenttypeDescCreatedAt.Default.(func() time.Time)
+	// identitydocumenttypeDescUpdatedAt is the schema descriptor for updated_at field.
+	identitydocumenttypeDescUpdatedAt := identitydocumenttypeFields[5].Descriptor()
+	// identitydocumenttype.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	identitydocumenttype.DefaultUpdatedAt = identitydocumenttypeDescUpdatedAt.Default.(func() time.Time)
+	// identitydocumenttype.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	identitydocumenttype.UpdateDefaultUpdatedAt = identitydocumenttypeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// identitydocumenttypeDescID is the schema descriptor for id field.
+	identitydocumenttypeDescID := identitydocumenttypeFields[0].Descriptor()
+	// identitydocumenttype.DefaultID holds the default value on creation for the id field.
+	identitydocumenttype.DefaultID = identitydocumenttypeDescID.Default.(func() uuid.UUID)
 	jobFields := schema.Job{}.Fields()
 	_ = jobFields
 	// jobDescTitle is the schema descriptor for title field.
@@ -456,6 +484,50 @@ func init() {
 	partycontactmechanismvalidityDescID := partycontactmechanismvalidityFields[0].Descriptor()
 	// partycontactmechanismvalidity.DefaultID holds the default value on creation for the id field.
 	partycontactmechanismvalidity.DefaultID = partycontactmechanismvalidityDescID.Default.(func() uuid.UUID)
+	partyidentitydocumentFields := schema.PartyIdentityDocument{}.Fields()
+	_ = partyidentitydocumentFields
+	// partyidentitydocumentDescIssuingCountryCode is the schema descriptor for issuing_country_code field.
+	partyidentitydocumentDescIssuingCountryCode := partyidentitydocumentFields[4].Descriptor()
+	// partyidentitydocument.IssuingCountryCodeValidator is a validator for the "issuing_country_code" field. It is called by the builders before save.
+	partyidentitydocument.IssuingCountryCodeValidator = partyidentitydocumentDescIssuingCountryCode.Validators[0].(func(string) error)
+	// partyidentitydocumentDescDocumentNumber is the schema descriptor for document_number field.
+	partyidentitydocumentDescDocumentNumber := partyidentitydocumentFields[6].Descriptor()
+	// partyidentitydocument.DocumentNumberValidator is a validator for the "document_number" field. It is called by the builders before save.
+	partyidentitydocument.DocumentNumberValidator = partyidentitydocumentDescDocumentNumber.Validators[0].(func(string) error)
+	// partyidentitydocumentDescCreatedAt is the schema descriptor for created_at field.
+	partyidentitydocumentDescCreatedAt := partyidentitydocumentFields[7].Descriptor()
+	// partyidentitydocument.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partyidentitydocument.DefaultCreatedAt = partyidentitydocumentDescCreatedAt.Default.(func() time.Time)
+	// partyidentitydocumentDescUpdatedAt is the schema descriptor for updated_at field.
+	partyidentitydocumentDescUpdatedAt := partyidentitydocumentFields[8].Descriptor()
+	// partyidentitydocument.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partyidentitydocument.DefaultUpdatedAt = partyidentitydocumentDescUpdatedAt.Default.(func() time.Time)
+	// partyidentitydocument.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partyidentitydocument.UpdateDefaultUpdatedAt = partyidentitydocumentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partyidentitydocumentDescID is the schema descriptor for id field.
+	partyidentitydocumentDescID := partyidentitydocumentFields[0].Descriptor()
+	// partyidentitydocument.DefaultID holds the default value on creation for the id field.
+	partyidentitydocument.DefaultID = partyidentitydocumentDescID.Default.(func() uuid.UUID)
+	partyidentitydocumentvalidityFields := schema.PartyIdentityDocumentValidity{}.Fields()
+	_ = partyidentitydocumentvalidityFields
+	// partyidentitydocumentvalidityDescIsPrimary is the schema descriptor for is_primary field.
+	partyidentitydocumentvalidityDescIsPrimary := partyidentitydocumentvalidityFields[4].Descriptor()
+	// partyidentitydocumentvalidity.DefaultIsPrimary holds the default value on creation for the is_primary field.
+	partyidentitydocumentvalidity.DefaultIsPrimary = partyidentitydocumentvalidityDescIsPrimary.Default.(bool)
+	// partyidentitydocumentvalidityDescCreatedAt is the schema descriptor for created_at field.
+	partyidentitydocumentvalidityDescCreatedAt := partyidentitydocumentvalidityFields[7].Descriptor()
+	// partyidentitydocumentvalidity.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partyidentitydocumentvalidity.DefaultCreatedAt = partyidentitydocumentvalidityDescCreatedAt.Default.(func() time.Time)
+	// partyidentitydocumentvalidityDescUpdatedAt is the schema descriptor for updated_at field.
+	partyidentitydocumentvalidityDescUpdatedAt := partyidentitydocumentvalidityFields[8].Descriptor()
+	// partyidentitydocumentvalidity.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partyidentitydocumentvalidity.DefaultUpdatedAt = partyidentitydocumentvalidityDescUpdatedAt.Default.(func() time.Time)
+	// partyidentitydocumentvalidity.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partyidentitydocumentvalidity.UpdateDefaultUpdatedAt = partyidentitydocumentvalidityDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partyidentitydocumentvalidityDescID is the schema descriptor for id field.
+	partyidentitydocumentvalidityDescID := partyidentitydocumentvalidityFields[0].Descriptor()
+	// partyidentitydocumentvalidity.DefaultID holds the default value on creation for the id field.
+	partyidentitydocumentvalidity.DefaultID = partyidentitydocumentvalidityDescID.Default.(func() uuid.UUID)
 	partymergelogFields := schema.PartyMergeLog{}.Fields()
 	_ = partymergelogFields
 	// partymergelogDescMergedAt is the schema descriptor for merged_at field.
@@ -516,6 +588,44 @@ func init() {
 	partynamevalidityDescID := partynamevalidityFields[0].Descriptor()
 	// partynamevalidity.DefaultID holds the default value on creation for the id field.
 	partynamevalidity.DefaultID = partynamevalidityDescID.Default.(func() uuid.UUID)
+	partynationalityFields := schema.PartyNationality{}.Fields()
+	_ = partynationalityFields
+	// partynationalityDescCountryCode is the schema descriptor for country_code field.
+	partynationalityDescCountryCode := partynationalityFields[3].Descriptor()
+	// partynationality.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
+	partynationality.CountryCodeValidator = func() func(string) error {
+		validators := partynationalityDescCountryCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(country_code string) error {
+			for _, fn := range fns {
+				if err := fn(country_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// partynationalityDescIsPrimary is the schema descriptor for is_primary field.
+	partynationalityDescIsPrimary := partynationalityFields[4].Descriptor()
+	// partynationality.DefaultIsPrimary holds the default value on creation for the is_primary field.
+	partynationality.DefaultIsPrimary = partynationalityDescIsPrimary.Default.(bool)
+	// partynationalityDescCreatedAt is the schema descriptor for created_at field.
+	partynationalityDescCreatedAt := partynationalityFields[5].Descriptor()
+	// partynationality.DefaultCreatedAt holds the default value on creation for the created_at field.
+	partynationality.DefaultCreatedAt = partynationalityDescCreatedAt.Default.(func() time.Time)
+	// partynationalityDescUpdatedAt is the schema descriptor for updated_at field.
+	partynationalityDescUpdatedAt := partynationalityFields[6].Descriptor()
+	// partynationality.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	partynationality.DefaultUpdatedAt = partynationalityDescUpdatedAt.Default.(func() time.Time)
+	// partynationality.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	partynationality.UpdateDefaultUpdatedAt = partynationalityDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// partynationalityDescID is the schema descriptor for id field.
+	partynationalityDescID := partynationalityFields[0].Descriptor()
+	// partynationality.DefaultID holds the default value on creation for the id field.
+	partynationality.DefaultID = partynationalityDescID.Default.(func() uuid.UUID)
 	partyroleFields := schema.PartyRole{}.Fields()
 	_ = partyroleFields
 	// partyroleDescCreatedAt is the schema descriptor for created_at field.

@@ -18,9 +18,12 @@ import (
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partycontactmechanismvalidity"
+	"enterprise-system/ent/partyidentitydocument"
+	"enterprise-system/ent/partyidentitydocumentvalidity"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyname"
 	"enterprise-system/ent/partynamevalidity"
+	"enterprise-system/ent/partynationality"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -432,6 +435,51 @@ func (_u *SubscriptionUpdate) AddPartyContactMechanismValidities(v ...*PartyCont
 		ids[i] = v[i].ID
 	}
 	return _u.AddPartyContactMechanismValidityIDs(ids...)
+}
+
+// AddPartyNationalityIDs adds the "party_nationalities" edge to the PartyNationality entity by IDs.
+func (_u *SubscriptionUpdate) AddPartyNationalityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddPartyNationalityIDs(ids...)
+	return _u
+}
+
+// AddPartyNationalities adds the "party_nationalities" edges to the PartyNationality entity.
+func (_u *SubscriptionUpdate) AddPartyNationalities(v ...*PartyNationality) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartyNationalityIDs(ids...)
+}
+
+// AddPartyIdentityDocumentIDs adds the "party_identity_documents" edge to the PartyIdentityDocument entity by IDs.
+func (_u *SubscriptionUpdate) AddPartyIdentityDocumentIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddPartyIdentityDocumentIDs(ids...)
+	return _u
+}
+
+// AddPartyIdentityDocuments adds the "party_identity_documents" edges to the PartyIdentityDocument entity.
+func (_u *SubscriptionUpdate) AddPartyIdentityDocuments(v ...*PartyIdentityDocument) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartyIdentityDocumentIDs(ids...)
+}
+
+// AddPartyIdentityDocumentValidityIDs adds the "party_identity_document_validities" edge to the PartyIdentityDocumentValidity entity by IDs.
+func (_u *SubscriptionUpdate) AddPartyIdentityDocumentValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddPartyIdentityDocumentValidityIDs(ids...)
+	return _u
+}
+
+// AddPartyIdentityDocumentValidities adds the "party_identity_document_validities" edges to the PartyIdentityDocumentValidity entity.
+func (_u *SubscriptionUpdate) AddPartyIdentityDocumentValidities(v ...*PartyIdentityDocumentValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartyIdentityDocumentValidityIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -878,6 +926,69 @@ func (_u *SubscriptionUpdate) RemovePartyContactMechanismValidities(v ...*PartyC
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartyContactMechanismValidityIDs(ids...)
+}
+
+// ClearPartyNationalities clears all "party_nationalities" edges to the PartyNationality entity.
+func (_u *SubscriptionUpdate) ClearPartyNationalities() *SubscriptionUpdate {
+	_u.mutation.ClearPartyNationalities()
+	return _u
+}
+
+// RemovePartyNationalityIDs removes the "party_nationalities" edge to PartyNationality entities by IDs.
+func (_u *SubscriptionUpdate) RemovePartyNationalityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemovePartyNationalityIDs(ids...)
+	return _u
+}
+
+// RemovePartyNationalities removes "party_nationalities" edges to PartyNationality entities.
+func (_u *SubscriptionUpdate) RemovePartyNationalities(v ...*PartyNationality) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartyNationalityIDs(ids...)
+}
+
+// ClearPartyIdentityDocuments clears all "party_identity_documents" edges to the PartyIdentityDocument entity.
+func (_u *SubscriptionUpdate) ClearPartyIdentityDocuments() *SubscriptionUpdate {
+	_u.mutation.ClearPartyIdentityDocuments()
+	return _u
+}
+
+// RemovePartyIdentityDocumentIDs removes the "party_identity_documents" edge to PartyIdentityDocument entities by IDs.
+func (_u *SubscriptionUpdate) RemovePartyIdentityDocumentIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemovePartyIdentityDocumentIDs(ids...)
+	return _u
+}
+
+// RemovePartyIdentityDocuments removes "party_identity_documents" edges to PartyIdentityDocument entities.
+func (_u *SubscriptionUpdate) RemovePartyIdentityDocuments(v ...*PartyIdentityDocument) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartyIdentityDocumentIDs(ids...)
+}
+
+// ClearPartyIdentityDocumentValidities clears all "party_identity_document_validities" edges to the PartyIdentityDocumentValidity entity.
+func (_u *SubscriptionUpdate) ClearPartyIdentityDocumentValidities() *SubscriptionUpdate {
+	_u.mutation.ClearPartyIdentityDocumentValidities()
+	return _u
+}
+
+// RemovePartyIdentityDocumentValidityIDs removes the "party_identity_document_validities" edge to PartyIdentityDocumentValidity entities by IDs.
+func (_u *SubscriptionUpdate) RemovePartyIdentityDocumentValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemovePartyIdentityDocumentValidityIDs(ids...)
+	return _u
+}
+
+// RemovePartyIdentityDocumentValidities removes "party_identity_document_validities" edges to PartyIdentityDocumentValidity entities.
+func (_u *SubscriptionUpdate) RemovePartyIdentityDocumentValidities(v ...*PartyIdentityDocumentValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartyIdentityDocumentValidityIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1974,6 +2085,150 @@ func (_u *SubscriptionUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.PartyNationalitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyNationalitiesTable,
+			Columns: []string{subscription.PartyNationalitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynationality.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyNationality
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartyNationalitiesIDs(); len(nodes) > 0 && !_u.mutation.PartyNationalitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyNationalitiesTable,
+			Columns: []string{subscription.PartyNationalitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynationality.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyNationality
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartyNationalitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyNationalitiesTable,
+			Columns: []string{subscription.PartyNationalitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynationality.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyNationality
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PartyIdentityDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentsTable,
+			Columns: []string{subscription.PartyIdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartyIdentityDocumentsIDs(); len(nodes) > 0 && !_u.mutation.PartyIdentityDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentsTable,
+			Columns: []string{subscription.PartyIdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartyIdentityDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentsTable,
+			Columns: []string{subscription.PartyIdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PartyIdentityDocumentValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentValiditiesTable,
+			Columns: []string{subscription.PartyIdentityDocumentValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocumentvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocumentValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartyIdentityDocumentValiditiesIDs(); len(nodes) > 0 && !_u.mutation.PartyIdentityDocumentValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentValiditiesTable,
+			Columns: []string{subscription.PartyIdentityDocumentValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocumentvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocumentValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartyIdentityDocumentValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentValiditiesTable,
+			Columns: []string{subscription.PartyIdentityDocumentValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocumentvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocumentValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Subscription
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -2377,6 +2632,51 @@ func (_u *SubscriptionUpdateOne) AddPartyContactMechanismValidities(v ...*PartyC
 		ids[i] = v[i].ID
 	}
 	return _u.AddPartyContactMechanismValidityIDs(ids...)
+}
+
+// AddPartyNationalityIDs adds the "party_nationalities" edge to the PartyNationality entity by IDs.
+func (_u *SubscriptionUpdateOne) AddPartyNationalityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddPartyNationalityIDs(ids...)
+	return _u
+}
+
+// AddPartyNationalities adds the "party_nationalities" edges to the PartyNationality entity.
+func (_u *SubscriptionUpdateOne) AddPartyNationalities(v ...*PartyNationality) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartyNationalityIDs(ids...)
+}
+
+// AddPartyIdentityDocumentIDs adds the "party_identity_documents" edge to the PartyIdentityDocument entity by IDs.
+func (_u *SubscriptionUpdateOne) AddPartyIdentityDocumentIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddPartyIdentityDocumentIDs(ids...)
+	return _u
+}
+
+// AddPartyIdentityDocuments adds the "party_identity_documents" edges to the PartyIdentityDocument entity.
+func (_u *SubscriptionUpdateOne) AddPartyIdentityDocuments(v ...*PartyIdentityDocument) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartyIdentityDocumentIDs(ids...)
+}
+
+// AddPartyIdentityDocumentValidityIDs adds the "party_identity_document_validities" edge to the PartyIdentityDocumentValidity entity by IDs.
+func (_u *SubscriptionUpdateOne) AddPartyIdentityDocumentValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddPartyIdentityDocumentValidityIDs(ids...)
+	return _u
+}
+
+// AddPartyIdentityDocumentValidities adds the "party_identity_document_validities" edges to the PartyIdentityDocumentValidity entity.
+func (_u *SubscriptionUpdateOne) AddPartyIdentityDocumentValidities(v ...*PartyIdentityDocumentValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPartyIdentityDocumentValidityIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -2823,6 +3123,69 @@ func (_u *SubscriptionUpdateOne) RemovePartyContactMechanismValidities(v ...*Par
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartyContactMechanismValidityIDs(ids...)
+}
+
+// ClearPartyNationalities clears all "party_nationalities" edges to the PartyNationality entity.
+func (_u *SubscriptionUpdateOne) ClearPartyNationalities() *SubscriptionUpdateOne {
+	_u.mutation.ClearPartyNationalities()
+	return _u
+}
+
+// RemovePartyNationalityIDs removes the "party_nationalities" edge to PartyNationality entities by IDs.
+func (_u *SubscriptionUpdateOne) RemovePartyNationalityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemovePartyNationalityIDs(ids...)
+	return _u
+}
+
+// RemovePartyNationalities removes "party_nationalities" edges to PartyNationality entities.
+func (_u *SubscriptionUpdateOne) RemovePartyNationalities(v ...*PartyNationality) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartyNationalityIDs(ids...)
+}
+
+// ClearPartyIdentityDocuments clears all "party_identity_documents" edges to the PartyIdentityDocument entity.
+func (_u *SubscriptionUpdateOne) ClearPartyIdentityDocuments() *SubscriptionUpdateOne {
+	_u.mutation.ClearPartyIdentityDocuments()
+	return _u
+}
+
+// RemovePartyIdentityDocumentIDs removes the "party_identity_documents" edge to PartyIdentityDocument entities by IDs.
+func (_u *SubscriptionUpdateOne) RemovePartyIdentityDocumentIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemovePartyIdentityDocumentIDs(ids...)
+	return _u
+}
+
+// RemovePartyIdentityDocuments removes "party_identity_documents" edges to PartyIdentityDocument entities.
+func (_u *SubscriptionUpdateOne) RemovePartyIdentityDocuments(v ...*PartyIdentityDocument) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartyIdentityDocumentIDs(ids...)
+}
+
+// ClearPartyIdentityDocumentValidities clears all "party_identity_document_validities" edges to the PartyIdentityDocumentValidity entity.
+func (_u *SubscriptionUpdateOne) ClearPartyIdentityDocumentValidities() *SubscriptionUpdateOne {
+	_u.mutation.ClearPartyIdentityDocumentValidities()
+	return _u
+}
+
+// RemovePartyIdentityDocumentValidityIDs removes the "party_identity_document_validities" edge to PartyIdentityDocumentValidity entities by IDs.
+func (_u *SubscriptionUpdateOne) RemovePartyIdentityDocumentValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemovePartyIdentityDocumentValidityIDs(ids...)
+	return _u
+}
+
+// RemovePartyIdentityDocumentValidities removes "party_identity_document_validities" edges to PartyIdentityDocumentValidity entities.
+func (_u *SubscriptionUpdateOne) RemovePartyIdentityDocumentValidities(v ...*PartyIdentityDocumentValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartyIdentityDocumentValidityIDs(ids...)
 }
 
 // Where appends a list predicates to the SubscriptionUpdate builder.
@@ -3944,6 +4307,150 @@ func (_u *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscripti
 			},
 		}
 		edge.Schema = _u.schemaConfig.PartyContactMechanismValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PartyNationalitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyNationalitiesTable,
+			Columns: []string{subscription.PartyNationalitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynationality.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyNationality
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartyNationalitiesIDs(); len(nodes) > 0 && !_u.mutation.PartyNationalitiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyNationalitiesTable,
+			Columns: []string{subscription.PartyNationalitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynationality.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyNationality
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartyNationalitiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyNationalitiesTable,
+			Columns: []string{subscription.PartyNationalitiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynationality.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyNationality
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PartyIdentityDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentsTable,
+			Columns: []string{subscription.PartyIdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartyIdentityDocumentsIDs(); len(nodes) > 0 && !_u.mutation.PartyIdentityDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentsTable,
+			Columns: []string{subscription.PartyIdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartyIdentityDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentsTable,
+			Columns: []string{subscription.PartyIdentityDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocument.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PartyIdentityDocumentValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentValiditiesTable,
+			Columns: []string{subscription.PartyIdentityDocumentValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocumentvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocumentValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPartyIdentityDocumentValiditiesIDs(); len(nodes) > 0 && !_u.mutation.PartyIdentityDocumentValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentValiditiesTable,
+			Columns: []string{subscription.PartyIdentityDocumentValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocumentvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocumentValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartyIdentityDocumentValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyIdentityDocumentValiditiesTable,
+			Columns: []string{subscription.PartyIdentityDocumentValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyidentitydocumentvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyIdentityDocumentValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

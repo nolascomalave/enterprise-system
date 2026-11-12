@@ -70,6 +70,12 @@ const (
 	EdgePartyNameValidities = "party_name_validities"
 	// EdgePartyContactMechanismValidities holds the string denoting the party_contact_mechanism_validities edge name in mutations.
 	EdgePartyContactMechanismValidities = "party_contact_mechanism_validities"
+	// EdgePartyNationalities holds the string denoting the party_nationalities edge name in mutations.
+	EdgePartyNationalities = "party_nationalities"
+	// EdgePartyIdentityDocuments holds the string denoting the party_identity_documents edge name in mutations.
+	EdgePartyIdentityDocuments = "party_identity_documents"
+	// EdgePartyIdentityDocumentValidities holds the string denoting the party_identity_document_validities edge name in mutations.
+	EdgePartyIdentityDocumentValidities = "party_identity_document_validities"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the subscription in the database.
@@ -221,6 +227,27 @@ const (
 	PartyContactMechanismValiditiesInverseTable = "party_contact_mechanism_validities"
 	// PartyContactMechanismValiditiesColumn is the table column denoting the party_contact_mechanism_validities relation/edge.
 	PartyContactMechanismValiditiesColumn = "tenant_id"
+	// PartyNationalitiesTable is the table that holds the party_nationalities relation/edge.
+	PartyNationalitiesTable = "party_nationalities"
+	// PartyNationalitiesInverseTable is the table name for the PartyNationality entity.
+	// It exists in this package in order to avoid circular dependency with the "partynationality" package.
+	PartyNationalitiesInverseTable = "party_nationalities"
+	// PartyNationalitiesColumn is the table column denoting the party_nationalities relation/edge.
+	PartyNationalitiesColumn = "tenant_id"
+	// PartyIdentityDocumentsTable is the table that holds the party_identity_documents relation/edge.
+	PartyIdentityDocumentsTable = "party_identity_documents"
+	// PartyIdentityDocumentsInverseTable is the table name for the PartyIdentityDocument entity.
+	// It exists in this package in order to avoid circular dependency with the "partyidentitydocument" package.
+	PartyIdentityDocumentsInverseTable = "party_identity_documents"
+	// PartyIdentityDocumentsColumn is the table column denoting the party_identity_documents relation/edge.
+	PartyIdentityDocumentsColumn = "tenant_id"
+	// PartyIdentityDocumentValiditiesTable is the table that holds the party_identity_document_validities relation/edge.
+	PartyIdentityDocumentValiditiesTable = "party_identity_document_validities"
+	// PartyIdentityDocumentValiditiesInverseTable is the table name for the PartyIdentityDocumentValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "partyidentitydocumentvalidity" package.
+	PartyIdentityDocumentValiditiesInverseTable = "party_identity_document_validities"
+	// PartyIdentityDocumentValiditiesColumn is the table column denoting the party_identity_document_validities relation/edge.
+	PartyIdentityDocumentValiditiesColumn = "tenant_id"
 )
 
 // Columns holds all SQL columns for subscription fields.
@@ -617,6 +644,48 @@ func ByPartyContactMechanismValidities(term sql.OrderTerm, terms ...sql.OrderTer
 		sqlgraph.OrderByNeighborTerms(s, newPartyContactMechanismValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPartyNationalitiesCount orders the results by party_nationalities count.
+func ByPartyNationalitiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartyNationalitiesStep(), opts...)
+	}
+}
+
+// ByPartyNationalities orders the results by party_nationalities terms.
+func ByPartyNationalities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartyNationalitiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPartyIdentityDocumentsCount orders the results by party_identity_documents count.
+func ByPartyIdentityDocumentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartyIdentityDocumentsStep(), opts...)
+	}
+}
+
+// ByPartyIdentityDocuments orders the results by party_identity_documents terms.
+func ByPartyIdentityDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartyIdentityDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPartyIdentityDocumentValiditiesCount orders the results by party_identity_document_validities count.
+func ByPartyIdentityDocumentValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartyIdentityDocumentValiditiesStep(), opts...)
+	}
+}
+
+// ByPartyIdentityDocumentValidities orders the results by party_identity_document_validities terms.
+func ByPartyIdentityDocumentValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartyIdentityDocumentValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPartiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -762,5 +831,26 @@ func newPartyContactMechanismValiditiesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartyContactMechanismValiditiesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PartyContactMechanismValiditiesTable, PartyContactMechanismValiditiesColumn),
+	)
+}
+func newPartyNationalitiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartyNationalitiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyNationalitiesTable, PartyNationalitiesColumn),
+	)
+}
+func newPartyIdentityDocumentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartyIdentityDocumentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyIdentityDocumentsTable, PartyIdentityDocumentsColumn),
+	)
+}
+func newPartyIdentityDocumentValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartyIdentityDocumentValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyIdentityDocumentValiditiesTable, PartyIdentityDocumentValiditiesColumn),
 	)
 }

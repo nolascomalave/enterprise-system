@@ -11,9 +11,12 @@ import (
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/partycontactmechanismvalidity"
+	"enterprise-system/ent/partyidentitydocument"
+	"enterprise-system/ent/partyidentitydocumentvalidity"
 	"enterprise-system/ent/partymergelog"
 	"enterprise-system/ent/partyname"
 	"enterprise-system/ent/partynamevalidity"
+	"enterprise-system/ent/partynationality"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -45,6 +48,9 @@ type PartyQuery struct {
 	withPartyContactMechanisms          *PartyContactMechanismQuery
 	withNames                           *PartyNameQuery
 	withNameValidities                  *PartyNameValidityQuery
+	withNationalities                   *PartyNationalityQuery
+	withIdentityDocuments               *PartyIdentityDocumentQuery
+	withIdentityDocumentValidities      *PartyIdentityDocumentValidityQuery
 	withAddresses                       *AddressQuery
 	withSessions                        *SessionQuery
 	withCredentials                     *UserCredentialsQuery
@@ -261,6 +267,81 @@ func (_q *PartyQuery) QueryNameValidities() *PartyNameValidityQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.PartyNameValidity
 		step.Edge.Schema = schemaConfig.PartyNameValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryNationalities chains the current query on the "nationalities" edge.
+func (_q *PartyQuery) QueryNationalities() *PartyNationalityQuery {
+	query := (&PartyNationalityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(party.Table, party.FieldID, selector),
+			sqlgraph.To(partynationality.Table, partynationality.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, party.NationalitiesTable, party.NationalitiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyNationality
+		step.Edge.Schema = schemaConfig.PartyNationality
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIdentityDocuments chains the current query on the "identity_documents" edge.
+func (_q *PartyQuery) QueryIdentityDocuments() *PartyIdentityDocumentQuery {
+	query := (&PartyIdentityDocumentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(party.Table, party.FieldID, selector),
+			sqlgraph.To(partyidentitydocument.Table, partyidentitydocument.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, party.IdentityDocumentsTable, party.IdentityDocumentsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyIdentityDocument
+		step.Edge.Schema = schemaConfig.PartyIdentityDocument
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIdentityDocumentValidities chains the current query on the "identity_document_validities" edge.
+func (_q *PartyQuery) QueryIdentityDocumentValidities() *PartyIdentityDocumentValidityQuery {
+	query := (&PartyIdentityDocumentValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(party.Table, party.FieldID, selector),
+			sqlgraph.To(partyidentitydocumentvalidity.Table, partyidentitydocumentvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, party.IdentityDocumentValiditiesTable, party.IdentityDocumentValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyIdentityDocumentValidity
+		step.Edge.Schema = schemaConfig.PartyIdentityDocumentValidity
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -741,6 +822,9 @@ func (_q *PartyQuery) Clone() *PartyQuery {
 		withPartyContactMechanisms:          _q.withPartyContactMechanisms.Clone(),
 		withNames:                           _q.withNames.Clone(),
 		withNameValidities:                  _q.withNameValidities.Clone(),
+		withNationalities:                   _q.withNationalities.Clone(),
+		withIdentityDocuments:               _q.withIdentityDocuments.Clone(),
+		withIdentityDocumentValidities:      _q.withIdentityDocumentValidities.Clone(),
 		withAddresses:                       _q.withAddresses.Clone(),
 		withSessions:                        _q.withSessions.Clone(),
 		withCredentials:                     _q.withCredentials.Clone(),
@@ -832,6 +916,39 @@ func (_q *PartyQuery) WithNameValidities(opts ...func(*PartyNameValidityQuery)) 
 		opt(query)
 	}
 	_q.withNameValidities = query
+	return _q
+}
+
+// WithNationalities tells the query-builder to eager-load the nodes that are connected to
+// the "nationalities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartyQuery) WithNationalities(opts ...func(*PartyNationalityQuery)) *PartyQuery {
+	query := (&PartyNationalityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withNationalities = query
+	return _q
+}
+
+// WithIdentityDocuments tells the query-builder to eager-load the nodes that are connected to
+// the "identity_documents" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartyQuery) WithIdentityDocuments(opts ...func(*PartyIdentityDocumentQuery)) *PartyQuery {
+	query := (&PartyIdentityDocumentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withIdentityDocuments = query
+	return _q
+}
+
+// WithIdentityDocumentValidities tells the query-builder to eager-load the nodes that are connected to
+// the "identity_document_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartyQuery) WithIdentityDocumentValidities(opts ...func(*PartyIdentityDocumentValidityQuery)) *PartyQuery {
+	query := (&PartyIdentityDocumentValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withIdentityDocumentValidities = query
 	return _q
 }
 
@@ -1034,7 +1151,7 @@ func (_q *PartyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Party,
 	var (
 		nodes       = []*Party{}
 		_spec       = _q.querySpec()
-		loadedTypes = [18]bool{
+		loadedTypes = [21]bool{
 			_q.withTenant != nil,
 			_q.withPersonProfile != nil,
 			_q.withOrganizationProfile != nil,
@@ -1042,6 +1159,9 @@ func (_q *PartyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Party,
 			_q.withPartyContactMechanisms != nil,
 			_q.withNames != nil,
 			_q.withNameValidities != nil,
+			_q.withNationalities != nil,
+			_q.withIdentityDocuments != nil,
+			_q.withIdentityDocumentValidities != nil,
 			_q.withAddresses != nil,
 			_q.withSessions != nil,
 			_q.withCredentials != nil,
@@ -1120,6 +1240,31 @@ func (_q *PartyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Party,
 		if err := _q.loadNameValidities(ctx, query, nodes,
 			func(n *Party) { n.Edges.NameValidities = []*PartyNameValidity{} },
 			func(n *Party, e *PartyNameValidity) { n.Edges.NameValidities = append(n.Edges.NameValidities, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withNationalities; query != nil {
+		if err := _q.loadNationalities(ctx, query, nodes,
+			func(n *Party) { n.Edges.Nationalities = []*PartyNationality{} },
+			func(n *Party, e *PartyNationality) { n.Edges.Nationalities = append(n.Edges.Nationalities, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withIdentityDocuments; query != nil {
+		if err := _q.loadIdentityDocuments(ctx, query, nodes,
+			func(n *Party) { n.Edges.IdentityDocuments = []*PartyIdentityDocument{} },
+			func(n *Party, e *PartyIdentityDocument) {
+				n.Edges.IdentityDocuments = append(n.Edges.IdentityDocuments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withIdentityDocumentValidities; query != nil {
+		if err := _q.loadIdentityDocumentValidities(ctx, query, nodes,
+			func(n *Party) { n.Edges.IdentityDocumentValidities = []*PartyIdentityDocumentValidity{} },
+			func(n *Party, e *PartyIdentityDocumentValidity) {
+				n.Edges.IdentityDocumentValidities = append(n.Edges.IdentityDocumentValidities, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1397,6 +1542,96 @@ func (_q *PartyQuery) loadNameValidities(ctx context.Context, query *PartyNameVa
 	}
 	query.Where(predicate.PartyNameValidity(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(party.NameValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartyID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "party_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartyQuery) loadNationalities(ctx context.Context, query *PartyNationalityQuery, nodes []*Party, init func(*Party), assign func(*Party, *PartyNationality)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Party)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partynationality.FieldPartyID)
+	}
+	query.Where(predicate.PartyNationality(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(party.NationalitiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartyID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "party_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartyQuery) loadIdentityDocuments(ctx context.Context, query *PartyIdentityDocumentQuery, nodes []*Party, init func(*Party), assign func(*Party, *PartyIdentityDocument)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Party)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partyidentitydocument.FieldPartyID)
+	}
+	query.Where(predicate.PartyIdentityDocument(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(party.IdentityDocumentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartyID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "party_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartyQuery) loadIdentityDocumentValidities(ctx context.Context, query *PartyIdentityDocumentValidityQuery, nodes []*Party, init func(*Party), assign func(*Party, *PartyIdentityDocumentValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Party)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partyidentitydocumentvalidity.FieldPartyID)
+	}
+	query.Where(predicate.PartyIdentityDocumentValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(party.IdentityDocumentValiditiesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

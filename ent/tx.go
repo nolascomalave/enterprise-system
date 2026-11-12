@@ -30,6 +30,8 @@ type Tx struct {
 	Employee *EmployeeClient
 	// EmployeeAssignment is the client for interacting with the EmployeeAssignment builders.
 	EmployeeAssignment *EmployeeAssignmentClient
+	// IdentityDocumentType is the client for interacting with the IdentityDocumentType builders.
+	IdentityDocumentType *IdentityDocumentTypeClient
 	// Job is the client for interacting with the Job builders.
 	Job *JobClient
 	// JobFamily is the client for interacting with the JobFamily builders.
@@ -48,12 +50,18 @@ type Tx struct {
 	PartyContactMechanism *PartyContactMechanismClient
 	// PartyContactMechanismValidity is the client for interacting with the PartyContactMechanismValidity builders.
 	PartyContactMechanismValidity *PartyContactMechanismValidityClient
+	// PartyIdentityDocument is the client for interacting with the PartyIdentityDocument builders.
+	PartyIdentityDocument *PartyIdentityDocumentClient
+	// PartyIdentityDocumentValidity is the client for interacting with the PartyIdentityDocumentValidity builders.
+	PartyIdentityDocumentValidity *PartyIdentityDocumentValidityClient
 	// PartyMergeLog is the client for interacting with the PartyMergeLog builders.
 	PartyMergeLog *PartyMergeLogClient
 	// PartyName is the client for interacting with the PartyName builders.
 	PartyName *PartyNameClient
 	// PartyNameValidity is the client for interacting with the PartyNameValidity builders.
 	PartyNameValidity *PartyNameValidityClient
+	// PartyNationality is the client for interacting with the PartyNationality builders.
+	PartyNationality *PartyNationalityClient
 	// PartyRole is the client for interacting with the PartyRole builders.
 	PartyRole *PartyRoleClient
 	// PasswordResetToken is the client for interacting with the PasswordResetToken builders.
@@ -207,6 +215,7 @@ func (tx *Tx) init() {
 	tx.DepartmentGroupAssignment = NewDepartmentGroupAssignmentClient(tx.config)
 	tx.Employee = NewEmployeeClient(tx.config)
 	tx.EmployeeAssignment = NewEmployeeAssignmentClient(tx.config)
+	tx.IdentityDocumentType = NewIdentityDocumentTypeClient(tx.config)
 	tx.Job = NewJobClient(tx.config)
 	tx.JobFamily = NewJobFamilyClient(tx.config)
 	tx.Location = NewLocationClient(tx.config)
@@ -216,9 +225,12 @@ func (tx *Tx) init() {
 	tx.Party = NewPartyClient(tx.config)
 	tx.PartyContactMechanism = NewPartyContactMechanismClient(tx.config)
 	tx.PartyContactMechanismValidity = NewPartyContactMechanismValidityClient(tx.config)
+	tx.PartyIdentityDocument = NewPartyIdentityDocumentClient(tx.config)
+	tx.PartyIdentityDocumentValidity = NewPartyIdentityDocumentValidityClient(tx.config)
 	tx.PartyMergeLog = NewPartyMergeLogClient(tx.config)
 	tx.PartyName = NewPartyNameClient(tx.config)
 	tx.PartyNameValidity = NewPartyNameValidityClient(tx.config)
+	tx.PartyNationality = NewPartyNationalityClient(tx.config)
 	tx.PartyRole = NewPartyRoleClient(tx.config)
 	tx.PasswordResetToken = NewPasswordResetTokenClient(tx.config)
 	tx.PersonProfile = NewPersonProfileClient(tx.config)

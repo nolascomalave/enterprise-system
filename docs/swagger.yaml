@@ -1,5 +1,22 @@
 basePath: /api/v1
 definitions:
+  enterprise-system_internal_delivery_http_dto.AddPartyIdentityDocumentRequest:
+    properties:
+      document_number:
+        type: string
+      document_type:
+        type: string
+      is_primary:
+        type: boolean
+      issuing_country_code:
+        type: string
+      issuing_jurisdiction_id:
+        type: string
+    required:
+    - document_number
+    - document_type
+    - issuing_country_code
+    type: object
   enterprise-system_internal_delivery_http_dto.AddPartyNameRequest:
     properties:
       is_primary:
@@ -13,6 +30,15 @@ definitions:
     required:
     - name_type
     - value
+    type: object
+  enterprise-system_internal_delivery_http_dto.AddPartyNationalityRequest:
+    properties:
+      country_code:
+        type: string
+      is_primary:
+        type: boolean
+    required:
+    - country_code
     type: object
   enterprise-system_internal_delivery_http_dto.AssignDepartmentToGroupRequest:
     properties:
@@ -453,6 +479,43 @@ definitions:
       data:
         $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyResponse'
     type: object
+  enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentResponse:
+    properties:
+      created_at:
+        type: string
+      document_number:
+        type: string
+      document_type:
+        type: string
+      id:
+        type: string
+      issuing_country_code:
+        type: string
+      issuing_jurisdiction_id:
+        type: string
+      party_id:
+        type: string
+      updated_at:
+        type: string
+      validity:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentValidityResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentValidityResponse:
+    properties:
+      end_date:
+        type: string
+      id:
+        type: string
+      is_primary:
+        type: boolean
+      start_date:
+        type: string
+    type: object
   enterprise-system_internal_delivery_http_dto.PartyListEnvelope:
     properties:
       data:
@@ -497,6 +560,26 @@ definitions:
       is_primary:
         type: boolean
       start_date:
+        type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.PartyNationalityEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyNationalityResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.PartyNationalityResponse:
+    properties:
+      country_code:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_primary:
+        type: boolean
+      party_id:
+        type: string
+      updated_at:
         type: string
     type: object
   enterprise-system_internal_delivery_http_dto.PartyResponse:
@@ -1390,6 +1473,56 @@ paths:
       summary: Get a party by ID
       tags:
       - Parties
+  /parties/{id}/identity-documents:
+    post:
+      consumes:
+      - application/json
+      description: Registers an identity document and opens its initial validity.
+        The jurisdiction, if provided, must belong to the issuing country.
+      parameters:
+      - description: Party UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Identity document data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.AddPartyIdentityDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyIdentityDocumentEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add a party identity document
+      tags:
+      - Party Identity
   /parties/{id}/names:
     post:
       consumes:
@@ -1491,6 +1624,47 @@ paths:
       summary: Update a party name validity
       tags:
       - Party Names
+  /parties/{id}/nationalities:
+    post:
+      consumes:
+      - application/json
+      description: Adds a nationality for the party. Only one nationality can be primary.
+      parameters:
+      - description: Party UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nationality data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.AddPartyNationalityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyNationalityEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add a party nationality
+      tags:
+      - Party Identity
   /parties/merge:
     post:
       consumes:

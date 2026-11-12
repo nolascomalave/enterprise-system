@@ -107,8 +107,12 @@ func main() {
 	partyNameService := usecase.NewPartyNameService(
 		repository.NewPartyNameRepository(client), txManager, time.Now,
 	)
+	locationRepo := repository.NewLocationRepository(client)
 	locationService := usecase.NewLocationService(
-		repository.NewLocationRepository(client), txManager, time.Now,
+		locationRepo, txManager, time.Now,
+	)
+	identityService := usecase.NewIdentityService(
+		repository.NewIdentityRepository(client), locationRepo, txManager, time.Now,
 	)
 
 	allowedOrigins := splitCSV(os.Getenv("CORS_ALLOWED_ORIGINS"))
@@ -126,6 +130,7 @@ func main() {
 		DocumentUseCase:     documentService,
 		PartyNameUseCase:    partyNameService,
 		LocationUseCase:     locationService,
+		IdentityUseCase:     identityService,
 		TokenManager:        tokenManager,
 		CookieSecure:        os.Getenv("COOKIE_SECURE") != "false",
 		RefreshTTL:          30 * 24 * time.Hour,

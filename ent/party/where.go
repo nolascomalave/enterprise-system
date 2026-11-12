@@ -575,6 +575,93 @@ func HasNameValiditiesWith(preds ...predicate.PartyNameValidity) predicate.Party
 	})
 }
 
+// HasNationalities applies the HasEdge predicate on the "nationalities" edge.
+func HasNationalities() predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NationalitiesTable, NationalitiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyNationality
+		step.Edge.Schema = schemaConfig.PartyNationality
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNationalitiesWith applies the HasEdge predicate on the "nationalities" edge with a given conditions (other predicates).
+func HasNationalitiesWith(preds ...predicate.PartyNationality) predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := newNationalitiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyNationality
+		step.Edge.Schema = schemaConfig.PartyNationality
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasIdentityDocuments applies the HasEdge predicate on the "identity_documents" edge.
+func HasIdentityDocuments() predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IdentityDocumentsTable, IdentityDocumentsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyIdentityDocument
+		step.Edge.Schema = schemaConfig.PartyIdentityDocument
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIdentityDocumentsWith applies the HasEdge predicate on the "identity_documents" edge with a given conditions (other predicates).
+func HasIdentityDocumentsWith(preds ...predicate.PartyIdentityDocument) predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := newIdentityDocumentsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyIdentityDocument
+		step.Edge.Schema = schemaConfig.PartyIdentityDocument
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasIdentityDocumentValidities applies the HasEdge predicate on the "identity_document_validities" edge.
+func HasIdentityDocumentValidities() predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, IdentityDocumentValiditiesTable, IdentityDocumentValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyIdentityDocumentValidity
+		step.Edge.Schema = schemaConfig.PartyIdentityDocumentValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasIdentityDocumentValiditiesWith applies the HasEdge predicate on the "identity_document_validities" edge with a given conditions (other predicates).
+func HasIdentityDocumentValiditiesWith(preds ...predicate.PartyIdentityDocumentValidity) predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := newIdentityDocumentValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyIdentityDocumentValidity
+		step.Edge.Schema = schemaConfig.PartyIdentityDocumentValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasAddresses applies the HasEdge predicate on the "addresses" edge.
 func HasAddresses() predicate.Party {
 	return predicate.Party(func(s *sql.Selector) {

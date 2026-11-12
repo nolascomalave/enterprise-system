@@ -77,6 +77,8 @@ func (Location) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("addresses", Address.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("identity_documents", PartyIdentityDocument.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

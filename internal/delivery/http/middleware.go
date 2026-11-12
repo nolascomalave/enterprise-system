@@ -90,7 +90,9 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrPartyNameNotFound),
 		errors.Is(err, domain.ErrPartyNameValidityNotFound),
 		errors.Is(err, domain.ErrNameTypeNotFound),
-		errors.Is(err, domain.ErrLocationNotFound):
+		errors.Is(err, domain.ErrLocationNotFound),
+		errors.Is(err, domain.ErrIdentityDocumentNotFound),
+		errors.Is(err, domain.ErrIdentityDocumentTypeNotFound):
 		return http.StatusNotFound, "not_found"
 	case errors.Is(err, context.DeadlineExceeded):
 		return http.StatusGatewayTimeout, "timeout"
@@ -102,6 +104,7 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrPartyMergeTargetNotActive),
 		errors.Is(err, domain.ErrPartyNotMergeable),
 		errors.Is(err, auth.ErrConcurrentModification),
+		errors.Is(err, domain.ErrIdentityDocumentExists),
 		errors.Is(err, domain.ErrCorporateGroupTenantMismatch),
 		errors.Is(err, domain.ErrDepartmentTenantMismatch),
 		errors.Is(err, domain.ErrPartyTenantMismatch):
@@ -126,6 +129,9 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrInvalidPartyName),
 		errors.Is(err, domain.ErrInvalidLocation),
 		errors.Is(err, domain.ErrLocationCountryMismatch),
+		errors.Is(err, domain.ErrInvalidNationality),
+		errors.Is(err, domain.ErrInvalidIdentityDocument),
+		errors.Is(err, domain.ErrJurisdictionCountryMismatch),
 		errors.Is(err, domain.ErrEmployeeSelfManager),
 		errors.Is(err, domain.ErrInvalidPartyMerge),
 		errors.Is(err, domain.ErrInvalidSubscription),
