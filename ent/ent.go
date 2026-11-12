@@ -7,15 +7,21 @@ import (
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/contactmechanism"
+	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/nametype"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
+	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/ent/partymergelog"
+	"enterprise-system/ent/partyname"
+	"enterprise-system/ent/partynamevalidity"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -91,25 +97,31 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			address.Table:               address.ValidColumn,
-			attacheddocument.Table:      attacheddocument.ValidColumn,
-			contactmechanism.Table:      contactmechanism.ValidColumn,
-			department.Table:            department.ValidColumn,
-			employee.Table:              employee.ValidColumn,
-			employeeassignment.Table:    employeeassignment.ValidColumn,
-			job.Table:                   job.ValidColumn,
-			jobfamily.Table:             jobfamily.ValidColumn,
-			organizationprofile.Table:   organizationprofile.ValidColumn,
-			party.Table:                 party.ValidColumn,
-			partycontactmechanism.Table: partycontactmechanism.ValidColumn,
-			partymergelog.Table:         partymergelog.ValidColumn,
-			partyrole.Table:             partyrole.ValidColumn,
-			passwordresettoken.Table:    passwordresettoken.ValidColumn,
-			personprofile.Table:         personprofile.ValidColumn,
-			roletype.Table:              roletype.ValidColumn,
-			session.Table:               session.ValidColumn,
-			subscription.Table:          subscription.ValidColumn,
-			usercredentials.Table:       usercredentials.ValidColumn,
+			address.Table:                       address.ValidColumn,
+			attacheddocument.Table:              attacheddocument.ValidColumn,
+			contactmechanism.Table:              contactmechanism.ValidColumn,
+			corporategroup.Table:                corporategroup.ValidColumn,
+			department.Table:                    department.ValidColumn,
+			departmentgroupassignment.Table:     departmentgroupassignment.ValidColumn,
+			employee.Table:                      employee.ValidColumn,
+			employeeassignment.Table:            employeeassignment.ValidColumn,
+			job.Table:                           job.ValidColumn,
+			jobfamily.Table:                     jobfamily.ValidColumn,
+			nametype.Table:                      nametype.ValidColumn,
+			organizationprofile.Table:           organizationprofile.ValidColumn,
+			party.Table:                         party.ValidColumn,
+			partycontactmechanism.Table:         partycontactmechanism.ValidColumn,
+			partycontactmechanismvalidity.Table: partycontactmechanismvalidity.ValidColumn,
+			partymergelog.Table:                 partymergelog.ValidColumn,
+			partyname.Table:                     partyname.ValidColumn,
+			partynamevalidity.Table:             partynamevalidity.ValidColumn,
+			partyrole.Table:                     partyrole.ValidColumn,
+			passwordresettoken.Table:            passwordresettoken.ValidColumn,
+			personprofile.Table:                 personprofile.ValidColumn,
+			roletype.Table:                      roletype.ValidColumn,
+			session.Table:                       session.ValidColumn,
+			subscription.Table:                  subscription.ValidColumn,
+			usercredentials.Table:               usercredentials.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

@@ -517,6 +517,64 @@ func HasPartyContactMechanismsWith(preds ...predicate.PartyContactMechanism) pre
 	})
 }
 
+// HasNames applies the HasEdge predicate on the "names" edge.
+func HasNames() predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NamesTable, NamesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyName
+		step.Edge.Schema = schemaConfig.PartyName
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNamesWith applies the HasEdge predicate on the "names" edge with a given conditions (other predicates).
+func HasNamesWith(preds ...predicate.PartyName) predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := newNamesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyName
+		step.Edge.Schema = schemaConfig.PartyName
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasNameValidities applies the HasEdge predicate on the "name_validities" edge.
+func HasNameValidities() predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, NameValiditiesTable, NameValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyNameValidity
+		step.Edge.Schema = schemaConfig.PartyNameValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasNameValiditiesWith applies the HasEdge predicate on the "name_validities" edge with a given conditions (other predicates).
+func HasNameValiditiesWith(preds ...predicate.PartyNameValidity) predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := newNameValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyNameValidity
+		step.Edge.Schema = schemaConfig.PartyNameValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasAddresses applies the HasEdge predicate on the "addresses" edge.
 func HasAddresses() predicate.Party {
 	return predicate.Party(func(s *sql.Selector) {
@@ -625,6 +683,93 @@ func HasPasswordResetTokensWith(preds ...predicate.PasswordResetToken) predicate
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.PasswordResetToken
 		step.Edge.Schema = schemaConfig.PasswordResetToken
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPartyNames applies the HasEdge predicate on the "party_names" edge.
+func HasPartyNames() predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyNamesTable, PartyNamesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyName
+		step.Edge.Schema = schemaConfig.PartyName
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartyNamesWith applies the HasEdge predicate on the "party_names" edge with a given conditions (other predicates).
+func HasPartyNamesWith(preds ...predicate.PartyName) predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := newPartyNamesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyName
+		step.Edge.Schema = schemaConfig.PartyName
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPartyNameValidities applies the HasEdge predicate on the "party_name_validities" edge.
+func HasPartyNameValidities() predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyNameValiditiesTable, PartyNameValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyNameValidity
+		step.Edge.Schema = schemaConfig.PartyNameValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartyNameValiditiesWith applies the HasEdge predicate on the "party_name_validities" edge with a given conditions (other predicates).
+func HasPartyNameValiditiesWith(preds ...predicate.PartyNameValidity) predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := newPartyNameValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyNameValidity
+		step.Edge.Schema = schemaConfig.PartyNameValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPartyContactMechanismValidities applies the HasEdge predicate on the "party_contact_mechanism_validities" edge.
+func HasPartyContactMechanismValidities() predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyContactMechanismValiditiesTable, PartyContactMechanismValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyContactMechanismValidity
+		step.Edge.Schema = schemaConfig.PartyContactMechanismValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartyContactMechanismValiditiesWith applies the HasEdge predicate on the "party_contact_mechanism_validities" edge with a given conditions (other predicates).
+func HasPartyContactMechanismValiditiesWith(preds ...predicate.PartyContactMechanismValidity) predicate.Party {
+	return predicate.Party(func(s *sql.Selector) {
+		step := newPartyContactMechanismValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyContactMechanismValidity
+		step.Edge.Schema = schemaConfig.PartyContactMechanismValidity
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

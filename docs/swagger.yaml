@@ -1,5 +1,49 @@
 basePath: /api/v1
 definitions:
+  enterprise-system_internal_delivery_http_dto.AddPartyNameRequest:
+    properties:
+      is_primary:
+        type: boolean
+      name_type:
+        type: string
+      ordering:
+        type: integer
+      value:
+        type: string
+    required:
+    - name_type
+    - value
+    type: object
+  enterprise-system_internal_delivery_http_dto.AssignDepartmentToGroupRequest:
+    properties:
+      corporate_group_id:
+        type: string
+    required:
+    - corporate_group_id
+    type: object
+  enterprise-system_internal_delivery_http_dto.AttachedDocumentResponse:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      document_hash:
+        type: string
+      id:
+        type: string
+      mime_type:
+        type: string
+      origin_id:
+        type: string
+      origin_table:
+        type: string
+      original_name:
+        type: string
+      size_bytes:
+        type: integer
+    type: object
   enterprise-system_internal_delivery_http_dto.AuthEnvelope:
     properties:
       data:
@@ -29,6 +73,37 @@ definitions:
     - current_password
     - new_password
     type: object
+  enterprise-system_internal_delivery_http_dto.CorporateGroupEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CorporateGroupResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.CorporateGroupResponse:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      tenant_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.CreateCorporateGroupRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
   enterprise-system_internal_delivery_http_dto.CreateDepartmentRequest:
     properties:
       code:
@@ -38,6 +113,13 @@ definitions:
       name:
         type: string
       parent_department_id:
+        type: string
+      unit_type:
+        enum:
+        - DIVISION
+        - BRANCH
+        - OFFICE
+        - DEPARTMENT
         type: string
     required:
     - code
@@ -152,8 +234,15 @@ definitions:
         type: string
       tenant_id:
         type: string
+      unit_type:
+        type: string
       updated_at:
         type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.DocumentEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.AttachedDocumentResponse'
     type: object
   enterprise-system_internal_delivery_http_dto.EmployeeEnvelope:
     properties:
@@ -341,6 +430,45 @@ definitions:
           $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyResponse'
         type: array
     type: object
+  enterprise-system_internal_delivery_http_dto.PartyNameEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyNameResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.PartyNameResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      is_primary:
+        type: boolean
+      name_type_id:
+        type: string
+      ordering:
+        type: integer
+      party_id:
+        type: string
+      tenant_id:
+        type: string
+      updated_at:
+        type: string
+      validity:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyNameValidityResponse'
+      value:
+        type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.PartyNameValidityResponse:
+    properties:
+      end_date:
+        type: string
+      id:
+        type: string
+      is_primary:
+        type: boolean
+      start_date:
+        type: string
+    type: object
   enterprise-system_internal_delivery_http_dto.PartyResponse:
     properties:
       canonical_party_id:
@@ -458,6 +586,15 @@ definitions:
     - code
     - job_family_id
     - title
+    type: object
+  enterprise-system_internal_delivery_http_dto.UpdatePartyNameValidityRequest:
+    properties:
+      is_primary:
+        type: boolean
+      new_value:
+        type: string
+      ordering:
+        type: integer
     type: object
   enterprise-system_internal_delivery_http_dto.Verify2FARequest:
     properties:
@@ -672,6 +809,43 @@ paths:
       summary: Reset a password with a one-time token
       tags:
       - Account
+  /corporate-groups:
+    post:
+      consumes:
+      - application/json
+      description: Creates a tenant-scoped group used to aggregate departments across
+        units.
+      parameters:
+      - description: Corporate group data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CreateCorporateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CorporateGroupEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a corporate group
+      tags:
+      - Corporate Groups
   /departments:
     get:
       produces:
@@ -733,6 +907,104 @@ paths:
       summary: Create a department
       tags:
       - Departments
+  /departments/{id}/groups:
+    post:
+      consumes:
+      - application/json
+      description: Links a tenant department to a corporate group. Both must belong
+        to the same tenant.
+      parameters:
+      - description: Department UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Corporate group id
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.AssignDepartmentToGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign a department to a corporate group
+      tags:
+      - Corporate Groups
+  /documents:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Stores a document in content-addressed storage and records its
+        metadata.
+      parameters:
+      - description: Document (max 10 MB)
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Business table that owns the document
+        in: formData
+        name: origin_table
+        required: true
+        type: string
+      - description: ID of the origin row
+        in: formData
+        name: origin_id
+        required: true
+        type: string
+      - description: Optional description
+        in: formData
+        name: description
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.DocumentEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload an attached document
+      tags:
+      - Documents
   /employees:
     get:
       produces:
@@ -1056,6 +1328,107 @@ paths:
       summary: Get a party by ID
       tags:
       - Parties
+  /parties/{id}/names:
+    post:
+      consumes:
+      - application/json
+      description: Creates the name if needed and opens its initial validity. A single
+        primary name per type is enforced.
+      parameters:
+      - description: Party UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Name data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.AddPartyNameRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyNameEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add a party name
+      tags:
+      - Party Names
+  /parties/{id}/names/{name_id}/validity:
+    put:
+      consumes:
+      - application/json
+      description: Closes the current validity and opens a new one for an existing
+        or new value.
+      parameters:
+      - description: Party UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Party name UUID
+        in: path
+        name: name_id
+        required: true
+        type: string
+      - description: New validity data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.UpdatePartyNameValidityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PartyNameEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a party name validity
+      tags:
+      - Party Names
   /parties/merge:
     post:
       consumes:

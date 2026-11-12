@@ -60,6 +60,16 @@ const (
 	EdgePasswordResetTokens = "password_reset_tokens"
 	// EdgeAttachedDocuments holds the string denoting the attached_documents edge name in mutations.
 	EdgeAttachedDocuments = "attached_documents"
+	// EdgeCorporateGroups holds the string denoting the corporate_groups edge name in mutations.
+	EdgeCorporateGroups = "corporate_groups"
+	// EdgeDepartmentGroupAssignments holds the string denoting the department_group_assignments edge name in mutations.
+	EdgeDepartmentGroupAssignments = "department_group_assignments"
+	// EdgePartyNames holds the string denoting the party_names edge name in mutations.
+	EdgePartyNames = "party_names"
+	// EdgePartyNameValidities holds the string denoting the party_name_validities edge name in mutations.
+	EdgePartyNameValidities = "party_name_validities"
+	// EdgePartyContactMechanismValidities holds the string denoting the party_contact_mechanism_validities edge name in mutations.
+	EdgePartyContactMechanismValidities = "party_contact_mechanism_validities"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the subscription in the database.
@@ -176,6 +186,41 @@ const (
 	AttachedDocumentsInverseTable = "attached_documents"
 	// AttachedDocumentsColumn is the table column denoting the attached_documents relation/edge.
 	AttachedDocumentsColumn = "tenant_id"
+	// CorporateGroupsTable is the table that holds the corporate_groups relation/edge.
+	CorporateGroupsTable = "corporate_groups"
+	// CorporateGroupsInverseTable is the table name for the CorporateGroup entity.
+	// It exists in this package in order to avoid circular dependency with the "corporategroup" package.
+	CorporateGroupsInverseTable = "corporate_groups"
+	// CorporateGroupsColumn is the table column denoting the corporate_groups relation/edge.
+	CorporateGroupsColumn = "tenant_id"
+	// DepartmentGroupAssignmentsTable is the table that holds the department_group_assignments relation/edge.
+	DepartmentGroupAssignmentsTable = "department_group_assignments"
+	// DepartmentGroupAssignmentsInverseTable is the table name for the DepartmentGroupAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentgroupassignment" package.
+	DepartmentGroupAssignmentsInverseTable = "department_group_assignments"
+	// DepartmentGroupAssignmentsColumn is the table column denoting the department_group_assignments relation/edge.
+	DepartmentGroupAssignmentsColumn = "tenant_id"
+	// PartyNamesTable is the table that holds the party_names relation/edge.
+	PartyNamesTable = "party_names"
+	// PartyNamesInverseTable is the table name for the PartyName entity.
+	// It exists in this package in order to avoid circular dependency with the "partyname" package.
+	PartyNamesInverseTable = "party_names"
+	// PartyNamesColumn is the table column denoting the party_names relation/edge.
+	PartyNamesColumn = "tenant_id"
+	// PartyNameValiditiesTable is the table that holds the party_name_validities relation/edge.
+	PartyNameValiditiesTable = "party_name_validities"
+	// PartyNameValiditiesInverseTable is the table name for the PartyNameValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "partynamevalidity" package.
+	PartyNameValiditiesInverseTable = "party_name_validities"
+	// PartyNameValiditiesColumn is the table column denoting the party_name_validities relation/edge.
+	PartyNameValiditiesColumn = "tenant_id"
+	// PartyContactMechanismValiditiesTable is the table that holds the party_contact_mechanism_validities relation/edge.
+	PartyContactMechanismValiditiesTable = "party_contact_mechanism_validities"
+	// PartyContactMechanismValiditiesInverseTable is the table name for the PartyContactMechanismValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "partycontactmechanismvalidity" package.
+	PartyContactMechanismValiditiesInverseTable = "party_contact_mechanism_validities"
+	// PartyContactMechanismValiditiesColumn is the table column denoting the party_contact_mechanism_validities relation/edge.
+	PartyContactMechanismValiditiesColumn = "tenant_id"
 )
 
 // Columns holds all SQL columns for subscription fields.
@@ -502,6 +547,76 @@ func ByAttachedDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption
 		sqlgraph.OrderByNeighborTerms(s, newAttachedDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCorporateGroupsCount orders the results by corporate_groups count.
+func ByCorporateGroupsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCorporateGroupsStep(), opts...)
+	}
+}
+
+// ByCorporateGroups orders the results by corporate_groups terms.
+func ByCorporateGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCorporateGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDepartmentGroupAssignmentsCount orders the results by department_group_assignments count.
+func ByDepartmentGroupAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentGroupAssignmentsStep(), opts...)
+	}
+}
+
+// ByDepartmentGroupAssignments orders the results by department_group_assignments terms.
+func ByDepartmentGroupAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentGroupAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPartyNamesCount orders the results by party_names count.
+func ByPartyNamesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartyNamesStep(), opts...)
+	}
+}
+
+// ByPartyNames orders the results by party_names terms.
+func ByPartyNames(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartyNamesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPartyNameValiditiesCount orders the results by party_name_validities count.
+func ByPartyNameValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartyNameValiditiesStep(), opts...)
+	}
+}
+
+// ByPartyNameValidities orders the results by party_name_validities terms.
+func ByPartyNameValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartyNameValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPartyContactMechanismValiditiesCount orders the results by party_contact_mechanism_validities count.
+func ByPartyContactMechanismValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartyContactMechanismValiditiesStep(), opts...)
+	}
+}
+
+// ByPartyContactMechanismValidities orders the results by party_contact_mechanism_validities terms.
+func ByPartyContactMechanismValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartyContactMechanismValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPartiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -612,5 +727,40 @@ func newAttachedDocumentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AttachedDocumentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AttachedDocumentsTable, AttachedDocumentsColumn),
+	)
+}
+func newCorporateGroupsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CorporateGroupsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CorporateGroupsTable, CorporateGroupsColumn),
+	)
+}
+func newDepartmentGroupAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentGroupAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentGroupAssignmentsTable, DepartmentGroupAssignmentsColumn),
+	)
+}
+func newPartyNamesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartyNamesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyNamesTable, PartyNamesColumn),
+	)
+}
+func newPartyNameValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartyNameValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyNameValiditiesTable, PartyNameValiditiesColumn),
+	)
+}
+func newPartyContactMechanismValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartyContactMechanismValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyContactMechanismValiditiesTable, PartyContactMechanismValiditiesColumn),
 	)
 }

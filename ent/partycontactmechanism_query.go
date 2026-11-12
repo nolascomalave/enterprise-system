@@ -9,6 +9,7 @@ import (
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
+	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
@@ -33,6 +34,7 @@ type PartyContactMechanismQuery struct {
 	withParty            *PartyQuery
 	withContactMechanism *ContactMechanismQuery
 	withCredentials      *UserCredentialsQuery
+	withValidities       *PartyContactMechanismValidityQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -163,6 +165,31 @@ func (_q *PartyContactMechanismQuery) QueryCredentials() *UserCredentialsQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.UserCredentials
 		step.Edge.Schema = schemaConfig.UserCredentials
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryValidities chains the current query on the "validities" edge.
+func (_q *PartyContactMechanismQuery) QueryValidities() *PartyContactMechanismValidityQuery {
+	query := (&PartyContactMechanismValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(partycontactmechanism.Table, partycontactmechanism.FieldID, selector),
+			sqlgraph.To(partycontactmechanismvalidity.Table, partycontactmechanismvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, partycontactmechanism.ValiditiesTable, partycontactmechanism.ValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyContactMechanismValidity
+		step.Edge.Schema = schemaConfig.PartyContactMechanismValidity
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -365,6 +392,7 @@ func (_q *PartyContactMechanismQuery) Clone() *PartyContactMechanismQuery {
 		withParty:            _q.withParty.Clone(),
 		withContactMechanism: _q.withContactMechanism.Clone(),
 		withCredentials:      _q.withCredentials.Clone(),
+		withValidities:       _q.withValidities.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -412,6 +440,17 @@ func (_q *PartyContactMechanismQuery) WithCredentials(opts ...func(*UserCredenti
 		opt(query)
 	}
 	_q.withCredentials = query
+	return _q
+}
+
+// WithValidities tells the query-builder to eager-load the nodes that are connected to
+// the "validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *PartyContactMechanismQuery) WithValidities(opts ...func(*PartyContactMechanismValidityQuery)) *PartyContactMechanismQuery {
+	query := (&PartyContactMechanismValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withValidities = query
 	return _q
 }
 
@@ -493,11 +532,12 @@ func (_q *PartyContactMechanismQuery) sqlAll(ctx context.Context, hooks ...query
 	var (
 		nodes       = []*PartyContactMechanism{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withTenant != nil,
 			_q.withParty != nil,
 			_q.withContactMechanism != nil,
 			_q.withCredentials != nil,
+			_q.withValidities != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -541,6 +581,15 @@ func (_q *PartyContactMechanismQuery) sqlAll(ctx context.Context, hooks ...query
 	if query := _q.withCredentials; query != nil {
 		if err := _q.loadCredentials(ctx, query, nodes, nil,
 			func(n *PartyContactMechanism, e *UserCredentials) { n.Edges.Credentials = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withValidities; query != nil {
+		if err := _q.loadValidities(ctx, query, nodes,
+			func(n *PartyContactMechanism) { n.Edges.Validities = []*PartyContactMechanismValidity{} },
+			func(n *PartyContactMechanism, e *PartyContactMechanismValidity) {
+				n.Edges.Validities = append(n.Edges.Validities, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -646,6 +695,37 @@ func (_q *PartyContactMechanismQuery) loadCredentials(ctx context.Context, query
 	}
 	query.Where(predicate.UserCredentials(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(partycontactmechanism.CredentialsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.PartyContactMechanismID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "party_contact_mechanism_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *PartyContactMechanismQuery) loadValidities(ctx context.Context, query *PartyContactMechanismValidityQuery, nodes []*PartyContactMechanism, init func(*PartyContactMechanism), assign func(*PartyContactMechanism, *PartyContactMechanismValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*PartyContactMechanism)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partycontactmechanismvalidity.FieldPartyContactMechanismID)
+	}
+	query.Where(predicate.PartyContactMechanismValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(partycontactmechanism.ValiditiesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

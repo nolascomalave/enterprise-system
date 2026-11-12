@@ -8,6 +8,7 @@ import (
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
+	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
@@ -125,40 +126,6 @@ func (_u *PartyContactMechanismUpdate) AddContactMechanismOrder(v int) *PartyCon
 	return _u
 }
 
-// SetStartDate sets the "start_date" field.
-func (_u *PartyContactMechanismUpdate) SetStartDate(v time.Time) *PartyContactMechanismUpdate {
-	_u.mutation.SetStartDate(v)
-	return _u
-}
-
-// SetNillableStartDate sets the "start_date" field if the given value is not nil.
-func (_u *PartyContactMechanismUpdate) SetNillableStartDate(v *time.Time) *PartyContactMechanismUpdate {
-	if v != nil {
-		_u.SetStartDate(*v)
-	}
-	return _u
-}
-
-// SetEndDate sets the "end_date" field.
-func (_u *PartyContactMechanismUpdate) SetEndDate(v time.Time) *PartyContactMechanismUpdate {
-	_u.mutation.SetEndDate(v)
-	return _u
-}
-
-// SetNillableEndDate sets the "end_date" field if the given value is not nil.
-func (_u *PartyContactMechanismUpdate) SetNillableEndDate(v *time.Time) *PartyContactMechanismUpdate {
-	if v != nil {
-		_u.SetEndDate(*v)
-	}
-	return _u
-}
-
-// ClearEndDate clears the value of the "end_date" field.
-func (_u *PartyContactMechanismUpdate) ClearEndDate() *PartyContactMechanismUpdate {
-	_u.mutation.ClearEndDate()
-	return _u
-}
-
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *PartyContactMechanismUpdate) SetUpdatedAt(v time.Time) *PartyContactMechanismUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -199,6 +166,21 @@ func (_u *PartyContactMechanismUpdate) SetCredentials(v *UserCredentials) *Party
 	return _u.SetCredentialsID(v.ID)
 }
 
+// AddValidityIDs adds the "validities" edge to the PartyContactMechanismValidity entity by IDs.
+func (_u *PartyContactMechanismUpdate) AddValidityIDs(ids ...uuid.UUID) *PartyContactMechanismUpdate {
+	_u.mutation.AddValidityIDs(ids...)
+	return _u
+}
+
+// AddValidities adds the "validities" edges to the PartyContactMechanismValidity entity.
+func (_u *PartyContactMechanismUpdate) AddValidities(v ...*PartyContactMechanismValidity) *PartyContactMechanismUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddValidityIDs(ids...)
+}
+
 // Mutation returns the PartyContactMechanismMutation object of the builder.
 func (_u *PartyContactMechanismUpdate) Mutation() *PartyContactMechanismMutation {
 	return _u.mutation
@@ -226,6 +208,27 @@ func (_u *PartyContactMechanismUpdate) ClearContactMechanism() *PartyContactMech
 func (_u *PartyContactMechanismUpdate) ClearCredentials() *PartyContactMechanismUpdate {
 	_u.mutation.ClearCredentials()
 	return _u
+}
+
+// ClearValidities clears all "validities" edges to the PartyContactMechanismValidity entity.
+func (_u *PartyContactMechanismUpdate) ClearValidities() *PartyContactMechanismUpdate {
+	_u.mutation.ClearValidities()
+	return _u
+}
+
+// RemoveValidityIDs removes the "validities" edge to PartyContactMechanismValidity entities by IDs.
+func (_u *PartyContactMechanismUpdate) RemoveValidityIDs(ids ...uuid.UUID) *PartyContactMechanismUpdate {
+	_u.mutation.RemoveValidityIDs(ids...)
+	return _u
+}
+
+// RemoveValidities removes "validities" edges to PartyContactMechanismValidity entities.
+func (_u *PartyContactMechanismUpdate) RemoveValidities(v ...*PartyContactMechanismValidity) *PartyContactMechanismUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveValidityIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -306,15 +309,6 @@ func (_u *PartyContactMechanismUpdate) sqlSave(ctx context.Context) (_node int, 
 	}
 	if value, ok := _u.mutation.AddedContactMechanismOrder(); ok {
 		_spec.AddField(partycontactmechanism.FieldContactMechanismOrder, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.StartDate(); ok {
-		_spec.SetField(partycontactmechanism.FieldStartDate, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.EndDate(); ok {
-		_spec.SetField(partycontactmechanism.FieldEndDate, field.TypeTime, value)
-	}
-	if _u.mutation.EndDateCleared() {
-		_spec.ClearField(partycontactmechanism.FieldEndDate, field.TypeTime)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partycontactmechanism.FieldUpdatedAt, field.TypeTime, value)
@@ -438,6 +432,54 @@ func (_u *PartyContactMechanismUpdate) sqlSave(ctx context.Context) (_node int, 
 			},
 		}
 		edge.Schema = _u.schemaConfig.UserCredentials
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partycontactmechanism.ValiditiesTable,
+			Columns: []string{partycontactmechanism.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyContactMechanismValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedValiditiesIDs(); len(nodes) > 0 && !_u.mutation.ValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partycontactmechanism.ValiditiesTable,
+			Columns: []string{partycontactmechanism.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyContactMechanismValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partycontactmechanism.ValiditiesTable,
+			Columns: []string{partycontactmechanism.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyContactMechanismValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -556,40 +598,6 @@ func (_u *PartyContactMechanismUpdateOne) AddContactMechanismOrder(v int) *Party
 	return _u
 }
 
-// SetStartDate sets the "start_date" field.
-func (_u *PartyContactMechanismUpdateOne) SetStartDate(v time.Time) *PartyContactMechanismUpdateOne {
-	_u.mutation.SetStartDate(v)
-	return _u
-}
-
-// SetNillableStartDate sets the "start_date" field if the given value is not nil.
-func (_u *PartyContactMechanismUpdateOne) SetNillableStartDate(v *time.Time) *PartyContactMechanismUpdateOne {
-	if v != nil {
-		_u.SetStartDate(*v)
-	}
-	return _u
-}
-
-// SetEndDate sets the "end_date" field.
-func (_u *PartyContactMechanismUpdateOne) SetEndDate(v time.Time) *PartyContactMechanismUpdateOne {
-	_u.mutation.SetEndDate(v)
-	return _u
-}
-
-// SetNillableEndDate sets the "end_date" field if the given value is not nil.
-func (_u *PartyContactMechanismUpdateOne) SetNillableEndDate(v *time.Time) *PartyContactMechanismUpdateOne {
-	if v != nil {
-		_u.SetEndDate(*v)
-	}
-	return _u
-}
-
-// ClearEndDate clears the value of the "end_date" field.
-func (_u *PartyContactMechanismUpdateOne) ClearEndDate() *PartyContactMechanismUpdateOne {
-	_u.mutation.ClearEndDate()
-	return _u
-}
-
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *PartyContactMechanismUpdateOne) SetUpdatedAt(v time.Time) *PartyContactMechanismUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
@@ -630,6 +638,21 @@ func (_u *PartyContactMechanismUpdateOne) SetCredentials(v *UserCredentials) *Pa
 	return _u.SetCredentialsID(v.ID)
 }
 
+// AddValidityIDs adds the "validities" edge to the PartyContactMechanismValidity entity by IDs.
+func (_u *PartyContactMechanismUpdateOne) AddValidityIDs(ids ...uuid.UUID) *PartyContactMechanismUpdateOne {
+	_u.mutation.AddValidityIDs(ids...)
+	return _u
+}
+
+// AddValidities adds the "validities" edges to the PartyContactMechanismValidity entity.
+func (_u *PartyContactMechanismUpdateOne) AddValidities(v ...*PartyContactMechanismValidity) *PartyContactMechanismUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddValidityIDs(ids...)
+}
+
 // Mutation returns the PartyContactMechanismMutation object of the builder.
 func (_u *PartyContactMechanismUpdateOne) Mutation() *PartyContactMechanismMutation {
 	return _u.mutation
@@ -657,6 +680,27 @@ func (_u *PartyContactMechanismUpdateOne) ClearContactMechanism() *PartyContactM
 func (_u *PartyContactMechanismUpdateOne) ClearCredentials() *PartyContactMechanismUpdateOne {
 	_u.mutation.ClearCredentials()
 	return _u
+}
+
+// ClearValidities clears all "validities" edges to the PartyContactMechanismValidity entity.
+func (_u *PartyContactMechanismUpdateOne) ClearValidities() *PartyContactMechanismUpdateOne {
+	_u.mutation.ClearValidities()
+	return _u
+}
+
+// RemoveValidityIDs removes the "validities" edge to PartyContactMechanismValidity entities by IDs.
+func (_u *PartyContactMechanismUpdateOne) RemoveValidityIDs(ids ...uuid.UUID) *PartyContactMechanismUpdateOne {
+	_u.mutation.RemoveValidityIDs(ids...)
+	return _u
+}
+
+// RemoveValidities removes "validities" edges to PartyContactMechanismValidity entities.
+func (_u *PartyContactMechanismUpdateOne) RemoveValidities(v ...*PartyContactMechanismValidity) *PartyContactMechanismUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveValidityIDs(ids...)
 }
 
 // Where appends a list predicates to the PartyContactMechanismUpdate builder.
@@ -767,15 +811,6 @@ func (_u *PartyContactMechanismUpdateOne) sqlSave(ctx context.Context) (_node *P
 	}
 	if value, ok := _u.mutation.AddedContactMechanismOrder(); ok {
 		_spec.AddField(partycontactmechanism.FieldContactMechanismOrder, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.StartDate(); ok {
-		_spec.SetField(partycontactmechanism.FieldStartDate, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.EndDate(); ok {
-		_spec.SetField(partycontactmechanism.FieldEndDate, field.TypeTime, value)
-	}
-	if _u.mutation.EndDateCleared() {
-		_spec.ClearField(partycontactmechanism.FieldEndDate, field.TypeTime)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partycontactmechanism.FieldUpdatedAt, field.TypeTime, value)
@@ -899,6 +934,54 @@ func (_u *PartyContactMechanismUpdateOne) sqlSave(ctx context.Context) (_node *P
 			},
 		}
 		edge.Schema = _u.schemaConfig.UserCredentials
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.ValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partycontactmechanism.ValiditiesTable,
+			Columns: []string{partycontactmechanism.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyContactMechanismValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedValiditiesIDs(); len(nodes) > 0 && !_u.mutation.ValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partycontactmechanism.ValiditiesTable,
+			Columns: []string{partycontactmechanism.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyContactMechanismValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.ValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partycontactmechanism.ValiditiesTable,
+			Columns: []string{partycontactmechanism.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PartyContactMechanismValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

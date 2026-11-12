@@ -7,6 +7,7 @@ import (
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
+	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
 	"errors"
@@ -77,26 +78,6 @@ func (_c *PartyContactMechanismCreate) SetNillableIsVerified(v *bool) *PartyCont
 // SetContactMechanismOrder sets the "contact_mechanism_order" field.
 func (_c *PartyContactMechanismCreate) SetContactMechanismOrder(v int) *PartyContactMechanismCreate {
 	_c.mutation.SetContactMechanismOrder(v)
-	return _c
-}
-
-// SetStartDate sets the "start_date" field.
-func (_c *PartyContactMechanismCreate) SetStartDate(v time.Time) *PartyContactMechanismCreate {
-	_c.mutation.SetStartDate(v)
-	return _c
-}
-
-// SetEndDate sets the "end_date" field.
-func (_c *PartyContactMechanismCreate) SetEndDate(v time.Time) *PartyContactMechanismCreate {
-	_c.mutation.SetEndDate(v)
-	return _c
-}
-
-// SetNillableEndDate sets the "end_date" field if the given value is not nil.
-func (_c *PartyContactMechanismCreate) SetNillableEndDate(v *time.Time) *PartyContactMechanismCreate {
-	if v != nil {
-		_c.SetEndDate(*v)
-	}
 	return _c
 }
 
@@ -174,6 +155,21 @@ func (_c *PartyContactMechanismCreate) SetNillableCredentialsID(id *uuid.UUID) *
 // SetCredentials sets the "credentials" edge to the UserCredentials entity.
 func (_c *PartyContactMechanismCreate) SetCredentials(v *UserCredentials) *PartyContactMechanismCreate {
 	return _c.SetCredentialsID(v.ID)
+}
+
+// AddValidityIDs adds the "validities" edge to the PartyContactMechanismValidity entity by IDs.
+func (_c *PartyContactMechanismCreate) AddValidityIDs(ids ...uuid.UUID) *PartyContactMechanismCreate {
+	_c.mutation.AddValidityIDs(ids...)
+	return _c
+}
+
+// AddValidities adds the "validities" edges to the PartyContactMechanismValidity entity.
+func (_c *PartyContactMechanismCreate) AddValidities(v ...*PartyContactMechanismValidity) *PartyContactMechanismCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddValidityIDs(ids...)
 }
 
 // Mutation returns the PartyContactMechanismMutation object of the builder.
@@ -258,9 +254,6 @@ func (_c *PartyContactMechanismCreate) check() error {
 			return &ValidationError{Name: "contact_mechanism_order", err: fmt.Errorf(`ent: validator failed for field "PartyContactMechanism.contact_mechanism_order": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.StartDate(); !ok {
-		return &ValidationError{Name: "start_date", err: errors.New(`ent: missing required field "PartyContactMechanism.start_date"`)}
-	}
 	if len(_c.mutation.TenantIDs()) == 0 {
 		return &ValidationError{Name: "tenant", err: errors.New(`ent: missing required edge "PartyContactMechanism.tenant"`)}
 	}
@@ -318,14 +311,6 @@ func (_c *PartyContactMechanismCreate) createSpec() (*PartyContactMechanism, *sq
 	if value, ok := _c.mutation.ContactMechanismOrder(); ok {
 		_spec.SetField(partycontactmechanism.FieldContactMechanismOrder, field.TypeInt, value)
 		_node.ContactMechanismOrder = value
-	}
-	if value, ok := _c.mutation.StartDate(); ok {
-		_spec.SetField(partycontactmechanism.FieldStartDate, field.TypeTime, value)
-		_node.StartDate = value
-	}
-	if value, ok := _c.mutation.EndDate(); ok {
-		_spec.SetField(partycontactmechanism.FieldEndDate, field.TypeTime, value)
-		_node.EndDate = &value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(partycontactmechanism.FieldCreatedAt, field.TypeTime, value)
@@ -401,6 +386,23 @@ func (_c *PartyContactMechanismCreate) createSpec() (*PartyContactMechanism, *sq
 			},
 		}
 		edge.Schema = _c.schemaConfig.UserCredentials
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.ValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   partycontactmechanism.ValiditiesTable,
+			Columns: []string{partycontactmechanism.ValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyContactMechanismValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -533,36 +535,6 @@ func (u *PartyContactMechanismUpsert) UpdateContactMechanismOrder() *PartyContac
 // AddContactMechanismOrder adds v to the "contact_mechanism_order" field.
 func (u *PartyContactMechanismUpsert) AddContactMechanismOrder(v int) *PartyContactMechanismUpsert {
 	u.Add(partycontactmechanism.FieldContactMechanismOrder, v)
-	return u
-}
-
-// SetStartDate sets the "start_date" field.
-func (u *PartyContactMechanismUpsert) SetStartDate(v time.Time) *PartyContactMechanismUpsert {
-	u.Set(partycontactmechanism.FieldStartDate, v)
-	return u
-}
-
-// UpdateStartDate sets the "start_date" field to the value that was provided on create.
-func (u *PartyContactMechanismUpsert) UpdateStartDate() *PartyContactMechanismUpsert {
-	u.SetExcluded(partycontactmechanism.FieldStartDate)
-	return u
-}
-
-// SetEndDate sets the "end_date" field.
-func (u *PartyContactMechanismUpsert) SetEndDate(v time.Time) *PartyContactMechanismUpsert {
-	u.Set(partycontactmechanism.FieldEndDate, v)
-	return u
-}
-
-// UpdateEndDate sets the "end_date" field to the value that was provided on create.
-func (u *PartyContactMechanismUpsert) UpdateEndDate() *PartyContactMechanismUpsert {
-	u.SetExcluded(partycontactmechanism.FieldEndDate)
-	return u
-}
-
-// ClearEndDate clears the value of the "end_date" field.
-func (u *PartyContactMechanismUpsert) ClearEndDate() *PartyContactMechanismUpsert {
-	u.SetNull(partycontactmechanism.FieldEndDate)
 	return u
 }
 
@@ -717,41 +689,6 @@ func (u *PartyContactMechanismUpsertOne) AddContactMechanismOrder(v int) *PartyC
 func (u *PartyContactMechanismUpsertOne) UpdateContactMechanismOrder() *PartyContactMechanismUpsertOne {
 	return u.Update(func(s *PartyContactMechanismUpsert) {
 		s.UpdateContactMechanismOrder()
-	})
-}
-
-// SetStartDate sets the "start_date" field.
-func (u *PartyContactMechanismUpsertOne) SetStartDate(v time.Time) *PartyContactMechanismUpsertOne {
-	return u.Update(func(s *PartyContactMechanismUpsert) {
-		s.SetStartDate(v)
-	})
-}
-
-// UpdateStartDate sets the "start_date" field to the value that was provided on create.
-func (u *PartyContactMechanismUpsertOne) UpdateStartDate() *PartyContactMechanismUpsertOne {
-	return u.Update(func(s *PartyContactMechanismUpsert) {
-		s.UpdateStartDate()
-	})
-}
-
-// SetEndDate sets the "end_date" field.
-func (u *PartyContactMechanismUpsertOne) SetEndDate(v time.Time) *PartyContactMechanismUpsertOne {
-	return u.Update(func(s *PartyContactMechanismUpsert) {
-		s.SetEndDate(v)
-	})
-}
-
-// UpdateEndDate sets the "end_date" field to the value that was provided on create.
-func (u *PartyContactMechanismUpsertOne) UpdateEndDate() *PartyContactMechanismUpsertOne {
-	return u.Update(func(s *PartyContactMechanismUpsert) {
-		s.UpdateEndDate()
-	})
-}
-
-// ClearEndDate clears the value of the "end_date" field.
-func (u *PartyContactMechanismUpsertOne) ClearEndDate() *PartyContactMechanismUpsertOne {
-	return u.Update(func(s *PartyContactMechanismUpsert) {
-		s.ClearEndDate()
 	})
 }
 
@@ -1075,41 +1012,6 @@ func (u *PartyContactMechanismUpsertBulk) AddContactMechanismOrder(v int) *Party
 func (u *PartyContactMechanismUpsertBulk) UpdateContactMechanismOrder() *PartyContactMechanismUpsertBulk {
 	return u.Update(func(s *PartyContactMechanismUpsert) {
 		s.UpdateContactMechanismOrder()
-	})
-}
-
-// SetStartDate sets the "start_date" field.
-func (u *PartyContactMechanismUpsertBulk) SetStartDate(v time.Time) *PartyContactMechanismUpsertBulk {
-	return u.Update(func(s *PartyContactMechanismUpsert) {
-		s.SetStartDate(v)
-	})
-}
-
-// UpdateStartDate sets the "start_date" field to the value that was provided on create.
-func (u *PartyContactMechanismUpsertBulk) UpdateStartDate() *PartyContactMechanismUpsertBulk {
-	return u.Update(func(s *PartyContactMechanismUpsert) {
-		s.UpdateStartDate()
-	})
-}
-
-// SetEndDate sets the "end_date" field.
-func (u *PartyContactMechanismUpsertBulk) SetEndDate(v time.Time) *PartyContactMechanismUpsertBulk {
-	return u.Update(func(s *PartyContactMechanismUpsert) {
-		s.SetEndDate(v)
-	})
-}
-
-// UpdateEndDate sets the "end_date" field to the value that was provided on create.
-func (u *PartyContactMechanismUpsertBulk) UpdateEndDate() *PartyContactMechanismUpsertBulk {
-	return u.Update(func(s *PartyContactMechanismUpsert) {
-		s.UpdateEndDate()
-	})
-}
-
-// ClearEndDate clears the value of the "end_date" field.
-func (u *PartyContactMechanismUpsertBulk) ClearEndDate() *PartyContactMechanismUpsertBulk {
-	return u.Update(func(s *PartyContactMechanismUpsert) {
-		s.ClearEndDate()
 	})
 }
 

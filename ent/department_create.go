@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/subscription"
@@ -56,6 +57,20 @@ func (_c *DepartmentCreate) SetName(v string) *DepartmentCreate {
 // SetCode sets the "code" field.
 func (_c *DepartmentCreate) SetCode(v string) *DepartmentCreate {
 	_c.mutation.SetCode(v)
+	return _c
+}
+
+// SetUnitType sets the "unit_type" field.
+func (_c *DepartmentCreate) SetUnitType(v department.UnitType) *DepartmentCreate {
+	_c.mutation.SetUnitType(v)
+	return _c
+}
+
+// SetNillableUnitType sets the "unit_type" field if the given value is not nil.
+func (_c *DepartmentCreate) SetNillableUnitType(v *department.UnitType) *DepartmentCreate {
+	if v != nil {
+		_c.SetUnitType(*v)
+	}
 	return _c
 }
 
@@ -217,6 +232,21 @@ func (_c *DepartmentCreate) AddAssignments(v ...*EmployeeAssignment) *Department
 	return _c.AddAssignmentIDs(ids...)
 }
 
+// AddGroupAssignmentIDs adds the "group_assignments" edge to the DepartmentGroupAssignment entity by IDs.
+func (_c *DepartmentCreate) AddGroupAssignmentIDs(ids ...uuid.UUID) *DepartmentCreate {
+	_c.mutation.AddGroupAssignmentIDs(ids...)
+	return _c
+}
+
+// AddGroupAssignments adds the "group_assignments" edges to the DepartmentGroupAssignment entity.
+func (_c *DepartmentCreate) AddGroupAssignments(v ...*DepartmentGroupAssignment) *DepartmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddGroupAssignmentIDs(ids...)
+}
+
 // Mutation returns the DepartmentMutation object of the builder.
 func (_c *DepartmentCreate) Mutation() *DepartmentMutation {
 	return _c.mutation
@@ -252,6 +282,10 @@ func (_c *DepartmentCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *DepartmentCreate) defaults() {
+	if _, ok := _c.mutation.UnitType(); !ok {
+		v := department.DefaultUnitType
+		_c.mutation.SetUnitType(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := department.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -285,6 +319,14 @@ func (_c *DepartmentCreate) check() error {
 	if v, ok := _c.mutation.Code(); ok {
 		if err := department.CodeValidator(v); err != nil {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Department.code": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.UnitType(); !ok {
+		return &ValidationError{Name: "unit_type", err: errors.New(`ent: missing required field "Department.unit_type"`)}
+	}
+	if v, ok := _c.mutation.UnitType(); ok {
+		if err := department.UnitTypeValidator(v); err != nil {
+			return &ValidationError{Name: "unit_type", err: fmt.Errorf(`ent: validator failed for field "Department.unit_type": %w`, err)}
 		}
 	}
 	if len(_c.mutation.TenantIDs()) == 0 {
@@ -334,6 +376,10 @@ func (_c *DepartmentCreate) createSpec() (*Department, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Code(); ok {
 		_spec.SetField(department.FieldCode, field.TypeString, value)
 		_node.Code = value
+	}
+	if value, ok := _c.mutation.UnitType(); ok {
+		_spec.SetField(department.FieldUnitType, field.TypeEnum, value)
+		_node.UnitType = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(department.FieldCreatedAt, field.TypeTime, value)
@@ -452,6 +498,23 @@ func (_c *DepartmentCreate) createSpec() (*Department, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.GroupAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.GroupAssignmentsTable,
+			Columns: []string{department.GroupAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentgroupassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentGroupAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -555,6 +618,18 @@ func (u *DepartmentUpsert) SetCode(v string) *DepartmentUpsert {
 // UpdateCode sets the "code" field to the value that was provided on create.
 func (u *DepartmentUpsert) UpdateCode() *DepartmentUpsert {
 	u.SetExcluded(department.FieldCode)
+	return u
+}
+
+// SetUnitType sets the "unit_type" field.
+func (u *DepartmentUpsert) SetUnitType(v department.UnitType) *DepartmentUpsert {
+	u.Set(department.FieldUnitType, v)
+	return u
+}
+
+// UpdateUnitType sets the "unit_type" field to the value that was provided on create.
+func (u *DepartmentUpsert) UpdateUnitType() *DepartmentUpsert {
+	u.SetExcluded(department.FieldUnitType)
 	return u
 }
 
@@ -717,6 +792,20 @@ func (u *DepartmentUpsertOne) SetCode(v string) *DepartmentUpsertOne {
 func (u *DepartmentUpsertOne) UpdateCode() *DepartmentUpsertOne {
 	return u.Update(func(s *DepartmentUpsert) {
 		s.UpdateCode()
+	})
+}
+
+// SetUnitType sets the "unit_type" field.
+func (u *DepartmentUpsertOne) SetUnitType(v department.UnitType) *DepartmentUpsertOne {
+	return u.Update(func(s *DepartmentUpsert) {
+		s.SetUnitType(v)
+	})
+}
+
+// UpdateUnitType sets the "unit_type" field to the value that was provided on create.
+func (u *DepartmentUpsertOne) UpdateUnitType() *DepartmentUpsertOne {
+	return u.Update(func(s *DepartmentUpsert) {
+		s.UpdateUnitType()
 	})
 }
 
@@ -1054,6 +1143,20 @@ func (u *DepartmentUpsertBulk) SetCode(v string) *DepartmentUpsertBulk {
 func (u *DepartmentUpsertBulk) UpdateCode() *DepartmentUpsertBulk {
 	return u.Update(func(s *DepartmentUpsert) {
 		s.UpdateCode()
+	})
+}
+
+// SetUnitType sets the "unit_type" field.
+func (u *DepartmentUpsertBulk) SetUnitType(v department.UnitType) *DepartmentUpsertBulk {
+	return u.Update(func(s *DepartmentUpsert) {
+		s.SetUnitType(v)
+	})
+}
+
+// UpdateUnitType sets the "unit_type" field to the value that was provided on create.
+func (u *DepartmentUpsertBulk) UpdateUnitType() *DepartmentUpsertBulk {
+	return u.Update(func(s *DepartmentUpsert) {
+		s.UpdateUnitType()
 	})
 }
 

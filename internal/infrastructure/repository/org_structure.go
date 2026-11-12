@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"enterprise-system/ent"
+	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
 	"enterprise-system/internal/domain"
 	"github.com/google/uuid"
@@ -179,6 +180,7 @@ func (r *OrgStructureRepository) CreateDepartment(ctx context.Context, e *domain
 			SetTenantID(e.TenantID).
 			SetName(e.Name).
 			SetCode(e.Code).
+			SetUnitType(department.UnitType(e.UnitType)).
 			SetCreatedAt(e.CreatedAt).
 			SetUpdatedAt(e.UpdatedAt)
 		if e.ParentDepartmentID != nil {
@@ -226,6 +228,7 @@ func (r *OrgStructureRepository) UpdateDepartment(ctx context.Context, e *domain
 		update := client.Department.UpdateOneID(e.ID).
 			SetName(e.Name).
 			SetCode(e.Code).
+			SetUnitType(department.UnitType(e.UnitType)).
 			SetUpdatedAt(e.UpdatedAt)
 		if e.ParentDepartmentID != nil {
 			update.SetParentDepartmentID(*e.ParentDepartmentID)
@@ -243,6 +246,57 @@ func (r *OrgStructureRepository) UpdateDepartment(ctx context.Context, e *domain
 			update.ClearDeletedAt()
 		}
 		_, err := update.Save(ctx)
+		return repoError(err)
+	})
+}
+
+// Corporate groups ----------------------------------------------------------
+
+func (r *OrgStructureRepository) CreateCorporateGroup(ctx context.Context, e *domain.CorporateGroup) error {
+	return r.withClient(ctx, func(client *ent.Client) error {
+		create := client.CorporateGroup.Create().
+			SetID(e.ID).
+			SetTenantID(e.TenantID).
+			SetName(e.Name).
+			SetCreatedAt(e.CreatedAt).
+			SetUpdatedAt(e.UpdatedAt)
+		if e.Description != nil {
+			create.SetDescription(*e.Description)
+		}
+		if e.DeletedAt != nil {
+			create.SetDeletedAt(*e.DeletedAt)
+		}
+		_, err := create.Save(ctx)
+		return repoError(err)
+	})
+}
+
+func (r *OrgStructureRepository) GetCorporateGroup(ctx context.Context, id uuid.UUID) (*domain.CorporateGroup, error) {
+	var result *domain.CorporateGroup
+	err := r.withClient(ctx, func(client *ent.Client) error {
+		e, err := client.CorporateGroup.Get(ctx, id)
+		if err != nil {
+			return repoError(err)
+		}
+		result = toDomainCorporateGroup(e)
+		return nil
+	})
+	if ent.IsNotFound(err) {
+		return nil, domain.ErrCorporateGroupNotFound
+	}
+	return result, err
+}
+
+func (r *OrgStructureRepository) AssignDepartmentToGroup(
+	ctx context.Context,
+	tenantID, departmentID, corporateGroupID uuid.UUID,
+) error {
+	return r.withClient(ctx, func(client *ent.Client) error {
+		_, err := client.DepartmentGroupAssignment.Create().
+			SetTenantID(tenantID).
+			SetDepartmentID(departmentID).
+			SetCorporateGroupID(corporateGroupID).
+			Save(ctx)
 		return repoError(err)
 	})
 }
@@ -413,7 +467,15 @@ func toDomainJob(e *ent.Job) *domain.Job {
 func toDomainDepartment(e *ent.Department) *domain.Department {
 	return &domain.Department{
 		ID: e.ID, TenantID: e.TenantID, ParentDepartmentID: e.ParentDepartmentID,
-		Name: e.Name, Code: e.Code, ManagerPartyID: e.ManagerPartyID,
+		Name: e.Name, Code: e.Code, UnitType: domain.DepartmentUnitType(e.UnitType),
+		ManagerPartyID: e.ManagerPartyID,
+		CreatedAt:      e.CreatedAt, UpdatedAt: e.UpdatedAt, DeletedAt: e.DeletedAt,
+	}
+}
+
+func toDomainCorporateGroup(e *ent.CorporateGroup) *domain.CorporateGroup {
+	return &domain.CorporateGroup{
+		ID: e.ID, TenantID: e.TenantID, Name: e.Name, Description: e.Description,
 		CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt, DeletedAt: e.DeletedAt,
 	}
 }

@@ -25,6 +25,10 @@ type fakeOrgUseCase struct {
 	jobInput    usecase.CreateJobInput
 	updateJob   usecase.UpdateJobInput
 	deptInput   usecase.CreateDepartmentInput
+	groupInput  usecase.CreateCorporateGroupInput
+	assignInput usecase.AssignDepartmentToGroupInput
+	group       *domain.CorporateGroup
+	assignErr   error
 	empInput    usecase.CreateEmployeeInput
 	err         error
 }
@@ -161,13 +165,24 @@ func TestCreateDepartmentWithManager(t *testing.T) {
 	router, token, _ := orgTestRouter(t, uc, &fakeMergeUseCase{})
 
 	recorder := requestWithToken(router, http.MethodPost, "/api/v1/departments",
-		[]byte(`{"name":"Engineering","code":"ENG","manager_party_id":"`+managerID.String()+`"}`), token)
+		[]byte(`{"name":"Engineering","code":"ENG","unit_type":"BRANCH","manager_party_id":"`+managerID.String()+`"}`), token)
 
 	require.Equal(t, http.StatusCreated, recorder.Code)
 	require.NotNil(t, uc.deptInput.ManagerPartyID)
 	assert.Equal(t, managerID, *uc.deptInput.ManagerPartyID)
+	assert.Equal(t, domain.DepartmentUnitTypeBranch, uc.deptInput.UnitType)
 	data := decodeBody(t, recorder)["data"].(map[string]any)
 	assert.Equal(t, managerID.String(), data["manager_party_id"])
+}
+
+func TestCreateDepartmentRejectsInvalidUnitType(t *testing.T) {
+	uc := &fakeOrgUseCase{}
+	router, token, _ := orgTestRouter(t, uc, &fakeMergeUseCase{})
+
+	recorder := requestWithToken(router, http.MethodPost, "/api/v1/departments",
+		[]byte(`{"name":"Engineering","code":"ENG","unit_type":"INVALID"}`), token)
+
+	assert.Equal(t, http.StatusBadRequest, recorder.Code)
 }
 
 func TestCreateAndListEmployees(t *testing.T) {
@@ -270,4 +285,59 @@ func TestOrgHandlerMapsUseCaseError(t *testing.T) {
 	recorder := requestWithToken(router, http.MethodGet, "/api/v1/jobs", nil, token)
 
 	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
+}
+
+func (f *fakeOrgUseCase) CreateCorporateGroup(ctx context.Context, in usecase.CreateCorporateGroupInput) (*domain.CorporateGroup, error) {
+	f.groupInput = in
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.group, nil
+}
+
+func (f *fakeOrgUseCase) AssignDepartmentToGroup(ctx context.Context, in usecase.AssignDepartmentToGroupInput) error {
+	f.assignInput = in
+	return f.assignErr
+}
+
+func TestCreateCorporateGroup(t *testing.T) {
+	now := time.Date(2026, 11, 12, 12, 0, 0, 0, time.UTC)
+	uc := &fakeOrgUseCase{}
+	router, token, tenantID := orgTestRouter(t, uc, &fakeMergeUseCase{})
+	uc.group = &domain.CorporateGroup{ID: uuid.New(), TenantID: tenantID, Name: "Holding", CreatedAt: now, UpdatedAt: now}
+
+	recorder := requestWithToken(router, http.MethodPost, "/api/v1/corporate-groups",
+		[]byte(`{"name":"Holding","description":"Grupo principal"}`), token)
+
+	require.Equal(t, http.StatusCreated, recorder.Code)
+	assert.Equal(t, tenantID, uc.groupInput.TenantID)
+	assert.Equal(t, "Holding", uc.groupInput.Name)
+	assert.Equal(t, "Grupo principal", uc.groupInput.Description)
+}
+
+func TestAssignDepartmentToGroup(t *testing.T) {
+	departmentID := uuid.New()
+	groupID := uuid.New()
+	uc := &fakeOrgUseCase{}
+	router, token, tenantID := orgTestRouter(t, uc, &fakeMergeUseCase{})
+
+	recorder := requestWithToken(router, http.MethodPost,
+		"/api/v1/departments/"+departmentID.String()+"/groups",
+		[]byte(`{"corporate_group_id":"`+groupID.String()+`"}`), token)
+
+	require.Equal(t, http.StatusNoContent, recorder.Code)
+	assert.Equal(t, tenantID, uc.assignInput.TenantID)
+	assert.Equal(t, departmentID, uc.assignInput.DepartmentID)
+	assert.Equal(t, groupID, uc.assignInput.CorporateGroupID)
+}
+
+func TestAssignDepartmentToGroupRejectsForeignGroup(t *testing.T) {
+	uc := &fakeOrgUseCase{assignErr: domain.ErrCorporateGroupTenantMismatch}
+	router, token, _ := orgTestRouter(t, uc, &fakeMergeUseCase{})
+
+	recorder := requestWithToken(router, http.MethodPost,
+		"/api/v1/departments/"+uuid.New().String()+"/groups",
+		[]byte(`{"corporate_group_id":"`+uuid.New().String()+`"}`), token)
+
+	assert.Equal(t, http.StatusConflict, recorder.Code)
 }

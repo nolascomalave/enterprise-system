@@ -8,6 +8,7 @@ import (
 	"enterprise-system/ent"
 	"enterprise-system/ent/contactmechanism"
 	entparty "enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/ent/roletype"
 	entsubscription "enterprise-system/ent/subscription"
 	"enterprise-system/internal/auth"
@@ -201,13 +202,35 @@ func (s *TenantProvisioningStore) CreatePartyContactMechanism(ctx context.Contex
 			SetIsPrimary(relation.IsPrimary).
 			SetIsVerified(relation.IsVerified).
 			SetContactMechanismOrder(relation.ContactMechanismOrder).
+			SetCreatedAt(relation.CreatedAt).
+			SetUpdatedAt(relation.UpdatedAt)
+		if _, err := create.Save(ctx); err != nil {
+			return repoError(err)
+		}
+
+		contact, err := client.ContactMechanism.Get(ctx, relation.ContactMechanismID)
+		if err != nil {
+			return repoError(err)
+		}
+		validityID, err := uuid.NewV7()
+		if err != nil {
+			return repoError(err)
+		}
+		validity := client.PartyContactMechanismValidity.Create().
+			SetID(validityID).
+			SetTenantID(relation.TenantID).
+			SetPartyContactMechanismID(relation.ID).
+			SetPartyID(relation.PartyID).
+			SetContactMechanismID(relation.ContactMechanismID).
+			SetContactType(partycontactmechanismvalidity.ContactType(contact.Type)).
+			SetIsPrimary(relation.IsPrimary).
 			SetStartDate(relation.StartDate).
 			SetCreatedAt(relation.CreatedAt).
 			SetUpdatedAt(relation.UpdatedAt)
 		if relation.EndDate != nil {
-			create.SetEndDate(*relation.EndDate)
+			validity.SetEndDate(*relation.EndDate)
 		}
-		_, err := create.Save(ctx)
+		_, err = validity.Save(ctx)
 		return repoError(err)
 	})
 }

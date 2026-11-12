@@ -70,6 +70,9 @@ func (s *PartyContacts) CreateContactMechanism(ctx context.Context, in CreateCon
 		if in.StartDate != nil {
 			startDate = in.StartDate.UTC()
 		}
+		// The dates below are persisted by the repository in
+		// tenants.party_contact_mechanism_validities; the relation table only
+		// stores the current attributes.
 		relation, err = domain.NewPartyContactMechanism(
 			in.TenantID, in.PartyID, contact.ID, in.IsPrimary, in.IsVerified,
 			in.Order, startDate, in.EndDate, now,

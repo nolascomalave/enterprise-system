@@ -6,7 +6,9 @@ import (
 	"context"
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/attacheddocument"
+	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/job"
@@ -14,7 +16,10 @@ import (
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
+	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/ent/partymergelog"
+	"enterprise-system/ent/partyname"
+	"enterprise-system/ent/partynamevalidity"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -360,6 +365,81 @@ func (_c *SubscriptionCreate) AddAttachedDocuments(v ...*AttachedDocument) *Subs
 		ids[i] = v[i].ID
 	}
 	return _c.AddAttachedDocumentIDs(ids...)
+}
+
+// AddCorporateGroupIDs adds the "corporate_groups" edge to the CorporateGroup entity by IDs.
+func (_c *SubscriptionCreate) AddCorporateGroupIDs(ids ...uuid.UUID) *SubscriptionCreate {
+	_c.mutation.AddCorporateGroupIDs(ids...)
+	return _c
+}
+
+// AddCorporateGroups adds the "corporate_groups" edges to the CorporateGroup entity.
+func (_c *SubscriptionCreate) AddCorporateGroups(v ...*CorporateGroup) *SubscriptionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCorporateGroupIDs(ids...)
+}
+
+// AddDepartmentGroupAssignmentIDs adds the "department_group_assignments" edge to the DepartmentGroupAssignment entity by IDs.
+func (_c *SubscriptionCreate) AddDepartmentGroupAssignmentIDs(ids ...uuid.UUID) *SubscriptionCreate {
+	_c.mutation.AddDepartmentGroupAssignmentIDs(ids...)
+	return _c
+}
+
+// AddDepartmentGroupAssignments adds the "department_group_assignments" edges to the DepartmentGroupAssignment entity.
+func (_c *SubscriptionCreate) AddDepartmentGroupAssignments(v ...*DepartmentGroupAssignment) *SubscriptionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDepartmentGroupAssignmentIDs(ids...)
+}
+
+// AddPartyNameIDs adds the "party_names" edge to the PartyName entity by IDs.
+func (_c *SubscriptionCreate) AddPartyNameIDs(ids ...uuid.UUID) *SubscriptionCreate {
+	_c.mutation.AddPartyNameIDs(ids...)
+	return _c
+}
+
+// AddPartyNames adds the "party_names" edges to the PartyName entity.
+func (_c *SubscriptionCreate) AddPartyNames(v ...*PartyName) *SubscriptionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartyNameIDs(ids...)
+}
+
+// AddPartyNameValidityIDs adds the "party_name_validities" edge to the PartyNameValidity entity by IDs.
+func (_c *SubscriptionCreate) AddPartyNameValidityIDs(ids ...uuid.UUID) *SubscriptionCreate {
+	_c.mutation.AddPartyNameValidityIDs(ids...)
+	return _c
+}
+
+// AddPartyNameValidities adds the "party_name_validities" edges to the PartyNameValidity entity.
+func (_c *SubscriptionCreate) AddPartyNameValidities(v ...*PartyNameValidity) *SubscriptionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartyNameValidityIDs(ids...)
+}
+
+// AddPartyContactMechanismValidityIDs adds the "party_contact_mechanism_validities" edge to the PartyContactMechanismValidity entity by IDs.
+func (_c *SubscriptionCreate) AddPartyContactMechanismValidityIDs(ids ...uuid.UUID) *SubscriptionCreate {
+	_c.mutation.AddPartyContactMechanismValidityIDs(ids...)
+	return _c
+}
+
+// AddPartyContactMechanismValidities adds the "party_contact_mechanism_validities" edges to the PartyContactMechanismValidity entity.
+func (_c *SubscriptionCreate) AddPartyContactMechanismValidities(v ...*PartyContactMechanismValidity) *SubscriptionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartyContactMechanismValidityIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -769,6 +849,91 @@ func (_c *SubscriptionCreate) createSpec() (*Subscription, *sqlgraph.CreateSpec)
 			},
 		}
 		edge.Schema = _c.schemaConfig.AttachedDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CorporateGroupsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.CorporateGroupsTable,
+			Columns: []string{subscription.CorporateGroupsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(corporategroup.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.CorporateGroup
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DepartmentGroupAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentGroupAssignmentsTable,
+			Columns: []string{subscription.DepartmentGroupAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentgroupassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentGroupAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartyNamesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyNamesTable,
+			Columns: []string{subscription.PartyNamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyname.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyName
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartyNameValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyNameValiditiesTable,
+			Columns: []string{subscription.PartyNameValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynamevalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyNameValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartyContactMechanismValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PartyContactMechanismValiditiesTable,
+			Columns: []string{subscription.PartyContactMechanismValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyContactMechanismValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

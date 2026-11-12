@@ -34,10 +34,6 @@ type PartyContactMechanism struct {
 	IsVerified bool `json:"is_verified,omitempty"`
 	// ContactMechanismOrder holds the value of the "contact_mechanism_order" field.
 	ContactMechanismOrder int `json:"contact_mechanism_order,omitempty"`
-	// StartDate holds the value of the "start_date" field.
-	StartDate time.Time `json:"start_date,omitempty"`
-	// EndDate holds the value of the "end_date" field.
-	EndDate *time.Time `json:"end_date,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -58,9 +54,11 @@ type PartyContactMechanismEdges struct {
 	ContactMechanism *ContactMechanism `json:"contact_mechanism,omitempty"`
 	// Credentials holds the value of the credentials edge.
 	Credentials *UserCredentials `json:"credentials,omitempty"`
+	// Validities holds the value of the validities edge.
+	Validities []*PartyContactMechanismValidity `json:"validities,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -107,6 +105,15 @@ func (e PartyContactMechanismEdges) CredentialsOrErr() (*UserCredentials, error)
 	return nil, &NotLoadedError{edge: "credentials"}
 }
 
+// ValiditiesOrErr returns the Validities value or an error if the edge
+// was not loaded in eager-loading.
+func (e PartyContactMechanismEdges) ValiditiesOrErr() ([]*PartyContactMechanismValidity, error) {
+	if e.loadedTypes[4] {
+		return e.Validities, nil
+	}
+	return nil, &NotLoadedError{edge: "validities"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*PartyContactMechanism) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -116,7 +123,7 @@ func (*PartyContactMechanism) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case partycontactmechanism.FieldContactMechanismOrder:
 			values[i] = new(sql.NullInt64)
-		case partycontactmechanism.FieldStartDate, partycontactmechanism.FieldEndDate, partycontactmechanism.FieldCreatedAt, partycontactmechanism.FieldUpdatedAt:
+		case partycontactmechanism.FieldCreatedAt, partycontactmechanism.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case partycontactmechanism.FieldID, partycontactmechanism.FieldTenantID, partycontactmechanism.FieldPartyID, partycontactmechanism.FieldContactMechanismID:
 			values[i] = new(uuid.UUID)
@@ -177,19 +184,6 @@ func (_m *PartyContactMechanism) assignValues(columns []string, values []any) er
 			} else if value.Valid {
 				_m.ContactMechanismOrder = int(value.Int64)
 			}
-		case partycontactmechanism.FieldStartDate:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field start_date", values[i])
-			} else if value.Valid {
-				_m.StartDate = value.Time
-			}
-		case partycontactmechanism.FieldEndDate:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field end_date", values[i])
-			} else if value.Valid {
-				_m.EndDate = new(time.Time)
-				*_m.EndDate = value.Time
-			}
 		case partycontactmechanism.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -235,6 +229,11 @@ func (_m *PartyContactMechanism) QueryCredentials() *UserCredentialsQuery {
 	return NewPartyContactMechanismClient(_m.config).QueryCredentials(_m)
 }
 
+// QueryValidities queries the "validities" edge of the PartyContactMechanism entity.
+func (_m *PartyContactMechanism) QueryValidities() *PartyContactMechanismValidityQuery {
+	return NewPartyContactMechanismClient(_m.config).QueryValidities(_m)
+}
+
 // Update returns a builder for updating this PartyContactMechanism.
 // Note that you need to call PartyContactMechanism.Unwrap() before calling this method if this PartyContactMechanism
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -275,14 +274,6 @@ func (_m *PartyContactMechanism) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("contact_mechanism_order=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ContactMechanismOrder))
-	builder.WriteString(", ")
-	builder.WriteString("start_date=")
-	builder.WriteString(_m.StartDate.Format(time.ANSIC))
-	builder.WriteString(", ")
-	if v := _m.EndDate; v != nil {
-		builder.WriteString("end_date=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

@@ -104,6 +104,9 @@ func main() {
 		repository.NewAttachedDocumentRepository(client),
 		txManager, "local", time.Now,
 	)
+	partyNameService := usecase.NewPartyNameService(
+		repository.NewPartyNameRepository(client), txManager, time.Now,
+	)
 
 	allowedOrigins := splitCSV(os.Getenv("CORS_ALLOWED_ORIGINS"))
 	if len(allowedOrigins) == 0 {
@@ -118,6 +121,7 @@ func main() {
 		OrgStructureUseCase: orgService,
 		MergePartiesUseCase: mergeService,
 		DocumentUseCase:     documentService,
+		PartyNameUseCase:    partyNameService,
 		TokenManager:        tokenManager,
 		CookieSecure:        os.Getenv("COOKIE_SECURE") != "false",
 		RefreshTTL:          30 * 24 * time.Hour,

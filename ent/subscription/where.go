@@ -826,6 +826,151 @@ func HasAttachedDocumentsWith(preds ...predicate.AttachedDocument) predicate.Sub
 	})
 }
 
+// HasCorporateGroups applies the HasEdge predicate on the "corporate_groups" edge.
+func HasCorporateGroups() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CorporateGroupsTable, CorporateGroupsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.CorporateGroup
+		step.Edge.Schema = schemaConfig.CorporateGroup
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCorporateGroupsWith applies the HasEdge predicate on the "corporate_groups" edge with a given conditions (other predicates).
+func HasCorporateGroupsWith(preds ...predicate.CorporateGroup) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newCorporateGroupsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.CorporateGroup
+		step.Edge.Schema = schemaConfig.CorporateGroup
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDepartmentGroupAssignments applies the HasEdge predicate on the "department_group_assignments" edge.
+func HasDepartmentGroupAssignments() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentGroupAssignmentsTable, DepartmentGroupAssignmentsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentGroupAssignment
+		step.Edge.Schema = schemaConfig.DepartmentGroupAssignment
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentGroupAssignmentsWith applies the HasEdge predicate on the "department_group_assignments" edge with a given conditions (other predicates).
+func HasDepartmentGroupAssignmentsWith(preds ...predicate.DepartmentGroupAssignment) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newDepartmentGroupAssignmentsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentGroupAssignment
+		step.Edge.Schema = schemaConfig.DepartmentGroupAssignment
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPartyNames applies the HasEdge predicate on the "party_names" edge.
+func HasPartyNames() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyNamesTable, PartyNamesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyName
+		step.Edge.Schema = schemaConfig.PartyName
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartyNamesWith applies the HasEdge predicate on the "party_names" edge with a given conditions (other predicates).
+func HasPartyNamesWith(preds ...predicate.PartyName) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newPartyNamesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyName
+		step.Edge.Schema = schemaConfig.PartyName
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPartyNameValidities applies the HasEdge predicate on the "party_name_validities" edge.
+func HasPartyNameValidities() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyNameValiditiesTable, PartyNameValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyNameValidity
+		step.Edge.Schema = schemaConfig.PartyNameValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartyNameValiditiesWith applies the HasEdge predicate on the "party_name_validities" edge with a given conditions (other predicates).
+func HasPartyNameValiditiesWith(preds ...predicate.PartyNameValidity) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newPartyNameValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyNameValidity
+		step.Edge.Schema = schemaConfig.PartyNameValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPartyContactMechanismValidities applies the HasEdge predicate on the "party_contact_mechanism_validities" edge.
+func HasPartyContactMechanismValidities() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyContactMechanismValiditiesTable, PartyContactMechanismValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyContactMechanismValidity
+		step.Edge.Schema = schemaConfig.PartyContactMechanismValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartyContactMechanismValiditiesWith applies the HasEdge predicate on the "party_contact_mechanism_validities" edge with a given conditions (other predicates).
+func HasPartyContactMechanismValiditiesWith(preds ...predicate.PartyContactMechanismValidity) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newPartyContactMechanismValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyContactMechanismValidity
+		step.Edge.Schema = schemaConfig.PartyContactMechanismValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Subscription) predicate.Subscription {
 	return predicate.Subscription(sql.AndPredicates(predicates...))

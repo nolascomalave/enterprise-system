@@ -27,10 +27,6 @@ const (
 	FieldIsVerified = "is_verified"
 	// FieldContactMechanismOrder holds the string denoting the contact_mechanism_order field in the database.
 	FieldContactMechanismOrder = "contact_mechanism_order"
-	// FieldStartDate holds the string denoting the start_date field in the database.
-	FieldStartDate = "start_date"
-	// FieldEndDate holds the string denoting the end_date field in the database.
-	FieldEndDate = "end_date"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -43,6 +39,8 @@ const (
 	EdgeContactMechanism = "contact_mechanism"
 	// EdgeCredentials holds the string denoting the credentials edge name in mutations.
 	EdgeCredentials = "credentials"
+	// EdgeValidities holds the string denoting the validities edge name in mutations.
+	EdgeValidities = "validities"
 	// Table holds the table name of the partycontactmechanism in the database.
 	Table = "party_contact_mechanisms"
 	// TenantTable is the table that holds the tenant relation/edge.
@@ -73,6 +71,13 @@ const (
 	CredentialsInverseTable = "user_credentials"
 	// CredentialsColumn is the table column denoting the credentials relation/edge.
 	CredentialsColumn = "party_contact_mechanism_id"
+	// ValiditiesTable is the table that holds the validities relation/edge.
+	ValiditiesTable = "party_contact_mechanism_validities"
+	// ValiditiesInverseTable is the table name for the PartyContactMechanismValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "partycontactmechanismvalidity" package.
+	ValiditiesInverseTable = "party_contact_mechanism_validities"
+	// ValiditiesColumn is the table column denoting the validities relation/edge.
+	ValiditiesColumn = "party_contact_mechanism_id"
 )
 
 // Columns holds all SQL columns for partycontactmechanism fields.
@@ -84,8 +89,6 @@ var Columns = []string{
 	FieldIsPrimary,
 	FieldIsVerified,
 	FieldContactMechanismOrder,
-	FieldStartDate,
-	FieldEndDate,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -155,16 +158,6 @@ func ByContactMechanismOrder(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldContactMechanismOrder, opts...).ToFunc()
 }
 
-// ByStartDate orders the results by the start_date field.
-func ByStartDate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldStartDate, opts...).ToFunc()
-}
-
-// ByEndDate orders the results by the end_date field.
-func ByEndDate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEndDate, opts...).ToFunc()
-}
-
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
@@ -202,6 +195,20 @@ func ByCredentialsField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCredentialsStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByValiditiesCount orders the results by validities count.
+func ByValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newValiditiesStep(), opts...)
+	}
+}
+
+// ByValidities orders the results by validities terms.
+func ByValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -228,5 +235,12 @@ func newCredentialsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CredentialsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, CredentialsTable, CredentialsColumn),
+	)
+}
+func newValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ValiditiesTable, ValiditiesColumn),
 	)
 }

@@ -28,6 +28,8 @@ type Department struct {
 	Name string `json:"name,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
+	// Organizational unit type
+	UnitType department.UnitType `json:"unit_type,omitempty"`
 	// ManagerPartyID holds the value of the "manager_party_id" field.
 	ManagerPartyID *uuid.UUID `json:"manager_party_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -56,9 +58,11 @@ type DepartmentEdges struct {
 	Employees []*Employee `json:"employees,omitempty"`
 	// Assignments holds the value of the assignments edge.
 	Assignments []*EmployeeAssignment `json:"assignments,omitempty"`
+	// GroupAssignments holds the value of the group_assignments edge.
+	GroupAssignments []*DepartmentGroupAssignment `json:"group_assignments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -121,6 +125,15 @@ func (e DepartmentEdges) AssignmentsOrErr() ([]*EmployeeAssignment, error) {
 	return nil, &NotLoadedError{edge: "assignments"}
 }
 
+// GroupAssignmentsOrErr returns the GroupAssignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e DepartmentEdges) GroupAssignmentsOrErr() ([]*DepartmentGroupAssignment, error) {
+	if e.loadedTypes[6] {
+		return e.GroupAssignments, nil
+	}
+	return nil, &NotLoadedError{edge: "group_assignments"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Department) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -128,7 +141,7 @@ func (*Department) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case department.FieldParentDepartmentID, department.FieldManagerPartyID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case department.FieldName, department.FieldCode:
+		case department.FieldName, department.FieldCode, department.FieldUnitType:
 			values[i] = new(sql.NullString)
 		case department.FieldCreatedAt, department.FieldUpdatedAt, department.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -179,6 +192,12 @@ func (_m *Department) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
 				_m.Code = value.String
+			}
+		case department.FieldUnitType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field unit_type", values[i])
+			} else if value.Valid {
+				_m.UnitType = department.UnitType(value.String)
 			}
 		case department.FieldManagerPartyID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -249,6 +268,11 @@ func (_m *Department) QueryAssignments() *EmployeeAssignmentQuery {
 	return NewDepartmentClient(_m.config).QueryAssignments(_m)
 }
 
+// QueryGroupAssignments queries the "group_assignments" edge of the Department entity.
+func (_m *Department) QueryGroupAssignments() *DepartmentGroupAssignmentQuery {
+	return NewDepartmentClient(_m.config).QueryGroupAssignments(_m)
+}
+
 // Update returns a builder for updating this Department.
 // Note that you need to call Department.Unwrap() before calling this method if this Department
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -285,6 +309,9 @@ func (_m *Department) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("code=")
 	builder.WriteString(_m.Code)
+	builder.WriteString(", ")
+	builder.WriteString("unit_type=")
+	builder.WriteString(fmt.Sprintf("%v", _m.UnitType))
 	builder.WriteString(", ")
 	if v := _m.ManagerPartyID; v != nil {
 		builder.WriteString("manager_party_id=")

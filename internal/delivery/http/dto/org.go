@@ -42,6 +42,7 @@ type CreateDepartmentRequest struct {
 	ParentDepartmentID *string `json:"parent_department_id,omitempty"`
 	Name               string  `json:"name" binding:"required"`
 	Code               string  `json:"code" binding:"required"`
+	UnitType           string  `json:"unit_type,omitempty" binding:"omitempty,oneof=DIVISION BRANCH OFFICE DEPARTMENT"`
 	ManagerPartyID     *string `json:"manager_party_id,omitempty"`
 }
 
@@ -51,9 +52,29 @@ type DepartmentResponse struct {
 	ParentDepartmentID *string   `json:"parent_department_id,omitempty"`
 	Name               string    `json:"name"`
 	Code               string    `json:"code"`
+	UnitType           string    `json:"unit_type"`
 	ManagerPartyID     *string   `json:"manager_party_id,omitempty"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
+}
+
+type CreateCorporateGroupRequest struct {
+	Name        string `json:"name" binding:"required"`
+	Description string `json:"description,omitempty"`
+}
+
+type CorporateGroupResponse struct {
+	ID          string     `json:"id"`
+	TenantID    string     `json:"tenant_id"`
+	Name        string     `json:"name"`
+	Description *string    `json:"description,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
+}
+
+type AssignDepartmentToGroupRequest struct {
+	CorporateGroupID string `json:"corporate_group_id" binding:"required"`
 }
 
 type CreateEmployeeRequest struct {
@@ -95,6 +116,10 @@ type DepartmentListEnvelope struct {
 	Data []DepartmentResponse `json:"data"`
 }
 
+type CorporateGroupEnvelope struct {
+	Data CorporateGroupResponse `json:"data"`
+}
+
 type EmployeeEnvelope struct {
 	Data EmployeeResponse `json:"data"`
 }
@@ -131,8 +156,20 @@ func NewDepartmentResponse(department *domain.Department) DepartmentResponse {
 		ID: department.ID.String(), TenantID: department.TenantID.String(),
 		ParentDepartmentID: uuidPtr(department.ParentDepartmentID),
 		Name:               department.Name, Code: department.Code,
+		UnitType:       string(department.UnitType),
 		ManagerPartyID: uuidPtr(department.ManagerPartyID),
 		CreatedAt:      department.CreatedAt, UpdatedAt: department.UpdatedAt,
+	}
+}
+
+func NewCorporateGroupResponse(group *domain.CorporateGroup) CorporateGroupResponse {
+	if group == nil {
+		return CorporateGroupResponse{}
+	}
+	return CorporateGroupResponse{
+		ID: group.ID.String(), TenantID: group.TenantID.String(),
+		Name: group.Name, Description: group.Description,
+		CreatedAt: group.CreatedAt, UpdatedAt: group.UpdatedAt, DeletedAt: group.DeletedAt,
 	}
 }
 

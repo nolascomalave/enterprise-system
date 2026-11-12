@@ -340,17 +340,26 @@ func TestAddressHasOnePrimaryUniqueIndex(t *testing.T) {
 	assert.True(t, found, "addresses debe tener unicidad parcial de is_primary")
 }
 
-func TestPartyContactMechanismActiveUniqueIndex(t *testing.T) {
-	var found bool
-	for _, idx := range (PartyContactMechanism{}).Indexes() {
+func TestPartyContactMechanismValidityPartials(t *testing.T) {
+	var primary, open bool
+	for _, idx := range (PartyContactMechanismValidity{}).Indexes() {
 		if !idx.Descriptor().Unique {
 			continue
 		}
 		for _, a := range idx.Descriptor().Annotations {
-			if ant, ok := a.(*entsql.IndexAnnotation); ok && strings.Contains(ant.Where, "end_date IS NULL") {
-				found = true
+			ant, ok := a.(*entsql.IndexAnnotation)
+			if !ok {
+				continue
+			}
+			if strings.Contains(ant.Where, "is_primary AND end_date IS NULL") {
+				primary = true
+			}
+			if strings.Contains(ant.Where, "end_date IS NULL") &&
+				!strings.Contains(ant.Where, "is_primary") {
+				open = true
 			}
 		}
 	}
-	assert.True(t, found, "party_contact_mechanisms debe tener unicidad parcial de contacto activo")
+	assert.True(t, primary, "debe existir un único contacto primario vigente por party/tipo")
+	assert.True(t, open, "debe existir una única vigencia abierta por contacto")
 }

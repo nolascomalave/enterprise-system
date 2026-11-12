@@ -87,16 +87,6 @@ func ContactMechanismOrder(v int) predicate.PartyContactMechanism {
 	return predicate.PartyContactMechanism(sql.FieldEQ(FieldContactMechanismOrder, v))
 }
 
-// StartDate applies equality check predicate on the "start_date" field. It's identical to StartDateEQ.
-func StartDate(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldEQ(FieldStartDate, v))
-}
-
-// EndDate applies equality check predicate on the "end_date" field. It's identical to EndDateEQ.
-func EndDate(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldEQ(FieldEndDate, v))
-}
-
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.PartyContactMechanism {
 	return predicate.PartyContactMechanism(sql.FieldEQ(FieldCreatedAt, v))
@@ -225,96 +215,6 @@ func ContactMechanismOrderLT(v int) predicate.PartyContactMechanism {
 // ContactMechanismOrderLTE applies the LTE predicate on the "contact_mechanism_order" field.
 func ContactMechanismOrderLTE(v int) predicate.PartyContactMechanism {
 	return predicate.PartyContactMechanism(sql.FieldLTE(FieldContactMechanismOrder, v))
-}
-
-// StartDateEQ applies the EQ predicate on the "start_date" field.
-func StartDateEQ(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldEQ(FieldStartDate, v))
-}
-
-// StartDateNEQ applies the NEQ predicate on the "start_date" field.
-func StartDateNEQ(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldNEQ(FieldStartDate, v))
-}
-
-// StartDateIn applies the In predicate on the "start_date" field.
-func StartDateIn(vs ...time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldIn(FieldStartDate, vs...))
-}
-
-// StartDateNotIn applies the NotIn predicate on the "start_date" field.
-func StartDateNotIn(vs ...time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldNotIn(FieldStartDate, vs...))
-}
-
-// StartDateGT applies the GT predicate on the "start_date" field.
-func StartDateGT(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldGT(FieldStartDate, v))
-}
-
-// StartDateGTE applies the GTE predicate on the "start_date" field.
-func StartDateGTE(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldGTE(FieldStartDate, v))
-}
-
-// StartDateLT applies the LT predicate on the "start_date" field.
-func StartDateLT(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldLT(FieldStartDate, v))
-}
-
-// StartDateLTE applies the LTE predicate on the "start_date" field.
-func StartDateLTE(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldLTE(FieldStartDate, v))
-}
-
-// EndDateEQ applies the EQ predicate on the "end_date" field.
-func EndDateEQ(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldEQ(FieldEndDate, v))
-}
-
-// EndDateNEQ applies the NEQ predicate on the "end_date" field.
-func EndDateNEQ(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldNEQ(FieldEndDate, v))
-}
-
-// EndDateIn applies the In predicate on the "end_date" field.
-func EndDateIn(vs ...time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldIn(FieldEndDate, vs...))
-}
-
-// EndDateNotIn applies the NotIn predicate on the "end_date" field.
-func EndDateNotIn(vs ...time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldNotIn(FieldEndDate, vs...))
-}
-
-// EndDateGT applies the GT predicate on the "end_date" field.
-func EndDateGT(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldGT(FieldEndDate, v))
-}
-
-// EndDateGTE applies the GTE predicate on the "end_date" field.
-func EndDateGTE(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldGTE(FieldEndDate, v))
-}
-
-// EndDateLT applies the LT predicate on the "end_date" field.
-func EndDateLT(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldLT(FieldEndDate, v))
-}
-
-// EndDateLTE applies the LTE predicate on the "end_date" field.
-func EndDateLTE(v time.Time) predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldLTE(FieldEndDate, v))
-}
-
-// EndDateIsNil applies the IsNil predicate on the "end_date" field.
-func EndDateIsNil() predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldIsNull(FieldEndDate))
-}
-
-// EndDateNotNil applies the NotNil predicate on the "end_date" field.
-func EndDateNotNil() predicate.PartyContactMechanism {
-	return predicate.PartyContactMechanism(sql.FieldNotNull(FieldEndDate))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -505,6 +405,35 @@ func HasCredentialsWith(preds ...predicate.UserCredentials) predicate.PartyConta
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.UserCredentials
 		step.Edge.Schema = schemaConfig.UserCredentials
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasValidities applies the HasEdge predicate on the "validities" edge.
+func HasValidities() predicate.PartyContactMechanism {
+	return predicate.PartyContactMechanism(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ValiditiesTable, ValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyContactMechanismValidity
+		step.Edge.Schema = schemaConfig.PartyContactMechanismValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasValiditiesWith applies the HasEdge predicate on the "validities" edge with a given conditions (other predicates).
+func HasValiditiesWith(preds ...predicate.PartyContactMechanismValidity) predicate.PartyContactMechanism {
+	return predicate.PartyContactMechanism(func(s *sql.Selector) {
+		step := newValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyContactMechanismValidity
+		step.Edge.Schema = schemaConfig.PartyContactMechanismValidity
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

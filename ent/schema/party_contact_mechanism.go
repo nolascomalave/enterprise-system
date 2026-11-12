@@ -40,10 +40,6 @@ func (PartyContactMechanism) Fields() []ent.Field {
 			Default(false),
 		field.Int("contact_mechanism_order").
 			NonNegative(),
-		field.Time("start_date"),
-		field.Time("end_date").
-			Optional().
-			Nillable(),
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable().
@@ -75,14 +71,14 @@ func (PartyContactMechanism) Edges() []ent.Edge {
 		edge.To("credentials", UserCredentials.Type).
 			Unique().
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("validities", PartyContactMechanismValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 
 func (PartyContactMechanism) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("tenant_id", "party_id", "contact_mechanism_order"),
-		index.Fields("tenant_id", "contact_mechanism_id").
-			Unique().
-			Annotations(entsql.IndexWhere("end_date IS NULL")),
+		index.Fields("tenant_id", "contact_mechanism_id"),
 	}
 }

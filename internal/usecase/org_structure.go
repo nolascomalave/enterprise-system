@@ -197,6 +197,7 @@ type CreateDepartmentInput struct {
 	ParentDepartmentID *uuid.UUID
 	Name               string
 	Code               string
+	UnitType           domain.DepartmentUnitType
 	ManagerPartyID     *uuid.UUID
 }
 
@@ -209,8 +210,12 @@ type UpdateDepartmentInput struct {
 }
 
 func (s *OrgStructure) CreateDepartment(ctx context.Context, in CreateDepartmentInput) (*domain.Department, error) {
+	unitType := in.UnitType
+	if unitType == "" {
+		unitType = domain.DepartmentUnitTypeDepartment
+	}
 	entity, err := domain.NewDepartment(in.TenantID, in.ParentDepartmentID, in.Name, in.Code,
-		in.ManagerPartyID, s.now())
+		unitType, in.ManagerPartyID, s.now())
 	if err != nil {
 		return nil, err
 	}
@@ -267,6 +272,61 @@ func (s *OrgStructure) DeleteDepartment(ctx context.Context, id uuid.UUID) error
 		}
 		if err := s.repo.UpdateDepartment(ctx, entity); err != nil {
 			return fmt.Errorf("delete department: %w", err)
+		}
+		return nil
+	})
+}
+
+type CreateCorporateGroupInput struct {
+	TenantID    uuid.UUID
+	Name        string
+	Description string
+}
+
+type AssignDepartmentToGroupInput struct {
+	TenantID         uuid.UUID
+	DepartmentID     uuid.UUID
+	CorporateGroupID uuid.UUID
+}
+
+func (s *OrgStructure) CreateCorporateGroup(ctx context.Context, in CreateCorporateGroupInput) (*domain.CorporateGroup, error) {
+	group, err := domain.NewCorporateGroup(in.TenantID, in.Name, in.Description, s.now())
+	if err != nil {
+		return nil, err
+	}
+	if err := s.withinTx(ctx, func(ctx context.Context) error {
+		return s.repo.CreateCorporateGroup(ctx, group)
+	}); err != nil {
+		return nil, fmt.Errorf("create corporate group: %w", err)
+	}
+	return group, nil
+}
+
+// AssignDepartmentToGroup verifies both entities belong to the tenant before
+// creating the link. RLS already hides other tenants' rows; the explicit
+// checks are defense in depth and keep the use case safe with any repository
+// implementation.
+func (s *OrgStructure) AssignDepartmentToGroup(ctx context.Context, in AssignDepartmentToGroupInput) error {
+	if in.TenantID == uuid.Nil || in.DepartmentID == uuid.Nil || in.CorporateGroupID == uuid.Nil {
+		return fmt.Errorf("%w: tenant_id, department_id and corporate_group_id are required", domain.ErrInvalidCorporateGroup)
+	}
+	return s.withinTx(ctx, func(ctx context.Context) error {
+		department, err := s.repo.GetDepartment(ctx, in.DepartmentID)
+		if err != nil {
+			return fmt.Errorf("get department: %w", err)
+		}
+		if department.TenantID != in.TenantID {
+			return domain.ErrDepartmentTenantMismatch
+		}
+		group, err := s.repo.GetCorporateGroup(ctx, in.CorporateGroupID)
+		if err != nil {
+			return fmt.Errorf("get corporate group: %w", err)
+		}
+		if group.TenantID != in.TenantID {
+			return domain.ErrCorporateGroupTenantMismatch
+		}
+		if err := s.repo.AssignDepartmentToGroup(ctx, in.TenantID, in.DepartmentID, in.CorporateGroupID); err != nil {
+			return fmt.Errorf("assign department to group: %w", err)
 		}
 		return nil
 	})

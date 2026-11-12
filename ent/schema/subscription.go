@@ -89,6 +89,16 @@ func (Subscription) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("attached_documents", AttachedDocument.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("corporate_groups", CorporateGroup.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("department_group_assignments", DepartmentGroupAssignment.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("party_names", PartyName.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("party_name_validities", PartyNameValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("party_contact_mechanism_validities", PartyContactMechanismValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

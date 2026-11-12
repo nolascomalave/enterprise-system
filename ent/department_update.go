@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/internal"
@@ -91,6 +92,20 @@ func (_u *DepartmentUpdate) SetCode(v string) *DepartmentUpdate {
 func (_u *DepartmentUpdate) SetNillableCode(v *string) *DepartmentUpdate {
 	if v != nil {
 		_u.SetCode(*v)
+	}
+	return _u
+}
+
+// SetUnitType sets the "unit_type" field.
+func (_u *DepartmentUpdate) SetUnitType(v department.UnitType) *DepartmentUpdate {
+	_u.mutation.SetUnitType(v)
+	return _u
+}
+
+// SetNillableUnitType sets the "unit_type" field if the given value is not nil.
+func (_u *DepartmentUpdate) SetNillableUnitType(v *department.UnitType) *DepartmentUpdate {
+	if v != nil {
+		_u.SetUnitType(*v)
 	}
 	return _u
 }
@@ -229,6 +244,21 @@ func (_u *DepartmentUpdate) AddAssignments(v ...*EmployeeAssignment) *Department
 	return _u.AddAssignmentIDs(ids...)
 }
 
+// AddGroupAssignmentIDs adds the "group_assignments" edge to the DepartmentGroupAssignment entity by IDs.
+func (_u *DepartmentUpdate) AddGroupAssignmentIDs(ids ...uuid.UUID) *DepartmentUpdate {
+	_u.mutation.AddGroupAssignmentIDs(ids...)
+	return _u
+}
+
+// AddGroupAssignments adds the "group_assignments" edges to the DepartmentGroupAssignment entity.
+func (_u *DepartmentUpdate) AddGroupAssignments(v ...*DepartmentGroupAssignment) *DepartmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddGroupAssignmentIDs(ids...)
+}
+
 // Mutation returns the DepartmentMutation object of the builder.
 func (_u *DepartmentUpdate) Mutation() *DepartmentMutation {
 	return _u.mutation
@@ -315,6 +345,27 @@ func (_u *DepartmentUpdate) RemoveAssignments(v ...*EmployeeAssignment) *Departm
 	return _u.RemoveAssignmentIDs(ids...)
 }
 
+// ClearGroupAssignments clears all "group_assignments" edges to the DepartmentGroupAssignment entity.
+func (_u *DepartmentUpdate) ClearGroupAssignments() *DepartmentUpdate {
+	_u.mutation.ClearGroupAssignments()
+	return _u
+}
+
+// RemoveGroupAssignmentIDs removes the "group_assignments" edge to DepartmentGroupAssignment entities by IDs.
+func (_u *DepartmentUpdate) RemoveGroupAssignmentIDs(ids ...uuid.UUID) *DepartmentUpdate {
+	_u.mutation.RemoveGroupAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveGroupAssignments removes "group_assignments" edges to DepartmentGroupAssignment entities.
+func (_u *DepartmentUpdate) RemoveGroupAssignments(v ...*DepartmentGroupAssignment) *DepartmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveGroupAssignmentIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *DepartmentUpdate) Save(ctx context.Context) (int, error) {
 	_u.defaults()
@@ -363,6 +414,11 @@ func (_u *DepartmentUpdate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Department.code": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.UnitType(); ok {
+		if err := department.UnitTypeValidator(v); err != nil {
+			return &ValidationError{Name: "unit_type", err: fmt.Errorf(`ent: validator failed for field "Department.unit_type": %w`, err)}
+		}
+	}
 	if _u.mutation.TenantCleared() && len(_u.mutation.TenantIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Department.tenant"`)
 	}
@@ -386,6 +442,9 @@ func (_u *DepartmentUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(department.FieldCode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.UnitType(); ok {
+		_spec.SetField(department.FieldUnitType, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(department.FieldUpdatedAt, field.TypeTime, value)
@@ -633,6 +692,54 @@ func (_u *DepartmentUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.GroupAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.GroupAssignmentsTable,
+			Columns: []string{department.GroupAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentgroupassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentGroupAssignment
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedGroupAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.GroupAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.GroupAssignmentsTable,
+			Columns: []string{department.GroupAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentgroupassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentGroupAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.GroupAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.GroupAssignmentsTable,
+			Columns: []string{department.GroupAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentgroupassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentGroupAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Department
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -713,6 +820,20 @@ func (_u *DepartmentUpdateOne) SetCode(v string) *DepartmentUpdateOne {
 func (_u *DepartmentUpdateOne) SetNillableCode(v *string) *DepartmentUpdateOne {
 	if v != nil {
 		_u.SetCode(*v)
+	}
+	return _u
+}
+
+// SetUnitType sets the "unit_type" field.
+func (_u *DepartmentUpdateOne) SetUnitType(v department.UnitType) *DepartmentUpdateOne {
+	_u.mutation.SetUnitType(v)
+	return _u
+}
+
+// SetNillableUnitType sets the "unit_type" field if the given value is not nil.
+func (_u *DepartmentUpdateOne) SetNillableUnitType(v *department.UnitType) *DepartmentUpdateOne {
+	if v != nil {
+		_u.SetUnitType(*v)
 	}
 	return _u
 }
@@ -851,6 +972,21 @@ func (_u *DepartmentUpdateOne) AddAssignments(v ...*EmployeeAssignment) *Departm
 	return _u.AddAssignmentIDs(ids...)
 }
 
+// AddGroupAssignmentIDs adds the "group_assignments" edge to the DepartmentGroupAssignment entity by IDs.
+func (_u *DepartmentUpdateOne) AddGroupAssignmentIDs(ids ...uuid.UUID) *DepartmentUpdateOne {
+	_u.mutation.AddGroupAssignmentIDs(ids...)
+	return _u
+}
+
+// AddGroupAssignments adds the "group_assignments" edges to the DepartmentGroupAssignment entity.
+func (_u *DepartmentUpdateOne) AddGroupAssignments(v ...*DepartmentGroupAssignment) *DepartmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddGroupAssignmentIDs(ids...)
+}
+
 // Mutation returns the DepartmentMutation object of the builder.
 func (_u *DepartmentUpdateOne) Mutation() *DepartmentMutation {
 	return _u.mutation
@@ -937,6 +1073,27 @@ func (_u *DepartmentUpdateOne) RemoveAssignments(v ...*EmployeeAssignment) *Depa
 	return _u.RemoveAssignmentIDs(ids...)
 }
 
+// ClearGroupAssignments clears all "group_assignments" edges to the DepartmentGroupAssignment entity.
+func (_u *DepartmentUpdateOne) ClearGroupAssignments() *DepartmentUpdateOne {
+	_u.mutation.ClearGroupAssignments()
+	return _u
+}
+
+// RemoveGroupAssignmentIDs removes the "group_assignments" edge to DepartmentGroupAssignment entities by IDs.
+func (_u *DepartmentUpdateOne) RemoveGroupAssignmentIDs(ids ...uuid.UUID) *DepartmentUpdateOne {
+	_u.mutation.RemoveGroupAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveGroupAssignments removes "group_assignments" edges to DepartmentGroupAssignment entities.
+func (_u *DepartmentUpdateOne) RemoveGroupAssignments(v ...*DepartmentGroupAssignment) *DepartmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveGroupAssignmentIDs(ids...)
+}
+
 // Where appends a list predicates to the DepartmentUpdate builder.
 func (_u *DepartmentUpdateOne) Where(ps ...predicate.Department) *DepartmentUpdateOne {
 	_u.mutation.Where(ps...)
@@ -998,6 +1155,11 @@ func (_u *DepartmentUpdateOne) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Department.code": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.UnitType(); ok {
+		if err := department.UnitTypeValidator(v); err != nil {
+			return &ValidationError{Name: "unit_type", err: fmt.Errorf(`ent: validator failed for field "Department.unit_type": %w`, err)}
+		}
+	}
 	if _u.mutation.TenantCleared() && len(_u.mutation.TenantIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Department.tenant"`)
 	}
@@ -1038,6 +1200,9 @@ func (_u *DepartmentUpdateOne) sqlSave(ctx context.Context) (_node *Department, 
 	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(department.FieldCode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.UnitType(); ok {
+		_spec.SetField(department.FieldUnitType, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(department.FieldUpdatedAt, field.TypeTime, value)
@@ -1280,6 +1445,54 @@ func (_u *DepartmentUpdateOne) sqlSave(ctx context.Context) (_node *Department, 
 			},
 		}
 		edge.Schema = _u.schemaConfig.EmployeeAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.GroupAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.GroupAssignmentsTable,
+			Columns: []string{department.GroupAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentgroupassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentGroupAssignment
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedGroupAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.GroupAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.GroupAssignmentsTable,
+			Columns: []string{department.GroupAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentgroupassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentGroupAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.GroupAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.GroupAssignmentsTable,
+			Columns: []string{department.GroupAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentgroupassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentGroupAssignment
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

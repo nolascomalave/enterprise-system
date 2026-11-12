@@ -8,7 +8,10 @@ import (
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
+	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/ent/partymergelog"
+	"enterprise-system/ent/partyname"
+	"enterprise-system/ent/partynamevalidity"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -209,6 +212,36 @@ func (_c *PartyCreate) AddPartyContactMechanisms(v ...*PartyContactMechanism) *P
 	return _c.AddPartyContactMechanismIDs(ids...)
 }
 
+// AddNameIDs adds the "names" edge to the PartyName entity by IDs.
+func (_c *PartyCreate) AddNameIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddNameIDs(ids...)
+	return _c
+}
+
+// AddNames adds the "names" edges to the PartyName entity.
+func (_c *PartyCreate) AddNames(v ...*PartyName) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNameIDs(ids...)
+}
+
+// AddNameValidityIDs adds the "name_validities" edge to the PartyNameValidity entity by IDs.
+func (_c *PartyCreate) AddNameValidityIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddNameValidityIDs(ids...)
+	return _c
+}
+
+// AddNameValidities adds the "name_validities" edges to the PartyNameValidity entity.
+func (_c *PartyCreate) AddNameValidities(v ...*PartyNameValidity) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNameValidityIDs(ids...)
+}
+
 // AddAddressIDs adds the "addresses" edge to the Address entity by IDs.
 func (_c *PartyCreate) AddAddressIDs(ids ...uuid.UUID) *PartyCreate {
 	_c.mutation.AddAddressIDs(ids...)
@@ -271,6 +304,51 @@ func (_c *PartyCreate) AddPasswordResetTokens(v ...*PasswordResetToken) *PartyCr
 		ids[i] = v[i].ID
 	}
 	return _c.AddPasswordResetTokenIDs(ids...)
+}
+
+// AddPartyNameIDs adds the "party_names" edge to the PartyName entity by IDs.
+func (_c *PartyCreate) AddPartyNameIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddPartyNameIDs(ids...)
+	return _c
+}
+
+// AddPartyNames adds the "party_names" edges to the PartyName entity.
+func (_c *PartyCreate) AddPartyNames(v ...*PartyName) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartyNameIDs(ids...)
+}
+
+// AddPartyNameValidityIDs adds the "party_name_validities" edge to the PartyNameValidity entity by IDs.
+func (_c *PartyCreate) AddPartyNameValidityIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddPartyNameValidityIDs(ids...)
+	return _c
+}
+
+// AddPartyNameValidities adds the "party_name_validities" edges to the PartyNameValidity entity.
+func (_c *PartyCreate) AddPartyNameValidities(v ...*PartyNameValidity) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartyNameValidityIDs(ids...)
+}
+
+// AddPartyContactMechanismValidityIDs adds the "party_contact_mechanism_validities" edge to the PartyContactMechanismValidity entity by IDs.
+func (_c *PartyCreate) AddPartyContactMechanismValidityIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddPartyContactMechanismValidityIDs(ids...)
+	return _c
+}
+
+// AddPartyContactMechanismValidities adds the "party_contact_mechanism_validities" edges to the PartyContactMechanismValidity entity.
+func (_c *PartyCreate) AddPartyContactMechanismValidities(v ...*PartyContactMechanismValidity) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartyContactMechanismValidityIDs(ids...)
 }
 
 // AddMergedPartyIDs adds the "merged_parties" edge to the Party entity by IDs.
@@ -555,6 +633,40 @@ func (_c *PartyCreate) createSpec() (*Party, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.NamesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.NamesTable,
+			Columns: []string{party.NamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyname.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyName
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NameValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.NameValiditiesTable,
+			Columns: []string{party.NameValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynamevalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyNameValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.AddressesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -618,6 +730,57 @@ func (_c *PartyCreate) createSpec() (*Party, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.PasswordResetToken
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartyNamesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.PartyNamesTable,
+			Columns: []string{party.PartyNamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyname.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyName
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartyNameValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.PartyNameValiditiesTable,
+			Columns: []string{party.PartyNameValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynamevalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyNameValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartyContactMechanismValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.PartyContactMechanismValiditiesTable,
+			Columns: []string{party.PartyContactMechanismValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyContactMechanismValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

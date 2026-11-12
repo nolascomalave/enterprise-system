@@ -71,9 +71,19 @@ type SubscriptionEdges struct {
 	PasswordResetTokens []*PasswordResetToken `json:"password_reset_tokens,omitempty"`
 	// AttachedDocuments holds the value of the attached_documents edge.
 	AttachedDocuments []*AttachedDocument `json:"attached_documents,omitempty"`
+	// CorporateGroups holds the value of the corporate_groups edge.
+	CorporateGroups []*CorporateGroup `json:"corporate_groups,omitempty"`
+	// DepartmentGroupAssignments holds the value of the department_group_assignments edge.
+	DepartmentGroupAssignments []*DepartmentGroupAssignment `json:"department_group_assignments,omitempty"`
+	// PartyNames holds the value of the party_names edge.
+	PartyNames []*PartyName `json:"party_names,omitempty"`
+	// PartyNameValidities holds the value of the party_name_validities edge.
+	PartyNameValidities []*PartyNameValidity `json:"party_name_validities,omitempty"`
+	// PartyContactMechanismValidities holds the value of the party_contact_mechanism_validities edge.
+	PartyContactMechanismValidities []*PartyContactMechanismValidity `json:"party_contact_mechanism_validities,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [16]bool
+	loadedTypes [21]bool
 }
 
 // PartiesOrErr returns the Parties value or an error if the edge
@@ -218,6 +228,51 @@ func (e SubscriptionEdges) AttachedDocumentsOrErr() ([]*AttachedDocument, error)
 		return e.AttachedDocuments, nil
 	}
 	return nil, &NotLoadedError{edge: "attached_documents"}
+}
+
+// CorporateGroupsOrErr returns the CorporateGroups value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) CorporateGroupsOrErr() ([]*CorporateGroup, error) {
+	if e.loadedTypes[16] {
+		return e.CorporateGroups, nil
+	}
+	return nil, &NotLoadedError{edge: "corporate_groups"}
+}
+
+// DepartmentGroupAssignmentsOrErr returns the DepartmentGroupAssignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) DepartmentGroupAssignmentsOrErr() ([]*DepartmentGroupAssignment, error) {
+	if e.loadedTypes[17] {
+		return e.DepartmentGroupAssignments, nil
+	}
+	return nil, &NotLoadedError{edge: "department_group_assignments"}
+}
+
+// PartyNamesOrErr returns the PartyNames value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) PartyNamesOrErr() ([]*PartyName, error) {
+	if e.loadedTypes[18] {
+		return e.PartyNames, nil
+	}
+	return nil, &NotLoadedError{edge: "party_names"}
+}
+
+// PartyNameValiditiesOrErr returns the PartyNameValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) PartyNameValiditiesOrErr() ([]*PartyNameValidity, error) {
+	if e.loadedTypes[19] {
+		return e.PartyNameValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "party_name_validities"}
+}
+
+// PartyContactMechanismValiditiesOrErr returns the PartyContactMechanismValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) PartyContactMechanismValiditiesOrErr() ([]*PartyContactMechanismValidity, error) {
+	if e.loadedTypes[20] {
+		return e.PartyContactMechanismValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "party_contact_mechanism_validities"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -380,6 +435,31 @@ func (_m *Subscription) QueryPasswordResetTokens() *PasswordResetTokenQuery {
 // QueryAttachedDocuments queries the "attached_documents" edge of the Subscription entity.
 func (_m *Subscription) QueryAttachedDocuments() *AttachedDocumentQuery {
 	return NewSubscriptionClient(_m.config).QueryAttachedDocuments(_m)
+}
+
+// QueryCorporateGroups queries the "corporate_groups" edge of the Subscription entity.
+func (_m *Subscription) QueryCorporateGroups() *CorporateGroupQuery {
+	return NewSubscriptionClient(_m.config).QueryCorporateGroups(_m)
+}
+
+// QueryDepartmentGroupAssignments queries the "department_group_assignments" edge of the Subscription entity.
+func (_m *Subscription) QueryDepartmentGroupAssignments() *DepartmentGroupAssignmentQuery {
+	return NewSubscriptionClient(_m.config).QueryDepartmentGroupAssignments(_m)
+}
+
+// QueryPartyNames queries the "party_names" edge of the Subscription entity.
+func (_m *Subscription) QueryPartyNames() *PartyNameQuery {
+	return NewSubscriptionClient(_m.config).QueryPartyNames(_m)
+}
+
+// QueryPartyNameValidities queries the "party_name_validities" edge of the Subscription entity.
+func (_m *Subscription) QueryPartyNameValidities() *PartyNameValidityQuery {
+	return NewSubscriptionClient(_m.config).QueryPartyNameValidities(_m)
+}
+
+// QueryPartyContactMechanismValidities queries the "party_contact_mechanism_validities" edge of the Subscription entity.
+func (_m *Subscription) QueryPartyContactMechanismValidities() *PartyContactMechanismValidityQuery {
+	return NewSubscriptionClient(_m.config).QueryPartyContactMechanismValidities(_m)
 }
 
 // Update returns a builder for updating this Subscription.

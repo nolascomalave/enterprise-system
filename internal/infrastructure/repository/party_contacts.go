@@ -3,12 +3,14 @@ package repository
 import (
 	"context"
 	"errors"
+	"sort"
 	"time"
 
 	"enterprise-system/ent"
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/partycontactmechanism"
+	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/internal/domain"
 	"github.com/google/uuid"
 )
@@ -89,13 +91,35 @@ func (r *PartyContactRepository) CreatePartyContactMechanism(ctx context.Context
 			SetIsPrimary(relation.IsPrimary).
 			SetIsVerified(relation.IsVerified).
 			SetContactMechanismOrder(relation.ContactMechanismOrder).
+			SetCreatedAt(relation.CreatedAt).
+			SetUpdatedAt(relation.UpdatedAt)
+		if _, err := create.Save(ctx); err != nil {
+			return repoError(err)
+		}
+
+		contact, err := client.ContactMechanism.Get(ctx, relation.ContactMechanismID)
+		if err != nil {
+			return repoError(err)
+		}
+		validityID, err := uuid.NewV7()
+		if err != nil {
+			return repoError(err)
+		}
+		validity := client.PartyContactMechanismValidity.Create().
+			SetID(validityID).
+			SetTenantID(relation.TenantID).
+			SetPartyContactMechanismID(relation.ID).
+			SetPartyID(relation.PartyID).
+			SetContactMechanismID(relation.ContactMechanismID).
+			SetContactType(partycontactmechanismvalidity.ContactType(contact.Type)).
+			SetIsPrimary(relation.IsPrimary).
 			SetStartDate(relation.StartDate).
 			SetCreatedAt(relation.CreatedAt).
 			SetUpdatedAt(relation.UpdatedAt)
 		if relation.EndDate != nil {
-			create.SetEndDate(*relation.EndDate)
+			validity.SetEndDate(*relation.EndDate)
 		}
-		_, err := create.Save(ctx)
+		_, err = validity.Save(ctx)
 		return repoError(err)
 	})
 }
@@ -106,12 +130,16 @@ func (r *PartyContactRepository) GetPartyContact(ctx context.Context, tenantID, 
 		row, err := client.PartyContactMechanism.Query().
 			Where(partycontactmechanism.ID(relationID), partycontactmechanism.TenantID(tenantID)).
 			WithContactMechanism().
+			WithValidities(func(q *ent.PartyContactMechanismValidityQuery) {
+				q.Where(partycontactmechanismvalidity.EndDateIsNil()).
+					Order(ent.Desc(partycontactmechanismvalidity.FieldStartDate))
+			}).
 			Only(ctx)
 		if err != nil {
 			return repoError(err)
 		}
 		result = &domain.PartyContact{
-			Relation: toDomainPartyContactMechanism(row),
+			Relation: toDomainPartyContactMechanism(row, firstValidity(row.Edges.Validities)),
 			Contact:  toDomainContactMechanism(row.Edges.ContactMechanism),
 		}
 		return nil
@@ -129,13 +157,15 @@ func (r *PartyContactRepository) ListPartyContacts(ctx context.Context, tenantID
 			Where(
 				partycontactmechanism.TenantID(tenantID),
 				partycontactmechanism.PartyID(partyID),
-				partycontactmechanism.EndDateIsNil(),
+				partycontactmechanism.HasValiditiesWith(
+					partycontactmechanismvalidity.EndDateIsNil(),
+				),
 			).
 			WithContactMechanism().
-			Order(
-				ent.Asc(partycontactmechanism.FieldContactMechanismOrder),
-				ent.Asc(partycontactmechanism.FieldStartDate),
-			).
+			WithValidities(func(q *ent.PartyContactMechanismValidityQuery) {
+				q.Where(partycontactmechanismvalidity.EndDateIsNil())
+			}).
+			Order(ent.Asc(partycontactmechanism.FieldContactMechanismOrder)).
 			All(ctx)
 		if err != nil {
 			return repoError(err)
@@ -143,10 +173,17 @@ func (r *PartyContactRepository) ListPartyContacts(ctx context.Context, tenantID
 		result = make([]*domain.PartyContact, 0, len(rows))
 		for _, row := range rows {
 			result = append(result, &domain.PartyContact{
-				Relation: toDomainPartyContactMechanism(row),
+				Relation: toDomainPartyContactMechanism(row, firstValidity(row.Edges.Validities)),
 				Contact:  toDomainContactMechanism(row.Edges.ContactMechanism),
 			})
 		}
+		sort.SliceStable(result, func(i, j int) bool {
+			left, right := result[i].Relation, result[j].Relation
+			if left.ContactMechanismOrder != right.ContactMechanismOrder {
+				return left.ContactMechanismOrder < right.ContactMechanismOrder
+			}
+			return left.StartDate.Before(right.StartDate)
+		})
 		return nil
 	})
 	return result, err
@@ -161,15 +198,25 @@ func (r *PartyContactRepository) UpdatePartyContactMechanism(ctx context.Context
 			SetIsPrimary(relation.IsPrimary).
 			SetIsVerified(relation.IsVerified).
 			SetContactMechanismOrder(relation.ContactMechanismOrder).
-			SetStartDate(relation.StartDate).
 			SetUpdatedAt(relation.UpdatedAt)
-		if relation.EndDate != nil {
-			update.SetEndDate(*relation.EndDate)
-		} else {
-			update.ClearEndDate()
+		if _, err := update.Save(ctx); err != nil {
+			return repoError(err)
 		}
-		_, err := update.Save(ctx)
-		return repoError(err)
+		if relation.EndDate != nil {
+			_, err := client.PartyContactMechanismValidity.Update().
+				Where(
+					partycontactmechanismvalidity.TenantID(relation.TenantID),
+					partycontactmechanismvalidity.PartyContactMechanismID(relation.ID),
+					partycontactmechanismvalidity.EndDateIsNil(),
+				).
+				SetEndDate(*relation.EndDate).
+				SetUpdatedAt(relation.UpdatedAt).
+				Save(ctx)
+			if err != nil {
+				return repoError(err)
+			}
+		}
+		return nil
 	})
 }
 
@@ -180,15 +227,23 @@ func (r *PartyContactRepository) FindActivePartyContact(ctx context.Context, ten
 			Where(
 				partycontactmechanism.TenantID(tenantID),
 				partycontactmechanism.ContactMechanismID(contactMechanismID),
-				partycontactmechanism.EndDateIsNil(),
-				partycontactmechanism.StartDateLTE(at.UTC()),
+				partycontactmechanism.HasValiditiesWith(
+					partycontactmechanismvalidity.StartDateLTE(at.UTC()),
+					partycontactmechanismvalidity.EndDateIsNil(),
+				),
 			).
+			WithValidities(func(q *ent.PartyContactMechanismValidityQuery) {
+				q.Where(
+					partycontactmechanismvalidity.StartDateLTE(at.UTC()),
+					partycontactmechanismvalidity.EndDateIsNil(),
+				)
+			}).
 			Order(ent.Asc(partycontactmechanism.FieldContactMechanismOrder)).
 			Only(ctx)
 		if err != nil {
 			return repoError(err)
 		}
-		result = toDomainPartyContactMechanism(row)
+		result = toDomainPartyContactMechanism(row, firstValidity(row.Edges.Validities))
 		return nil
 	})
 	if ent.IsNotFound(err) {
@@ -280,12 +335,24 @@ func toDomainContactMechanism(e *ent.ContactMechanism) *domain.ContactMechanism 
 	return &domain.ContactMechanism{ID: e.ID, Type: domain.ContactType(e.Type), Value: e.Value}
 }
 
-func toDomainPartyContactMechanism(e *ent.PartyContactMechanism) *domain.PartyContactMechanism {
-	return &domain.PartyContactMechanism{
+func toDomainPartyContactMechanism(e *ent.PartyContactMechanism, validity *ent.PartyContactMechanismValidity) *domain.PartyContactMechanism {
+	relation := &domain.PartyContactMechanism{
 		ID: e.ID, TenantID: e.TenantID, PartyID: e.PartyID, ContactMechanismID: e.ContactMechanismID,
 		IsPrimary: e.IsPrimary, IsVerified: e.IsVerified, ContactMechanismOrder: e.ContactMechanismOrder,
-		StartDate: e.StartDate, EndDate: e.EndDate, CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt,
+		CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt,
 	}
+	if validity != nil {
+		relation.StartDate = validity.StartDate
+		relation.EndDate = validity.EndDate
+	}
+	return relation
+}
+
+func firstValidity(validities []*ent.PartyContactMechanismValidity) *ent.PartyContactMechanismValidity {
+	if len(validities) == 0 {
+		return nil
+	}
+	return validities[0]
 }
 
 func toDomainAddress(e *ent.Address) *domain.Address {

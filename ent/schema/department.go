@@ -39,6 +39,10 @@ func (Department) Fields() []ent.Field {
 			Annotations(entsql.Annotation{Collation: "unaccent_case_insensitive"}),
 		field.String("code").
 			NotEmpty(),
+		field.Enum("unit_type").
+			Values("DIVISION", "BRANCH", "OFFICE", "DEPARTMENT").
+			Default("DEPARTMENT").
+			Comment("Organizational unit type"),
 		field.UUID("manager_party_id", uuid.UUID{}).
 			Optional().
 			Nillable(),
@@ -76,6 +80,8 @@ func (Department) Edges() []ent.Edge {
 		edge.To("employees", Employee.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("assignments", EmployeeAssignment.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("group_assignments", DepartmentGroupAssignment.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }

@@ -7,7 +7,9 @@ import (
 	"database/sql/driver"
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/attacheddocument"
+	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/internal"
@@ -16,7 +18,10 @@ import (
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
+	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/ent/partymergelog"
+	"enterprise-system/ent/partyname"
+	"enterprise-system/ent/partynamevalidity"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -37,26 +42,31 @@ import (
 // SubscriptionQuery is the builder for querying Subscription entities.
 type SubscriptionQuery struct {
 	config
-	ctx                        *QueryContext
-	order                      []subscription.OrderOption
-	inters                     []Interceptor
-	predicates                 []predicate.Subscription
-	withParties                *PartyQuery
-	withPersonProfiles         *PersonProfileQuery
-	withOrganizationProfiles   *OrganizationProfileQuery
-	withPartyRoles             *PartyRoleQuery
-	withPartyMergeLogs         *PartyMergeLogQuery
-	withJobFamilies            *JobFamilyQuery
-	withJobs                   *JobQuery
-	withEmployees              *EmployeeQuery
-	withDepartments            *DepartmentQuery
-	withEmployeeAssignments    *EmployeeAssignmentQuery
-	withPartyContactMechanisms *PartyContactMechanismQuery
-	withAddresses              *AddressQuery
-	withSessions               *SessionQuery
-	withUserCredentials        *UserCredentialsQuery
-	withPasswordResetTokens    *PasswordResetTokenQuery
-	withAttachedDocuments      *AttachedDocumentQuery
+	ctx                                 *QueryContext
+	order                               []subscription.OrderOption
+	inters                              []Interceptor
+	predicates                          []predicate.Subscription
+	withParties                         *PartyQuery
+	withPersonProfiles                  *PersonProfileQuery
+	withOrganizationProfiles            *OrganizationProfileQuery
+	withPartyRoles                      *PartyRoleQuery
+	withPartyMergeLogs                  *PartyMergeLogQuery
+	withJobFamilies                     *JobFamilyQuery
+	withJobs                            *JobQuery
+	withEmployees                       *EmployeeQuery
+	withDepartments                     *DepartmentQuery
+	withEmployeeAssignments             *EmployeeAssignmentQuery
+	withPartyContactMechanisms          *PartyContactMechanismQuery
+	withAddresses                       *AddressQuery
+	withSessions                        *SessionQuery
+	withUserCredentials                 *UserCredentialsQuery
+	withPasswordResetTokens             *PasswordResetTokenQuery
+	withAttachedDocuments               *AttachedDocumentQuery
+	withCorporateGroups                 *CorporateGroupQuery
+	withDepartmentGroupAssignments      *DepartmentGroupAssignmentQuery
+	withPartyNames                      *PartyNameQuery
+	withPartyNameValidities             *PartyNameValidityQuery
+	withPartyContactMechanismValidities *PartyContactMechanismValidityQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -493,6 +503,131 @@ func (_q *SubscriptionQuery) QueryAttachedDocuments() *AttachedDocumentQuery {
 	return query
 }
 
+// QueryCorporateGroups chains the current query on the "corporate_groups" edge.
+func (_q *SubscriptionQuery) QueryCorporateGroups() *CorporateGroupQuery {
+	query := (&CorporateGroupClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(corporategroup.Table, corporategroup.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.CorporateGroupsTable, subscription.CorporateGroupsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.CorporateGroup
+		step.Edge.Schema = schemaConfig.CorporateGroup
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartmentGroupAssignments chains the current query on the "department_group_assignments" edge.
+func (_q *SubscriptionQuery) QueryDepartmentGroupAssignments() *DepartmentGroupAssignmentQuery {
+	query := (&DepartmentGroupAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(departmentgroupassignment.Table, departmentgroupassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentGroupAssignmentsTable, subscription.DepartmentGroupAssignmentsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentGroupAssignment
+		step.Edge.Schema = schemaConfig.DepartmentGroupAssignment
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPartyNames chains the current query on the "party_names" edge.
+func (_q *SubscriptionQuery) QueryPartyNames() *PartyNameQuery {
+	query := (&PartyNameClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(partyname.Table, partyname.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PartyNamesTable, subscription.PartyNamesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyName
+		step.Edge.Schema = schemaConfig.PartyName
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPartyNameValidities chains the current query on the "party_name_validities" edge.
+func (_q *SubscriptionQuery) QueryPartyNameValidities() *PartyNameValidityQuery {
+	query := (&PartyNameValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(partynamevalidity.Table, partynamevalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PartyNameValiditiesTable, subscription.PartyNameValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyNameValidity
+		step.Edge.Schema = schemaConfig.PartyNameValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPartyContactMechanismValidities chains the current query on the "party_contact_mechanism_validities" edge.
+func (_q *SubscriptionQuery) QueryPartyContactMechanismValidities() *PartyContactMechanismValidityQuery {
+	query := (&PartyContactMechanismValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(partycontactmechanismvalidity.Table, partycontactmechanismvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PartyContactMechanismValiditiesTable, subscription.PartyContactMechanismValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PartyContactMechanismValidity
+		step.Edge.Schema = schemaConfig.PartyContactMechanismValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Subscription entity from the query.
 // Returns a *NotFoundError when no Subscription was found.
 func (_q *SubscriptionQuery) First(ctx context.Context) (*Subscription, error) {
@@ -680,27 +815,32 @@ func (_q *SubscriptionQuery) Clone() *SubscriptionQuery {
 		return nil
 	}
 	return &SubscriptionQuery{
-		config:                     _q.config,
-		ctx:                        _q.ctx.Clone(),
-		order:                      append([]subscription.OrderOption{}, _q.order...),
-		inters:                     append([]Interceptor{}, _q.inters...),
-		predicates:                 append([]predicate.Subscription{}, _q.predicates...),
-		withParties:                _q.withParties.Clone(),
-		withPersonProfiles:         _q.withPersonProfiles.Clone(),
-		withOrganizationProfiles:   _q.withOrganizationProfiles.Clone(),
-		withPartyRoles:             _q.withPartyRoles.Clone(),
-		withPartyMergeLogs:         _q.withPartyMergeLogs.Clone(),
-		withJobFamilies:            _q.withJobFamilies.Clone(),
-		withJobs:                   _q.withJobs.Clone(),
-		withEmployees:              _q.withEmployees.Clone(),
-		withDepartments:            _q.withDepartments.Clone(),
-		withEmployeeAssignments:    _q.withEmployeeAssignments.Clone(),
-		withPartyContactMechanisms: _q.withPartyContactMechanisms.Clone(),
-		withAddresses:              _q.withAddresses.Clone(),
-		withSessions:               _q.withSessions.Clone(),
-		withUserCredentials:        _q.withUserCredentials.Clone(),
-		withPasswordResetTokens:    _q.withPasswordResetTokens.Clone(),
-		withAttachedDocuments:      _q.withAttachedDocuments.Clone(),
+		config:                              _q.config,
+		ctx:                                 _q.ctx.Clone(),
+		order:                               append([]subscription.OrderOption{}, _q.order...),
+		inters:                              append([]Interceptor{}, _q.inters...),
+		predicates:                          append([]predicate.Subscription{}, _q.predicates...),
+		withParties:                         _q.withParties.Clone(),
+		withPersonProfiles:                  _q.withPersonProfiles.Clone(),
+		withOrganizationProfiles:            _q.withOrganizationProfiles.Clone(),
+		withPartyRoles:                      _q.withPartyRoles.Clone(),
+		withPartyMergeLogs:                  _q.withPartyMergeLogs.Clone(),
+		withJobFamilies:                     _q.withJobFamilies.Clone(),
+		withJobs:                            _q.withJobs.Clone(),
+		withEmployees:                       _q.withEmployees.Clone(),
+		withDepartments:                     _q.withDepartments.Clone(),
+		withEmployeeAssignments:             _q.withEmployeeAssignments.Clone(),
+		withPartyContactMechanisms:          _q.withPartyContactMechanisms.Clone(),
+		withAddresses:                       _q.withAddresses.Clone(),
+		withSessions:                        _q.withSessions.Clone(),
+		withUserCredentials:                 _q.withUserCredentials.Clone(),
+		withPasswordResetTokens:             _q.withPasswordResetTokens.Clone(),
+		withAttachedDocuments:               _q.withAttachedDocuments.Clone(),
+		withCorporateGroups:                 _q.withCorporateGroups.Clone(),
+		withDepartmentGroupAssignments:      _q.withDepartmentGroupAssignments.Clone(),
+		withPartyNames:                      _q.withPartyNames.Clone(),
+		withPartyNameValidities:             _q.withPartyNameValidities.Clone(),
+		withPartyContactMechanismValidities: _q.withPartyContactMechanismValidities.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -883,6 +1023,61 @@ func (_q *SubscriptionQuery) WithAttachedDocuments(opts ...func(*AttachedDocumen
 	return _q
 }
 
+// WithCorporateGroups tells the query-builder to eager-load the nodes that are connected to
+// the "corporate_groups" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithCorporateGroups(opts ...func(*CorporateGroupQuery)) *SubscriptionQuery {
+	query := (&CorporateGroupClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCorporateGroups = query
+	return _q
+}
+
+// WithDepartmentGroupAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "department_group_assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithDepartmentGroupAssignments(opts ...func(*DepartmentGroupAssignmentQuery)) *SubscriptionQuery {
+	query := (&DepartmentGroupAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentGroupAssignments = query
+	return _q
+}
+
+// WithPartyNames tells the query-builder to eager-load the nodes that are connected to
+// the "party_names" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithPartyNames(opts ...func(*PartyNameQuery)) *SubscriptionQuery {
+	query := (&PartyNameClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPartyNames = query
+	return _q
+}
+
+// WithPartyNameValidities tells the query-builder to eager-load the nodes that are connected to
+// the "party_name_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithPartyNameValidities(opts ...func(*PartyNameValidityQuery)) *SubscriptionQuery {
+	query := (&PartyNameValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPartyNameValidities = query
+	return _q
+}
+
+// WithPartyContactMechanismValidities tells the query-builder to eager-load the nodes that are connected to
+// the "party_contact_mechanism_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithPartyContactMechanismValidities(opts ...func(*PartyContactMechanismValidityQuery)) *SubscriptionQuery {
+	query := (&PartyContactMechanismValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPartyContactMechanismValidities = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -961,7 +1156,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Subscription{}
 		_spec       = _q.querySpec()
-		loadedTypes = [16]bool{
+		loadedTypes = [21]bool{
 			_q.withParties != nil,
 			_q.withPersonProfiles != nil,
 			_q.withOrganizationProfiles != nil,
@@ -978,6 +1173,11 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withUserCredentials != nil,
 			_q.withPasswordResetTokens != nil,
 			_q.withAttachedDocuments != nil,
+			_q.withCorporateGroups != nil,
+			_q.withDepartmentGroupAssignments != nil,
+			_q.withPartyNames != nil,
+			_q.withPartyNameValidities != nil,
+			_q.withPartyContactMechanismValidities != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1120,6 +1320,47 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Subscription) { n.Edges.AttachedDocuments = []*AttachedDocument{} },
 			func(n *Subscription, e *AttachedDocument) {
 				n.Edges.AttachedDocuments = append(n.Edges.AttachedDocuments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCorporateGroups; query != nil {
+		if err := _q.loadCorporateGroups(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.CorporateGroups = []*CorporateGroup{} },
+			func(n *Subscription, e *CorporateGroup) { n.Edges.CorporateGroups = append(n.Edges.CorporateGroups, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDepartmentGroupAssignments; query != nil {
+		if err := _q.loadDepartmentGroupAssignments(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.DepartmentGroupAssignments = []*DepartmentGroupAssignment{} },
+			func(n *Subscription, e *DepartmentGroupAssignment) {
+				n.Edges.DepartmentGroupAssignments = append(n.Edges.DepartmentGroupAssignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPartyNames; query != nil {
+		if err := _q.loadPartyNames(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.PartyNames = []*PartyName{} },
+			func(n *Subscription, e *PartyName) { n.Edges.PartyNames = append(n.Edges.PartyNames, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPartyNameValidities; query != nil {
+		if err := _q.loadPartyNameValidities(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.PartyNameValidities = []*PartyNameValidity{} },
+			func(n *Subscription, e *PartyNameValidity) {
+				n.Edges.PartyNameValidities = append(n.Edges.PartyNameValidities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPartyContactMechanismValidities; query != nil {
+		if err := _q.loadPartyContactMechanismValidities(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.PartyContactMechanismValidities = []*PartyContactMechanismValidity{} },
+			func(n *Subscription, e *PartyContactMechanismValidity) {
+				n.Edges.PartyContactMechanismValidities = append(n.Edges.PartyContactMechanismValidities, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1592,6 +1833,159 @@ func (_q *SubscriptionQuery) loadAttachedDocuments(ctx context.Context, query *A
 	}
 	query.Where(predicate.AttachedDocument(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(subscription.AttachedDocumentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadCorporateGroups(ctx context.Context, query *CorporateGroupQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *CorporateGroup)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(corporategroup.FieldTenantID)
+	}
+	query.Where(predicate.CorporateGroup(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.CorporateGroupsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadDepartmentGroupAssignments(ctx context.Context, query *DepartmentGroupAssignmentQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *DepartmentGroupAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentgroupassignment.FieldTenantID)
+	}
+	query.Where(predicate.DepartmentGroupAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.DepartmentGroupAssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadPartyNames(ctx context.Context, query *PartyNameQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *PartyName)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partyname.FieldTenantID)
+	}
+	query.Where(predicate.PartyName(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.PartyNamesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadPartyNameValidities(ctx context.Context, query *PartyNameValidityQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *PartyNameValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partynamevalidity.FieldTenantID)
+	}
+	query.Where(predicate.PartyNameValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.PartyNameValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadPartyContactMechanismValidities(ctx context.Context, query *PartyContactMechanismValidityQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *PartyContactMechanismValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(partycontactmechanismvalidity.FieldTenantID)
+	}
+	query.Where(predicate.PartyContactMechanismValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.PartyContactMechanismValiditiesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

@@ -23,6 +23,9 @@ type OrgStructureUseCase interface {
 	CreateDepartment(ctx context.Context, in usecase.CreateDepartmentInput) (*domain.Department, error)
 	ListDepartments(ctx context.Context) ([]*domain.Department, error)
 
+	CreateCorporateGroup(ctx context.Context, in usecase.CreateCorporateGroupInput) (*domain.CorporateGroup, error)
+	AssignDepartmentToGroup(ctx context.Context, in usecase.AssignDepartmentToGroupInput) error
+
 	CreateEmployee(ctx context.Context, in usecase.CreateEmployeeInput) (*domain.Employee, error)
 	ListEmployees(ctx context.Context) ([]*domain.Employee, error)
 }
@@ -207,7 +210,8 @@ func (h *OrgHandler) CreateDepartment(c *gin.Context) {
 	}
 	department, err := h.uc.CreateDepartment(c.Request.Context(), usecase.CreateDepartmentInput{
 		TenantID: sc.TenantID, ParentDepartmentID: parentID, Name: request.Name,
-		Code: request.Code, ManagerPartyID: managerID,
+		Code: request.Code, UnitType: domain.DepartmentUnitType(request.UnitType),
+		ManagerPartyID: managerID,
 	})
 	if err != nil {
 		c.Error(err)
@@ -235,6 +239,84 @@ func (h *OrgHandler) ListDepartments(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": dto.NewDepartmentListResponse(departments)})
+}
+
+// CreateCorporateGroup godoc
+// @Summary      Create a corporate group
+// @Description  Creates a tenant-scoped group used to aggregate departments across units.
+// @Tags         Corporate Groups
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body dto.CreateCorporateGroupRequest true "Corporate group data"
+// @Success      201 {object} dto.CorporateGroupEnvelope
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /corporate-groups [post]
+func (h *OrgHandler) CreateCorporateGroup(c *gin.Context) {
+	sc, ok := h.session(c)
+	if !ok {
+		return
+	}
+	var request dto.CreateCorporateGroupRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.Error(badRequestError(err))
+		return
+	}
+	group, err := h.uc.CreateCorporateGroup(c.Request.Context(), usecase.CreateCorporateGroupInput{
+		TenantID: sc.TenantID, Name: request.Name, Description: request.Description,
+	})
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"data": dto.NewCorporateGroupResponse(group)})
+}
+
+// AssignDepartmentToGroup godoc
+// @Summary      Assign a department to a corporate group
+// @Description  Links a tenant department to a corporate group. Both must belong to the same tenant.
+// @Tags         Corporate Groups
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id path string true "Department UUID"
+// @Param        request body dto.AssignDepartmentToGroupRequest true "Corporate group id"
+// @Success      204
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      404 {object} dto.ErrorResponse
+// @Failure      409 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /departments/{id}/groups [post]
+func (h *OrgHandler) AssignDepartmentToGroup(c *gin.Context) {
+	sc, ok := h.session(c)
+	if !ok {
+		return
+	}
+	departmentID, err := parseRequiredUUID(c.Param("id"), "department_id")
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	var request dto.AssignDepartmentToGroupRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.Error(badRequestError(err))
+		return
+	}
+	groupID, err := uuid.Parse(strings.TrimSpace(request.CorporateGroupID))
+	if err != nil || groupID == uuid.Nil {
+		c.Error(apperror.NewValidation("invalid_corporate_group_id", "invalid corporate_group_id", err))
+		return
+	}
+	if err := h.uc.AssignDepartmentToGroup(c.Request.Context(), usecase.AssignDepartmentToGroupInput{
+		TenantID: sc.TenantID, DepartmentID: departmentID, CorporateGroupID: groupID,
+	}); err != nil {
+		c.Error(err)
+		return
+	}
+	c.Status(http.StatusNoContent)
 }
 
 // CreateEmployee godoc
