@@ -39,7 +39,8 @@ func schemaCases() []schemaCase {
 		{name: "Department", schema: Department{}, table: "departments", scope: "tenants", softDelete: true, generatedID: true},
 		{name: "Employee", schema: Employee{}, table: "employees", scope: "tenants", softDelete: true, generatedID: false},
 		{name: "EmployeeAssignment", schema: EmployeeAssignment{}, table: "employee_assignments", scope: "tenants", softDelete: false, generatedID: true},
-		{name: "ContactMechanism", schema: ContactMechanism{}, table: "contact_mechanisms", scope: "tenants", softDelete: true, generatedID: true},
+		{name: "ContactMechanism", schema: ContactMechanism{}, table: "contact_mechanisms", scope: "global", softDelete: false, generatedID: true},
+		{name: "PartyContactMechanism", schema: PartyContactMechanism{}, table: "party_contact_mechanisms", scope: "tenants", softDelete: false, generatedID: true},
 		{name: "Address", schema: Address{}, table: "addresses", scope: "tenants", softDelete: true, generatedID: true},
 		{name: "Session", schema: Session{}, table: "sessions", scope: "tenants", softDelete: true, generatedID: true},
 		{name: "UserCredentials", schema: UserCredentials{}, table: "user_credentials", scope: "tenants", softDelete: true, generatedID: true},
@@ -262,7 +263,6 @@ func TestSearchableFieldsUseICUCollation(t *testing.T) {
 		{name: "department name", schema: Department{}, field: "name"},
 		{name: "contact value", schema: ContactMechanism{}, field: "value"},
 		{name: "address city", schema: Address{}, field: "city"},
-		{name: "credentials email", schema: UserCredentials{}, field: "email"},
 	}
 
 	for _, tc := range cases {
@@ -325,29 +325,41 @@ func TestEmployeeAssignmentHasOpenAssignmentUniqueIndex(t *testing.T) {
 	assert.True(t, found, "employee_assignments debe tener unicidad parcial de end_date IS NULL")
 }
 
-func TestContactAndAddressHaveOnePrimaryUniqueIndex(t *testing.T) {
-	cases := []struct {
-		name   string
-		schema ent.Interface
-	}{
-		{name: "contact mechanisms", schema: ContactMechanism{}},
-		{name: "addresses", schema: Address{}},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			var found bool
-			for _, idx := range tc.schema.Indexes() {
-				if !idx.Descriptor().Unique {
-					continue
-				}
-				for _, a := range idx.Descriptor().Annotations {
-					if ant, ok := a.(*entsql.IndexAnnotation); ok && strings.Contains(ant.Where, "is_primary") && strings.Contains(ant.Where, "deleted_at IS NULL") {
-						found = true
-					}
-				}
+func TestAddressHasOnePrimaryUniqueIndex(t *testing.T) {
+	var found bool
+	for _, idx := range (Address{}).Indexes() {
+		if !idx.Descriptor().Unique {
+			continue
+		}
+		for _, a := range idx.Descriptor().Annotations {
+			if ant, ok := a.(*entsql.IndexAnnotation); ok && strings.Contains(ant.Where, "is_primary") && strings.Contains(ant.Where, "deleted_at IS NULL") {
+				found = true
 			}
-			assert.True(t, found, "%s debe tener unicidad parcial de is_primary", tc.name)
-		})
+		}
 	}
+	assert.True(t, found, "addresses debe tener unicidad parcial de is_primary")
+}
+
+func TestPartyContactMechanismValidityPartials(t *testing.T) {
+	var primary, open bool
+	for _, idx := range (PartyContactMechanismValidity{}).Indexes() {
+		if !idx.Descriptor().Unique {
+			continue
+		}
+		for _, a := range idx.Descriptor().Annotations {
+			ant, ok := a.(*entsql.IndexAnnotation)
+			if !ok {
+				continue
+			}
+			if strings.Contains(ant.Where, "is_primary AND end_date IS NULL") {
+				primary = true
+			}
+			if strings.Contains(ant.Where, "end_date IS NULL") &&
+				!strings.Contains(ant.Where, "is_primary") {
+				open = true
+			}
+		}
+	}
+	assert.True(t, primary, "debe existir un único contacto primario vigente por party/tipo")
+	assert.True(t, open, "debe existir una única vigencia abierta por contacto")
 }

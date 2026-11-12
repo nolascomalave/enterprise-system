@@ -1,11 +1,15 @@
 -- ============================================================================
 -- 0007_user_credentials.sql
--- Credenciales de autenticación por Party.
+-- Credenciales de autenticación por Party, vinculadas a un contacto global.
 --
 --   * password_hash: bcrypt (nunca contraseña en claro).
 --   * totp_secret / totp_enabled: segundo factor TOTP.
 --   * backup_codes_hash: hashes bcrypt de códigos de respaldo (jsonb array).
+--   * party_contact_mechanism_id: contacto global asociado a la credencial.
 --   * RLS + auditoría.
+--
+-- No se crea historial de vigencia para credenciales: por seguridad solo se
+-- mantiene el estado actual.
 -- ============================================================================
 
 DO $$
@@ -21,48 +25,43 @@ BEGIN
   IF to_regclass('tenants.parties') IS NULL THEN
     v_missing := array_append(v_missing, 'tenants.parties');
   END IF;
+  IF to_regclass('tenants.party_contact_mechanisms') IS NULL THEN
+    v_missing := array_append(v_missing, 'tenants.party_contact_mechanisms');
+  END IF;
   IF to_regprocedure('audit.fn_log_change()') IS NULL THEN
     v_missing := array_append(v_missing, 'audit.fn_log_change()');
-  END IF;
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_collation
-     WHERE collname = 'unaccent_case_insensitive'
-       AND collprovider = 'i'
-       AND NOT collisdeterministic
-  ) THEN
-    v_missing := array_append(v_missing, 'collation unaccent_case_insensitive');
   END IF;
 
   IF cardinality(v_missing) > 0 THEN
     RAISE EXCEPTION
       'No se pueden crear credenciales; faltan prerequisitos: %',
       array_to_string(v_missing, ', ')
-      USING HINT = 'Aplica las migraciones anteriores y verifica la collation ICU.';
+      USING HINT = 'Aplica las migraciones anteriores y verifica party_contact_mechanisms.';
   END IF;
 END
 $$;
 
 CREATE TABLE tenants.user_credentials (
-  id                uuid        PRIMARY KEY DEFAULT uuidv7(),
-  tenant_id         uuid        NOT NULL REFERENCES global.subscriptions (id) ON DELETE RESTRICT,
-  party_id          uuid        NOT NULL REFERENCES tenants.parties (id) ON DELETE RESTRICT,
-  email             text        COLLATE "unaccent_case_insensitive" NOT NULL,
-  password_hash     text        NOT NULL,
-  totp_secret       text,
-  totp_enabled      boolean     NOT NULL DEFAULT false,
-  backup_codes_hash jsonb       NOT NULL DEFAULT '[]'::jsonb,
-  created_at        timestamptz NOT NULL DEFAULT now(),
-  updated_at        timestamptz NOT NULL DEFAULT now(),
-  deleted_at        timestamptz,
+  id                          uuid        PRIMARY KEY DEFAULT uuidv7(),
+  tenant_id                   uuid        NOT NULL REFERENCES global.subscriptions (id) ON DELETE RESTRICT,
+  party_id                    uuid        NOT NULL REFERENCES tenants.parties (id) ON DELETE RESTRICT,
+  party_contact_mechanism_id  uuid        NOT NULL REFERENCES tenants.party_contact_mechanisms (id) ON DELETE RESTRICT,
+  password_hash               text        NOT NULL,
+  totp_secret                 text,
+  totp_enabled                boolean     NOT NULL DEFAULT false,
+  backup_codes_hash           jsonb       NOT NULL DEFAULT '[]'::jsonb,
+  created_at                  timestamptz NOT NULL DEFAULT now(),
+  updated_at                  timestamptz NOT NULL DEFAULT now(),
+  deleted_at                  timestamptz,
 
-  CONSTRAINT user_credentials_email_chk CHECK (btrim(email) <> ''),
   CONSTRAINT user_credentials_password_chk CHECK (btrim(password_hash) <> ''),
   CONSTRAINT user_credentials_backup_codes_chk
     CHECK (jsonb_typeof(backup_codes_hash) = 'array')
 );
 
-CREATE UNIQUE INDEX user_credentials_tenant_email_uq
-  ON tenants.user_credentials (tenant_id, email)
+-- Una credencial activa por contacto; una credencial activa por party.
+CREATE UNIQUE INDEX user_credentials_party_contact_uq
+  ON tenants.user_credentials (party_contact_mechanism_id)
   WHERE deleted_at IS NULL;
 CREATE UNIQUE INDEX user_credentials_tenant_party_uq
   ON tenants.user_credentials (tenant_id, party_id)

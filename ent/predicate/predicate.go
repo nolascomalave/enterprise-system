@@ -9,11 +9,20 @@ import (
 // Address is the predicate function for address builders.
 type Address func(*sql.Selector)
 
+// AttachedDocument is the predicate function for attacheddocument builders.
+type AttachedDocument func(*sql.Selector)
+
 // ContactMechanism is the predicate function for contactmechanism builders.
 type ContactMechanism func(*sql.Selector)
 
+// CorporateGroup is the predicate function for corporategroup builders.
+type CorporateGroup func(*sql.Selector)
+
 // Department is the predicate function for department builders.
 type Department func(*sql.Selector)
+
+// DepartmentGroupAssignment is the predicate function for departmentgroupassignment builders.
+type DepartmentGroupAssignment func(*sql.Selector)
 
 // Employee is the predicate function for employee builders.
 type Employee func(*sql.Selector)
@@ -27,14 +36,29 @@ type Job func(*sql.Selector)
 // JobFamily is the predicate function for jobfamily builders.
 type JobFamily func(*sql.Selector)
 
+// NameType is the predicate function for nametype builders.
+type NameType func(*sql.Selector)
+
 // OrganizationProfile is the predicate function for organizationprofile builders.
 type OrganizationProfile func(*sql.Selector)
 
 // Party is the predicate function for party builders.
 type Party func(*sql.Selector)
 
+// PartyContactMechanism is the predicate function for partycontactmechanism builders.
+type PartyContactMechanism func(*sql.Selector)
+
+// PartyContactMechanismValidity is the predicate function for partycontactmechanismvalidity builders.
+type PartyContactMechanismValidity func(*sql.Selector)
+
 // PartyMergeLog is the predicate function for partymergelog builders.
 type PartyMergeLog func(*sql.Selector)
+
+// PartyName is the predicate function for partyname builders.
+type PartyName func(*sql.Selector)
+
+// PartyNameValidity is the predicate function for partynamevalidity builders.
+type PartyNameValidity func(*sql.Selector)
 
 // PartyRole is the predicate function for partyrole builders.
 type PartyRole func(*sql.Selector)

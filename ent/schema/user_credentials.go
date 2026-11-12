@@ -33,9 +33,7 @@ func (UserCredentials) Fields() []ent.Field {
 		field.UUID("tenant_id", uuid.UUID{}).
 			Comment("Tenant discriminator; RLS key"),
 		field.UUID("party_id", uuid.UUID{}),
-		field.String("email").
-			NotEmpty().
-			Annotations(entsql.Annotation{Collation: "unaccent_case_insensitive"}),
+		field.UUID("party_contact_mechanism_id", uuid.UUID{}),
 		field.String("password_hash").
 			NotEmpty().
 			Sensitive(),
@@ -72,12 +70,17 @@ func (UserCredentials) Edges() []ent.Edge {
 			Field("party_id").
 			Unique().
 			Required(),
+		edge.From("party_contact_mechanism", PartyContactMechanism.Type).
+			Ref("credentials").
+			Field("party_contact_mechanism_id").
+			Unique().
+			Required(),
 	}
 }
 
 func (UserCredentials) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("tenant_id", "email").
+		index.Fields("party_contact_mechanism_id").
 			Unique().
 			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
 		index.Fields("tenant_id", "party_id").

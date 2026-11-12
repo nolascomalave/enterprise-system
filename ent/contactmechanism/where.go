@@ -5,7 +5,6 @@ package contactmechanism
 import (
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/predicate"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -57,84 +56,9 @@ func IDLTE(id uuid.UUID) predicate.ContactMechanism {
 	return predicate.ContactMechanism(sql.FieldLTE(FieldID, id))
 }
 
-// TenantID applies equality check predicate on the "tenant_id" field. It's identical to TenantIDEQ.
-func TenantID(v uuid.UUID) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldTenantID, v))
-}
-
-// PartyID applies equality check predicate on the "party_id" field. It's identical to PartyIDEQ.
-func PartyID(v uuid.UUID) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldPartyID, v))
-}
-
 // Value applies equality check predicate on the "value" field. It's identical to ValueEQ.
 func Value(v string) predicate.ContactMechanism {
 	return predicate.ContactMechanism(sql.FieldEQ(FieldValue, v))
-}
-
-// IsPrimary applies equality check predicate on the "is_primary" field. It's identical to IsPrimaryEQ.
-func IsPrimary(v bool) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldIsPrimary, v))
-}
-
-// IsVerified applies equality check predicate on the "is_verified" field. It's identical to IsVerifiedEQ.
-func IsVerified(v bool) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldIsVerified, v))
-}
-
-// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
-func CreatedAt(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldCreatedAt, v))
-}
-
-// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
-func UpdatedAt(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldUpdatedAt, v))
-}
-
-// DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
-func DeletedAt(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldDeletedAt, v))
-}
-
-// TenantIDEQ applies the EQ predicate on the "tenant_id" field.
-func TenantIDEQ(v uuid.UUID) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldTenantID, v))
-}
-
-// TenantIDNEQ applies the NEQ predicate on the "tenant_id" field.
-func TenantIDNEQ(v uuid.UUID) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNEQ(FieldTenantID, v))
-}
-
-// TenantIDIn applies the In predicate on the "tenant_id" field.
-func TenantIDIn(vs ...uuid.UUID) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldIn(FieldTenantID, vs...))
-}
-
-// TenantIDNotIn applies the NotIn predicate on the "tenant_id" field.
-func TenantIDNotIn(vs ...uuid.UUID) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNotIn(FieldTenantID, vs...))
-}
-
-// PartyIDEQ applies the EQ predicate on the "party_id" field.
-func PartyIDEQ(v uuid.UUID) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldPartyID, v))
-}
-
-// PartyIDNEQ applies the NEQ predicate on the "party_id" field.
-func PartyIDNEQ(v uuid.UUID) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNEQ(FieldPartyID, v))
-}
-
-// PartyIDIn applies the In predicate on the "party_id" field.
-func PartyIDIn(vs ...uuid.UUID) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldIn(FieldPartyID, vs...))
-}
-
-// PartyIDNotIn applies the NotIn predicate on the "party_id" field.
-func PartyIDNotIn(vs ...uuid.UUID) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNotIn(FieldPartyID, vs...))
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.
@@ -222,206 +146,27 @@ func ValueContainsFold(v string) predicate.ContactMechanism {
 	return predicate.ContactMechanism(sql.FieldContainsFold(FieldValue, v))
 }
 
-// IsPrimaryEQ applies the EQ predicate on the "is_primary" field.
-func IsPrimaryEQ(v bool) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldIsPrimary, v))
-}
-
-// IsPrimaryNEQ applies the NEQ predicate on the "is_primary" field.
-func IsPrimaryNEQ(v bool) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNEQ(FieldIsPrimary, v))
-}
-
-// IsVerifiedEQ applies the EQ predicate on the "is_verified" field.
-func IsVerifiedEQ(v bool) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldIsVerified, v))
-}
-
-// IsVerifiedNEQ applies the NEQ predicate on the "is_verified" field.
-func IsVerifiedNEQ(v bool) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNEQ(FieldIsVerified, v))
-}
-
-// CreatedAtEQ applies the EQ predicate on the "created_at" field.
-func CreatedAtEQ(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldCreatedAt, v))
-}
-
-// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
-func CreatedAtNEQ(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNEQ(FieldCreatedAt, v))
-}
-
-// CreatedAtIn applies the In predicate on the "created_at" field.
-func CreatedAtIn(vs ...time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldIn(FieldCreatedAt, vs...))
-}
-
-// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
-func CreatedAtNotIn(vs ...time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNotIn(FieldCreatedAt, vs...))
-}
-
-// CreatedAtGT applies the GT predicate on the "created_at" field.
-func CreatedAtGT(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldGT(FieldCreatedAt, v))
-}
-
-// CreatedAtGTE applies the GTE predicate on the "created_at" field.
-func CreatedAtGTE(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldGTE(FieldCreatedAt, v))
-}
-
-// CreatedAtLT applies the LT predicate on the "created_at" field.
-func CreatedAtLT(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldLT(FieldCreatedAt, v))
-}
-
-// CreatedAtLTE applies the LTE predicate on the "created_at" field.
-func CreatedAtLTE(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldLTE(FieldCreatedAt, v))
-}
-
-// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
-func UpdatedAtEQ(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldUpdatedAt, v))
-}
-
-// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
-func UpdatedAtNEQ(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNEQ(FieldUpdatedAt, v))
-}
-
-// UpdatedAtIn applies the In predicate on the "updated_at" field.
-func UpdatedAtIn(vs ...time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldIn(FieldUpdatedAt, vs...))
-}
-
-// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
-func UpdatedAtNotIn(vs ...time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNotIn(FieldUpdatedAt, vs...))
-}
-
-// UpdatedAtGT applies the GT predicate on the "updated_at" field.
-func UpdatedAtGT(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldGT(FieldUpdatedAt, v))
-}
-
-// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
-func UpdatedAtGTE(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldGTE(FieldUpdatedAt, v))
-}
-
-// UpdatedAtLT applies the LT predicate on the "updated_at" field.
-func UpdatedAtLT(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldLT(FieldUpdatedAt, v))
-}
-
-// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
-func UpdatedAtLTE(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldLTE(FieldUpdatedAt, v))
-}
-
-// DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
-func DeletedAtEQ(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldEQ(FieldDeletedAt, v))
-}
-
-// DeletedAtNEQ applies the NEQ predicate on the "deleted_at" field.
-func DeletedAtNEQ(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNEQ(FieldDeletedAt, v))
-}
-
-// DeletedAtIn applies the In predicate on the "deleted_at" field.
-func DeletedAtIn(vs ...time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldIn(FieldDeletedAt, vs...))
-}
-
-// DeletedAtNotIn applies the NotIn predicate on the "deleted_at" field.
-func DeletedAtNotIn(vs ...time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNotIn(FieldDeletedAt, vs...))
-}
-
-// DeletedAtGT applies the GT predicate on the "deleted_at" field.
-func DeletedAtGT(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldGT(FieldDeletedAt, v))
-}
-
-// DeletedAtGTE applies the GTE predicate on the "deleted_at" field.
-func DeletedAtGTE(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldGTE(FieldDeletedAt, v))
-}
-
-// DeletedAtLT applies the LT predicate on the "deleted_at" field.
-func DeletedAtLT(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldLT(FieldDeletedAt, v))
-}
-
-// DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
-func DeletedAtLTE(v time.Time) predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldLTE(FieldDeletedAt, v))
-}
-
-// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
-func DeletedAtIsNil() predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldIsNull(FieldDeletedAt))
-}
-
-// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
-func DeletedAtNotNil() predicate.ContactMechanism {
-	return predicate.ContactMechanism(sql.FieldNotNull(FieldDeletedAt))
-}
-
-// HasTenant applies the HasEdge predicate on the "tenant" edge.
-func HasTenant() predicate.ContactMechanism {
+// HasPartyContactMechanisms applies the HasEdge predicate on the "party_contact_mechanisms" edge.
+func HasPartyContactMechanisms() predicate.ContactMechanism {
 	return predicate.ContactMechanism(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, TenantTable, TenantColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, PartyContactMechanismsTable, PartyContactMechanismsColumn),
 		)
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Subscription
-		step.Edge.Schema = schemaConfig.ContactMechanism
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasTenantWith applies the HasEdge predicate on the "tenant" edge with a given conditions (other predicates).
-func HasTenantWith(preds ...predicate.Subscription) predicate.ContactMechanism {
+// HasPartyContactMechanismsWith applies the HasEdge predicate on the "party_contact_mechanisms" edge with a given conditions (other predicates).
+func HasPartyContactMechanismsWith(preds ...predicate.PartyContactMechanism) predicate.ContactMechanism {
 	return predicate.ContactMechanism(func(s *sql.Selector) {
-		step := newTenantStep()
+		step := newPartyContactMechanismsStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Subscription
-		step.Edge.Schema = schemaConfig.ContactMechanism
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasParty applies the HasEdge predicate on the "party" edge.
-func HasParty() predicate.ContactMechanism {
-	return predicate.ContactMechanism(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, PartyTable, PartyColumn),
-		)
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Party
-		step.Edge.Schema = schemaConfig.ContactMechanism
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasPartyWith applies the HasEdge predicate on the "party" edge with a given conditions (other predicates).
-func HasPartyWith(preds ...predicate.Party) predicate.ContactMechanism {
-	return predicate.ContactMechanism(func(s *sql.Selector) {
-		step := newPartyStep()
-		schemaConfig := internal.SchemaConfigFromContext(s.Context())
-		step.To.Schema = schemaConfig.Party
-		step.Edge.Schema = schemaConfig.ContactMechanism
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.PartyContactMechanism
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

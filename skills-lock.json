@@ -1,0 +1,71 @@
+{
+  "version": 2,
+  "skills": {
+    "design-postgis-tables": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/design-postgis-tables/SKILL.md",
+      "computedHash": "6be506240a60a30f733c64128e150b1125f1b6f348d8f298a6ea4f0308b4010e"
+    },
+    "design-postgres-tables": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/design-postgres-tables/SKILL.md",
+      "computedHash": "426c3a46bb52d6460e426e193fd97411c217587eb6b5830d996955eef754855b"
+    },
+    "find-hypertable-candidates": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/find-hypertable-candidates/SKILL.md",
+      "computedHash": "6d4c3c08353393e854cd2c898419498a745ba9e3828f4c20bf3e92d194a7084c"
+    },
+    "migrate-postgres-tables-to-hypertables": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/migrate-postgres-tables-to-hypertables/SKILL.md",
+      "computedHash": "7738c655f7e253a9cfaabd76a8af5b020ef111c552358a47e4095e3086b09715"
+    },
+    "pgvector-semantic-search": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/pgvector-semantic-search/SKILL.md",
+      "computedHash": "384b5812d18f33054df915d9d30a71e74ebbf68fb55f7bb2b4cf8bd7ece3a7e5"
+    },
+    "postgres": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/postgres/SKILL.md",
+      "computedHash": "3d54adf7bd62467c104c2374f795067eeb0d48766edbec04a83e5f8b4e821cc8"
+    },
+    "postgres-database-migration": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/postgres-database-migration/SKILL.md",
+      "computedHash": "4f5a408b5129a19191888c1badc5b830dce755eb5dc3866cd66c59800baac111"
+    },
+    "postgres-hybrid-text-search": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/postgres-hybrid-text-search/SKILL.md",
+      "computedHash": "85cc2eb89c5d164e06abf3463d64f04ae834204d710fc98d6f283351472f81cb"
+    },
+    "schema-exploration": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/schema-exploration/SKILL.md",
+      "computedHash": "1e0bc5abd4ddbd6d917d79394b58c955c00665484c840f3987020ae0080da8d0"
+    },
+    "setup-timescaledb-hypertables": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/setup-timescaledb-hypertables/SKILL.md",
+      "computedHash": "3e1f8fea2a25af5471ce84d805a4d85c1529225e9a37cb5f197f541e6e2137a4"
+    },
+    "timescaledb-hyperfunctions": {
+      "source": "timescale/pg-aiguide",
+      "sourceType": "github",
+      "skillPath": "skills/timescaledb-hyperfunctions/SKILL.md",
+      "computedHash": "8ac294371341c7386e93ab0ccfb59eeaa6010be6e8df5d41e75a4d9bdd0f9bc6"
+    }
+  }
+}

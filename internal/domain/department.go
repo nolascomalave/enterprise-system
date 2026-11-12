@@ -8,12 +8,36 @@ import (
 	"github.com/google/uuid"
 )
 
+type DepartmentUnitType string
+
+const (
+	DepartmentUnitTypeDivision   DepartmentUnitType = "DIVISION"
+	DepartmentUnitTypeBranch     DepartmentUnitType = "BRANCH"
+	DepartmentUnitTypeOffice     DepartmentUnitType = "OFFICE"
+	DepartmentUnitTypeDepartment DepartmentUnitType = "DEPARTMENT"
+)
+
+// Valid reports whether the unit type is one of the supported organizational
+// units.
+func (t DepartmentUnitType) Valid() bool {
+	switch t {
+	case DepartmentUnitTypeDivision,
+		DepartmentUnitTypeBranch,
+		DepartmentUnitTypeOffice,
+		DepartmentUnitTypeDepartment:
+		return true
+	default:
+		return false
+	}
+}
+
 type Department struct {
 	ID                 uuid.UUID
 	TenantID           uuid.UUID
 	ParentDepartmentID *uuid.UUID
 	Name               string
 	Code               string
+	UnitType           DepartmentUnitType
 	ManagerPartyID     *uuid.UUID
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
@@ -24,6 +48,7 @@ func NewDepartment(
 	tenantID uuid.UUID,
 	parentDepartmentID *uuid.UUID,
 	name, code string,
+	unitType DepartmentUnitType,
 	managerPartyID *uuid.UUID,
 	now time.Time,
 ) (*Department, error) {
@@ -39,6 +64,7 @@ func NewDepartment(
 		ParentDepartmentID: parentDepartmentID,
 		Name:               strings.TrimSpace(name),
 		Code:               strings.TrimSpace(code),
+		UnitType:           unitType,
 		ManagerPartyID:     managerPartyID,
 		CreatedAt:          now,
 		UpdatedAt:          now,
@@ -64,6 +90,9 @@ func (d *Department) Validate() error {
 	}
 	if strings.TrimSpace(d.Code) == "" {
 		return fmt.Errorf("%w: code is required", ErrInvalidDepartment)
+	}
+	if !d.UnitType.Valid() {
+		return fmt.Errorf("%w: invalid unit_type", ErrInvalidDepartment)
 	}
 	if d.ParentDepartmentID != nil {
 		if *d.ParentDepartmentID == uuid.Nil || *d.ParentDepartmentID == d.ID {

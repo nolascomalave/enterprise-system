@@ -40,8 +40,12 @@ const (
 	EdgeOrganizationProfile = "organization_profile"
 	// EdgePartyRoles holds the string denoting the party_roles edge name in mutations.
 	EdgePartyRoles = "party_roles"
-	// EdgeContactMechanisms holds the string denoting the contact_mechanisms edge name in mutations.
-	EdgeContactMechanisms = "contact_mechanisms"
+	// EdgePartyContactMechanisms holds the string denoting the party_contact_mechanisms edge name in mutations.
+	EdgePartyContactMechanisms = "party_contact_mechanisms"
+	// EdgeNames holds the string denoting the names edge name in mutations.
+	EdgeNames = "names"
+	// EdgeNameValidities holds the string denoting the name_validities edge name in mutations.
+	EdgeNameValidities = "name_validities"
 	// EdgeAddresses holds the string denoting the addresses edge name in mutations.
 	EdgeAddresses = "addresses"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
@@ -50,6 +54,12 @@ const (
 	EdgeCredentials = "credentials"
 	// EdgePasswordResetTokens holds the string denoting the password_reset_tokens edge name in mutations.
 	EdgePasswordResetTokens = "password_reset_tokens"
+	// EdgePartyNames holds the string denoting the party_names edge name in mutations.
+	EdgePartyNames = "party_names"
+	// EdgePartyNameValidities holds the string denoting the party_name_validities edge name in mutations.
+	EdgePartyNameValidities = "party_name_validities"
+	// EdgePartyContactMechanismValidities holds the string denoting the party_contact_mechanism_validities edge name in mutations.
+	EdgePartyContactMechanismValidities = "party_contact_mechanism_validities"
 	// EdgeMergedParties holds the string denoting the merged_parties edge name in mutations.
 	EdgeMergedParties = "merged_parties"
 	// EdgeCanonicalParty holds the string denoting the canonical_party edge name in mutations.
@@ -88,13 +98,27 @@ const (
 	PartyRolesInverseTable = "party_roles"
 	// PartyRolesColumn is the table column denoting the party_roles relation/edge.
 	PartyRolesColumn = "party_id"
-	// ContactMechanismsTable is the table that holds the contact_mechanisms relation/edge.
-	ContactMechanismsTable = "contact_mechanisms"
-	// ContactMechanismsInverseTable is the table name for the ContactMechanism entity.
-	// It exists in this package in order to avoid circular dependency with the "contactmechanism" package.
-	ContactMechanismsInverseTable = "contact_mechanisms"
-	// ContactMechanismsColumn is the table column denoting the contact_mechanisms relation/edge.
-	ContactMechanismsColumn = "party_id"
+	// PartyContactMechanismsTable is the table that holds the party_contact_mechanisms relation/edge.
+	PartyContactMechanismsTable = "party_contact_mechanisms"
+	// PartyContactMechanismsInverseTable is the table name for the PartyContactMechanism entity.
+	// It exists in this package in order to avoid circular dependency with the "partycontactmechanism" package.
+	PartyContactMechanismsInverseTable = "party_contact_mechanisms"
+	// PartyContactMechanismsColumn is the table column denoting the party_contact_mechanisms relation/edge.
+	PartyContactMechanismsColumn = "party_id"
+	// NamesTable is the table that holds the names relation/edge.
+	NamesTable = "party_names"
+	// NamesInverseTable is the table name for the PartyName entity.
+	// It exists in this package in order to avoid circular dependency with the "partyname" package.
+	NamesInverseTable = "party_names"
+	// NamesColumn is the table column denoting the names relation/edge.
+	NamesColumn = "party_id"
+	// NameValiditiesTable is the table that holds the name_validities relation/edge.
+	NameValiditiesTable = "party_name_validities"
+	// NameValiditiesInverseTable is the table name for the PartyNameValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "partynamevalidity" package.
+	NameValiditiesInverseTable = "party_name_validities"
+	// NameValiditiesColumn is the table column denoting the name_validities relation/edge.
+	NameValiditiesColumn = "party_id"
 	// AddressesTable is the table that holds the addresses relation/edge.
 	AddressesTable = "addresses"
 	// AddressesInverseTable is the table name for the Address entity.
@@ -123,6 +147,27 @@ const (
 	PasswordResetTokensInverseTable = "password_reset_tokens"
 	// PasswordResetTokensColumn is the table column denoting the password_reset_tokens relation/edge.
 	PasswordResetTokensColumn = "party_id"
+	// PartyNamesTable is the table that holds the party_names relation/edge.
+	PartyNamesTable = "party_names"
+	// PartyNamesInverseTable is the table name for the PartyName entity.
+	// It exists in this package in order to avoid circular dependency with the "partyname" package.
+	PartyNamesInverseTable = "party_names"
+	// PartyNamesColumn is the table column denoting the party_names relation/edge.
+	PartyNamesColumn = "party_party_names"
+	// PartyNameValiditiesTable is the table that holds the party_name_validities relation/edge.
+	PartyNameValiditiesTable = "party_name_validities"
+	// PartyNameValiditiesInverseTable is the table name for the PartyNameValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "partynamevalidity" package.
+	PartyNameValiditiesInverseTable = "party_name_validities"
+	// PartyNameValiditiesColumn is the table column denoting the party_name_validities relation/edge.
+	PartyNameValiditiesColumn = "party_party_name_validities"
+	// PartyContactMechanismValiditiesTable is the table that holds the party_contact_mechanism_validities relation/edge.
+	PartyContactMechanismValiditiesTable = "party_contact_mechanism_validities"
+	// PartyContactMechanismValiditiesInverseTable is the table name for the PartyContactMechanismValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "partycontactmechanismvalidity" package.
+	PartyContactMechanismValiditiesInverseTable = "party_contact_mechanism_validities"
+	// PartyContactMechanismValiditiesColumn is the table column denoting the party_contact_mechanism_validities relation/edge.
+	PartyContactMechanismValiditiesColumn = "party_party_contact_mechanism_validities"
 	// MergedPartiesTable is the table that holds the merged_parties relation/edge.
 	MergedPartiesTable = "parties"
 	// MergedPartiesColumn is the table column denoting the merged_parties relation/edge.
@@ -316,17 +361,45 @@ func ByPartyRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByContactMechanismsCount orders the results by contact_mechanisms count.
-func ByContactMechanismsCount(opts ...sql.OrderTermOption) OrderOption {
+// ByPartyContactMechanismsCount orders the results by party_contact_mechanisms count.
+func ByPartyContactMechanismsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newContactMechanismsStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newPartyContactMechanismsStep(), opts...)
 	}
 }
 
-// ByContactMechanisms orders the results by contact_mechanisms terms.
-func ByContactMechanisms(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByPartyContactMechanisms orders the results by party_contact_mechanisms terms.
+func ByPartyContactMechanisms(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newContactMechanismsStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newPartyContactMechanismsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByNamesCount orders the results by names count.
+func ByNamesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNamesStep(), opts...)
+	}
+}
+
+// ByNames orders the results by names terms.
+func ByNames(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNamesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByNameValiditiesCount orders the results by name_validities count.
+func ByNameValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newNameValiditiesStep(), opts...)
+	}
+}
+
+// ByNameValidities orders the results by name_validities terms.
+func ByNameValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newNameValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -376,6 +449,48 @@ func ByPasswordResetTokensCount(opts ...sql.OrderTermOption) OrderOption {
 func ByPasswordResetTokens(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newPasswordResetTokensStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPartyNamesCount orders the results by party_names count.
+func ByPartyNamesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartyNamesStep(), opts...)
+	}
+}
+
+// ByPartyNames orders the results by party_names terms.
+func ByPartyNames(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartyNamesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPartyNameValiditiesCount orders the results by party_name_validities count.
+func ByPartyNameValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartyNameValiditiesStep(), opts...)
+	}
+}
+
+// ByPartyNameValidities orders the results by party_name_validities terms.
+func ByPartyNameValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartyNameValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPartyContactMechanismValiditiesCount orders the results by party_contact_mechanism_validities count.
+func ByPartyContactMechanismValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPartyContactMechanismValiditiesStep(), opts...)
+	}
+}
+
+// ByPartyContactMechanismValidities orders the results by party_contact_mechanism_validities terms.
+func ByPartyContactMechanismValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartyContactMechanismValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -455,11 +570,25 @@ func newPartyRolesStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, PartyRolesTable, PartyRolesColumn),
 	)
 }
-func newContactMechanismsStep() *sqlgraph.Step {
+func newPartyContactMechanismsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ContactMechanismsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ContactMechanismsTable, ContactMechanismsColumn),
+		sqlgraph.To(PartyContactMechanismsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyContactMechanismsTable, PartyContactMechanismsColumn),
+	)
+}
+func newNamesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NamesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NamesTable, NamesColumn),
+	)
+}
+func newNameValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(NameValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, NameValiditiesTable, NameValiditiesColumn),
 	)
 }
 func newAddressesStep() *sqlgraph.Step {
@@ -488,6 +617,27 @@ func newPasswordResetTokensStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PasswordResetTokensInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PasswordResetTokensTable, PasswordResetTokensColumn),
+	)
+}
+func newPartyNamesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartyNamesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyNamesTable, PartyNamesColumn),
+	)
+}
+func newPartyNameValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartyNameValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyNameValiditiesTable, PartyNameValiditiesColumn),
+	)
+}
+func newPartyContactMechanismValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartyContactMechanismValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PartyContactMechanismValiditiesTable, PartyContactMechanismValiditiesColumn),
 	)
 }
 func newMergedPartiesStep() *sqlgraph.Step {

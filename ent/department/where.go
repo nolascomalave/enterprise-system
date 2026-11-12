@@ -277,6 +277,26 @@ func CodeContainsFold(v string) predicate.Department {
 	return predicate.Department(sql.FieldContainsFold(FieldCode, v))
 }
 
+// UnitTypeEQ applies the EQ predicate on the "unit_type" field.
+func UnitTypeEQ(v UnitType) predicate.Department {
+	return predicate.Department(sql.FieldEQ(FieldUnitType, v))
+}
+
+// UnitTypeNEQ applies the NEQ predicate on the "unit_type" field.
+func UnitTypeNEQ(v UnitType) predicate.Department {
+	return predicate.Department(sql.FieldNEQ(FieldUnitType, v))
+}
+
+// UnitTypeIn applies the In predicate on the "unit_type" field.
+func UnitTypeIn(vs ...UnitType) predicate.Department {
+	return predicate.Department(sql.FieldIn(FieldUnitType, vs...))
+}
+
+// UnitTypeNotIn applies the NotIn predicate on the "unit_type" field.
+func UnitTypeNotIn(vs ...UnitType) predicate.Department {
+	return predicate.Department(sql.FieldNotIn(FieldUnitType, vs...))
+}
+
 // ManagerPartyIDEQ applies the EQ predicate on the "manager_party_id" field.
 func ManagerPartyIDEQ(v uuid.UUID) predicate.Department {
 	return predicate.Department(sql.FieldEQ(FieldManagerPartyID, v))
@@ -603,6 +623,35 @@ func HasAssignmentsWith(preds ...predicate.EmployeeAssignment) predicate.Departm
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.EmployeeAssignment
 		step.Edge.Schema = schemaConfig.EmployeeAssignment
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasGroupAssignments applies the HasEdge predicate on the "group_assignments" edge.
+func HasGroupAssignments() predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GroupAssignmentsTable, GroupAssignmentsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentGroupAssignment
+		step.Edge.Schema = schemaConfig.DepartmentGroupAssignment
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGroupAssignmentsWith applies the HasEdge predicate on the "group_assignments" edge with a given conditions (other predicates).
+func HasGroupAssignmentsWith(preds ...predicate.DepartmentGroupAssignment) predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := newGroupAssignmentsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentGroupAssignment
+		step.Edge.Schema = schemaConfig.DepartmentGroupAssignment
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

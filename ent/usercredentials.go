@@ -5,6 +5,7 @@ package ent
 import (
 	"encoding/json"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
 	"fmt"
@@ -25,8 +26,8 @@ type UserCredentials struct {
 	TenantID uuid.UUID `json:"tenant_id,omitempty"`
 	// PartyID holds the value of the "party_id" field.
 	PartyID uuid.UUID `json:"party_id,omitempty"`
-	// Email holds the value of the "email" field.
-	Email string `json:"email,omitempty"`
+	// PartyContactMechanismID holds the value of the "party_contact_mechanism_id" field.
+	PartyContactMechanismID uuid.UUID `json:"party_contact_mechanism_id,omitempty"`
 	// PasswordHash holds the value of the "password_hash" field.
 	PasswordHash string `json:"-"`
 	// TotpSecret holds the value of the "totp_secret" field.
@@ -53,9 +54,11 @@ type UserCredentialsEdges struct {
 	Tenant *Subscription `json:"tenant,omitempty"`
 	// Party holds the value of the party edge.
 	Party *Party `json:"party,omitempty"`
+	// PartyContactMechanism holds the value of the party_contact_mechanism edge.
+	PartyContactMechanism *PartyContactMechanism `json:"party_contact_mechanism,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -80,6 +83,17 @@ func (e UserCredentialsEdges) PartyOrErr() (*Party, error) {
 	return nil, &NotLoadedError{edge: "party"}
 }
 
+// PartyContactMechanismOrErr returns the PartyContactMechanism value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserCredentialsEdges) PartyContactMechanismOrErr() (*PartyContactMechanism, error) {
+	if e.PartyContactMechanism != nil {
+		return e.PartyContactMechanism, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: partycontactmechanism.Label}
+	}
+	return nil, &NotLoadedError{edge: "party_contact_mechanism"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*UserCredentials) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -89,11 +103,11 @@ func (*UserCredentials) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case usercredentials.FieldTotpEnabled:
 			values[i] = new(sql.NullBool)
-		case usercredentials.FieldEmail, usercredentials.FieldPasswordHash, usercredentials.FieldTotpSecret:
+		case usercredentials.FieldPasswordHash, usercredentials.FieldTotpSecret:
 			values[i] = new(sql.NullString)
 		case usercredentials.FieldCreatedAt, usercredentials.FieldUpdatedAt, usercredentials.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case usercredentials.FieldID, usercredentials.FieldTenantID, usercredentials.FieldPartyID:
+		case usercredentials.FieldID, usercredentials.FieldTenantID, usercredentials.FieldPartyID, usercredentials.FieldPartyContactMechanismID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -128,11 +142,11 @@ func (_m *UserCredentials) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.PartyID = *value
 			}
-		case usercredentials.FieldEmail:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field email", values[i])
-			} else if value.Valid {
-				_m.Email = value.String
+		case usercredentials.FieldPartyContactMechanismID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field party_contact_mechanism_id", values[i])
+			} else if value != nil {
+				_m.PartyContactMechanismID = *value
 			}
 		case usercredentials.FieldPasswordHash:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -202,6 +216,11 @@ func (_m *UserCredentials) QueryParty() *PartyQuery {
 	return NewUserCredentialsClient(_m.config).QueryParty(_m)
 }
 
+// QueryPartyContactMechanism queries the "party_contact_mechanism" edge of the UserCredentials entity.
+func (_m *UserCredentials) QueryPartyContactMechanism() *PartyContactMechanismQuery {
+	return NewUserCredentialsClient(_m.config).QueryPartyContactMechanism(_m)
+}
+
 // Update returns a builder for updating this UserCredentials.
 // Note that you need to call UserCredentials.Unwrap() before calling this method if this UserCredentials
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -231,8 +250,8 @@ func (_m *UserCredentials) String() string {
 	builder.WriteString("party_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PartyID))
 	builder.WriteString(", ")
-	builder.WriteString("email=")
-	builder.WriteString(_m.Email)
+	builder.WriteString("party_contact_mechanism_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PartyContactMechanismID))
 	builder.WriteString(", ")
 	builder.WriteString("password_hash=<sensitive>")
 	builder.WriteString(", ")

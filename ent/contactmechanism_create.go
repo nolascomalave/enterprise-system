@@ -5,12 +5,12 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/contactmechanism"
-	"enterprise-system/ent/party"
-	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/partycontactmechanism"
 	"errors"
 	"fmt"
-	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,18 +21,7 @@ type ContactMechanismCreate struct {
 	config
 	mutation *ContactMechanismMutation
 	hooks    []Hook
-}
-
-// SetTenantID sets the "tenant_id" field.
-func (_c *ContactMechanismCreate) SetTenantID(v uuid.UUID) *ContactMechanismCreate {
-	_c.mutation.SetTenantID(v)
-	return _c
-}
-
-// SetPartyID sets the "party_id" field.
-func (_c *ContactMechanismCreate) SetPartyID(v uuid.UUID) *ContactMechanismCreate {
-	_c.mutation.SetPartyID(v)
-	return _c
+	conflict []sql.ConflictOption
 }
 
 // SetType sets the "type" field.
@@ -44,76 +33,6 @@ func (_c *ContactMechanismCreate) SetType(v contactmechanism.Type) *ContactMecha
 // SetValue sets the "value" field.
 func (_c *ContactMechanismCreate) SetValue(v string) *ContactMechanismCreate {
 	_c.mutation.SetValue(v)
-	return _c
-}
-
-// SetIsPrimary sets the "is_primary" field.
-func (_c *ContactMechanismCreate) SetIsPrimary(v bool) *ContactMechanismCreate {
-	_c.mutation.SetIsPrimary(v)
-	return _c
-}
-
-// SetNillableIsPrimary sets the "is_primary" field if the given value is not nil.
-func (_c *ContactMechanismCreate) SetNillableIsPrimary(v *bool) *ContactMechanismCreate {
-	if v != nil {
-		_c.SetIsPrimary(*v)
-	}
-	return _c
-}
-
-// SetIsVerified sets the "is_verified" field.
-func (_c *ContactMechanismCreate) SetIsVerified(v bool) *ContactMechanismCreate {
-	_c.mutation.SetIsVerified(v)
-	return _c
-}
-
-// SetNillableIsVerified sets the "is_verified" field if the given value is not nil.
-func (_c *ContactMechanismCreate) SetNillableIsVerified(v *bool) *ContactMechanismCreate {
-	if v != nil {
-		_c.SetIsVerified(*v)
-	}
-	return _c
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (_c *ContactMechanismCreate) SetCreatedAt(v time.Time) *ContactMechanismCreate {
-	_c.mutation.SetCreatedAt(v)
-	return _c
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (_c *ContactMechanismCreate) SetNillableCreatedAt(v *time.Time) *ContactMechanismCreate {
-	if v != nil {
-		_c.SetCreatedAt(*v)
-	}
-	return _c
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (_c *ContactMechanismCreate) SetUpdatedAt(v time.Time) *ContactMechanismCreate {
-	_c.mutation.SetUpdatedAt(v)
-	return _c
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (_c *ContactMechanismCreate) SetNillableUpdatedAt(v *time.Time) *ContactMechanismCreate {
-	if v != nil {
-		_c.SetUpdatedAt(*v)
-	}
-	return _c
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (_c *ContactMechanismCreate) SetDeletedAt(v time.Time) *ContactMechanismCreate {
-	_c.mutation.SetDeletedAt(v)
-	return _c
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (_c *ContactMechanismCreate) SetNillableDeletedAt(v *time.Time) *ContactMechanismCreate {
-	if v != nil {
-		_c.SetDeletedAt(*v)
-	}
 	return _c
 }
 
@@ -131,14 +50,19 @@ func (_c *ContactMechanismCreate) SetNillableID(v *uuid.UUID) *ContactMechanismC
 	return _c
 }
 
-// SetTenant sets the "tenant" edge to the Subscription entity.
-func (_c *ContactMechanismCreate) SetTenant(v *Subscription) *ContactMechanismCreate {
-	return _c.SetTenantID(v.ID)
+// AddPartyContactMechanismIDs adds the "party_contact_mechanisms" edge to the PartyContactMechanism entity by IDs.
+func (_c *ContactMechanismCreate) AddPartyContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismCreate {
+	_c.mutation.AddPartyContactMechanismIDs(ids...)
+	return _c
 }
 
-// SetParty sets the "party" edge to the Party entity.
-func (_c *ContactMechanismCreate) SetParty(v *Party) *ContactMechanismCreate {
-	return _c.SetPartyID(v.ID)
+// AddPartyContactMechanisms adds the "party_contact_mechanisms" edges to the PartyContactMechanism entity.
+func (_c *ContactMechanismCreate) AddPartyContactMechanisms(v ...*PartyContactMechanism) *ContactMechanismCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartyContactMechanismIDs(ids...)
 }
 
 // Mutation returns the ContactMechanismMutation object of the builder.
@@ -176,22 +100,6 @@ func (_c *ContactMechanismCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *ContactMechanismCreate) defaults() {
-	if _, ok := _c.mutation.IsPrimary(); !ok {
-		v := contactmechanism.DefaultIsPrimary
-		_c.mutation.SetIsPrimary(v)
-	}
-	if _, ok := _c.mutation.IsVerified(); !ok {
-		v := contactmechanism.DefaultIsVerified
-		_c.mutation.SetIsVerified(v)
-	}
-	if _, ok := _c.mutation.CreatedAt(); !ok {
-		v := contactmechanism.DefaultCreatedAt()
-		_c.mutation.SetCreatedAt(v)
-	}
-	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		v := contactmechanism.DefaultUpdatedAt()
-		_c.mutation.SetUpdatedAt(v)
-	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := contactmechanism.DefaultID()
 		_c.mutation.SetID(v)
@@ -200,12 +108,6 @@ func (_c *ContactMechanismCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *ContactMechanismCreate) check() error {
-	if _, ok := _c.mutation.TenantID(); !ok {
-		return &ValidationError{Name: "tenant_id", err: errors.New(`ent: missing required field "ContactMechanism.tenant_id"`)}
-	}
-	if _, ok := _c.mutation.PartyID(); !ok {
-		return &ValidationError{Name: "party_id", err: errors.New(`ent: missing required field "ContactMechanism.party_id"`)}
-	}
 	if _, ok := _c.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "ContactMechanism.type"`)}
 	}
@@ -221,18 +123,6 @@ func (_c *ContactMechanismCreate) check() error {
 		if err := contactmechanism.ValueValidator(v); err != nil {
 			return &ValidationError{Name: "value", err: fmt.Errorf(`ent: validator failed for field "ContactMechanism.value": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.IsPrimary(); !ok {
-		return &ValidationError{Name: "is_primary", err: errors.New(`ent: missing required field "ContactMechanism.is_primary"`)}
-	}
-	if _, ok := _c.mutation.IsVerified(); !ok {
-		return &ValidationError{Name: "is_verified", err: errors.New(`ent: missing required field "ContactMechanism.is_verified"`)}
-	}
-	if len(_c.mutation.TenantIDs()) == 0 {
-		return &ValidationError{Name: "tenant", err: errors.New(`ent: missing required edge "ContactMechanism.tenant"`)}
-	}
-	if len(_c.mutation.PartyIDs()) == 0 {
-		return &ValidationError{Name: "party", err: errors.New(`ent: missing required edge "ContactMechanism.party"`)}
 	}
 	return nil
 }
@@ -266,6 +156,7 @@ func (_c *ContactMechanismCreate) createSpec() (*ContactMechanism, *sqlgraph.Cre
 		_spec = sqlgraph.NewCreateSpec(contactmechanism.Table, sqlgraph.NewFieldSpec(contactmechanism.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.ContactMechanism
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -278,63 +169,211 @@ func (_c *ContactMechanismCreate) createSpec() (*ContactMechanism, *sqlgraph.Cre
 		_spec.SetField(contactmechanism.FieldValue, field.TypeString, value)
 		_node.Value = value
 	}
-	if value, ok := _c.mutation.IsPrimary(); ok {
-		_spec.SetField(contactmechanism.FieldIsPrimary, field.TypeBool, value)
-		_node.IsPrimary = value
-	}
-	if value, ok := _c.mutation.IsVerified(); ok {
-		_spec.SetField(contactmechanism.FieldIsVerified, field.TypeBool, value)
-		_node.IsVerified = value
-	}
-	if value, ok := _c.mutation.CreatedAt(); ok {
-		_spec.SetField(contactmechanism.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
-	}
-	if value, ok := _c.mutation.UpdatedAt(); ok {
-		_spec.SetField(contactmechanism.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
-	}
-	if value, ok := _c.mutation.DeletedAt(); ok {
-		_spec.SetField(contactmechanism.FieldDeletedAt, field.TypeTime, value)
-		_node.DeletedAt = &value
-	}
-	if nodes := _c.mutation.TenantIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.PartyContactMechanismsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   contactmechanism.TenantTable,
-			Columns: []string{contactmechanism.TenantColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.PartyContactMechanismsTable,
+			Columns: []string{contactmechanism.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _c.schemaConfig.ContactMechanism
+		edge.Schema = _c.schemaConfig.PartyContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.TenantID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.PartyIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   contactmechanism.PartyTable,
-			Columns: []string{contactmechanism.PartyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(party.FieldID, field.TypeUUID),
-			},
-		}
-		edge.Schema = _c.schemaConfig.ContactMechanism
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.PartyID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ContactMechanism.Create().
+//		SetType(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ContactMechanismUpsert) {
+//			SetType(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ContactMechanismCreate) OnConflict(opts ...sql.ConflictOption) *ContactMechanismUpsertOne {
+	_c.conflict = opts
+	return &ContactMechanismUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ContactMechanism.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ContactMechanismCreate) OnConflictColumns(columns ...string) *ContactMechanismUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ContactMechanismUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// ContactMechanismUpsertOne is the builder for "upsert"-ing
+	//  one ContactMechanism node.
+	ContactMechanismUpsertOne struct {
+		create *ContactMechanismCreate
+	}
+
+	// ContactMechanismUpsert is the "OnConflict" setter.
+	ContactMechanismUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetType sets the "type" field.
+func (u *ContactMechanismUpsert) SetType(v contactmechanism.Type) *ContactMechanismUpsert {
+	u.Set(contactmechanism.FieldType, v)
+	return u
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ContactMechanismUpsert) UpdateType() *ContactMechanismUpsert {
+	u.SetExcluded(contactmechanism.FieldType)
+	return u
+}
+
+// SetValue sets the "value" field.
+func (u *ContactMechanismUpsert) SetValue(v string) *ContactMechanismUpsert {
+	u.Set(contactmechanism.FieldValue, v)
+	return u
+}
+
+// UpdateValue sets the "value" field to the value that was provided on create.
+func (u *ContactMechanismUpsert) UpdateValue() *ContactMechanismUpsert {
+	u.SetExcluded(contactmechanism.FieldValue)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.ContactMechanism.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(contactmechanism.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ContactMechanismUpsertOne) UpdateNewValues() *ContactMechanismUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(contactmechanism.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ContactMechanism.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ContactMechanismUpsertOne) Ignore() *ContactMechanismUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ContactMechanismUpsertOne) DoNothing() *ContactMechanismUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ContactMechanismCreate.OnConflict
+// documentation for more info.
+func (u *ContactMechanismUpsertOne) Update(set func(*ContactMechanismUpsert)) *ContactMechanismUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ContactMechanismUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *ContactMechanismUpsertOne) SetType(v contactmechanism.Type) *ContactMechanismUpsertOne {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ContactMechanismUpsertOne) UpdateType() *ContactMechanismUpsertOne {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetValue sets the "value" field.
+func (u *ContactMechanismUpsertOne) SetValue(v string) *ContactMechanismUpsertOne {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.SetValue(v)
+	})
+}
+
+// UpdateValue sets the "value" field to the value that was provided on create.
+func (u *ContactMechanismUpsertOne) UpdateValue() *ContactMechanismUpsertOne {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.UpdateValue()
+	})
+}
+
+// Exec executes the query.
+func (u *ContactMechanismUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ContactMechanismCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ContactMechanismUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ContactMechanismUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: ContactMechanismUpsertOne.ID is not supported by MySQL driver. Use ContactMechanismUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ContactMechanismUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
 }
 
 // ContactMechanismCreateBulk is the builder for creating many ContactMechanism entities in bulk.
@@ -342,6 +381,7 @@ type ContactMechanismCreateBulk struct {
 	config
 	err      error
 	builders []*ContactMechanismCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the ContactMechanism entities in the database.
@@ -371,6 +411,7 @@ func (_c *ContactMechanismCreateBulk) Save(ctx context.Context) ([]*ContactMecha
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -417,6 +458,148 @@ func (_c *ContactMechanismCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *ContactMechanismCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ContactMechanism.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ContactMechanismUpsert) {
+//			SetType(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *ContactMechanismCreateBulk) OnConflict(opts ...sql.ConflictOption) *ContactMechanismUpsertBulk {
+	_c.conflict = opts
+	return &ContactMechanismUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ContactMechanism.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *ContactMechanismCreateBulk) OnConflictColumns(columns ...string) *ContactMechanismUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &ContactMechanismUpsertBulk{
+		create: _c,
+	}
+}
+
+// ContactMechanismUpsertBulk is the builder for "upsert"-ing
+// a bulk of ContactMechanism nodes.
+type ContactMechanismUpsertBulk struct {
+	create *ContactMechanismCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.ContactMechanism.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(contactmechanism.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *ContactMechanismUpsertBulk) UpdateNewValues() *ContactMechanismUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(contactmechanism.FieldID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ContactMechanism.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ContactMechanismUpsertBulk) Ignore() *ContactMechanismUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ContactMechanismUpsertBulk) DoNothing() *ContactMechanismUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ContactMechanismCreateBulk.OnConflict
+// documentation for more info.
+func (u *ContactMechanismUpsertBulk) Update(set func(*ContactMechanismUpsert)) *ContactMechanismUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ContactMechanismUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetType sets the "type" field.
+func (u *ContactMechanismUpsertBulk) SetType(v contactmechanism.Type) *ContactMechanismUpsertBulk {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.SetType(v)
+	})
+}
+
+// UpdateType sets the "type" field to the value that was provided on create.
+func (u *ContactMechanismUpsertBulk) UpdateType() *ContactMechanismUpsertBulk {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.UpdateType()
+	})
+}
+
+// SetValue sets the "value" field.
+func (u *ContactMechanismUpsertBulk) SetValue(v string) *ContactMechanismUpsertBulk {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.SetValue(v)
+	})
+}
+
+// UpdateValue sets the "value" field to the value that was provided on create.
+func (u *ContactMechanismUpsertBulk) UpdateValue() *ContactMechanismUpsertBulk {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.UpdateValue()
+	})
+}
+
+// Exec executes the query.
+func (u *ContactMechanismUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the ContactMechanismCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for ContactMechanismCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ContactMechanismUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

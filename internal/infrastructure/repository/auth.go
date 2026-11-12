@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"enterprise-system/ent"
@@ -26,18 +25,18 @@ func NewCredentialRepository(client *ent.Client) *CredentialRepository {
 	return &CredentialRepository{client: client}
 }
 
-func (r *CredentialRepository) FindByEmail(ctx context.Context, tenantID uuid.UUID, email string) (*auth.Credentials, error) {
+func (r *CredentialRepository) FindByPartyContactID(ctx context.Context, tenantID, partyContactMechanismID uuid.UUID) (*auth.Credentials, error) {
 	var result *auth.Credentials
-	err := withAuthTx(ctx, r.client, func(tx *ent.Tx) error {
-		row, err := tx.UserCredentials.Query().
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		row, err := client.UserCredentials.Query().
 			Where(
 				usercredentials.TenantID(tenantID),
-				usercredentials.Email(email),
+				usercredentials.PartyContactMechanismID(partyContactMechanismID),
 				usercredentials.DeletedAtIsNil(),
 			).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toAuthCredentials(row)
 		return nil
@@ -50,8 +49,8 @@ func (r *CredentialRepository) FindByEmail(ctx context.Context, tenantID uuid.UU
 
 func (r *CredentialRepository) GetByPartyID(ctx context.Context, tenantID, partyID uuid.UUID) (*auth.Credentials, error) {
 	var result *auth.Credentials
-	err := withAuthTx(ctx, r.client, func(tx *ent.Tx) error {
-		row, err := tx.UserCredentials.Query().
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		row, err := client.UserCredentials.Query().
 			Where(
 				usercredentials.TenantID(tenantID),
 				usercredentials.PartyID(partyID),
@@ -59,7 +58,7 @@ func (r *CredentialRepository) GetByPartyID(ctx context.Context, tenantID, party
 			).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toAuthCredentials(row)
 		return nil
@@ -70,30 +69,65 @@ func (r *CredentialRepository) GetByPartyID(ctx context.Context, tenantID, party
 	return result, err
 }
 
-func (r *CredentialRepository) Update(ctx context.Context, credentials *auth.Credentials) error {
-	if credentials == nil {
-		return errors.New("repository: nil credentials")
-	}
-	return withAuthTx(ctx, r.client, func(tx *ent.Tx) error {
-		update := tx.UserCredentials.UpdateOneID(credentials.ID).
-			SetEmail(credentials.Email).
-			SetPasswordHash(credentials.PasswordHash).
-			SetTotpEnabled(credentials.TOTPEnabled).
-			SetBackupCodesHash(credentials.BackupCodesHash).
-			SetUpdatedAt(credentials.UpdatedAt)
-		if credentials.TOTPSecret != "" {
-			update.SetTotpSecret(credentials.TOTPSecret)
-		} else {
-			update.ClearTotpSecret()
-		}
-		if credentials.DeletedAt != nil {
-			update.SetDeletedAt(*credentials.DeletedAt)
-		} else {
-			update.ClearDeletedAt()
-		}
-		_, err := update.Save(ctx)
-		return err
+func (r *CredentialRepository) UpdatePasswordIfCurrent(
+	ctx context.Context,
+	tenantID, partyID uuid.UUID,
+	currentHash, newHash string,
+	at time.Time,
+) error {
+	var affected int
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		var err error
+		affected, err = client.UserCredentials.Update().
+			Where(
+				usercredentials.TenantID(tenantID),
+				usercredentials.PartyID(partyID),
+				usercredentials.PasswordHashEQ(currentHash),
+				usercredentials.DeletedAtIsNil(),
+			).
+			SetPasswordHash(newHash).
+			SetUpdatedAt(at).
+			Save(ctx)
+		return repoError(err)
 	})
+	if err != nil {
+		return repoError(err)
+	}
+	if affected == 0 {
+		return auth.ErrConcurrentModification
+	}
+	return nil
+}
+
+func (r *CredentialRepository) ConsumeBackupCodeIfUnchanged(
+	ctx context.Context,
+	tenantID, partyID uuid.UUID,
+	expectedUpdatedAt time.Time,
+	remaining []string,
+	at time.Time,
+) error {
+	var affected int
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		var err error
+		affected, err = client.UserCredentials.Update().
+			Where(
+				usercredentials.TenantID(tenantID),
+				usercredentials.PartyID(partyID),
+				usercredentials.UpdatedAtEQ(expectedUpdatedAt),
+				usercredentials.DeletedAtIsNil(),
+			).
+			SetBackupCodesHash(remaining).
+			SetUpdatedAt(at).
+			Save(ctx)
+		return repoError(err)
+	})
+	if err != nil {
+		return repoError(err)
+	}
+	if affected == 0 {
+		return auth.ErrConcurrentModification
+	}
+	return nil
 }
 
 type SessionRepository struct {
@@ -108,8 +142,8 @@ func (r *SessionRepository) Create(ctx context.Context, s *auth.Session) error {
 	if s == nil {
 		return errors.New("repository: nil session")
 	}
-	return withAuthTx(ctx, r.client, func(tx *ent.Tx) error {
-		_, err := tx.Session.Create().
+	return withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		_, err := client.Session.Create().
 			SetID(s.ID).
 			SetTenantID(s.TenantID).
 			SetUserID(s.UserID).
@@ -119,14 +153,14 @@ func (r *SessionRepository) Create(ctx context.Context, s *auth.Session) error {
 			SetCreatedAt(s.CreatedAt).
 			SetUpdatedAt(s.UpdatedAt).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
 func (r *SessionRepository) GetByID(ctx context.Context, tenantID, sessionID uuid.UUID) (*auth.Session, error) {
 	var result *auth.Session
-	err := withAuthTx(ctx, r.client, func(tx *ent.Tx) error {
-		row, err := tx.Session.Query().
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		row, err := client.Session.Query().
 			Where(
 				session.ID(sessionID),
 				session.TenantID(tenantID),
@@ -134,7 +168,7 @@ func (r *SessionRepository) GetByID(ctx context.Context, tenantID, sessionID uui
 			).
 			Only(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		result = toAuthSession(row)
 		return nil
@@ -145,19 +179,36 @@ func (r *SessionRepository) GetByID(ctx context.Context, tenantID, sessionID uui
 	return result, err
 }
 
-func (r *SessionRepository) Revoke(ctx context.Context, tenantID, sessionID uuid.UUID, at time.Time) error {
-	err := withAuthTx(ctx, r.client, func(tx *ent.Tx) error {
-		_, err := tx.Session.UpdateOneID(sessionID).
-			Where(session.TenantID(tenantID)).
+func (r *SessionRepository) RevokeIfActive(
+	ctx context.Context,
+	tenantID, sessionID uuid.UUID,
+	tokenHash []byte,
+	at time.Time,
+) error {
+	var affected int
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		var err error
+		affected, err = client.Session.Update().
+			Where(
+				session.ID(sessionID),
+				session.TenantID(tenantID),
+				session.RevokedAtIsNil(),
+				session.DeletedAtIsNil(),
+				session.ExpiresAtGT(at),
+				session.TokenHashEQ(tokenHash),
+			).
 			SetRevokedAt(at).
 			SetUpdatedAt(at).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
-	if ent.IsNotFound(err) {
-		return auth.ErrNotFound
+	if err != nil {
+		return repoError(err)
 	}
-	return err
+	if affected == 0 {
+		return auth.ErrSessionRevoked
+	}
+	return nil
 }
 
 func (r *SessionRepository) RevokeAll(ctx context.Context, tenantID, userID uuid.UUID, at time.Time) error {
@@ -169,8 +220,8 @@ func (r *SessionRepository) RevokeAllExcept(ctx context.Context, tenantID, userI
 }
 
 func (r *SessionRepository) revokeAll(ctx context.Context, tenantID, userID, exceptSessionID uuid.UUID, at time.Time) error {
-	return withAuthTx(ctx, r.client, func(tx *ent.Tx) error {
-		query := tx.Session.Update().
+	return withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		query := client.Session.Update().
 			Where(
 				session.TenantID(tenantID),
 				session.UserID(userID),
@@ -181,32 +232,19 @@ func (r *SessionRepository) revokeAll(ctx context.Context, tenantID, userID, exc
 			query = query.Where(session.IDNEQ(exceptSessionID))
 		}
 		_, err := query.SetRevokedAt(at).SetUpdatedAt(at).Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
-func withAuthTx(ctx context.Context, client *ent.Client, fn func(*ent.Tx) error) error {
-	if client == nil {
-		return errors.New("repository: nil ent client")
-	}
-	tx, err := client.Tx(ctx)
-	if err != nil {
-		return fmt.Errorf("repository: begin transaction: %w", err)
-	}
-	if err := fn(tx); err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("repository: commit transaction: %w", err)
-	}
-	return nil
+func withAuthTx(ctx context.Context, client *ent.Client, fn func(*ent.Client) error) error {
+	return execute(ctx, client, fn)
 }
 
 func toAuthCredentials(e *ent.UserCredentials) *auth.Credentials {
 	return &auth.Credentials{
-		ID: e.ID, TenantID: e.TenantID, PartyID: e.PartyID, Email: e.Email,
-		PasswordHash: e.PasswordHash, TOTPSecret: e.TotpSecret,
+		ID: e.ID, TenantID: e.TenantID, PartyID: e.PartyID,
+		PartyContactMechanismID: e.PartyContactMechanismID,
+		PasswordHash:            e.PasswordHash, TOTPSecret: e.TotpSecret,
 		TOTPEnabled: e.TotpEnabled, BackupCodesHash: e.BackupCodesHash,
 		CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt, DeletedAt: e.DeletedAt,
 	}

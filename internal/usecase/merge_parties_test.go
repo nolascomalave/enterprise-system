@@ -71,20 +71,6 @@ func (r *fakeMergeRepository) CreatePartyMergeLog(ctx context.Context, entry *do
 	return nil
 }
 
-type fakeTransactor struct {
-	repo   domain.PartyMergeRepository
-	called bool
-	err    error
-}
-
-func (t *fakeTransactor) WithTx(ctx context.Context, fn func(domain.PartyMergeRepository) error) error {
-	t.called = true
-	if t.err != nil {
-		return t.err
-	}
-	return fn(t.repo)
-}
-
 func testParty(t *testing.T, name string) *domain.Party {
 	t.Helper()
 
@@ -98,16 +84,16 @@ func TestMergePartiesUseCaseExecutesInTransaction(t *testing.T) {
 	source := testParty(t, "Source")
 	target := testParty(t, "Target")
 	repo := newFakeMergeRepository(source, target)
-	tx := &fakeTransactor{repo: repo}
+	txManager := newFakeTxManager()
 	now := func() time.Time { return time.Date(2026, 11, 9, 12, 0, 0, 0, time.UTC) }
 	actor := uuid.MustParse("018f3a4e-1c2d-7b3e-8f00-0000000000a1")
-	uc := NewMergeParties(tx, now, &actor)
+	uc := NewMergeParties(txManager, repo, now, &actor)
 
 	result, err := uc.Execute(context.Background(), source.ID, target.ID)
 
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	assert.True(t, tx.called)
+	assert.Equal(t, 1, txManager.calls)
 	assert.Equal(t, source.ID, result.SourceID)
 	assert.Equal(t, target.ID, result.TargetID)
 	assert.Equal(t, domain.PartyRecordStatusMerged, source.RecordStatus)
@@ -122,31 +108,32 @@ func TestMergePartiesUseCasePropagatesDomainError(t *testing.T) {
 	target := testParty(t, "Target")
 	repo := newFakeMergeRepository(source, target)
 	repo.getErr = errors.New("db down")
-	tx := &fakeTransactor{repo: repo}
-	uc := NewMergeParties(tx, nil, nil)
+	txManager := newFakeTxManager()
+	uc := NewMergeParties(txManager, repo, nil, nil)
 
 	result, err := uc.Execute(context.Background(), source.ID, target.ID)
 
 	require.Error(t, err)
 	assert.Nil(t, result)
-	assert.True(t, tx.called)
+	assert.Equal(t, 1, txManager.calls)
 	assert.Empty(t, repo.logs)
 }
 
 func TestMergePartiesUseCasePropagatesTransactionError(t *testing.T) {
 	txErr := errors.New("commit failed")
-	tx := &fakeTransactor{err: txErr}
-	uc := NewMergeParties(tx, nil, nil)
+	txManager := newFakeTxManager()
+	txManager.err = txErr
+	uc := NewMergeParties(txManager, newFakeMergeRepository(), nil, nil)
 
 	result, err := uc.Execute(context.Background(), uuid.New(), uuid.New())
 
 	require.ErrorIs(t, err, txErr)
 	assert.Nil(t, result)
-	assert.True(t, tx.called)
+	assert.Equal(t, 1, txManager.calls)
 }
 
 func TestMergePartiesUseCaseRejectsNilTransactor(t *testing.T) {
-	uc := NewMergeParties(nil, nil, nil)
+	uc := NewMergeParties(nil, nil, nil, nil)
 
 	result, err := uc.Execute(context.Background(), uuid.New(), uuid.New())
 

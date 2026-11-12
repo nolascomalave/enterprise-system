@@ -4,21 +4,30 @@ import (
 	"net/http"
 	"time"
 
+	_ "enterprise-system/docs"
 	"enterprise-system/internal/auth"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Dependencies struct {
-	PartyUseCase   PartyUseCase
-	AuthUseCase    AuthUseCase
-	AccountUseCase AccountUseCase
-	TokenManager   *auth.Manager
+	PartyUseCase        PartyUseCase
+	AuthUseCase         AuthUseCase
+	AccountUseCase      AccountUseCase
+	OnboardingUseCase   OnboardingUseCase
+	OrgStructureUseCase OrgStructureUseCase
+	MergePartiesUseCase MergePartiesUseCase
+	DocumentUseCase     DocumentUseCase
+	PartyNameUseCase    PartyNameUseCase
+	TokenManager        *auth.Manager
 
 	CookieSecure   bool
 	RefreshTTL     time.Duration
 	AuthRateLimit  int
 	AuthRateWindow time.Duration
 	TrustedProxies []string
+	AllowedOrigins []string
 }
 
 func NewRouter(deps Dependencies) *gin.Engine {
@@ -28,6 +37,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		_ = router.SetTrustedProxies(nil)
 	}
 	router.Use(
+		CORS(deps.AllowedOrigins),
 		gin.Logger(),
 		gin.CustomRecovery(func(c *gin.Context, _ any) {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, APIError{
@@ -50,11 +60,21 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	twoFALimiter := NewRateLimiter(deps.AuthRateLimit, deps.AuthRateWindow)
 	forgotLimiter := NewRateLimiter(deps.AuthRateLimit, deps.AuthRateWindow)
 	resetLimiter := NewRateLimiter(deps.AuthRateLimit, deps.AuthRateWindow)
+	onboardingLimiter := NewRateLimiter(3, time.Hour)
 
 	authHandler := NewAuthHandler(deps.AuthUseCase, deps.CookieSecure, deps.RefreshTTL)
 	accountHandler := NewAccountHandler(deps.AccountUseCase)
+	onboardingHandler := NewOnboardingHandler(deps.OnboardingUseCase)
+	orgHandler := NewOrgHandler(deps.OrgStructureUseCase)
+	mergeHandler := NewMergeHandler(deps.MergePartiesUseCase)
+	documentHandler := NewDocumentHandler(deps.DocumentUseCase)
+	partyNameHandler := NewPartyNameHandler(deps.PartyNameUseCase)
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := router.Group("/api/v1")
+	api.GET("/health", Health)
+
 	authRoutes := api.Group("/auth")
 	{
 		authRoutes.POST("/login", RateLimit(loginLimiter), authHandler.Login)
@@ -65,6 +85,8 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		authRoutes.POST("/reset-password", RateLimit(resetLimiter), accountHandler.ResetPassword)
 	}
 
+	api.POST("/onboarding/register", RateLimit(onboardingLimiter), onboardingHandler.Register)
+
 	partyHandler := NewPartyHandler(deps.PartyUseCase)
 	protected := api.Group("")
 	protected.Use(TenantMiddleware(deps.TokenManager))
@@ -72,6 +94,19 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.POST("/parties", partyHandler.Create)
 		protected.GET("/parties", partyHandler.List)
 		protected.GET("/parties/:id", partyHandler.GetByID)
+		protected.POST("/parties/merge", mergeHandler.Merge)
+		protected.POST("/jobs", orgHandler.CreateJob)
+		protected.GET("/jobs", orgHandler.ListJobs)
+		protected.PUT("/jobs/:id", orgHandler.UpdateJob)
+		protected.POST("/departments", orgHandler.CreateDepartment)
+		protected.GET("/departments", orgHandler.ListDepartments)
+		protected.POST("/departments/:id/groups", orgHandler.AssignDepartmentToGroup)
+		protected.POST("/corporate-groups", orgHandler.CreateCorporateGroup)
+		protected.POST("/employees", orgHandler.CreateEmployee)
+		protected.GET("/employees", orgHandler.ListEmployees)
+		protected.POST("/documents", documentHandler.Create)
+		protected.POST("/parties/:id/names", partyNameHandler.Create)
+		protected.PUT("/parties/:id/names/:name_id/validity", partyNameHandler.UpdateValidity)
 		protected.POST("/auth/change-password", accountHandler.ChangePassword)
 	}
 

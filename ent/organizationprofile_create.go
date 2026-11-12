@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type OrganizationProfileCreate struct {
 	config
 	mutation *OrganizationProfileMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTenantID sets the "tenant_id" field.
@@ -238,6 +241,7 @@ func (_c *OrganizationProfileCreate) createSpec() (*OrganizationProfile, *sqlgra
 		_spec = sqlgraph.NewCreateSpec(organizationprofile.Table, sqlgraph.NewFieldSpec(organizationprofile.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.OrganizationProfile
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -305,11 +309,358 @@ func (_c *OrganizationProfileCreate) createSpec() (*OrganizationProfile, *sqlgra
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrganizationProfile.Create().
+//		SetTenantID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrganizationProfileUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrganizationProfileCreate) OnConflict(opts ...sql.ConflictOption) *OrganizationProfileUpsertOne {
+	_c.conflict = opts
+	return &OrganizationProfileUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrganizationProfile.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrganizationProfileCreate) OnConflictColumns(columns ...string) *OrganizationProfileUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrganizationProfileUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// OrganizationProfileUpsertOne is the builder for "upsert"-ing
+	//  one OrganizationProfile node.
+	OrganizationProfileUpsertOne struct {
+		create *OrganizationProfileCreate
+	}
+
+	// OrganizationProfileUpsert is the "OnConflict" setter.
+	OrganizationProfileUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTenantID sets the "tenant_id" field.
+func (u *OrganizationProfileUpsert) SetTenantID(v uuid.UUID) *OrganizationProfileUpsert {
+	u.Set(organizationprofile.FieldTenantID, v)
+	return u
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *OrganizationProfileUpsert) UpdateTenantID() *OrganizationProfileUpsert {
+	u.SetExcluded(organizationprofile.FieldTenantID)
+	return u
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *OrganizationProfileUpsert) SetPartyID(v uuid.UUID) *OrganizationProfileUpsert {
+	u.Set(organizationprofile.FieldPartyID, v)
+	return u
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *OrganizationProfileUpsert) UpdatePartyID() *OrganizationProfileUpsert {
+	u.SetExcluded(organizationprofile.FieldPartyID)
+	return u
+}
+
+// SetLegalName sets the "legal_name" field.
+func (u *OrganizationProfileUpsert) SetLegalName(v string) *OrganizationProfileUpsert {
+	u.Set(organizationprofile.FieldLegalName, v)
+	return u
+}
+
+// UpdateLegalName sets the "legal_name" field to the value that was provided on create.
+func (u *OrganizationProfileUpsert) UpdateLegalName() *OrganizationProfileUpsert {
+	u.SetExcluded(organizationprofile.FieldLegalName)
+	return u
+}
+
+// SetTradeName sets the "trade_name" field.
+func (u *OrganizationProfileUpsert) SetTradeName(v string) *OrganizationProfileUpsert {
+	u.Set(organizationprofile.FieldTradeName, v)
+	return u
+}
+
+// UpdateTradeName sets the "trade_name" field to the value that was provided on create.
+func (u *OrganizationProfileUpsert) UpdateTradeName() *OrganizationProfileUpsert {
+	u.SetExcluded(organizationprofile.FieldTradeName)
+	return u
+}
+
+// ClearTradeName clears the value of the "trade_name" field.
+func (u *OrganizationProfileUpsert) ClearTradeName() *OrganizationProfileUpsert {
+	u.SetNull(organizationprofile.FieldTradeName)
+	return u
+}
+
+// SetTaxID sets the "tax_id" field.
+func (u *OrganizationProfileUpsert) SetTaxID(v string) *OrganizationProfileUpsert {
+	u.Set(organizationprofile.FieldTaxID, v)
+	return u
+}
+
+// UpdateTaxID sets the "tax_id" field to the value that was provided on create.
+func (u *OrganizationProfileUpsert) UpdateTaxID() *OrganizationProfileUpsert {
+	u.SetExcluded(organizationprofile.FieldTaxID)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrganizationProfileUpsert) SetUpdatedAt(v time.Time) *OrganizationProfileUpsert {
+	u.Set(organizationprofile.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrganizationProfileUpsert) UpdateUpdatedAt() *OrganizationProfileUpsert {
+	u.SetExcluded(organizationprofile.FieldUpdatedAt)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *OrganizationProfileUpsert) SetDeletedAt(v time.Time) *OrganizationProfileUpsert {
+	u.Set(organizationprofile.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *OrganizationProfileUpsert) UpdateDeletedAt() *OrganizationProfileUpsert {
+	u.SetExcluded(organizationprofile.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *OrganizationProfileUpsert) ClearDeletedAt() *OrganizationProfileUpsert {
+	u.SetNull(organizationprofile.FieldDeletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.OrganizationProfile.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(organizationprofile.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrganizationProfileUpsertOne) UpdateNewValues() *OrganizationProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(organizationprofile.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(organizationprofile.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrganizationProfile.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *OrganizationProfileUpsertOne) Ignore() *OrganizationProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrganizationProfileUpsertOne) DoNothing() *OrganizationProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrganizationProfileCreate.OnConflict
+// documentation for more info.
+func (u *OrganizationProfileUpsertOne) Update(set func(*OrganizationProfileUpsert)) *OrganizationProfileUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrganizationProfileUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *OrganizationProfileUpsertOne) SetTenantID(v uuid.UUID) *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertOne) UpdateTenantID() *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *OrganizationProfileUpsertOne) SetPartyID(v uuid.UUID) *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertOne) UpdatePartyID() *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetLegalName sets the "legal_name" field.
+func (u *OrganizationProfileUpsertOne) SetLegalName(v string) *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetLegalName(v)
+	})
+}
+
+// UpdateLegalName sets the "legal_name" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertOne) UpdateLegalName() *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateLegalName()
+	})
+}
+
+// SetTradeName sets the "trade_name" field.
+func (u *OrganizationProfileUpsertOne) SetTradeName(v string) *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetTradeName(v)
+	})
+}
+
+// UpdateTradeName sets the "trade_name" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertOne) UpdateTradeName() *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateTradeName()
+	})
+}
+
+// ClearTradeName clears the value of the "trade_name" field.
+func (u *OrganizationProfileUpsertOne) ClearTradeName() *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.ClearTradeName()
+	})
+}
+
+// SetTaxID sets the "tax_id" field.
+func (u *OrganizationProfileUpsertOne) SetTaxID(v string) *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetTaxID(v)
+	})
+}
+
+// UpdateTaxID sets the "tax_id" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertOne) UpdateTaxID() *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateTaxID()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrganizationProfileUpsertOne) SetUpdatedAt(v time.Time) *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertOne) UpdateUpdatedAt() *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *OrganizationProfileUpsertOne) SetDeletedAt(v time.Time) *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertOne) UpdateDeletedAt() *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *OrganizationProfileUpsertOne) ClearDeletedAt() *OrganizationProfileUpsertOne {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *OrganizationProfileUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrganizationProfileCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrganizationProfileUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *OrganizationProfileUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: OrganizationProfileUpsertOne.ID is not supported by MySQL driver. Use OrganizationProfileUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *OrganizationProfileUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // OrganizationProfileCreateBulk is the builder for creating many OrganizationProfile entities in bulk.
 type OrganizationProfileCreateBulk struct {
 	config
 	err      error
 	builders []*OrganizationProfileCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the OrganizationProfile entities in the database.
@@ -339,6 +690,7 @@ func (_c *OrganizationProfileCreateBulk) Save(ctx context.Context) ([]*Organizat
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -385,6 +737,235 @@ func (_c *OrganizationProfileCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *OrganizationProfileCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.OrganizationProfile.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.OrganizationProfileUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *OrganizationProfileCreateBulk) OnConflict(opts ...sql.ConflictOption) *OrganizationProfileUpsertBulk {
+	_c.conflict = opts
+	return &OrganizationProfileUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.OrganizationProfile.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *OrganizationProfileCreateBulk) OnConflictColumns(columns ...string) *OrganizationProfileUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &OrganizationProfileUpsertBulk{
+		create: _c,
+	}
+}
+
+// OrganizationProfileUpsertBulk is the builder for "upsert"-ing
+// a bulk of OrganizationProfile nodes.
+type OrganizationProfileUpsertBulk struct {
+	create *OrganizationProfileCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.OrganizationProfile.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(organizationprofile.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *OrganizationProfileUpsertBulk) UpdateNewValues() *OrganizationProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(organizationprofile.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(organizationprofile.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.OrganizationProfile.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *OrganizationProfileUpsertBulk) Ignore() *OrganizationProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *OrganizationProfileUpsertBulk) DoNothing() *OrganizationProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the OrganizationProfileCreateBulk.OnConflict
+// documentation for more info.
+func (u *OrganizationProfileUpsertBulk) Update(set func(*OrganizationProfileUpsert)) *OrganizationProfileUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&OrganizationProfileUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *OrganizationProfileUpsertBulk) SetTenantID(v uuid.UUID) *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertBulk) UpdateTenantID() *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *OrganizationProfileUpsertBulk) SetPartyID(v uuid.UUID) *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertBulk) UpdatePartyID() *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetLegalName sets the "legal_name" field.
+func (u *OrganizationProfileUpsertBulk) SetLegalName(v string) *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetLegalName(v)
+	})
+}
+
+// UpdateLegalName sets the "legal_name" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertBulk) UpdateLegalName() *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateLegalName()
+	})
+}
+
+// SetTradeName sets the "trade_name" field.
+func (u *OrganizationProfileUpsertBulk) SetTradeName(v string) *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetTradeName(v)
+	})
+}
+
+// UpdateTradeName sets the "trade_name" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertBulk) UpdateTradeName() *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateTradeName()
+	})
+}
+
+// ClearTradeName clears the value of the "trade_name" field.
+func (u *OrganizationProfileUpsertBulk) ClearTradeName() *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.ClearTradeName()
+	})
+}
+
+// SetTaxID sets the "tax_id" field.
+func (u *OrganizationProfileUpsertBulk) SetTaxID(v string) *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetTaxID(v)
+	})
+}
+
+// UpdateTaxID sets the "tax_id" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertBulk) UpdateTaxID() *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateTaxID()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *OrganizationProfileUpsertBulk) SetUpdatedAt(v time.Time) *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertBulk) UpdateUpdatedAt() *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *OrganizationProfileUpsertBulk) SetDeletedAt(v time.Time) *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *OrganizationProfileUpsertBulk) UpdateDeletedAt() *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *OrganizationProfileUpsertBulk) ClearDeletedAt() *OrganizationProfileUpsertBulk {
+	return u.Update(func(s *OrganizationProfileUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *OrganizationProfileUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the OrganizationProfileCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for OrganizationProfileCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *OrganizationProfileUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -12,6 +12,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -22,6 +24,7 @@ type PartyRoleCreate struct {
 	config
 	mutation *PartyRoleMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTenantID sets the "tenant_id" field.
@@ -214,6 +217,7 @@ func (_c *PartyRoleCreate) createSpec() (*PartyRole, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(partyrole.Table, sqlgraph.NewFieldSpec(partyrole.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.PartyRole
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -287,11 +291,293 @@ func (_c *PartyRoleCreate) createSpec() (*PartyRole, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartyRole.Create().
+//		SetTenantID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartyRoleUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartyRoleCreate) OnConflict(opts ...sql.ConflictOption) *PartyRoleUpsertOne {
+	_c.conflict = opts
+	return &PartyRoleUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartyRole.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartyRoleCreate) OnConflictColumns(columns ...string) *PartyRoleUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartyRoleUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PartyRoleUpsertOne is the builder for "upsert"-ing
+	//  one PartyRole node.
+	PartyRoleUpsertOne struct {
+		create *PartyRoleCreate
+	}
+
+	// PartyRoleUpsert is the "OnConflict" setter.
+	PartyRoleUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PartyRoleUpsert) SetTenantID(v uuid.UUID) *PartyRoleUpsert {
+	u.Set(partyrole.FieldTenantID, v)
+	return u
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PartyRoleUpsert) UpdateTenantID() *PartyRoleUpsert {
+	u.SetExcluded(partyrole.FieldTenantID)
+	return u
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *PartyRoleUpsert) SetPartyID(v uuid.UUID) *PartyRoleUpsert {
+	u.Set(partyrole.FieldPartyID, v)
+	return u
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *PartyRoleUpsert) UpdatePartyID() *PartyRoleUpsert {
+	u.SetExcluded(partyrole.FieldPartyID)
+	return u
+}
+
+// SetRoleTypeID sets the "role_type_id" field.
+func (u *PartyRoleUpsert) SetRoleTypeID(v uuid.UUID) *PartyRoleUpsert {
+	u.Set(partyrole.FieldRoleTypeID, v)
+	return u
+}
+
+// UpdateRoleTypeID sets the "role_type_id" field to the value that was provided on create.
+func (u *PartyRoleUpsert) UpdateRoleTypeID() *PartyRoleUpsert {
+	u.SetExcluded(partyrole.FieldRoleTypeID)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartyRoleUpsert) SetUpdatedAt(v time.Time) *PartyRoleUpsert {
+	u.Set(partyrole.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartyRoleUpsert) UpdateUpdatedAt() *PartyRoleUpsert {
+	u.SetExcluded(partyrole.FieldUpdatedAt)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *PartyRoleUpsert) SetDeletedAt(v time.Time) *PartyRoleUpsert {
+	u.Set(partyrole.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *PartyRoleUpsert) UpdateDeletedAt() *PartyRoleUpsert {
+	u.SetExcluded(partyrole.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *PartyRoleUpsert) ClearDeletedAt() *PartyRoleUpsert {
+	u.SetNull(partyrole.FieldDeletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.PartyRole.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partyrole.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartyRoleUpsertOne) UpdateNewValues() *PartyRoleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(partyrole.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(partyrole.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartyRole.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PartyRoleUpsertOne) Ignore() *PartyRoleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartyRoleUpsertOne) DoNothing() *PartyRoleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartyRoleCreate.OnConflict
+// documentation for more info.
+func (u *PartyRoleUpsertOne) Update(set func(*PartyRoleUpsert)) *PartyRoleUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartyRoleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PartyRoleUpsertOne) SetTenantID(v uuid.UUID) *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PartyRoleUpsertOne) UpdateTenantID() *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *PartyRoleUpsertOne) SetPartyID(v uuid.UUID) *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *PartyRoleUpsertOne) UpdatePartyID() *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetRoleTypeID sets the "role_type_id" field.
+func (u *PartyRoleUpsertOne) SetRoleTypeID(v uuid.UUID) *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.SetRoleTypeID(v)
+	})
+}
+
+// UpdateRoleTypeID sets the "role_type_id" field to the value that was provided on create.
+func (u *PartyRoleUpsertOne) UpdateRoleTypeID() *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.UpdateRoleTypeID()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartyRoleUpsertOne) SetUpdatedAt(v time.Time) *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartyRoleUpsertOne) UpdateUpdatedAt() *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *PartyRoleUpsertOne) SetDeletedAt(v time.Time) *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *PartyRoleUpsertOne) UpdateDeletedAt() *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *PartyRoleUpsertOne) ClearDeletedAt() *PartyRoleUpsertOne {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PartyRoleUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartyRoleCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartyRoleUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PartyRoleUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PartyRoleUpsertOne.ID is not supported by MySQL driver. Use PartyRoleUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PartyRoleUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PartyRoleCreateBulk is the builder for creating many PartyRole entities in bulk.
 type PartyRoleCreateBulk struct {
 	config
 	err      error
 	builders []*PartyRoleCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the PartyRole entities in the database.
@@ -321,6 +607,7 @@ func (_c *PartyRoleCreateBulk) Save(ctx context.Context) ([]*PartyRole, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -367,6 +654,200 @@ func (_c *PartyRoleCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PartyRoleCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.PartyRole.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartyRoleUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartyRoleCreateBulk) OnConflict(opts ...sql.ConflictOption) *PartyRoleUpsertBulk {
+	_c.conflict = opts
+	return &PartyRoleUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.PartyRole.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartyRoleCreateBulk) OnConflictColumns(columns ...string) *PartyRoleUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartyRoleUpsertBulk{
+		create: _c,
+	}
+}
+
+// PartyRoleUpsertBulk is the builder for "upsert"-ing
+// a bulk of PartyRole nodes.
+type PartyRoleUpsertBulk struct {
+	create *PartyRoleCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.PartyRole.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(partyrole.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartyRoleUpsertBulk) UpdateNewValues() *PartyRoleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(partyrole.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(partyrole.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.PartyRole.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PartyRoleUpsertBulk) Ignore() *PartyRoleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartyRoleUpsertBulk) DoNothing() *PartyRoleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartyRoleCreateBulk.OnConflict
+// documentation for more info.
+func (u *PartyRoleUpsertBulk) Update(set func(*PartyRoleUpsert)) *PartyRoleUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartyRoleUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PartyRoleUpsertBulk) SetTenantID(v uuid.UUID) *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PartyRoleUpsertBulk) UpdateTenantID() *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *PartyRoleUpsertBulk) SetPartyID(v uuid.UUID) *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *PartyRoleUpsertBulk) UpdatePartyID() *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetRoleTypeID sets the "role_type_id" field.
+func (u *PartyRoleUpsertBulk) SetRoleTypeID(v uuid.UUID) *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.SetRoleTypeID(v)
+	})
+}
+
+// UpdateRoleTypeID sets the "role_type_id" field to the value that was provided on create.
+func (u *PartyRoleUpsertBulk) UpdateRoleTypeID() *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.UpdateRoleTypeID()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartyRoleUpsertBulk) SetUpdatedAt(v time.Time) *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartyRoleUpsertBulk) UpdateUpdatedAt() *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *PartyRoleUpsertBulk) SetDeletedAt(v time.Time) *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *PartyRoleUpsertBulk) UpdateDeletedAt() *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *PartyRoleUpsertBulk) ClearDeletedAt() *PartyRoleUpsertBulk {
+	return u.Update(func(s *PartyRoleUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PartyRoleUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PartyRoleCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartyRoleCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartyRoleUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

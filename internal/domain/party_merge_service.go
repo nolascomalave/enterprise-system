@@ -17,11 +17,6 @@ type PartyMergeRepository interface {
 	CreatePartyMergeLog(ctx context.Context, log *PartyMergeLog) error
 }
 
-// Transactor wraps a merge operation in a single database transaction.
-type Transactor interface {
-	WithTx(ctx context.Context, fn func(PartyMergeRepository) error) error
-}
-
 type MergeResult struct {
 	SourceID           uuid.UUID
 	TargetID           uuid.UUID

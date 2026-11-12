@@ -67,9 +67,9 @@ func PartyID(v uuid.UUID) predicate.UserCredentials {
 	return predicate.UserCredentials(sql.FieldEQ(FieldPartyID, v))
 }
 
-// Email applies equality check predicate on the "email" field. It's identical to EmailEQ.
-func Email(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldEQ(FieldEmail, v))
+// PartyContactMechanismID applies equality check predicate on the "party_contact_mechanism_id" field. It's identical to PartyContactMechanismIDEQ.
+func PartyContactMechanismID(v uuid.UUID) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldEQ(FieldPartyContactMechanismID, v))
 }
 
 // PasswordHash applies equality check predicate on the "password_hash" field. It's identical to PasswordHashEQ.
@@ -142,69 +142,24 @@ func PartyIDNotIn(vs ...uuid.UUID) predicate.UserCredentials {
 	return predicate.UserCredentials(sql.FieldNotIn(FieldPartyID, vs...))
 }
 
-// EmailEQ applies the EQ predicate on the "email" field.
-func EmailEQ(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldEQ(FieldEmail, v))
+// PartyContactMechanismIDEQ applies the EQ predicate on the "party_contact_mechanism_id" field.
+func PartyContactMechanismIDEQ(v uuid.UUID) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldEQ(FieldPartyContactMechanismID, v))
 }
 
-// EmailNEQ applies the NEQ predicate on the "email" field.
-func EmailNEQ(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldNEQ(FieldEmail, v))
+// PartyContactMechanismIDNEQ applies the NEQ predicate on the "party_contact_mechanism_id" field.
+func PartyContactMechanismIDNEQ(v uuid.UUID) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldNEQ(FieldPartyContactMechanismID, v))
 }
 
-// EmailIn applies the In predicate on the "email" field.
-func EmailIn(vs ...string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldIn(FieldEmail, vs...))
+// PartyContactMechanismIDIn applies the In predicate on the "party_contact_mechanism_id" field.
+func PartyContactMechanismIDIn(vs ...uuid.UUID) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldIn(FieldPartyContactMechanismID, vs...))
 }
 
-// EmailNotIn applies the NotIn predicate on the "email" field.
-func EmailNotIn(vs ...string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldNotIn(FieldEmail, vs...))
-}
-
-// EmailGT applies the GT predicate on the "email" field.
-func EmailGT(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldGT(FieldEmail, v))
-}
-
-// EmailGTE applies the GTE predicate on the "email" field.
-func EmailGTE(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldGTE(FieldEmail, v))
-}
-
-// EmailLT applies the LT predicate on the "email" field.
-func EmailLT(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldLT(FieldEmail, v))
-}
-
-// EmailLTE applies the LTE predicate on the "email" field.
-func EmailLTE(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldLTE(FieldEmail, v))
-}
-
-// EmailContains applies the Contains predicate on the "email" field.
-func EmailContains(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldContains(FieldEmail, v))
-}
-
-// EmailHasPrefix applies the HasPrefix predicate on the "email" field.
-func EmailHasPrefix(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldHasPrefix(FieldEmail, v))
-}
-
-// EmailHasSuffix applies the HasSuffix predicate on the "email" field.
-func EmailHasSuffix(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldHasSuffix(FieldEmail, v))
-}
-
-// EmailEqualFold applies the EqualFold predicate on the "email" field.
-func EmailEqualFold(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldEqualFold(FieldEmail, v))
-}
-
-// EmailContainsFold applies the ContainsFold predicate on the "email" field.
-func EmailContainsFold(v string) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldContainsFold(FieldEmail, v))
+// PartyContactMechanismIDNotIn applies the NotIn predicate on the "party_contact_mechanism_id" field.
+func PartyContactMechanismIDNotIn(vs ...uuid.UUID) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldNotIn(FieldPartyContactMechanismID, vs...))
 }
 
 // PasswordHashEQ applies the EQ predicate on the "password_hash" field.
@@ -536,6 +491,35 @@ func HasPartyWith(preds ...predicate.Party) predicate.UserCredentials {
 		step := newPartyStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Party
+		step.Edge.Schema = schemaConfig.UserCredentials
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPartyContactMechanism applies the HasEdge predicate on the "party_contact_mechanism" edge.
+func HasPartyContactMechanism() predicate.UserCredentials {
+	return predicate.UserCredentials(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, PartyContactMechanismTable, PartyContactMechanismColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyContactMechanism
+		step.Edge.Schema = schemaConfig.UserCredentials
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPartyContactMechanismWith applies the HasEdge predicate on the "party_contact_mechanism" edge with a given conditions (other predicates).
+func HasPartyContactMechanismWith(preds ...predicate.PartyContactMechanism) predicate.UserCredentials {
+	return predicate.UserCredentials(func(s *sql.Selector) {
+		step := newPartyContactMechanismStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PartyContactMechanism
 		step.Edge.Schema = schemaConfig.UserCredentials
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

@@ -25,8 +25,8 @@ func (r *PasswordResetTokenRepository) Create(ctx context.Context, token *auth.P
 	if token == nil {
 		return errors.New("repository: nil password reset token")
 	}
-	return withAuthTx(ctx, r.client, func(tx *ent.Tx) error {
-		_, err := tx.PasswordResetToken.Create().
+	return withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		_, err := client.PasswordResetToken.Create().
 			SetID(token.ID).
 			SetTenantID(token.TenantID).
 			SetPartyID(token.PartyID).
@@ -35,13 +35,13 @@ func (r *PasswordResetTokenRepository) Create(ctx context.Context, token *auth.P
 			SetCreatedAt(token.CreatedAt).
 			SetUpdatedAt(token.UpdatedAt).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
 func (r *PasswordResetTokenRepository) InvalidateActive(ctx context.Context, tenantID, partyID uuid.UUID, at time.Time) error {
-	return withAuthTx(ctx, r.client, func(tx *ent.Tx) error {
-		_, err := tx.PasswordResetToken.Update().
+	return withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		_, err := client.PasswordResetToken.Update().
 			Where(
 				passwordresettoken.TenantID(tenantID),
 				passwordresettoken.PartyID(partyID),
@@ -51,14 +51,14 @@ func (r *PasswordResetTokenRepository) InvalidateActive(ctx context.Context, ten
 			SetUsedAt(at).
 			SetUpdatedAt(at).
 			Save(ctx)
-		return err
+		return repoError(err)
 	})
 }
 
 func (r *PasswordResetTokenRepository) Consume(ctx context.Context, tenantID uuid.UUID, tokenHash []byte, now time.Time) (*auth.PasswordResetToken, error) {
 	var result *auth.PasswordResetToken
-	err := withAuthTx(ctx, r.client, func(tx *ent.Tx) error {
-		row, err := tx.PasswordResetToken.Query().
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		row, err := client.PasswordResetToken.Query().
 			Where(
 				passwordresettoken.TenantID(tenantID),
 				passwordresettoken.TokenHash(tokenHash),
@@ -70,10 +70,10 @@ func (r *PasswordResetTokenRepository) Consume(ctx context.Context, tenantID uui
 			if ent.IsNotFound(err) {
 				return auth.ErrInvalidResetToken
 			}
-			return err
+			return repoError(err)
 		}
 
-		affected, err := tx.PasswordResetToken.Update().
+		affected, err := client.PasswordResetToken.Update().
 			Where(
 				passwordresettoken.ID(row.ID),
 				passwordresettoken.UsedAtIsNil(),
@@ -83,7 +83,7 @@ func (r *PasswordResetTokenRepository) Consume(ctx context.Context, tenantID uui
 			SetUpdatedAt(now).
 			Save(ctx)
 		if err != nil {
-			return err
+			return repoError(err)
 		}
 		if affected == 0 {
 			return auth.ErrInvalidResetToken

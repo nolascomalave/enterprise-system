@@ -12,7 +12,7 @@ func TestNewDepartment(t *testing.T) {
 	parent := uuid.MustParse("018f3a4e-1c2d-7b3e-8f00-000000000020")
 	manager := uuid.MustParse("018f3a4e-1c2d-7b3e-8f00-000000000021")
 
-	dept, err := NewDepartment(testTenantID, &parent, " Personas ", "PPL", &manager, testNow())
+	dept, err := NewDepartment(testTenantID, &parent, " Personas ", "PPL", DepartmentUnitTypeDepartment, &manager, testNow())
 
 	require.NoError(t, err)
 	require.NotNil(t, dept)
@@ -26,7 +26,7 @@ func TestNewDepartment(t *testing.T) {
 func TestNewDepartmentValidation(t *testing.T) {
 	manager := uuid.MustParse("018f3a4e-1c2d-7b3e-8f00-000000000021")
 
-	dept, err := NewDepartment(testTenantID, nil, "Personas", "PPL", &manager, testNow())
+	dept, err := NewDepartment(testTenantID, nil, "Personas", "PPL", DepartmentUnitTypeDepartment, &manager, testNow())
 	require.NoError(t, err)
 
 	dept.ParentDepartmentID = &dept.ID
@@ -38,7 +38,7 @@ func TestNewDepartmentValidation(t *testing.T) {
 }
 
 func TestDepartmentUpdateAndSoftDelete(t *testing.T) {
-	dept, err := NewDepartment(testTenantID, nil, "Personas", "PPL", nil, testNow())
+	dept, err := NewDepartment(testTenantID, nil, "Personas", "PPL", DepartmentUnitTypeDepartment, nil, testNow())
 	require.NoError(t, err)
 	later := testNow().Add(1)
 	manager := uuid.New()
@@ -49,4 +49,21 @@ func TestDepartmentUpdateAndSoftDelete(t *testing.T) {
 
 	require.NoError(t, dept.SoftDelete(later))
 	require.ErrorIs(t, dept.Update(nil, "X", "X", nil, later), ErrAlreadyDeleted)
+}
+
+func TestDepartmentUnitTypeValidation(t *testing.T) {
+	valid := []DepartmentUnitType{
+		DepartmentUnitTypeDivision,
+		DepartmentUnitTypeBranch,
+		DepartmentUnitTypeOffice,
+		DepartmentUnitTypeDepartment,
+	}
+	for _, unitType := range valid {
+		dept, err := NewDepartment(testTenantID, nil, "Unidad", "UNI", unitType, nil, testNow())
+		require.NoErrorf(t, err, "unit type %q", unitType)
+		assert.Equal(t, unitType, dept.UnitType)
+	}
+
+	_, err := NewDepartment(testTenantID, nil, "Unidad", "UNI", DepartmentUnitType("INVALID"), nil, testNow())
+	require.ErrorIs(t, err, ErrInvalidDepartment)
 }

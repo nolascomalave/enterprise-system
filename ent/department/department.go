@@ -3,6 +3,7 @@
 package department
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -23,6 +24,8 @@ const (
 	FieldName = "name"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
+	// FieldUnitType holds the string denoting the unit_type field in the database.
+	FieldUnitType = "unit_type"
 	// FieldManagerPartyID holds the string denoting the manager_party_id field in the database.
 	FieldManagerPartyID = "manager_party_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -43,6 +46,8 @@ const (
 	EdgeEmployees = "employees"
 	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
 	EdgeAssignments = "assignments"
+	// EdgeGroupAssignments holds the string denoting the group_assignments edge name in mutations.
+	EdgeGroupAssignments = "group_assignments"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the department in the database.
@@ -83,6 +88,13 @@ const (
 	AssignmentsInverseTable = "employee_assignments"
 	// AssignmentsColumn is the table column denoting the assignments relation/edge.
 	AssignmentsColumn = "department_id"
+	// GroupAssignmentsTable is the table that holds the group_assignments relation/edge.
+	GroupAssignmentsTable = "department_group_assignments"
+	// GroupAssignmentsInverseTable is the table name for the DepartmentGroupAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentgroupassignment" package.
+	GroupAssignmentsInverseTable = "department_group_assignments"
+	// GroupAssignmentsColumn is the table column denoting the group_assignments relation/edge.
+	GroupAssignmentsColumn = "department_id"
 )
 
 // Columns holds all SQL columns for department fields.
@@ -92,6 +104,7 @@ var Columns = []string{
 	FieldParentDepartmentID,
 	FieldName,
 	FieldCode,
+	FieldUnitType,
 	FieldManagerPartyID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -123,6 +136,34 @@ var (
 	DefaultID func() uuid.UUID
 )
 
+// UnitType defines the type for the "unit_type" enum field.
+type UnitType string
+
+// UnitTypeDEPARTMENT is the default value of the UnitType enum.
+const DefaultUnitType = UnitTypeDEPARTMENT
+
+// UnitType values.
+const (
+	UnitTypeDIVISION   UnitType = "DIVISION"
+	UnitTypeBRANCH     UnitType = "BRANCH"
+	UnitTypeOFFICE     UnitType = "OFFICE"
+	UnitTypeDEPARTMENT UnitType = "DEPARTMENT"
+)
+
+func (ut UnitType) String() string {
+	return string(ut)
+}
+
+// UnitTypeValidator is a validator for the "unit_type" field enum values. It is called by the builders before save.
+func UnitTypeValidator(ut UnitType) error {
+	switch ut {
+	case UnitTypeDIVISION, UnitTypeBRANCH, UnitTypeOFFICE, UnitTypeDEPARTMENT:
+		return nil
+	default:
+		return fmt.Errorf("department: invalid enum value for unit_type field: %q", ut)
+	}
+}
+
 // OrderOption defines the ordering options for the Department queries.
 type OrderOption func(*sql.Selector)
 
@@ -149,6 +190,11 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByCode orders the results by the code field.
 func ByCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCode, opts...).ToFunc()
+}
+
+// ByUnitType orders the results by the unit_type field.
+func ByUnitType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnitType, opts...).ToFunc()
 }
 
 // ByManagerPartyID orders the results by the manager_party_id field.
@@ -233,6 +279,20 @@ func ByAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByGroupAssignmentsCount orders the results by group_assignments count.
+func ByGroupAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGroupAssignmentsStep(), opts...)
+	}
+}
+
+// ByGroupAssignments orders the results by group_assignments terms.
+func ByGroupAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGroupAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -273,5 +333,12 @@ func newAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
+	)
+}
+func newGroupAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GroupAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, GroupAssignmentsTable, GroupAssignmentsColumn),
 	)
 }

@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/internal"
@@ -24,16 +25,17 @@ import (
 // DepartmentQuery is the builder for querying Department entities.
 type DepartmentQuery struct {
 	config
-	ctx             *QueryContext
-	order           []department.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Department
-	withTenant      *SubscriptionQuery
-	withChildren    *DepartmentQuery
-	withParent      *DepartmentQuery
-	withManager     *EmployeeQuery
-	withEmployees   *EmployeeQuery
-	withAssignments *EmployeeAssignmentQuery
+	ctx                  *QueryContext
+	order                []department.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.Department
+	withTenant           *SubscriptionQuery
+	withChildren         *DepartmentQuery
+	withParent           *DepartmentQuery
+	withManager          *EmployeeQuery
+	withEmployees        *EmployeeQuery
+	withAssignments      *EmployeeAssignmentQuery
+	withGroupAssignments *DepartmentGroupAssignmentQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -214,6 +216,31 @@ func (_q *DepartmentQuery) QueryAssignments() *EmployeeAssignmentQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.EmployeeAssignment
 		step.Edge.Schema = schemaConfig.EmployeeAssignment
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGroupAssignments chains the current query on the "group_assignments" edge.
+func (_q *DepartmentQuery) QueryGroupAssignments() *DepartmentGroupAssignmentQuery {
+	query := (&DepartmentGroupAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, selector),
+			sqlgraph.To(departmentgroupassignment.Table, departmentgroupassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.GroupAssignmentsTable, department.GroupAssignmentsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentGroupAssignment
+		step.Edge.Schema = schemaConfig.DepartmentGroupAssignment
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -407,17 +434,18 @@ func (_q *DepartmentQuery) Clone() *DepartmentQuery {
 		return nil
 	}
 	return &DepartmentQuery{
-		config:          _q.config,
-		ctx:             _q.ctx.Clone(),
-		order:           append([]department.OrderOption{}, _q.order...),
-		inters:          append([]Interceptor{}, _q.inters...),
-		predicates:      append([]predicate.Department{}, _q.predicates...),
-		withTenant:      _q.withTenant.Clone(),
-		withChildren:    _q.withChildren.Clone(),
-		withParent:      _q.withParent.Clone(),
-		withManager:     _q.withManager.Clone(),
-		withEmployees:   _q.withEmployees.Clone(),
-		withAssignments: _q.withAssignments.Clone(),
+		config:               _q.config,
+		ctx:                  _q.ctx.Clone(),
+		order:                append([]department.OrderOption{}, _q.order...),
+		inters:               append([]Interceptor{}, _q.inters...),
+		predicates:           append([]predicate.Department{}, _q.predicates...),
+		withTenant:           _q.withTenant.Clone(),
+		withChildren:         _q.withChildren.Clone(),
+		withParent:           _q.withParent.Clone(),
+		withManager:          _q.withManager.Clone(),
+		withEmployees:        _q.withEmployees.Clone(),
+		withAssignments:      _q.withAssignments.Clone(),
+		withGroupAssignments: _q.withGroupAssignments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -487,6 +515,17 @@ func (_q *DepartmentQuery) WithAssignments(opts ...func(*EmployeeAssignmentQuery
 		opt(query)
 	}
 	_q.withAssignments = query
+	return _q
+}
+
+// WithGroupAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "group_assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *DepartmentQuery) WithGroupAssignments(opts ...func(*DepartmentGroupAssignmentQuery)) *DepartmentQuery {
+	query := (&DepartmentGroupAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withGroupAssignments = query
 	return _q
 }
 
@@ -568,13 +607,14 @@ func (_q *DepartmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 	var (
 		nodes       = []*Department{}
 		_spec       = _q.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			_q.withTenant != nil,
 			_q.withChildren != nil,
 			_q.withParent != nil,
 			_q.withManager != nil,
 			_q.withEmployees != nil,
 			_q.withAssignments != nil,
+			_q.withGroupAssignments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -633,6 +673,15 @@ func (_q *DepartmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 		if err := _q.loadAssignments(ctx, query, nodes,
 			func(n *Department) { n.Edges.Assignments = []*EmployeeAssignment{} },
 			func(n *Department, e *EmployeeAssignment) { n.Edges.Assignments = append(n.Edges.Assignments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withGroupAssignments; query != nil {
+		if err := _q.loadGroupAssignments(ctx, query, nodes,
+			func(n *Department) { n.Edges.GroupAssignments = []*DepartmentGroupAssignment{} },
+			func(n *Department, e *DepartmentGroupAssignment) {
+				n.Edges.GroupAssignments = append(n.Edges.GroupAssignments, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -810,6 +859,36 @@ func (_q *DepartmentQuery) loadAssignments(ctx context.Context, query *EmployeeA
 	}
 	query.Where(predicate.EmployeeAssignment(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(department.AssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DepartmentID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "department_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *DepartmentQuery) loadGroupAssignments(ctx context.Context, query *DepartmentGroupAssignmentQuery, nodes []*Department, init func(*Department), assign func(*Department, *DepartmentGroupAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Department)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentgroupassignment.FieldDepartmentID)
+	}
+	query.Where(predicate.DepartmentGroupAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(department.GroupAssignmentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

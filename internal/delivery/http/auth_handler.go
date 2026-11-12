@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -36,15 +35,27 @@ func NewAuthHandler(uc AuthUseCase, secureCookie bool, refreshTTL time.Duration)
 	return &AuthHandler{uc: uc, secureCookie: secureCookie, refreshTTL: refreshTTL}
 }
 
+// Login godoc
+// @Summary      Authenticate a user
+// @Description  Validates email/password. If 2FA is enabled, returns a temporary token instead of session tokens.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.LoginRequest true "Login credentials"
+// @Success      200 {object} dto.AuthEnvelope
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      429 {object} dto.ErrorResponse
+// @Router       /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var request dto.LoginRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 	tenantID, err := uuid.Parse(request.TenantID)
 	if err != nil {
-		c.Error(fmt.Errorf("%w: invalid tenant_id", ErrBadRequest))
+		c.Error(badRequestError(errInvalidTenantID))
 		return
 	}
 
@@ -74,10 +85,22 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}})
 }
 
+// Verify2FA godoc
+// @Summary      Complete a 2FA login
+// @Description  Validates a TOTP code or a one-time backup code and issues the final session tokens.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.Verify2FARequest true "Temporary 2FA token and code"
+// @Success      200 {object} dto.AuthEnvelope
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      429 {object} dto.ErrorResponse
+// @Router       /auth/2fa/verify [post]
 func (h *AuthHandler) Verify2FA(c *gin.Context) {
 	var request dto.Verify2FARequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 
@@ -98,10 +121,19 @@ func (h *AuthHandler) Verify2FA(c *gin.Context) {
 	}})
 }
 
+// Refresh godoc
+// @Summary      Rotate the refresh token
+// @Description  Reads the HttpOnly refresh cookie, revokes the old session and issues a new access/refresh pair.
+// @Tags         Auth
+// @Produce      json
+// @Success      200 {object} dto.AuthEnvelope
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      429 {object} dto.ErrorResponse
+// @Router       /auth/refresh [post]
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	refreshToken, err := c.Cookie(refreshTokenCookie)
 	if err != nil || refreshToken == "" {
-		c.Error(auth.ErrInvalidToken)
+		c.Error(unauthorizedError(auth.ErrInvalidToken))
 		return
 	}
 
@@ -120,6 +152,12 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	}})
 }
 
+// Logout godoc
+// @Summary      Logout
+// @Description  Revokes the current refresh-token session and clears the cookie.
+// @Tags         Auth
+// @Success      204 "No Content"
+// @Router       /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	refreshToken, err := c.Cookie(refreshTokenCookie)
 	if err == nil && refreshToken != "" {

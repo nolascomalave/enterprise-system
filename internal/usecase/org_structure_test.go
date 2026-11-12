@@ -13,25 +13,29 @@ import (
 )
 
 type fakeOrgRepo struct {
-	jobFamilies  map[uuid.UUID]*domain.JobFamily
-	jobs         map[uuid.UUID]*domain.Job
-	departments  map[uuid.UUID]*domain.Department
-	employees    map[uuid.UUID]*domain.Employee
-	assignments  map[uuid.UUID]*domain.EmployeeAssignment
-	createJfErr  error
-	updateJfErr  error
-	getJfErr     error
-	createAsgErr error
-	updateAsgErr error
+	jobFamilies      map[uuid.UUID]*domain.JobFamily
+	jobs             map[uuid.UUID]*domain.Job
+	departments      map[uuid.UUID]*domain.Department
+	employees        map[uuid.UUID]*domain.Employee
+	assignments      map[uuid.UUID]*domain.EmployeeAssignment
+	corporateGroups  map[uuid.UUID]*domain.CorporateGroup
+	groupAssignments int
+	getGroupErr      error
+	createJfErr      error
+	updateJfErr      error
+	getJfErr         error
+	createAsgErr     error
+	updateAsgErr     error
 }
 
 func newFakeOrgRepo() *fakeOrgRepo {
 	return &fakeOrgRepo{
-		jobFamilies: make(map[uuid.UUID]*domain.JobFamily),
-		jobs:        make(map[uuid.UUID]*domain.Job),
-		departments: make(map[uuid.UUID]*domain.Department),
-		employees:   make(map[uuid.UUID]*domain.Employee),
-		assignments: make(map[uuid.UUID]*domain.EmployeeAssignment),
+		jobFamilies:     make(map[uuid.UUID]*domain.JobFamily),
+		jobs:            make(map[uuid.UUID]*domain.Job),
+		departments:     make(map[uuid.UUID]*domain.Department),
+		employees:       make(map[uuid.UUID]*domain.Employee),
+		assignments:     make(map[uuid.UUID]*domain.EmployeeAssignment),
+		corporateGroups: make(map[uuid.UUID]*domain.CorporateGroup),
 	}
 }
 
@@ -171,7 +175,8 @@ func orgTestNow() time.Time {
 
 func TestOrgStructureCreateJobFamily(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	txManager := newFakeTxManager()
+	uc := NewOrgStructure(repo, txManager, orgTestNow)
 
 	jf, err := uc.CreateJobFamily(context.Background(), CreateJobFamilyInput{
 		TenantID: testTenantID(), Name: " Recursos Humanos ", Code: " RH ",
@@ -182,10 +187,11 @@ func TestOrgStructureCreateJobFamily(t *testing.T) {
 	assert.Equal(t, "Recursos Humanos", jf.Name)
 	assert.Equal(t, "RH", jf.Code)
 	assert.Contains(t, repo.jobFamilies, jf.ID)
+	assert.Equal(t, 1, txManager.calls, "the write use case must open a transaction")
 }
 
 func TestOrgStructureCreateJobFamilyValidation(t *testing.T) {
-	uc := NewOrgStructure(newFakeOrgRepo(), orgTestNow)
+	uc := NewOrgStructure(newFakeOrgRepo(), newFakeTxManager(), orgTestNow)
 
 	_, err := uc.CreateJobFamily(context.Background(), CreateJobFamilyInput{
 		TenantID: testTenantID(), Name: " ", Code: "RH",
@@ -195,7 +201,7 @@ func TestOrgStructureCreateJobFamilyValidation(t *testing.T) {
 }
 
 func TestOrgStructureCreateJobRejectsInvalidSalaryRange(t *testing.T) {
-	uc := NewOrgStructure(newFakeOrgRepo(), orgTestNow)
+	uc := NewOrgStructure(newFakeOrgRepo(), newFakeTxManager(), orgTestNow)
 	min := domain.NewMoney(2000)
 	max := domain.NewMoney(1000)
 
@@ -208,7 +214,7 @@ func TestOrgStructureCreateJobRejectsInvalidSalaryRange(t *testing.T) {
 }
 
 func TestOrgStructureCreateEmployeeRejectsSelfManager(t *testing.T) {
-	uc := NewOrgStructure(newFakeOrgRepo(), orgTestNow)
+	uc := NewOrgStructure(newFakeOrgRepo(), newFakeTxManager(), orgTestNow)
 	partyID := uuid.New()
 
 	_, err := uc.CreateEmployee(context.Background(), CreateEmployeeInput{
@@ -222,7 +228,7 @@ func TestOrgStructureCreateEmployeeRejectsSelfManager(t *testing.T) {
 
 func TestOrgStructureUpdateAndDeleteJobFamily(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 
 	jf, err := uc.CreateJobFamily(context.Background(), CreateJobFamilyInput{
 		TenantID: testTenantID(), Name: "RH", Code: "RH",
@@ -241,7 +247,7 @@ func TestOrgStructureUpdateAndDeleteJobFamily(t *testing.T) {
 
 func TestOrgStructureDeleteEmployeeAssignmentClosesIt(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	start := orgTestNow().AddDate(0, -1, 0)
 
 	assignment, err := uc.CreateEmployeeAssignment(context.Background(), CreateEmployeeAssignmentInput{
@@ -258,7 +264,7 @@ func TestOrgStructureDeleteEmployeeAssignmentClosesIt(t *testing.T) {
 func TestOrgStructurePropagatesRepositoryError(t *testing.T) {
 	repo := newFakeOrgRepo()
 	repo.createJfErr = errors.New("db down")
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 
 	_, err := uc.CreateJobFamily(context.Background(), CreateJobFamilyInput{
 		TenantID: testTenantID(), Name: "RH", Code: "RH",
@@ -274,7 +280,7 @@ func testTenantID() uuid.UUID {
 
 func TestOrgStructureJobCRUD(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	ctx := context.Background()
 
 	job, err := uc.CreateJob(ctx, CreateJobInput{
@@ -302,7 +308,7 @@ func TestOrgStructureJobCRUD(t *testing.T) {
 
 func TestOrgStructureDepartmentCRUD(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	ctx := context.Background()
 
 	dept, err := uc.CreateDepartment(ctx, CreateDepartmentInput{
@@ -330,7 +336,7 @@ func TestOrgStructureDepartmentCRUD(t *testing.T) {
 
 func TestOrgStructureEmployeeCRUD(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	ctx := context.Background()
 	partyID := uuid.New()
 	managerID := uuid.New()
@@ -365,7 +371,7 @@ func TestOrgStructureEmployeeCRUD(t *testing.T) {
 
 func TestOrgStructureEmployeeAssignmentCRUD(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	ctx := context.Background()
 	start := orgTestNow().AddDate(0, -1, 0)
 
@@ -393,7 +399,7 @@ func TestOrgStructureEmployeeAssignmentCRUD(t *testing.T) {
 
 func TestOrgStructureJobFamilyGetAndList(t *testing.T) {
 	repo := newFakeOrgRepo()
-	uc := NewOrgStructure(repo, orgTestNow)
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
 	ctx := context.Background()
 
 	jf, err := uc.CreateJobFamily(ctx, CreateJobFamilyInput{
@@ -408,4 +414,125 @@ func TestOrgStructureJobFamilyGetAndList(t *testing.T) {
 	list, err := uc.ListJobFamilies(ctx)
 	require.NoError(t, err)
 	assert.Len(t, list, 1)
+}
+
+func (r *fakeOrgRepo) CreateCorporateGroup(ctx context.Context, group *domain.CorporateGroup) error {
+	r.corporateGroups[group.ID] = group
+	return nil
+}
+
+func (r *fakeOrgRepo) GetCorporateGroup(ctx context.Context, id uuid.UUID) (*domain.CorporateGroup, error) {
+	if r.getGroupErr != nil {
+		return nil, r.getGroupErr
+	}
+	group, ok := r.corporateGroups[id]
+	if !ok {
+		return nil, domain.ErrCorporateGroupNotFound
+	}
+	return group, nil
+}
+
+func (r *fakeOrgRepo) AssignDepartmentToGroup(ctx context.Context, tenantID, departmentID, corporateGroupID uuid.UUID) error {
+	r.groupAssignments++
+	return nil
+}
+
+func TestOrgStructureCreateCorporateGroup(t *testing.T) {
+	repo := newFakeOrgRepo()
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
+
+	group, err := uc.CreateCorporateGroup(context.Background(), CreateCorporateGroupInput{
+		TenantID: testTenantID(), Name: " Holding ", Description: " Grupo principal ",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "Holding", group.Name)
+	require.NotNil(t, group.Description)
+	assert.Equal(t, "Grupo principal", *group.Description)
+	assert.Contains(t, repo.corporateGroups, group.ID)
+}
+
+func TestOrgStructureCreateCorporateGroupRejectsEmptyName(t *testing.T) {
+	uc := NewOrgStructure(newFakeOrgRepo(), newFakeTxManager(), orgTestNow)
+
+	_, err := uc.CreateCorporateGroup(context.Background(), CreateCorporateGroupInput{
+		TenantID: testTenantID(), Name: " ",
+	})
+
+	require.ErrorIs(t, err, domain.ErrInvalidCorporateGroup)
+}
+
+func TestOrgStructureAssignDepartmentToGroup(t *testing.T) {
+	repo := newFakeOrgRepo()
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
+	tenantID := testTenantID()
+	dept, err := domain.NewDepartment(tenantID, nil, "Personas", "PPL", domain.DepartmentUnitTypeDepartment, nil, orgTestNow())
+	require.NoError(t, err)
+	group, err := domain.NewCorporateGroup(tenantID, "Holding", "", orgTestNow())
+	require.NoError(t, err)
+	repo.departments[dept.ID] = dept
+	repo.corporateGroups[group.ID] = group
+
+	err = uc.AssignDepartmentToGroup(context.Background(), AssignDepartmentToGroupInput{
+		TenantID: tenantID, DepartmentID: dept.ID, CorporateGroupID: group.ID,
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, 1, repo.groupAssignments)
+}
+
+func TestOrgStructureAssignDepartmentRejectsCrossTenantGroup(t *testing.T) {
+	repo := newFakeOrgRepo()
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
+	tenantID := testTenantID()
+	otherTenant := uuid.New()
+	dept, err := domain.NewDepartment(tenantID, nil, "Personas", "PPL", domain.DepartmentUnitTypeDepartment, nil, orgTestNow())
+	require.NoError(t, err)
+	group, err := domain.NewCorporateGroup(otherTenant, "Ajeno", "", orgTestNow())
+	require.NoError(t, err)
+	repo.departments[dept.ID] = dept
+	repo.corporateGroups[group.ID] = group
+
+	err = uc.AssignDepartmentToGroup(context.Background(), AssignDepartmentToGroupInput{
+		TenantID: tenantID, DepartmentID: dept.ID, CorporateGroupID: group.ID,
+	})
+
+	require.ErrorIs(t, err, domain.ErrCorporateGroupTenantMismatch)
+	assert.Zero(t, repo.groupAssignments, "a cross-tenant assignment must not be persisted")
+}
+
+func TestOrgStructureAssignDepartmentRejectsCrossTenantDepartment(t *testing.T) {
+	repo := newFakeOrgRepo()
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
+	tenantID := testTenantID()
+	dept, err := domain.NewDepartment(uuid.New(), nil, "Ajeno", "AJN", domain.DepartmentUnitTypeDepartment, nil, orgTestNow())
+	require.NoError(t, err)
+	group, err := domain.NewCorporateGroup(tenantID, "Holding", "", orgTestNow())
+	require.NoError(t, err)
+	repo.departments[dept.ID] = dept
+	repo.corporateGroups[group.ID] = group
+
+	err = uc.AssignDepartmentToGroup(context.Background(), AssignDepartmentToGroupInput{
+		TenantID: tenantID, DepartmentID: dept.ID, CorporateGroupID: group.ID,
+	})
+
+	require.ErrorIs(t, err, domain.ErrDepartmentTenantMismatch)
+	assert.Zero(t, repo.groupAssignments)
+}
+
+func TestOrgStructureAssignDepartmentRespectsRLSLookup(t *testing.T) {
+	repo := newFakeOrgRepo()
+	repo.getGroupErr = domain.ErrCorporateGroupNotFound
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
+	tenantID := testTenantID()
+	dept, err := domain.NewDepartment(tenantID, nil, "Personas", "PPL", domain.DepartmentUnitTypeDepartment, nil, orgTestNow())
+	require.NoError(t, err)
+	repo.departments[dept.ID] = dept
+
+	err = uc.AssignDepartmentToGroup(context.Background(), AssignDepartmentToGroupInput{
+		TenantID: tenantID, DepartmentID: dept.ID, CorporateGroupID: uuid.New(),
+	})
+
+	require.ErrorIs(t, err, domain.ErrCorporateGroupNotFound)
+	assert.Zero(t, repo.groupAssignments)
 }

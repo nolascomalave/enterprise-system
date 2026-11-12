@@ -6,12 +6,10 @@ import (
 	"context"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/internal"
-	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/predicate"
-	"enterprise-system/ent/subscription"
 	"errors"
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -29,34 +27,6 @@ type ContactMechanismUpdate struct {
 // Where appends a list predicates to the ContactMechanismUpdate builder.
 func (_u *ContactMechanismUpdate) Where(ps ...predicate.ContactMechanism) *ContactMechanismUpdate {
 	_u.mutation.Where(ps...)
-	return _u
-}
-
-// SetTenantID sets the "tenant_id" field.
-func (_u *ContactMechanismUpdate) SetTenantID(v uuid.UUID) *ContactMechanismUpdate {
-	_u.mutation.SetTenantID(v)
-	return _u
-}
-
-// SetNillableTenantID sets the "tenant_id" field if the given value is not nil.
-func (_u *ContactMechanismUpdate) SetNillableTenantID(v *uuid.UUID) *ContactMechanismUpdate {
-	if v != nil {
-		_u.SetTenantID(*v)
-	}
-	return _u
-}
-
-// SetPartyID sets the "party_id" field.
-func (_u *ContactMechanismUpdate) SetPartyID(v uuid.UUID) *ContactMechanismUpdate {
-	_u.mutation.SetPartyID(v)
-	return _u
-}
-
-// SetNillablePartyID sets the "party_id" field if the given value is not nil.
-func (_u *ContactMechanismUpdate) SetNillablePartyID(v *uuid.UUID) *ContactMechanismUpdate {
-	if v != nil {
-		_u.SetPartyID(*v)
-	}
 	return _u
 }
 
@@ -88,68 +58,19 @@ func (_u *ContactMechanismUpdate) SetNillableValue(v *string) *ContactMechanismU
 	return _u
 }
 
-// SetIsPrimary sets the "is_primary" field.
-func (_u *ContactMechanismUpdate) SetIsPrimary(v bool) *ContactMechanismUpdate {
-	_u.mutation.SetIsPrimary(v)
+// AddPartyContactMechanismIDs adds the "party_contact_mechanisms" edge to the PartyContactMechanism entity by IDs.
+func (_u *ContactMechanismUpdate) AddPartyContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismUpdate {
+	_u.mutation.AddPartyContactMechanismIDs(ids...)
 	return _u
 }
 
-// SetNillableIsPrimary sets the "is_primary" field if the given value is not nil.
-func (_u *ContactMechanismUpdate) SetNillableIsPrimary(v *bool) *ContactMechanismUpdate {
-	if v != nil {
-		_u.SetIsPrimary(*v)
+// AddPartyContactMechanisms adds the "party_contact_mechanisms" edges to the PartyContactMechanism entity.
+func (_u *ContactMechanismUpdate) AddPartyContactMechanisms(v ...*PartyContactMechanism) *ContactMechanismUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return _u
-}
-
-// SetIsVerified sets the "is_verified" field.
-func (_u *ContactMechanismUpdate) SetIsVerified(v bool) *ContactMechanismUpdate {
-	_u.mutation.SetIsVerified(v)
-	return _u
-}
-
-// SetNillableIsVerified sets the "is_verified" field if the given value is not nil.
-func (_u *ContactMechanismUpdate) SetNillableIsVerified(v *bool) *ContactMechanismUpdate {
-	if v != nil {
-		_u.SetIsVerified(*v)
-	}
-	return _u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (_u *ContactMechanismUpdate) SetUpdatedAt(v time.Time) *ContactMechanismUpdate {
-	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (_u *ContactMechanismUpdate) SetDeletedAt(v time.Time) *ContactMechanismUpdate {
-	_u.mutation.SetDeletedAt(v)
-	return _u
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (_u *ContactMechanismUpdate) SetNillableDeletedAt(v *time.Time) *ContactMechanismUpdate {
-	if v != nil {
-		_u.SetDeletedAt(*v)
-	}
-	return _u
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (_u *ContactMechanismUpdate) ClearDeletedAt() *ContactMechanismUpdate {
-	_u.mutation.ClearDeletedAt()
-	return _u
-}
-
-// SetTenant sets the "tenant" edge to the Subscription entity.
-func (_u *ContactMechanismUpdate) SetTenant(v *Subscription) *ContactMechanismUpdate {
-	return _u.SetTenantID(v.ID)
-}
-
-// SetParty sets the "party" edge to the Party entity.
-func (_u *ContactMechanismUpdate) SetParty(v *Party) *ContactMechanismUpdate {
-	return _u.SetPartyID(v.ID)
+	return _u.AddPartyContactMechanismIDs(ids...)
 }
 
 // Mutation returns the ContactMechanismMutation object of the builder.
@@ -157,21 +78,29 @@ func (_u *ContactMechanismUpdate) Mutation() *ContactMechanismMutation {
 	return _u.mutation
 }
 
-// ClearTenant clears the "tenant" edge to the Subscription entity.
-func (_u *ContactMechanismUpdate) ClearTenant() *ContactMechanismUpdate {
-	_u.mutation.ClearTenant()
+// ClearPartyContactMechanisms clears all "party_contact_mechanisms" edges to the PartyContactMechanism entity.
+func (_u *ContactMechanismUpdate) ClearPartyContactMechanisms() *ContactMechanismUpdate {
+	_u.mutation.ClearPartyContactMechanisms()
 	return _u
 }
 
-// ClearParty clears the "party" edge to the Party entity.
-func (_u *ContactMechanismUpdate) ClearParty() *ContactMechanismUpdate {
-	_u.mutation.ClearParty()
+// RemovePartyContactMechanismIDs removes the "party_contact_mechanisms" edge to PartyContactMechanism entities by IDs.
+func (_u *ContactMechanismUpdate) RemovePartyContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismUpdate {
+	_u.mutation.RemovePartyContactMechanismIDs(ids...)
 	return _u
+}
+
+// RemovePartyContactMechanisms removes "party_contact_mechanisms" edges to PartyContactMechanism entities.
+func (_u *ContactMechanismUpdate) RemovePartyContactMechanisms(v ...*PartyContactMechanism) *ContactMechanismUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartyContactMechanismIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *ContactMechanismUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -197,14 +126,6 @@ func (_u *ContactMechanismUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (_u *ContactMechanismUpdate) defaults() {
-	if _, ok := _u.mutation.UpdatedAt(); !ok {
-		v := contactmechanism.UpdateDefaultUpdatedAt()
-		_u.mutation.SetUpdatedAt(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (_u *ContactMechanismUpdate) check() error {
 	if v, ok := _u.mutation.GetType(); ok {
@@ -216,12 +137,6 @@ func (_u *ContactMechanismUpdate) check() error {
 		if err := contactmechanism.ValueValidator(v); err != nil {
 			return &ValidationError{Name: "value", err: fmt.Errorf(`ent: validator failed for field "ContactMechanism.value": %w`, err)}
 		}
-	}
-	if _u.mutation.TenantCleared() && len(_u.mutation.TenantIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "ContactMechanism.tenant"`)
-	}
-	if _u.mutation.PartyCleared() && len(_u.mutation.PartyIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "ContactMechanism.party"`)
 	}
 	return nil
 }
@@ -244,78 +159,49 @@ func (_u *ContactMechanismUpdate) sqlSave(ctx context.Context) (_node int, err e
 	if value, ok := _u.mutation.Value(); ok {
 		_spec.SetField(contactmechanism.FieldValue, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.IsPrimary(); ok {
-		_spec.SetField(contactmechanism.FieldIsPrimary, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.IsVerified(); ok {
-		_spec.SetField(contactmechanism.FieldIsVerified, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(contactmechanism.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.DeletedAt(); ok {
-		_spec.SetField(contactmechanism.FieldDeletedAt, field.TypeTime, value)
-	}
-	if _u.mutation.DeletedAtCleared() {
-		_spec.ClearField(contactmechanism.FieldDeletedAt, field.TypeTime)
-	}
-	if _u.mutation.TenantCleared() {
+	if _u.mutation.PartyContactMechanismsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   contactmechanism.TenantTable,
-			Columns: []string{contactmechanism.TenantColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.PartyContactMechanismsTable,
+			Columns: []string{contactmechanism.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.TenantIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RemovedPartyContactMechanismsIDs(); len(nodes) > 0 && !_u.mutation.PartyContactMechanismsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   contactmechanism.TenantTable,
-			Columns: []string{contactmechanism.TenantColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.PartyContactMechanismsTable,
+			Columns: []string{contactmechanism.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.PartyCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   contactmechanism.PartyTable,
-			Columns: []string{contactmechanism.PartyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(party.FieldID, field.TypeUUID),
-			},
-		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.PartyIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PartyContactMechanismsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   contactmechanism.PartyTable,
-			Columns: []string{contactmechanism.PartyColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.PartyContactMechanismsTable,
+			Columns: []string{contactmechanism.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(party.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -341,34 +227,6 @@ type ContactMechanismUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *ContactMechanismMutation
-}
-
-// SetTenantID sets the "tenant_id" field.
-func (_u *ContactMechanismUpdateOne) SetTenantID(v uuid.UUID) *ContactMechanismUpdateOne {
-	_u.mutation.SetTenantID(v)
-	return _u
-}
-
-// SetNillableTenantID sets the "tenant_id" field if the given value is not nil.
-func (_u *ContactMechanismUpdateOne) SetNillableTenantID(v *uuid.UUID) *ContactMechanismUpdateOne {
-	if v != nil {
-		_u.SetTenantID(*v)
-	}
-	return _u
-}
-
-// SetPartyID sets the "party_id" field.
-func (_u *ContactMechanismUpdateOne) SetPartyID(v uuid.UUID) *ContactMechanismUpdateOne {
-	_u.mutation.SetPartyID(v)
-	return _u
-}
-
-// SetNillablePartyID sets the "party_id" field if the given value is not nil.
-func (_u *ContactMechanismUpdateOne) SetNillablePartyID(v *uuid.UUID) *ContactMechanismUpdateOne {
-	if v != nil {
-		_u.SetPartyID(*v)
-	}
-	return _u
 }
 
 // SetType sets the "type" field.
@@ -399,68 +257,19 @@ func (_u *ContactMechanismUpdateOne) SetNillableValue(v *string) *ContactMechani
 	return _u
 }
 
-// SetIsPrimary sets the "is_primary" field.
-func (_u *ContactMechanismUpdateOne) SetIsPrimary(v bool) *ContactMechanismUpdateOne {
-	_u.mutation.SetIsPrimary(v)
+// AddPartyContactMechanismIDs adds the "party_contact_mechanisms" edge to the PartyContactMechanism entity by IDs.
+func (_u *ContactMechanismUpdateOne) AddPartyContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismUpdateOne {
+	_u.mutation.AddPartyContactMechanismIDs(ids...)
 	return _u
 }
 
-// SetNillableIsPrimary sets the "is_primary" field if the given value is not nil.
-func (_u *ContactMechanismUpdateOne) SetNillableIsPrimary(v *bool) *ContactMechanismUpdateOne {
-	if v != nil {
-		_u.SetIsPrimary(*v)
+// AddPartyContactMechanisms adds the "party_contact_mechanisms" edges to the PartyContactMechanism entity.
+func (_u *ContactMechanismUpdateOne) AddPartyContactMechanisms(v ...*PartyContactMechanism) *ContactMechanismUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return _u
-}
-
-// SetIsVerified sets the "is_verified" field.
-func (_u *ContactMechanismUpdateOne) SetIsVerified(v bool) *ContactMechanismUpdateOne {
-	_u.mutation.SetIsVerified(v)
-	return _u
-}
-
-// SetNillableIsVerified sets the "is_verified" field if the given value is not nil.
-func (_u *ContactMechanismUpdateOne) SetNillableIsVerified(v *bool) *ContactMechanismUpdateOne {
-	if v != nil {
-		_u.SetIsVerified(*v)
-	}
-	return _u
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (_u *ContactMechanismUpdateOne) SetUpdatedAt(v time.Time) *ContactMechanismUpdateOne {
-	_u.mutation.SetUpdatedAt(v)
-	return _u
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (_u *ContactMechanismUpdateOne) SetDeletedAt(v time.Time) *ContactMechanismUpdateOne {
-	_u.mutation.SetDeletedAt(v)
-	return _u
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (_u *ContactMechanismUpdateOne) SetNillableDeletedAt(v *time.Time) *ContactMechanismUpdateOne {
-	if v != nil {
-		_u.SetDeletedAt(*v)
-	}
-	return _u
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (_u *ContactMechanismUpdateOne) ClearDeletedAt() *ContactMechanismUpdateOne {
-	_u.mutation.ClearDeletedAt()
-	return _u
-}
-
-// SetTenant sets the "tenant" edge to the Subscription entity.
-func (_u *ContactMechanismUpdateOne) SetTenant(v *Subscription) *ContactMechanismUpdateOne {
-	return _u.SetTenantID(v.ID)
-}
-
-// SetParty sets the "party" edge to the Party entity.
-func (_u *ContactMechanismUpdateOne) SetParty(v *Party) *ContactMechanismUpdateOne {
-	return _u.SetPartyID(v.ID)
+	return _u.AddPartyContactMechanismIDs(ids...)
 }
 
 // Mutation returns the ContactMechanismMutation object of the builder.
@@ -468,16 +277,25 @@ func (_u *ContactMechanismUpdateOne) Mutation() *ContactMechanismMutation {
 	return _u.mutation
 }
 
-// ClearTenant clears the "tenant" edge to the Subscription entity.
-func (_u *ContactMechanismUpdateOne) ClearTenant() *ContactMechanismUpdateOne {
-	_u.mutation.ClearTenant()
+// ClearPartyContactMechanisms clears all "party_contact_mechanisms" edges to the PartyContactMechanism entity.
+func (_u *ContactMechanismUpdateOne) ClearPartyContactMechanisms() *ContactMechanismUpdateOne {
+	_u.mutation.ClearPartyContactMechanisms()
 	return _u
 }
 
-// ClearParty clears the "party" edge to the Party entity.
-func (_u *ContactMechanismUpdateOne) ClearParty() *ContactMechanismUpdateOne {
-	_u.mutation.ClearParty()
+// RemovePartyContactMechanismIDs removes the "party_contact_mechanisms" edge to PartyContactMechanism entities by IDs.
+func (_u *ContactMechanismUpdateOne) RemovePartyContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismUpdateOne {
+	_u.mutation.RemovePartyContactMechanismIDs(ids...)
 	return _u
+}
+
+// RemovePartyContactMechanisms removes "party_contact_mechanisms" edges to PartyContactMechanism entities.
+func (_u *ContactMechanismUpdateOne) RemovePartyContactMechanisms(v ...*PartyContactMechanism) *ContactMechanismUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePartyContactMechanismIDs(ids...)
 }
 
 // Where appends a list predicates to the ContactMechanismUpdate builder.
@@ -495,7 +313,6 @@ func (_u *ContactMechanismUpdateOne) Select(field string, fields ...string) *Con
 
 // Save executes the query and returns the updated ContactMechanism entity.
 func (_u *ContactMechanismUpdateOne) Save(ctx context.Context) (*ContactMechanism, error) {
-	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -521,14 +338,6 @@ func (_u *ContactMechanismUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (_u *ContactMechanismUpdateOne) defaults() {
-	if _, ok := _u.mutation.UpdatedAt(); !ok {
-		v := contactmechanism.UpdateDefaultUpdatedAt()
-		_u.mutation.SetUpdatedAt(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (_u *ContactMechanismUpdateOne) check() error {
 	if v, ok := _u.mutation.GetType(); ok {
@@ -540,12 +349,6 @@ func (_u *ContactMechanismUpdateOne) check() error {
 		if err := contactmechanism.ValueValidator(v); err != nil {
 			return &ValidationError{Name: "value", err: fmt.Errorf(`ent: validator failed for field "ContactMechanism.value": %w`, err)}
 		}
-	}
-	if _u.mutation.TenantCleared() && len(_u.mutation.TenantIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "ContactMechanism.tenant"`)
-	}
-	if _u.mutation.PartyCleared() && len(_u.mutation.PartyIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "ContactMechanism.party"`)
 	}
 	return nil
 }
@@ -585,78 +388,49 @@ func (_u *ContactMechanismUpdateOne) sqlSave(ctx context.Context) (_node *Contac
 	if value, ok := _u.mutation.Value(); ok {
 		_spec.SetField(contactmechanism.FieldValue, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.IsPrimary(); ok {
-		_spec.SetField(contactmechanism.FieldIsPrimary, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.IsVerified(); ok {
-		_spec.SetField(contactmechanism.FieldIsVerified, field.TypeBool, value)
-	}
-	if value, ok := _u.mutation.UpdatedAt(); ok {
-		_spec.SetField(contactmechanism.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if value, ok := _u.mutation.DeletedAt(); ok {
-		_spec.SetField(contactmechanism.FieldDeletedAt, field.TypeTime, value)
-	}
-	if _u.mutation.DeletedAtCleared() {
-		_spec.ClearField(contactmechanism.FieldDeletedAt, field.TypeTime)
-	}
-	if _u.mutation.TenantCleared() {
+	if _u.mutation.PartyContactMechanismsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   contactmechanism.TenantTable,
-			Columns: []string{contactmechanism.TenantColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.PartyContactMechanismsTable,
+			Columns: []string{contactmechanism.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.TenantIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.RemovedPartyContactMechanismsIDs(); len(nodes) > 0 && !_u.mutation.PartyContactMechanismsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   contactmechanism.TenantTable,
-			Columns: []string{contactmechanism.TenantColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.PartyContactMechanismsTable,
+			Columns: []string{contactmechanism.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subscription.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.PartyCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   contactmechanism.PartyTable,
-			Columns: []string{contactmechanism.PartyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(party.FieldID, field.TypeUUID),
-			},
-		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := _u.mutation.PartyIDs(); len(nodes) > 0 {
+	if nodes := _u.mutation.PartyContactMechanismsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   contactmechanism.PartyTable,
-			Columns: []string{contactmechanism.PartyColumn},
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.PartyContactMechanismsTable,
+			Columns: []string{contactmechanism.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(party.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _u.schemaConfig.ContactMechanism
+		edge.Schema = _u.schemaConfig.PartyContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

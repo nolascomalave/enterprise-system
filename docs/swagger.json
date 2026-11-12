@@ -1,0 +1,2263 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Multi-tenant Party Model API with JWT, refresh tokens, 2FA, onboarding and password recovery.",
+        "title": "Enterprise System API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/auth/2fa/verify": {
+            "post": {
+                "description": "Validates a TOTP code or a one-time backup code and issues the final session tokens.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Complete a 2FA login",
+                "parameters": [
+                    {
+                        "description": "Temporary 2FA token and code",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.Verify2FARequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.AuthEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/change-password": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Requires the current password. Revokes all other sessions and pending reset tokens.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Change the authenticated user's password",
+                "parameters": [
+                    {
+                        "description": "Current and new password",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ChangePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/forgot-password": {
+            "post": {
+                "description": "Always returns the same 202 response. If the email exists, a single-use reset token is emailed.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Request a password reset",
+                "parameters": [
+                    {
+                        "description": "Tenant and email",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ForgotPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.MessageEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "description": "Validates email/password. If 2FA is enabled, returns a temporary token instead of session tokens.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Authenticate a user",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.AuthEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "description": "Revokes the current refresh-token session and clears the cookie.",
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "description": "Reads the HttpOnly refresh cookie, revokes the old session and issues a new access/refresh pair.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Rotate the refresh token",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.AuthEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "description": "Consumes the reset token, updates the password and revokes all sessions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account"
+                ],
+                "summary": "Reset a password with a one-time token",
+                "parameters": [
+                    {
+                        "description": "Reset token and new password",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/corporate-groups": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a tenant-scoped group used to aggregate departments across units.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Corporate Groups"
+                ],
+                "summary": "Create a corporate group",
+                "parameters": [
+                    {
+                        "description": "Corporate group data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CreateCorporateGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CorporateGroupEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/departments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Departments"
+                ],
+                "summary": "List departments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.DepartmentListEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a department and optionally assigns an employee manager.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Departments"
+                ],
+                "summary": "Create a department",
+                "parameters": [
+                    {
+                        "description": "Department data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CreateDepartmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.DepartmentEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/departments/{id}/groups": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Links a tenant department to a corporate group. Both must belong to the same tenant.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Corporate Groups"
+                ],
+                "summary": "Assign a department to a corporate group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Department UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Corporate group id",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.AssignDepartmentToGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/documents": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Stores a document in content-addressed storage and records its metadata.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Documents"
+                ],
+                "summary": "Upload an attached document",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Document (max 10 MB)",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Business table that owns the document",
+                        "name": "origin_table",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID of the origin row",
+                        "name": "origin_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Optional description",
+                        "name": "description",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.DocumentEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/employees": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "List employees",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.EmployeeListEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Converts an existing INDIVIDUAL party into an employee with a job and department.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Employees"
+                ],
+                "summary": "Create an employee",
+                "parameters": [
+                    {
+                        "description": "Employee data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CreateEmployeeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.EmployeeEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "description": "Returns the liveness state of the API server.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.HealthEnvelope"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists ACTIVE jobs for the authenticated tenant.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "List jobs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.JobListEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a tenant-scoped job inside a job family.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Create a job",
+                "parameters": [
+                    {
+                        "description": "Job data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CreateJobRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.JobEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/jobs/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Update a job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Job UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated job data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.UpdateJobRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.JobEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/onboarding/register": {
+            "post": {
+                "description": "Creates the subscription, organization party/profile, TENANT role, admin party/profile, ADMIN role and credentials in one transaction.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Onboarding"
+                ],
+                "summary": "Register a tenant and its first administrator",
+                "parameters": [
+                    {
+                        "description": "Tenant and administrator data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.RegisterTenantRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.RegisterTenantEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Lists ACTIVE parties for the authenticated tenant.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Parties"
+                ],
+                "summary": "List active parties",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyListEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates an INDIVIDUAL or ORGANIZATION party with its required profile.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Parties"
+                ],
+                "summary": "Create a party",
+                "parameters": [
+                    {
+                        "description": "Party and profile data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CreatePartyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties/merge": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks the source party as MERGED, points it to the target and compresses dependent paths.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Parties"
+                ],
+                "summary": "Merge a party into a Golden Record",
+                "parameters": [
+                    {
+                        "description": "Source and target party IDs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.MergePartiesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.MergePartiesEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the party and its profile inside the authenticated tenant.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Parties"
+                ],
+                "summary": "Get a party by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Party UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties/{id}/names": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates the name if needed and opens its initial validity. A single primary name per type is enforced.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Party Names"
+                ],
+                "summary": "Add a party name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Party UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Name data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.AddPartyNameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyNameEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/parties/{id}/names/{name_id}/validity": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Closes the current validity and opens a new one for an existing or new value.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Party Names"
+                ],
+                "summary": "Update a party name validity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Party UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Party name UUID",
+                        "name": "name_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New validity data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.UpdatePartyNameValidityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyNameEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "enterprise-system_internal_delivery_http_dto.AddPartyNameRequest": {
+            "type": "object",
+            "required": [
+                "name_type",
+                "value"
+            ],
+            "properties": {
+                "is_primary": {
+                    "type": "boolean"
+                },
+                "name_type": {
+                    "type": "string"
+                },
+                "ordering": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.AssignDepartmentToGroupRequest": {
+            "type": "object",
+            "required": [
+                "corporate_group_id"
+            ],
+            "properties": {
+                "corporate_group_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.AttachedDocumentResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "document_hash": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mime_type": {
+                    "type": "string"
+                },
+                "origin_id": {
+                    "type": "string"
+                },
+                "origin_table": {
+                    "type": "string"
+                },
+                "original_name": {
+                    "type": "string"
+                },
+                "size_bytes": {
+                    "type": "integer"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.AuthEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.AuthTokenResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.AuthTokenResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expires_in": {
+                    "type": "integer"
+                },
+                "requires_2fa": {
+                    "type": "boolean"
+                },
+                "temp_token": {
+                    "type": "string"
+                },
+                "token_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.ChangePasswordRequest": {
+            "type": "object",
+            "required": [
+                "current_password",
+                "new_password"
+            ],
+            "properties": {
+                "current_password": {
+                    "type": "string"
+                },
+                "new_password": {
+                    "type": "string",
+                    "minLength": 8
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.CorporateGroupEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CorporateGroupResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.CorporateGroupResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.CreateCorporateGroupRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.CreateDepartmentRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "manager_party_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent_department_id": {
+                    "type": "string"
+                },
+                "unit_type": {
+                    "type": "string",
+                    "enum": [
+                        "DIVISION",
+                        "BRANCH",
+                        "OFFICE",
+                        "DEPARTMENT"
+                    ]
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.CreateEmployeeRequest": {
+            "type": "object",
+            "required": [
+                "department_id",
+                "employee_code",
+                "hire_date",
+                "job_id",
+                "party_id"
+            ],
+            "properties": {
+                "department_id": {
+                    "type": "string"
+                },
+                "employee_code": {
+                    "type": "string"
+                },
+                "hire_date": {
+                    "type": "string"
+                },
+                "job_id": {
+                    "type": "string"
+                },
+                "manager_party_id": {
+                    "type": "string"
+                },
+                "party_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.CreateJobRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "job_family_id",
+                "title"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "job_family_id": {
+                    "type": "string"
+                },
+                "max_salary": {
+                    "type": "string"
+                },
+                "min_salary": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.CreateOrganizationProfileRequest": {
+            "type": "object",
+            "properties": {
+                "legal_name": {
+                    "type": "string"
+                },
+                "tax_id": {
+                    "type": "string"
+                },
+                "trade_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.CreatePartyRequest": {
+            "type": "object",
+            "required": [
+                "display_name",
+                "party_type"
+            ],
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                },
+                "organization_profile": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CreateOrganizationProfileRequest"
+                },
+                "party_type": {
+                    "type": "string",
+                    "enum": [
+                        "INDIVIDUAL",
+                        "ORGANIZATION"
+                    ]
+                },
+                "person_profile": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CreatePersonProfileRequest"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.CreatePersonProfileRequest": {
+            "type": "object",
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "middle_name": {
+                    "type": "string"
+                },
+                "second_last_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.DepartmentEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.DepartmentResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.DepartmentListEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.DepartmentResponse"
+                    }
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.DepartmentResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "manager_party_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent_department_id": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "unit_type": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.DocumentEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.AttachedDocumentResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.EmployeeEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.EmployeeResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.EmployeeListEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.EmployeeResponse"
+                    }
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.EmployeeResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "department_id": {
+                    "type": "string"
+                },
+                "employee_code": {
+                    "type": "string"
+                },
+                "hire_date": {
+                    "type": "string"
+                },
+                "job_id": {
+                    "type": "string"
+                },
+                "manager_party_id": {
+                    "type": "string"
+                },
+                "party_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "bad_request"
+                },
+                "error": {
+                    "type": "string",
+                    "example": "invalid request"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.ForgotPasswordRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "tenant_id"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.HealthEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.HealthResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "service": {
+                    "type": "string",
+                    "example": "enterprise-system"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "ok"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2026-11-10T12:00:00Z"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.JobEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.JobResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.JobListEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.JobResponse"
+                    }
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.JobResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "job_family_id": {
+                    "type": "string"
+                },
+                "max_salary": {
+                    "type": "string"
+                },
+                "min_salary": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.LoginRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "tenant_id"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.MergePartiesEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.MergePartiesResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.MergePartiesRequest": {
+            "type": "object",
+            "required": [
+                "source_party_id",
+                "target_party_id"
+            ],
+            "properties": {
+                "source_party_id": {
+                    "type": "string"
+                },
+                "target_party_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.MergePartiesResponse": {
+            "type": "object",
+            "properties": {
+                "compressed_party_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "merged_at": {
+                    "type": "string"
+                },
+                "source_id": {
+                    "type": "string"
+                },
+                "target_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.MessageEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.MessageResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.OrganizationProfileResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "legal_name": {
+                    "type": "string"
+                },
+                "party_id": {
+                    "type": "string"
+                },
+                "tax_id": {
+                    "type": "string"
+                },
+                "trade_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PartyEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PartyListEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyResponse"
+                    }
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PartyNameEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyNameResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PartyNameResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_primary": {
+                    "type": "boolean"
+                },
+                "name_type_id": {
+                    "type": "string"
+                },
+                "ordering": {
+                    "type": "integer"
+                },
+                "party_id": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "validity": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PartyNameValidityResponse"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PartyNameValidityResponse": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_primary": {
+                    "type": "boolean"
+                },
+                "start_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PartyResponse": {
+            "type": "object",
+            "properties": {
+                "canonical_party_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "organization_profile": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.OrganizationProfileResponse"
+                },
+                "party_type": {
+                    "type": "string"
+                },
+                "person_profile": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PersonProfileResponse"
+                },
+                "record_status": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PersonProfileResponse": {
+            "type": "object",
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "middle_name": {
+                    "type": "string"
+                },
+                "party_id": {
+                    "type": "string"
+                },
+                "second_last_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.RegisterTenantEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.RegisterTenantResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.RegisterTenantRequest": {
+            "type": "object",
+            "required": [
+                "admin_email",
+                "admin_first_name",
+                "admin_last_name",
+                "admin_password",
+                "company_name",
+                "slug",
+                "tax_id"
+            ],
+            "properties": {
+                "admin_email": {
+                    "type": "string"
+                },
+                "admin_first_name": {
+                    "type": "string"
+                },
+                "admin_last_name": {
+                    "type": "string"
+                },
+                "admin_password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "tax_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.RegisterTenantResponse": {
+            "type": "object",
+            "properties": {
+                "admin_party_id": {
+                    "type": "string"
+                },
+                "organization_party_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "token"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.UpdateJobRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "job_family_id",
+                "title"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "job_family_id": {
+                    "type": "string"
+                },
+                "max_salary": {
+                    "type": "string"
+                },
+                "min_salary": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.UpdatePartyNameValidityRequest": {
+            "type": "object",
+            "properties": {
+                "is_primary": {
+                    "type": "boolean"
+                },
+                "new_value": {
+                    "type": "string"
+                },
+                "ordering": {
+                    "type": "integer"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.Verify2FARequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "temp_token"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "temp_token": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Bearer access token, e.g. \"Bearer \u003ctoken\u003e\".",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

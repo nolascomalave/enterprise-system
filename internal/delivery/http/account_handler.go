@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"enterprise-system/internal/delivery/http/dto"
@@ -26,16 +25,28 @@ func NewAccountHandler(uc AccountUseCase) *AccountHandler {
 	return &AccountHandler{uc: uc}
 }
 
+// ChangePassword godoc
+// @Summary      Change the authenticated user's password
+// @Description  Requires the current password. Revokes all other sessions and pending reset tokens.
+// @Tags         Account
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body dto.ChangePasswordRequest true "Current and new password"
+// @Success      204 "No Content"
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Router       /auth/change-password [post]
 func (h *AccountHandler) ChangePassword(c *gin.Context) {
 	sessionContext, ok := enttenant.SessionContextFrom(c.Request.Context())
 	if !ok {
-		c.Error(ErrUnauthorized)
+		c.Error(unauthorizedError(ErrUnauthorized))
 		return
 	}
 
 	var request dto.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 
@@ -51,15 +62,26 @@ func (h *AccountHandler) ChangePassword(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// ForgotPassword godoc
+// @Summary      Request a password reset
+// @Description  Always returns the same 202 response. If the email exists, a single-use reset token is emailed.
+// @Tags         Account
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.ForgotPasswordRequest true "Tenant and email"
+// @Success      202 {object} dto.MessageEnvelope
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      429 {object} dto.ErrorResponse
+// @Router       /auth/forgot-password [post]
 func (h *AccountHandler) ForgotPassword(c *gin.Context) {
 	var request dto.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 	tenantID, err := uuid.Parse(request.TenantID)
 	if err != nil {
-		c.Error(fmt.Errorf("%w: invalid tenant_id", ErrBadRequest))
+		c.Error(badRequestError(errInvalidTenantID))
 		return
 	}
 
@@ -75,10 +97,22 @@ func (h *AccountHandler) ForgotPassword(c *gin.Context) {
 	}})
 }
 
+// ResetPassword godoc
+// @Summary      Reset a password with a one-time token
+// @Description  Consumes the reset token, updates the password and revokes all sessions.
+// @Tags         Account
+// @Accept       json
+// @Produce      json
+// @Param        request body dto.ResetPasswordRequest true "Reset token and new password"
+// @Success      204 "No Content"
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      429 {object} dto.ErrorResponse
+// @Router       /auth/reset-password [post]
 func (h *AccountHandler) ResetPassword(c *gin.Context) {
 	var request dto.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.Error(fmt.Errorf("%w: %v", ErrBadRequest, err))
+		c.Error(badRequestError(err))
 		return
 	}
 

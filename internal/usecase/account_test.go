@@ -85,8 +85,14 @@ func accountTestCreds(t *testing.T, manager *auth.Manager) *auth.Credentials {
 	require.NoError(t, err)
 	return &auth.Credentials{
 		ID: uuid.New(), TenantID: uuid.New(), PartyID: uuid.New(),
-		Email: "user@example.com", PasswordHash: hash,
+		PartyContactMechanismID: uuid.New(), PasswordHash: hash,
 	}
+}
+
+func newAccountTestService(manager *auth.Manager, credentials *fakeCredentialRepo, sessions *fakeSessionRepo, reset *fakeResetRepo, emailSender *fakeEmailSender, binder *fakeBinder) *AccountService {
+	contact, relation := contactForCredentials(credentials.credentials)
+	return NewAccountService(manager, credentials, &fakeContactRepo{contact: contact, relation: relation},
+		sessions, reset, emailSender, newFakeTxManager(), binder, time.Now)
 }
 
 func TestChangePasswordRevokesOtherSessions(t *testing.T) {
@@ -101,7 +107,7 @@ func TestChangePasswordRevokesOtherSessions(t *testing.T) {
 	resetRepo := &fakeResetRepo{tokens: []*auth.PasswordResetToken{{
 		TenantID: creds.TenantID, PartyID: creds.PartyID,
 	}}}
-	service := NewAccountService(manager, credRepo, sessionRepo, resetRepo, &fakeEmailSender{}, &fakeBinder{}, time.Now)
+	service := newAccountTestService(manager, credRepo, sessionRepo, resetRepo, &fakeEmailSender{}, &fakeBinder{})
 
 	err := service.ChangePassword(context.Background(), ChangePasswordInput{
 		TenantID: creds.TenantID, PartyID: creds.PartyID, SessionID: currentSession,
@@ -118,8 +124,8 @@ func TestChangePasswordRevokesOtherSessions(t *testing.T) {
 func TestChangePasswordRejectsWrongCurrent(t *testing.T) {
 	manager := accountTestManager(t)
 	creds := accountTestCreds(t, manager)
-	service := NewAccountService(manager, &fakeCredentialRepo{credentials: creds},
-		newFakeSessionRepo(), &fakeResetRepo{}, &fakeEmailSender{}, &fakeBinder{}, time.Now)
+	service := newAccountTestService(manager, &fakeCredentialRepo{credentials: creds},
+		newFakeSessionRepo(), &fakeResetRepo{}, &fakeEmailSender{}, &fakeBinder{})
 
 	err := service.ChangePassword(context.Background(), ChangePasswordInput{
 		TenantID: creds.TenantID, PartyID: creds.PartyID, SessionID: uuid.New(),
@@ -134,8 +140,8 @@ func TestForgotPasswordSendsToken(t *testing.T) {
 	creds := accountTestCreds(t, manager)
 	resetRepo := &fakeResetRepo{}
 	emailSender := &fakeEmailSender{}
-	service := NewAccountService(manager, &fakeCredentialRepo{credentials: creds},
-		newFakeSessionRepo(), resetRepo, emailSender, &fakeBinder{}, time.Now)
+	service := newAccountTestService(manager, &fakeCredentialRepo{credentials: creds},
+		newFakeSessionRepo(), resetRepo, emailSender, &fakeBinder{})
 
 	err := service.ForgotPassword(context.Background(), ForgotPasswordInput{
 		TenantID: creds.TenantID, Email: "USER@example.com",
@@ -143,7 +149,7 @@ func TestForgotPasswordSendsToken(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Len(t, resetRepo.tokens, 1)
-	assert.Equal(t, creds.Email, emailSender.to)
+	assert.Equal(t, "user@example.com", emailSender.to)
 	assert.NotEmpty(t, emailSender.token)
 
 	tenantID, partyID, err := manager.ParseResetToken(emailSender.token)
@@ -157,8 +163,8 @@ func TestForgotPasswordDoesNotRevealUnknownEmail(t *testing.T) {
 	manager := accountTestManager(t)
 	resetRepo := &fakeResetRepo{}
 	emailSender := &fakeEmailSender{}
-	service := NewAccountService(manager, &fakeCredentialRepo{}, newFakeSessionRepo(),
-		resetRepo, emailSender, &fakeBinder{}, time.Now)
+	service := newAccountTestService(manager, &fakeCredentialRepo{}, newFakeSessionRepo(),
+		resetRepo, emailSender, &fakeBinder{})
 
 	err := service.ForgotPassword(context.Background(), ForgotPasswordInput{
 		TenantID: uuid.New(), Email: "unknown@example.com",
@@ -176,11 +182,11 @@ func TestResetPasswordConsumesTokenAndRevokesSessions(t *testing.T) {
 	emailSender := &fakeEmailSender{}
 	sessionRepo := newFakeSessionRepo()
 	sessionRepo.sessions[uuid.New()] = &auth.Session{TenantID: creds.TenantID, UserID: creds.PartyID}
-	service := NewAccountService(manager, &fakeCredentialRepo{credentials: creds},
-		sessionRepo, resetRepo, emailSender, &fakeBinder{}, time.Now)
+	service := newAccountTestService(manager, &fakeCredentialRepo{credentials: creds},
+		sessionRepo, resetRepo, emailSender, &fakeBinder{})
 
 	require.NoError(t, service.ForgotPassword(context.Background(), ForgotPasswordInput{
-		TenantID: creds.TenantID, Email: creds.Email,
+		TenantID: creds.TenantID, Email: "user@example.com",
 	}))
 	require.NotEmpty(t, emailSender.token)
 
@@ -201,11 +207,11 @@ func TestResetPasswordRejectsUsedToken(t *testing.T) {
 	creds := accountTestCreds(t, manager)
 	resetRepo := &fakeResetRepo{}
 	emailSender := &fakeEmailSender{}
-	service := NewAccountService(manager, &fakeCredentialRepo{credentials: creds},
-		newFakeSessionRepo(), resetRepo, emailSender, &fakeBinder{}, time.Now)
+	service := newAccountTestService(manager, &fakeCredentialRepo{credentials: creds},
+		newFakeSessionRepo(), resetRepo, emailSender, &fakeBinder{})
 
 	require.NoError(t, service.ForgotPassword(context.Background(), ForgotPasswordInput{
-		TenantID: creds.TenantID, Email: creds.Email,
+		TenantID: creds.TenantID, Email: "user@example.com",
 	}))
 	require.NoError(t, service.ResetPassword(context.Background(), ResetPasswordInput{
 		Token: emailSender.token, NewPassword: "new-password-123",
@@ -221,13 +227,71 @@ func TestForgotPasswordPropagatesEmailError(t *testing.T) {
 	manager := accountTestManager(t)
 	creds := accountTestCreds(t, manager)
 	emailSender := &fakeEmailSender{err: errors.New("smtp down")}
-	service := NewAccountService(manager, &fakeCredentialRepo{credentials: creds},
-		newFakeSessionRepo(), &fakeResetRepo{}, emailSender, &fakeBinder{}, time.Now)
+	service := newAccountTestService(manager, &fakeCredentialRepo{credentials: creds},
+		newFakeSessionRepo(), &fakeResetRepo{}, emailSender, &fakeBinder{})
 
 	err := service.ForgotPassword(context.Background(), ForgotPasswordInput{
-		TenantID: creds.TenantID, Email: creds.Email,
+		TenantID: creds.TenantID, Email: "user@example.com",
 	})
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "send reset email")
+}
+
+func TestChangePasswordUsesTransactionManager(t *testing.T) {
+	manager := accountTestManager(t)
+	creds := accountTestCreds(t, manager)
+	contact, relation := contactForCredentials(creds)
+	txManager := newFakeTxManager()
+	service := NewAccountService(manager, &fakeCredentialRepo{credentials: creds},
+		&fakeContactRepo{contact: contact, relation: relation}, newFakeSessionRepo(),
+		&fakeResetRepo{}, &fakeEmailSender{}, txManager, &fakeBinder{}, time.Now)
+
+	err := service.ChangePassword(context.Background(), ChangePasswordInput{
+		TenantID: creds.TenantID, PartyID: creds.PartyID, SessionID: uuid.New(),
+		CurrentPassword: "current-password", NewPassword: "another-password-123",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, 1, txManager.calls, "the write use case must open a transaction")
+}
+
+func TestChangePasswordRejectsConcurrentModification(t *testing.T) {
+	manager := accountTestManager(t)
+	creds := accountTestCreds(t, manager)
+	originalHash := creds.PasswordHash
+	credRepo := &fakeCredentialRepo{credentials: creds, updatePasswordErr: auth.ErrConcurrentModification}
+	sessionRepo := newFakeSessionRepo()
+	service := newAccountTestService(manager, credRepo, sessionRepo,
+		&fakeResetRepo{}, &fakeEmailSender{}, &fakeBinder{})
+
+	err := service.ChangePassword(context.Background(), ChangePasswordInput{
+		TenantID: creds.TenantID, PartyID: creds.PartyID, SessionID: uuid.New(),
+		CurrentPassword: "current-password", NewPassword: "new-password-123",
+	})
+
+	require.ErrorIs(t, err, auth.ErrConcurrentModification)
+	assert.Equal(t, originalHash, credRepo.credentials.PasswordHash, "a lost race must not overwrite the winner")
+}
+
+func TestResetPasswordRejectsConcurrentModification(t *testing.T) {
+	manager := accountTestManager(t)
+	creds := accountTestCreds(t, manager)
+	credRepo := &fakeCredentialRepo{credentials: creds, updatePasswordErr: auth.ErrConcurrentModification}
+	service := newAccountTestService(manager, credRepo, newFakeSessionRepo(),
+		&fakeResetRepo{}, &fakeEmailSender{}, &fakeBinder{})
+
+	raw, hash, err := manager.GenerateResetToken(creds.TenantID, creds.PartyID)
+	require.NoError(t, err)
+	resetRepo := &fakeResetRepo{tokens: []*auth.PasswordResetToken{{
+		TenantID: creds.TenantID, PartyID: creds.PartyID, TokenHash: hash,
+		ExpiresAt: time.Now().Add(time.Hour),
+	}}}
+	service.resetTokens = resetRepo
+
+	err = service.ResetPassword(context.Background(), ResetPasswordInput{
+		Token: raw, NewPassword: "new-password-123",
+	})
+
+	require.ErrorIs(t, err, auth.ErrConcurrentModification)
 }

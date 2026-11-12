@@ -76,7 +76,11 @@ func (Party) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("party_roles", PartyRole.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
-		edge.To("contact_mechanisms", ContactMechanism.Type).
+		edge.To("party_contact_mechanisms", PartyContactMechanism.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("names", PartyName.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("name_validities", PartyNameValidity.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("addresses", Address.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
@@ -86,6 +90,12 @@ func (Party) Edges() []ent.Edge {
 			Unique().
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("password_reset_tokens", PasswordResetToken.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("party_names", PartyName.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("party_name_validities", PartyNameValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("party_contact_mechanism_validities", PartyContactMechanismValidity.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("merged_parties", Party.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),

@@ -50,7 +50,8 @@ func partyTestNow() time.Time {
 
 func TestPartyServiceCreateIndividual(t *testing.T) {
 	repo := &fakePartyRepo{}
-	uc := NewPartyService(repo, partyTestNow)
+	txManager := newFakeTxManager()
+	uc := NewPartyService(repo, txManager, partyTestNow)
 
 	detail, err := uc.Create(context.Background(), CreatePartyInput{
 		TenantID:    testTenantID(),
@@ -68,10 +69,11 @@ func TestPartyServiceCreateIndividual(t *testing.T) {
 	assert.Equal(t, "Doe", detail.PersonProfile.LastName)
 	assert.Nil(t, detail.OrganizationProfile)
 	require.NotNil(t, repo.create)
+	assert.Equal(t, 1, txManager.calls, "the write use case must open a transaction")
 }
 
 func TestPartyServiceRequiresProfile(t *testing.T) {
-	uc := NewPartyService(&fakePartyRepo{}, partyTestNow)
+	uc := NewPartyService(&fakePartyRepo{}, newFakeTxManager(), partyTestNow)
 
 	_, err := uc.Create(context.Background(), CreatePartyInput{
 		TenantID: testTenantID(), PartyType: domain.PartyTypeIndividual, DisplayName: "Jane",
@@ -85,7 +87,7 @@ func TestPartyServiceRequiresProfile(t *testing.T) {
 }
 
 func TestPartyServiceCreateOrganization(t *testing.T) {
-	uc := NewPartyService(&fakePartyRepo{}, partyTestNow)
+	uc := NewPartyService(&fakePartyRepo{}, newFakeTxManager(), partyTestNow)
 
 	detail, err := uc.Create(context.Background(), CreatePartyInput{
 		TenantID: testTenantID(), PartyType: domain.PartyTypeOrganization, DisplayName: "Acme",
@@ -101,7 +103,7 @@ func TestPartyServiceCreateOrganization(t *testing.T) {
 }
 
 func TestPartyServiceRejectsWrongProfile(t *testing.T) {
-	uc := NewPartyService(&fakePartyRepo{}, partyTestNow)
+	uc := NewPartyService(&fakePartyRepo{}, newFakeTxManager(), partyTestNow)
 
 	_, err := uc.Create(context.Background(), CreatePartyInput{
 		TenantID: testTenantID(), PartyType: domain.PartyTypeIndividual, DisplayName: "Jane",
@@ -114,7 +116,8 @@ func TestPartyServiceRejectsWrongProfile(t *testing.T) {
 func TestPartyServiceGetAndList(t *testing.T) {
 	party := &domain.Party{ID: uuid.New(), TenantID: testTenantID(), DisplayName: "Jane"}
 	repo := &fakePartyRepo{detail: &domain.PartyDetail{Party: party}, parties: []*domain.Party{party}}
-	uc := NewPartyService(repo, partyTestNow)
+	txManager := newFakeTxManager()
+	uc := NewPartyService(repo, txManager, partyTestNow)
 
 	detail, err := uc.Get(context.Background(), testTenantID(), party.ID)
 	require.NoError(t, err)
@@ -123,11 +126,12 @@ func TestPartyServiceGetAndList(t *testing.T) {
 	list, err := uc.List(context.Background(), testTenantID())
 	require.NoError(t, err)
 	assert.Len(t, list, 1)
+	assert.Equal(t, 2, txManager.calls, "RLS-protected reads must also run inside a transaction")
 }
 
 func TestPartyServicePropagatesRepositoryError(t *testing.T) {
 	repo := &fakePartyRepo{err: errors.New("db down")}
-	uc := NewPartyService(repo, partyTestNow)
+	uc := NewPartyService(repo, newFakeTxManager(), partyTestNow)
 
 	_, err := uc.Create(context.Background(), CreatePartyInput{
 		TenantID: testTenantID(), PartyType: domain.PartyTypeIndividual, DisplayName: "Jane",

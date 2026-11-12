@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +23,7 @@ type JobFamilyCreate struct {
 	config
 	mutation *JobFamilyMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTenantID sets the "tenant_id" field.
@@ -236,6 +239,7 @@ func (_c *JobFamilyCreate) createSpec() (*JobFamily, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(jobfamily.Table, sqlgraph.NewFieldSpec(jobfamily.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.JobFamily
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -302,11 +306,332 @@ func (_c *JobFamilyCreate) createSpec() (*JobFamily, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.JobFamily.Create().
+//		SetTenantID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.JobFamilyUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *JobFamilyCreate) OnConflict(opts ...sql.ConflictOption) *JobFamilyUpsertOne {
+	_c.conflict = opts
+	return &JobFamilyUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.JobFamily.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *JobFamilyCreate) OnConflictColumns(columns ...string) *JobFamilyUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &JobFamilyUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// JobFamilyUpsertOne is the builder for "upsert"-ing
+	//  one JobFamily node.
+	JobFamilyUpsertOne struct {
+		create *JobFamilyCreate
+	}
+
+	// JobFamilyUpsert is the "OnConflict" setter.
+	JobFamilyUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTenantID sets the "tenant_id" field.
+func (u *JobFamilyUpsert) SetTenantID(v uuid.UUID) *JobFamilyUpsert {
+	u.Set(jobfamily.FieldTenantID, v)
+	return u
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *JobFamilyUpsert) UpdateTenantID() *JobFamilyUpsert {
+	u.SetExcluded(jobfamily.FieldTenantID)
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *JobFamilyUpsert) SetName(v string) *JobFamilyUpsert {
+	u.Set(jobfamily.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *JobFamilyUpsert) UpdateName() *JobFamilyUpsert {
+	u.SetExcluded(jobfamily.FieldName)
+	return u
+}
+
+// SetCode sets the "code" field.
+func (u *JobFamilyUpsert) SetCode(v string) *JobFamilyUpsert {
+	u.Set(jobfamily.FieldCode, v)
+	return u
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *JobFamilyUpsert) UpdateCode() *JobFamilyUpsert {
+	u.SetExcluded(jobfamily.FieldCode)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *JobFamilyUpsert) SetDescription(v string) *JobFamilyUpsert {
+	u.Set(jobfamily.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *JobFamilyUpsert) UpdateDescription() *JobFamilyUpsert {
+	u.SetExcluded(jobfamily.FieldDescription)
+	return u
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *JobFamilyUpsert) ClearDescription() *JobFamilyUpsert {
+	u.SetNull(jobfamily.FieldDescription)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *JobFamilyUpsert) SetUpdatedAt(v time.Time) *JobFamilyUpsert {
+	u.Set(jobfamily.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *JobFamilyUpsert) UpdateUpdatedAt() *JobFamilyUpsert {
+	u.SetExcluded(jobfamily.FieldUpdatedAt)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *JobFamilyUpsert) SetDeletedAt(v time.Time) *JobFamilyUpsert {
+	u.Set(jobfamily.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *JobFamilyUpsert) UpdateDeletedAt() *JobFamilyUpsert {
+	u.SetExcluded(jobfamily.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *JobFamilyUpsert) ClearDeletedAt() *JobFamilyUpsert {
+	u.SetNull(jobfamily.FieldDeletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.JobFamily.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(jobfamily.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *JobFamilyUpsertOne) UpdateNewValues() *JobFamilyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(jobfamily.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(jobfamily.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.JobFamily.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *JobFamilyUpsertOne) Ignore() *JobFamilyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *JobFamilyUpsertOne) DoNothing() *JobFamilyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the JobFamilyCreate.OnConflict
+// documentation for more info.
+func (u *JobFamilyUpsertOne) Update(set func(*JobFamilyUpsert)) *JobFamilyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&JobFamilyUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *JobFamilyUpsertOne) SetTenantID(v uuid.UUID) *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *JobFamilyUpsertOne) UpdateTenantID() *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *JobFamilyUpsertOne) SetName(v string) *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *JobFamilyUpsertOne) UpdateName() *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *JobFamilyUpsertOne) SetCode(v string) *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *JobFamilyUpsertOne) UpdateCode() *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *JobFamilyUpsertOne) SetDescription(v string) *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *JobFamilyUpsertOne) UpdateDescription() *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *JobFamilyUpsertOne) ClearDescription() *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *JobFamilyUpsertOne) SetUpdatedAt(v time.Time) *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *JobFamilyUpsertOne) UpdateUpdatedAt() *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *JobFamilyUpsertOne) SetDeletedAt(v time.Time) *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *JobFamilyUpsertOne) UpdateDeletedAt() *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *JobFamilyUpsertOne) ClearDeletedAt() *JobFamilyUpsertOne {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *JobFamilyUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for JobFamilyCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *JobFamilyUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *JobFamilyUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: JobFamilyUpsertOne.ID is not supported by MySQL driver. Use JobFamilyUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *JobFamilyUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // JobFamilyCreateBulk is the builder for creating many JobFamily entities in bulk.
 type JobFamilyCreateBulk struct {
 	config
 	err      error
 	builders []*JobFamilyCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the JobFamily entities in the database.
@@ -336,6 +661,7 @@ func (_c *JobFamilyCreateBulk) Save(ctx context.Context) ([]*JobFamily, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -382,6 +708,221 @@ func (_c *JobFamilyCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *JobFamilyCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.JobFamily.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.JobFamilyUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *JobFamilyCreateBulk) OnConflict(opts ...sql.ConflictOption) *JobFamilyUpsertBulk {
+	_c.conflict = opts
+	return &JobFamilyUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.JobFamily.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *JobFamilyCreateBulk) OnConflictColumns(columns ...string) *JobFamilyUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &JobFamilyUpsertBulk{
+		create: _c,
+	}
+}
+
+// JobFamilyUpsertBulk is the builder for "upsert"-ing
+// a bulk of JobFamily nodes.
+type JobFamilyUpsertBulk struct {
+	create *JobFamilyCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.JobFamily.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(jobfamily.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *JobFamilyUpsertBulk) UpdateNewValues() *JobFamilyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(jobfamily.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(jobfamily.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.JobFamily.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *JobFamilyUpsertBulk) Ignore() *JobFamilyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *JobFamilyUpsertBulk) DoNothing() *JobFamilyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the JobFamilyCreateBulk.OnConflict
+// documentation for more info.
+func (u *JobFamilyUpsertBulk) Update(set func(*JobFamilyUpsert)) *JobFamilyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&JobFamilyUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *JobFamilyUpsertBulk) SetTenantID(v uuid.UUID) *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *JobFamilyUpsertBulk) UpdateTenantID() *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetName sets the "name" field.
+func (u *JobFamilyUpsertBulk) SetName(v string) *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *JobFamilyUpsertBulk) UpdateName() *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetCode sets the "code" field.
+func (u *JobFamilyUpsertBulk) SetCode(v string) *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetCode(v)
+	})
+}
+
+// UpdateCode sets the "code" field to the value that was provided on create.
+func (u *JobFamilyUpsertBulk) UpdateCode() *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateCode()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *JobFamilyUpsertBulk) SetDescription(v string) *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *JobFamilyUpsertBulk) UpdateDescription() *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// ClearDescription clears the value of the "description" field.
+func (u *JobFamilyUpsertBulk) ClearDescription() *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.ClearDescription()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *JobFamilyUpsertBulk) SetUpdatedAt(v time.Time) *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *JobFamilyUpsertBulk) UpdateUpdatedAt() *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *JobFamilyUpsertBulk) SetDeletedAt(v time.Time) *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *JobFamilyUpsertBulk) UpdateDeletedAt() *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *JobFamilyUpsertBulk) ClearDeletedAt() *JobFamilyUpsertBulk {
+	return u.Update(func(s *JobFamilyUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *JobFamilyUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the JobFamilyCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for JobFamilyCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *JobFamilyUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

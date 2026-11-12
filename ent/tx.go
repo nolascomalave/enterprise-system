@@ -4,6 +4,8 @@ package ent
 
 import (
 	"context"
+	stdsql "database/sql"
+	"fmt"
 	"sync"
 
 	"entgo.io/ent/dialect"
@@ -14,10 +16,16 @@ type Tx struct {
 	config
 	// Address is the client for interacting with the Address builders.
 	Address *AddressClient
+	// AttachedDocument is the client for interacting with the AttachedDocument builders.
+	AttachedDocument *AttachedDocumentClient
 	// ContactMechanism is the client for interacting with the ContactMechanism builders.
 	ContactMechanism *ContactMechanismClient
+	// CorporateGroup is the client for interacting with the CorporateGroup builders.
+	CorporateGroup *CorporateGroupClient
 	// Department is the client for interacting with the Department builders.
 	Department *DepartmentClient
+	// DepartmentGroupAssignment is the client for interacting with the DepartmentGroupAssignment builders.
+	DepartmentGroupAssignment *DepartmentGroupAssignmentClient
 	// Employee is the client for interacting with the Employee builders.
 	Employee *EmployeeClient
 	// EmployeeAssignment is the client for interacting with the EmployeeAssignment builders.
@@ -26,12 +34,22 @@ type Tx struct {
 	Job *JobClient
 	// JobFamily is the client for interacting with the JobFamily builders.
 	JobFamily *JobFamilyClient
+	// NameType is the client for interacting with the NameType builders.
+	NameType *NameTypeClient
 	// OrganizationProfile is the client for interacting with the OrganizationProfile builders.
 	OrganizationProfile *OrganizationProfileClient
 	// Party is the client for interacting with the Party builders.
 	Party *PartyClient
+	// PartyContactMechanism is the client for interacting with the PartyContactMechanism builders.
+	PartyContactMechanism *PartyContactMechanismClient
+	// PartyContactMechanismValidity is the client for interacting with the PartyContactMechanismValidity builders.
+	PartyContactMechanismValidity *PartyContactMechanismValidityClient
 	// PartyMergeLog is the client for interacting with the PartyMergeLog builders.
 	PartyMergeLog *PartyMergeLogClient
+	// PartyName is the client for interacting with the PartyName builders.
+	PartyName *PartyNameClient
+	// PartyNameValidity is the client for interacting with the PartyNameValidity builders.
+	PartyNameValidity *PartyNameValidityClient
 	// PartyRole is the client for interacting with the PartyRole builders.
 	PartyRole *PartyRoleClient
 	// PasswordResetToken is the client for interacting with the PasswordResetToken builders.
@@ -178,15 +196,23 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Address = NewAddressClient(tx.config)
+	tx.AttachedDocument = NewAttachedDocumentClient(tx.config)
 	tx.ContactMechanism = NewContactMechanismClient(tx.config)
+	tx.CorporateGroup = NewCorporateGroupClient(tx.config)
 	tx.Department = NewDepartmentClient(tx.config)
+	tx.DepartmentGroupAssignment = NewDepartmentGroupAssignmentClient(tx.config)
 	tx.Employee = NewEmployeeClient(tx.config)
 	tx.EmployeeAssignment = NewEmployeeAssignmentClient(tx.config)
 	tx.Job = NewJobClient(tx.config)
 	tx.JobFamily = NewJobFamilyClient(tx.config)
+	tx.NameType = NewNameTypeClient(tx.config)
 	tx.OrganizationProfile = NewOrganizationProfileClient(tx.config)
 	tx.Party = NewPartyClient(tx.config)
+	tx.PartyContactMechanism = NewPartyContactMechanismClient(tx.config)
+	tx.PartyContactMechanismValidity = NewPartyContactMechanismValidityClient(tx.config)
 	tx.PartyMergeLog = NewPartyMergeLogClient(tx.config)
+	tx.PartyName = NewPartyNameClient(tx.config)
+	tx.PartyNameValidity = NewPartyNameValidityClient(tx.config)
 	tx.PartyRole = NewPartyRoleClient(tx.config)
 	tx.PasswordResetToken = NewPasswordResetTokenClient(tx.config)
 	tx.PersonProfile = NewPersonProfileClient(tx.config)
@@ -256,3 +282,27 @@ func (tx *txDriver) Query(ctx context.Context, query string, args, v any) error 
 }
 
 var _ dialect.Driver = (*txDriver)(nil)
+
+// ExecContext allows calling the underlying ExecContext method of the transaction if it is supported by it.
+// See, database/sql#Tx.ExecContext for more information.
+func (tx *txDriver) ExecContext(ctx context.Context, query string, args ...any) (stdsql.Result, error) {
+	ex, ok := tx.tx.(interface {
+		ExecContext(context.Context, string, ...any) (stdsql.Result, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Tx.ExecContext is not supported")
+	}
+	return ex.ExecContext(ctx, query, args...)
+}
+
+// QueryContext allows calling the underlying QueryContext method of the transaction if it is supported by it.
+// See, database/sql#Tx.QueryContext for more information.
+func (tx *txDriver) QueryContext(ctx context.Context, query string, args ...any) (*stdsql.Rows, error) {
+	q, ok := tx.tx.(interface {
+		QueryContext(context.Context, string, ...any) (*stdsql.Rows, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Tx.QueryContext is not supported")
+	}
+	return q.QueryContext(ctx, query, args...)
+}

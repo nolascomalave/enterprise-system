@@ -6,6 +6,7 @@ import (
 	"context"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
@@ -61,16 +62,16 @@ func (_u *UserCredentialsUpdate) SetNillablePartyID(v *uuid.UUID) *UserCredentia
 	return _u
 }
 
-// SetEmail sets the "email" field.
-func (_u *UserCredentialsUpdate) SetEmail(v string) *UserCredentialsUpdate {
-	_u.mutation.SetEmail(v)
+// SetPartyContactMechanismID sets the "party_contact_mechanism_id" field.
+func (_u *UserCredentialsUpdate) SetPartyContactMechanismID(v uuid.UUID) *UserCredentialsUpdate {
+	_u.mutation.SetPartyContactMechanismID(v)
 	return _u
 }
 
-// SetNillableEmail sets the "email" field if the given value is not nil.
-func (_u *UserCredentialsUpdate) SetNillableEmail(v *string) *UserCredentialsUpdate {
+// SetNillablePartyContactMechanismID sets the "party_contact_mechanism_id" field if the given value is not nil.
+func (_u *UserCredentialsUpdate) SetNillablePartyContactMechanismID(v *uuid.UUID) *UserCredentialsUpdate {
 	if v != nil {
-		_u.SetEmail(*v)
+		_u.SetPartyContactMechanismID(*v)
 	}
 	return _u
 }
@@ -171,6 +172,11 @@ func (_u *UserCredentialsUpdate) SetParty(v *Party) *UserCredentialsUpdate {
 	return _u.SetPartyID(v.ID)
 }
 
+// SetPartyContactMechanism sets the "party_contact_mechanism" edge to the PartyContactMechanism entity.
+func (_u *UserCredentialsUpdate) SetPartyContactMechanism(v *PartyContactMechanism) *UserCredentialsUpdate {
+	return _u.SetPartyContactMechanismID(v.ID)
+}
+
 // Mutation returns the UserCredentialsMutation object of the builder.
 func (_u *UserCredentialsUpdate) Mutation() *UserCredentialsMutation {
 	return _u.mutation
@@ -185,6 +191,12 @@ func (_u *UserCredentialsUpdate) ClearTenant() *UserCredentialsUpdate {
 // ClearParty clears the "party" edge to the Party entity.
 func (_u *UserCredentialsUpdate) ClearParty() *UserCredentialsUpdate {
 	_u.mutation.ClearParty()
+	return _u
+}
+
+// ClearPartyContactMechanism clears the "party_contact_mechanism" edge to the PartyContactMechanism entity.
+func (_u *UserCredentialsUpdate) ClearPartyContactMechanism() *UserCredentialsUpdate {
+	_u.mutation.ClearPartyContactMechanism()
 	return _u
 }
 
@@ -226,11 +238,6 @@ func (_u *UserCredentialsUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserCredentialsUpdate) check() error {
-	if v, ok := _u.mutation.Email(); ok {
-		if err := usercredentials.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.email": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.PasswordHash(); ok {
 		if err := usercredentials.PasswordHashValidator(v); err != nil {
 			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.password_hash": %w`, err)}
@@ -241,6 +248,9 @@ func (_u *UserCredentialsUpdate) check() error {
 	}
 	if _u.mutation.PartyCleared() && len(_u.mutation.PartyIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UserCredentials.party"`)
+	}
+	if _u.mutation.PartyContactMechanismCleared() && len(_u.mutation.PartyContactMechanismIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "UserCredentials.party_contact_mechanism"`)
 	}
 	return nil
 }
@@ -256,9 +266,6 @@ func (_u *UserCredentialsUpdate) sqlSave(ctx context.Context) (_node int, err er
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := _u.mutation.Email(); ok {
-		_spec.SetField(usercredentials.FieldEmail, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.PasswordHash(); ok {
 		_spec.SetField(usercredentials.FieldPasswordHash, field.TypeString, value)
@@ -351,6 +358,37 @@ func (_u *UserCredentialsUpdate) sqlSave(ctx context.Context) (_node int, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.PartyContactMechanismCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   usercredentials.PartyContactMechanismTable,
+			Columns: []string{usercredentials.PartyContactMechanismColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserCredentials
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartyContactMechanismIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   usercredentials.PartyContactMechanismTable,
+			Columns: []string{usercredentials.PartyContactMechanismColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserCredentials
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.UserCredentials
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -401,16 +439,16 @@ func (_u *UserCredentialsUpdateOne) SetNillablePartyID(v *uuid.UUID) *UserCreden
 	return _u
 }
 
-// SetEmail sets the "email" field.
-func (_u *UserCredentialsUpdateOne) SetEmail(v string) *UserCredentialsUpdateOne {
-	_u.mutation.SetEmail(v)
+// SetPartyContactMechanismID sets the "party_contact_mechanism_id" field.
+func (_u *UserCredentialsUpdateOne) SetPartyContactMechanismID(v uuid.UUID) *UserCredentialsUpdateOne {
+	_u.mutation.SetPartyContactMechanismID(v)
 	return _u
 }
 
-// SetNillableEmail sets the "email" field if the given value is not nil.
-func (_u *UserCredentialsUpdateOne) SetNillableEmail(v *string) *UserCredentialsUpdateOne {
+// SetNillablePartyContactMechanismID sets the "party_contact_mechanism_id" field if the given value is not nil.
+func (_u *UserCredentialsUpdateOne) SetNillablePartyContactMechanismID(v *uuid.UUID) *UserCredentialsUpdateOne {
 	if v != nil {
-		_u.SetEmail(*v)
+		_u.SetPartyContactMechanismID(*v)
 	}
 	return _u
 }
@@ -511,6 +549,11 @@ func (_u *UserCredentialsUpdateOne) SetParty(v *Party) *UserCredentialsUpdateOne
 	return _u.SetPartyID(v.ID)
 }
 
+// SetPartyContactMechanism sets the "party_contact_mechanism" edge to the PartyContactMechanism entity.
+func (_u *UserCredentialsUpdateOne) SetPartyContactMechanism(v *PartyContactMechanism) *UserCredentialsUpdateOne {
+	return _u.SetPartyContactMechanismID(v.ID)
+}
+
 // Mutation returns the UserCredentialsMutation object of the builder.
 func (_u *UserCredentialsUpdateOne) Mutation() *UserCredentialsMutation {
 	return _u.mutation
@@ -525,6 +568,12 @@ func (_u *UserCredentialsUpdateOne) ClearTenant() *UserCredentialsUpdateOne {
 // ClearParty clears the "party" edge to the Party entity.
 func (_u *UserCredentialsUpdateOne) ClearParty() *UserCredentialsUpdateOne {
 	_u.mutation.ClearParty()
+	return _u
+}
+
+// ClearPartyContactMechanism clears the "party_contact_mechanism" edge to the PartyContactMechanism entity.
+func (_u *UserCredentialsUpdateOne) ClearPartyContactMechanism() *UserCredentialsUpdateOne {
+	_u.mutation.ClearPartyContactMechanism()
 	return _u
 }
 
@@ -579,11 +628,6 @@ func (_u *UserCredentialsUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *UserCredentialsUpdateOne) check() error {
-	if v, ok := _u.mutation.Email(); ok {
-		if err := usercredentials.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.email": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.PasswordHash(); ok {
 		if err := usercredentials.PasswordHashValidator(v); err != nil {
 			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.password_hash": %w`, err)}
@@ -594,6 +638,9 @@ func (_u *UserCredentialsUpdateOne) check() error {
 	}
 	if _u.mutation.PartyCleared() && len(_u.mutation.PartyIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UserCredentials.party"`)
+	}
+	if _u.mutation.PartyContactMechanismCleared() && len(_u.mutation.PartyContactMechanismIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "UserCredentials.party_contact_mechanism"`)
 	}
 	return nil
 }
@@ -626,9 +673,6 @@ func (_u *UserCredentialsUpdateOne) sqlSave(ctx context.Context) (_node *UserCre
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := _u.mutation.Email(); ok {
-		_spec.SetField(usercredentials.FieldEmail, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.PasswordHash(); ok {
 		_spec.SetField(usercredentials.FieldPasswordHash, field.TypeString, value)
@@ -713,6 +757,37 @@ func (_u *UserCredentialsUpdateOne) sqlSave(ctx context.Context) (_node *UserCre
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(party.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserCredentials
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PartyContactMechanismCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   usercredentials.PartyContactMechanismTable,
+			Columns: []string{usercredentials.PartyContactMechanismColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserCredentials
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PartyContactMechanismIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   usercredentials.PartyContactMechanismTable,
+			Columns: []string{usercredentials.PartyContactMechanismColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
 		edge.Schema = _u.schemaConfig.UserCredentials

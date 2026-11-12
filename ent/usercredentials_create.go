@@ -5,12 +5,15 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
 	"errors"
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -21,6 +24,7 @@ type UserCredentialsCreate struct {
 	config
 	mutation *UserCredentialsMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTenantID sets the "tenant_id" field.
@@ -35,9 +39,9 @@ func (_c *UserCredentialsCreate) SetPartyID(v uuid.UUID) *UserCredentialsCreate 
 	return _c
 }
 
-// SetEmail sets the "email" field.
-func (_c *UserCredentialsCreate) SetEmail(v string) *UserCredentialsCreate {
-	_c.mutation.SetEmail(v)
+// SetPartyContactMechanismID sets the "party_contact_mechanism_id" field.
+func (_c *UserCredentialsCreate) SetPartyContactMechanismID(v uuid.UUID) *UserCredentialsCreate {
+	_c.mutation.SetPartyContactMechanismID(v)
 	return _c
 }
 
@@ -147,6 +151,11 @@ func (_c *UserCredentialsCreate) SetParty(v *Party) *UserCredentialsCreate {
 	return _c.SetPartyID(v.ID)
 }
 
+// SetPartyContactMechanism sets the "party_contact_mechanism" edge to the PartyContactMechanism entity.
+func (_c *UserCredentialsCreate) SetPartyContactMechanism(v *PartyContactMechanism) *UserCredentialsCreate {
+	return _c.SetPartyContactMechanismID(v.ID)
+}
+
 // Mutation returns the UserCredentialsMutation object of the builder.
 func (_c *UserCredentialsCreate) Mutation() *UserCredentialsMutation {
 	return _c.mutation
@@ -212,13 +221,8 @@ func (_c *UserCredentialsCreate) check() error {
 	if _, ok := _c.mutation.PartyID(); !ok {
 		return &ValidationError{Name: "party_id", err: errors.New(`ent: missing required field "UserCredentials.party_id"`)}
 	}
-	if _, ok := _c.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "UserCredentials.email"`)}
-	}
-	if v, ok := _c.mutation.Email(); ok {
-		if err := usercredentials.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.email": %w`, err)}
-		}
+	if _, ok := _c.mutation.PartyContactMechanismID(); !ok {
+		return &ValidationError{Name: "party_contact_mechanism_id", err: errors.New(`ent: missing required field "UserCredentials.party_contact_mechanism_id"`)}
 	}
 	if _, ok := _c.mutation.PasswordHash(); !ok {
 		return &ValidationError{Name: "password_hash", err: errors.New(`ent: missing required field "UserCredentials.password_hash"`)}
@@ -239,6 +243,9 @@ func (_c *UserCredentialsCreate) check() error {
 	}
 	if len(_c.mutation.PartyIDs()) == 0 {
 		return &ValidationError{Name: "party", err: errors.New(`ent: missing required edge "UserCredentials.party"`)}
+	}
+	if len(_c.mutation.PartyContactMechanismIDs()) == 0 {
+		return &ValidationError{Name: "party_contact_mechanism", err: errors.New(`ent: missing required edge "UserCredentials.party_contact_mechanism"`)}
 	}
 	return nil
 }
@@ -272,13 +279,10 @@ func (_c *UserCredentialsCreate) createSpec() (*UserCredentials, *sqlgraph.Creat
 		_spec = sqlgraph.NewCreateSpec(usercredentials.Table, sqlgraph.NewFieldSpec(usercredentials.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.UserCredentials
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
-	}
-	if value, ok := _c.mutation.Email(); ok {
-		_spec.SetField(usercredentials.FieldEmail, field.TypeString, value)
-		_node.Email = value
 	}
 	if value, ok := _c.mutation.PasswordHash(); ok {
 		_spec.SetField(usercredentials.FieldPasswordHash, field.TypeString, value)
@@ -344,7 +348,423 @@ func (_c *UserCredentialsCreate) createSpec() (*UserCredentials, *sqlgraph.Creat
 		_node.PartyID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.PartyContactMechanismIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   usercredentials.PartyContactMechanismTable,
+			Columns: []string{usercredentials.PartyContactMechanismColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.UserCredentials
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.PartyContactMechanismID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.UserCredentials.Create().
+//		SetTenantID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UserCredentialsUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *UserCredentialsCreate) OnConflict(opts ...sql.ConflictOption) *UserCredentialsUpsertOne {
+	_c.conflict = opts
+	return &UserCredentialsUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.UserCredentials.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *UserCredentialsCreate) OnConflictColumns(columns ...string) *UserCredentialsUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &UserCredentialsUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// UserCredentialsUpsertOne is the builder for "upsert"-ing
+	//  one UserCredentials node.
+	UserCredentialsUpsertOne struct {
+		create *UserCredentialsCreate
+	}
+
+	// UserCredentialsUpsert is the "OnConflict" setter.
+	UserCredentialsUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTenantID sets the "tenant_id" field.
+func (u *UserCredentialsUpsert) SetTenantID(v uuid.UUID) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldTenantID, v)
+	return u
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdateTenantID() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldTenantID)
+	return u
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *UserCredentialsUpsert) SetPartyID(v uuid.UUID) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldPartyID, v)
+	return u
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdatePartyID() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldPartyID)
+	return u
+}
+
+// SetPartyContactMechanismID sets the "party_contact_mechanism_id" field.
+func (u *UserCredentialsUpsert) SetPartyContactMechanismID(v uuid.UUID) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldPartyContactMechanismID, v)
+	return u
+}
+
+// UpdatePartyContactMechanismID sets the "party_contact_mechanism_id" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdatePartyContactMechanismID() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldPartyContactMechanismID)
+	return u
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (u *UserCredentialsUpsert) SetPasswordHash(v string) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldPasswordHash, v)
+	return u
+}
+
+// UpdatePasswordHash sets the "password_hash" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdatePasswordHash() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldPasswordHash)
+	return u
+}
+
+// SetTotpSecret sets the "totp_secret" field.
+func (u *UserCredentialsUpsert) SetTotpSecret(v string) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldTotpSecret, v)
+	return u
+}
+
+// UpdateTotpSecret sets the "totp_secret" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdateTotpSecret() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldTotpSecret)
+	return u
+}
+
+// ClearTotpSecret clears the value of the "totp_secret" field.
+func (u *UserCredentialsUpsert) ClearTotpSecret() *UserCredentialsUpsert {
+	u.SetNull(usercredentials.FieldTotpSecret)
+	return u
+}
+
+// SetTotpEnabled sets the "totp_enabled" field.
+func (u *UserCredentialsUpsert) SetTotpEnabled(v bool) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldTotpEnabled, v)
+	return u
+}
+
+// UpdateTotpEnabled sets the "totp_enabled" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdateTotpEnabled() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldTotpEnabled)
+	return u
+}
+
+// SetBackupCodesHash sets the "backup_codes_hash" field.
+func (u *UserCredentialsUpsert) SetBackupCodesHash(v []string) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldBackupCodesHash, v)
+	return u
+}
+
+// UpdateBackupCodesHash sets the "backup_codes_hash" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdateBackupCodesHash() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldBackupCodesHash)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UserCredentialsUpsert) SetUpdatedAt(v time.Time) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdateUpdatedAt() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldUpdatedAt)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserCredentialsUpsert) SetDeletedAt(v time.Time) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdateDeletedAt() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserCredentialsUpsert) ClearDeletedAt() *UserCredentialsUpsert {
+	u.SetNull(usercredentials.FieldDeletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.UserCredentials.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(usercredentials.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UserCredentialsUpsertOne) UpdateNewValues() *UserCredentialsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(usercredentials.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(usercredentials.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.UserCredentials.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *UserCredentialsUpsertOne) Ignore() *UserCredentialsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UserCredentialsUpsertOne) DoNothing() *UserCredentialsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UserCredentialsCreate.OnConflict
+// documentation for more info.
+func (u *UserCredentialsUpsertOne) Update(set func(*UserCredentialsUpsert)) *UserCredentialsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UserCredentialsUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *UserCredentialsUpsertOne) SetTenantID(v uuid.UUID) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdateTenantID() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *UserCredentialsUpsertOne) SetPartyID(v uuid.UUID) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdatePartyID() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetPartyContactMechanismID sets the "party_contact_mechanism_id" field.
+func (u *UserCredentialsUpsertOne) SetPartyContactMechanismID(v uuid.UUID) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetPartyContactMechanismID(v)
+	})
+}
+
+// UpdatePartyContactMechanismID sets the "party_contact_mechanism_id" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdatePartyContactMechanismID() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdatePartyContactMechanismID()
+	})
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (u *UserCredentialsUpsertOne) SetPasswordHash(v string) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetPasswordHash(v)
+	})
+}
+
+// UpdatePasswordHash sets the "password_hash" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdatePasswordHash() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdatePasswordHash()
+	})
+}
+
+// SetTotpSecret sets the "totp_secret" field.
+func (u *UserCredentialsUpsertOne) SetTotpSecret(v string) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetTotpSecret(v)
+	})
+}
+
+// UpdateTotpSecret sets the "totp_secret" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdateTotpSecret() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateTotpSecret()
+	})
+}
+
+// ClearTotpSecret clears the value of the "totp_secret" field.
+func (u *UserCredentialsUpsertOne) ClearTotpSecret() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.ClearTotpSecret()
+	})
+}
+
+// SetTotpEnabled sets the "totp_enabled" field.
+func (u *UserCredentialsUpsertOne) SetTotpEnabled(v bool) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetTotpEnabled(v)
+	})
+}
+
+// UpdateTotpEnabled sets the "totp_enabled" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdateTotpEnabled() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateTotpEnabled()
+	})
+}
+
+// SetBackupCodesHash sets the "backup_codes_hash" field.
+func (u *UserCredentialsUpsertOne) SetBackupCodesHash(v []string) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetBackupCodesHash(v)
+	})
+}
+
+// UpdateBackupCodesHash sets the "backup_codes_hash" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdateBackupCodesHash() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateBackupCodesHash()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UserCredentialsUpsertOne) SetUpdatedAt(v time.Time) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdateUpdatedAt() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserCredentialsUpsertOne) SetDeletedAt(v time.Time) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdateDeletedAt() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserCredentialsUpsertOne) ClearDeletedAt() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *UserCredentialsUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UserCredentialsCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UserCredentialsUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *UserCredentialsUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: UserCredentialsUpsertOne.ID is not supported by MySQL driver. Use UserCredentialsUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *UserCredentialsUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
 }
 
 // UserCredentialsCreateBulk is the builder for creating many UserCredentials entities in bulk.
@@ -352,6 +772,7 @@ type UserCredentialsCreateBulk struct {
 	config
 	err      error
 	builders []*UserCredentialsCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the UserCredentials entities in the database.
@@ -381,6 +802,7 @@ func (_c *UserCredentialsCreateBulk) Save(ctx context.Context) ([]*UserCredentia
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -427,6 +849,263 @@ func (_c *UserCredentialsCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *UserCredentialsCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.UserCredentials.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UserCredentialsUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *UserCredentialsCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserCredentialsUpsertBulk {
+	_c.conflict = opts
+	return &UserCredentialsUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.UserCredentials.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *UserCredentialsCreateBulk) OnConflictColumns(columns ...string) *UserCredentialsUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &UserCredentialsUpsertBulk{
+		create: _c,
+	}
+}
+
+// UserCredentialsUpsertBulk is the builder for "upsert"-ing
+// a bulk of UserCredentials nodes.
+type UserCredentialsUpsertBulk struct {
+	create *UserCredentialsCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.UserCredentials.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(usercredentials.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UserCredentialsUpsertBulk) UpdateNewValues() *UserCredentialsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(usercredentials.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(usercredentials.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.UserCredentials.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *UserCredentialsUpsertBulk) Ignore() *UserCredentialsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UserCredentialsUpsertBulk) DoNothing() *UserCredentialsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UserCredentialsCreateBulk.OnConflict
+// documentation for more info.
+func (u *UserCredentialsUpsertBulk) Update(set func(*UserCredentialsUpsert)) *UserCredentialsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UserCredentialsUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *UserCredentialsUpsertBulk) SetTenantID(v uuid.UUID) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdateTenantID() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyID sets the "party_id" field.
+func (u *UserCredentialsUpsertBulk) SetPartyID(v uuid.UUID) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetPartyID(v)
+	})
+}
+
+// UpdatePartyID sets the "party_id" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdatePartyID() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdatePartyID()
+	})
+}
+
+// SetPartyContactMechanismID sets the "party_contact_mechanism_id" field.
+func (u *UserCredentialsUpsertBulk) SetPartyContactMechanismID(v uuid.UUID) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetPartyContactMechanismID(v)
+	})
+}
+
+// UpdatePartyContactMechanismID sets the "party_contact_mechanism_id" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdatePartyContactMechanismID() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdatePartyContactMechanismID()
+	})
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (u *UserCredentialsUpsertBulk) SetPasswordHash(v string) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetPasswordHash(v)
+	})
+}
+
+// UpdatePasswordHash sets the "password_hash" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdatePasswordHash() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdatePasswordHash()
+	})
+}
+
+// SetTotpSecret sets the "totp_secret" field.
+func (u *UserCredentialsUpsertBulk) SetTotpSecret(v string) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetTotpSecret(v)
+	})
+}
+
+// UpdateTotpSecret sets the "totp_secret" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdateTotpSecret() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateTotpSecret()
+	})
+}
+
+// ClearTotpSecret clears the value of the "totp_secret" field.
+func (u *UserCredentialsUpsertBulk) ClearTotpSecret() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.ClearTotpSecret()
+	})
+}
+
+// SetTotpEnabled sets the "totp_enabled" field.
+func (u *UserCredentialsUpsertBulk) SetTotpEnabled(v bool) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetTotpEnabled(v)
+	})
+}
+
+// UpdateTotpEnabled sets the "totp_enabled" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdateTotpEnabled() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateTotpEnabled()
+	})
+}
+
+// SetBackupCodesHash sets the "backup_codes_hash" field.
+func (u *UserCredentialsUpsertBulk) SetBackupCodesHash(v []string) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetBackupCodesHash(v)
+	})
+}
+
+// UpdateBackupCodesHash sets the "backup_codes_hash" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdateBackupCodesHash() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateBackupCodesHash()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *UserCredentialsUpsertBulk) SetUpdatedAt(v time.Time) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdateUpdatedAt() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *UserCredentialsUpsertBulk) SetDeletedAt(v time.Time) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdateDeletedAt() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *UserCredentialsUpsertBulk) ClearDeletedAt() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *UserCredentialsUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the UserCredentialsCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for UserCredentialsCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UserCredentialsUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

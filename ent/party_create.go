@@ -5,10 +5,13 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
-	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
+	"enterprise-system/ent/partycontactmechanism"
+	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/ent/partymergelog"
+	"enterprise-system/ent/partyname"
+	"enterprise-system/ent/partynamevalidity"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
@@ -19,6 +22,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -29,6 +34,7 @@ type PartyCreate struct {
 	config
 	mutation *PartyMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetTenantID sets the "tenant_id" field.
@@ -191,19 +197,49 @@ func (_c *PartyCreate) AddPartyRoles(v ...*PartyRole) *PartyCreate {
 	return _c.AddPartyRoleIDs(ids...)
 }
 
-// AddContactMechanismIDs adds the "contact_mechanisms" edge to the ContactMechanism entity by IDs.
-func (_c *PartyCreate) AddContactMechanismIDs(ids ...uuid.UUID) *PartyCreate {
-	_c.mutation.AddContactMechanismIDs(ids...)
+// AddPartyContactMechanismIDs adds the "party_contact_mechanisms" edge to the PartyContactMechanism entity by IDs.
+func (_c *PartyCreate) AddPartyContactMechanismIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddPartyContactMechanismIDs(ids...)
 	return _c
 }
 
-// AddContactMechanisms adds the "contact_mechanisms" edges to the ContactMechanism entity.
-func (_c *PartyCreate) AddContactMechanisms(v ...*ContactMechanism) *PartyCreate {
+// AddPartyContactMechanisms adds the "party_contact_mechanisms" edges to the PartyContactMechanism entity.
+func (_c *PartyCreate) AddPartyContactMechanisms(v ...*PartyContactMechanism) *PartyCreate {
 	ids := make([]uuid.UUID, len(v))
 	for i := range v {
 		ids[i] = v[i].ID
 	}
-	return _c.AddContactMechanismIDs(ids...)
+	return _c.AddPartyContactMechanismIDs(ids...)
+}
+
+// AddNameIDs adds the "names" edge to the PartyName entity by IDs.
+func (_c *PartyCreate) AddNameIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddNameIDs(ids...)
+	return _c
+}
+
+// AddNames adds the "names" edges to the PartyName entity.
+func (_c *PartyCreate) AddNames(v ...*PartyName) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNameIDs(ids...)
+}
+
+// AddNameValidityIDs adds the "name_validities" edge to the PartyNameValidity entity by IDs.
+func (_c *PartyCreate) AddNameValidityIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddNameValidityIDs(ids...)
+	return _c
+}
+
+// AddNameValidities adds the "name_validities" edges to the PartyNameValidity entity.
+func (_c *PartyCreate) AddNameValidities(v ...*PartyNameValidity) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddNameValidityIDs(ids...)
 }
 
 // AddAddressIDs adds the "addresses" edge to the Address entity by IDs.
@@ -268,6 +304,51 @@ func (_c *PartyCreate) AddPasswordResetTokens(v ...*PasswordResetToken) *PartyCr
 		ids[i] = v[i].ID
 	}
 	return _c.AddPasswordResetTokenIDs(ids...)
+}
+
+// AddPartyNameIDs adds the "party_names" edge to the PartyName entity by IDs.
+func (_c *PartyCreate) AddPartyNameIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddPartyNameIDs(ids...)
+	return _c
+}
+
+// AddPartyNames adds the "party_names" edges to the PartyName entity.
+func (_c *PartyCreate) AddPartyNames(v ...*PartyName) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartyNameIDs(ids...)
+}
+
+// AddPartyNameValidityIDs adds the "party_name_validities" edge to the PartyNameValidity entity by IDs.
+func (_c *PartyCreate) AddPartyNameValidityIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddPartyNameValidityIDs(ids...)
+	return _c
+}
+
+// AddPartyNameValidities adds the "party_name_validities" edges to the PartyNameValidity entity.
+func (_c *PartyCreate) AddPartyNameValidities(v ...*PartyNameValidity) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartyNameValidityIDs(ids...)
+}
+
+// AddPartyContactMechanismValidityIDs adds the "party_contact_mechanism_validities" edge to the PartyContactMechanismValidity entity by IDs.
+func (_c *PartyCreate) AddPartyContactMechanismValidityIDs(ids ...uuid.UUID) *PartyCreate {
+	_c.mutation.AddPartyContactMechanismValidityIDs(ids...)
+	return _c
+}
+
+// AddPartyContactMechanismValidities adds the "party_contact_mechanism_validities" edges to the PartyContactMechanismValidity entity.
+func (_c *PartyCreate) AddPartyContactMechanismValidities(v ...*PartyContactMechanismValidity) *PartyCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPartyContactMechanismValidityIDs(ids...)
 }
 
 // AddMergedPartyIDs adds the "merged_parties" edge to the Party entity by IDs.
@@ -437,6 +518,7 @@ func (_c *PartyCreate) createSpec() (*Party, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(party.Table, sqlgraph.NewFieldSpec(party.FieldID, field.TypeUUID))
 	)
 	_spec.Schema = _c.schemaConfig.Party
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -534,18 +616,52 @@ func (_c *PartyCreate) createSpec() (*Party, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := _c.mutation.ContactMechanismsIDs(); len(nodes) > 0 {
+	if nodes := _c.mutation.PartyContactMechanismsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   party.ContactMechanismsTable,
-			Columns: []string{party.ContactMechanismsColumn},
+			Table:   party.PartyContactMechanismsTable,
+			Columns: []string{party.PartyContactMechanismsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(contactmechanism.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanism.FieldID, field.TypeUUID),
 			},
 		}
-		edge.Schema = _c.schemaConfig.ContactMechanism
+		edge.Schema = _c.schemaConfig.PartyContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NamesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.NamesTable,
+			Columns: []string{party.NamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyname.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyName
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.NameValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.NameValiditiesTable,
+			Columns: []string{party.NameValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynamevalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyNameValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -614,6 +730,57 @@ func (_c *PartyCreate) createSpec() (*Party, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.PasswordResetToken
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartyNamesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.PartyNamesTable,
+			Columns: []string{party.PartyNamesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partyname.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyName
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartyNameValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.PartyNameValiditiesTable,
+			Columns: []string{party.PartyNameValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partynamevalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyNameValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PartyContactMechanismValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   party.PartyContactMechanismValiditiesTable,
+			Columns: []string{party.PartyContactMechanismValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(partycontactmechanismvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PartyContactMechanismValidity
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -691,11 +858,358 @@ func (_c *PartyCreate) createSpec() (*Party, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Party.Create().
+//		SetTenantID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartyUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartyCreate) OnConflict(opts ...sql.ConflictOption) *PartyUpsertOne {
+	_c.conflict = opts
+	return &PartyUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Party.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartyCreate) OnConflictColumns(columns ...string) *PartyUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartyUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// PartyUpsertOne is the builder for "upsert"-ing
+	//  one Party node.
+	PartyUpsertOne struct {
+		create *PartyCreate
+	}
+
+	// PartyUpsert is the "OnConflict" setter.
+	PartyUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PartyUpsert) SetTenantID(v uuid.UUID) *PartyUpsert {
+	u.Set(party.FieldTenantID, v)
+	return u
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PartyUpsert) UpdateTenantID() *PartyUpsert {
+	u.SetExcluded(party.FieldTenantID)
+	return u
+}
+
+// SetPartyType sets the "party_type" field.
+func (u *PartyUpsert) SetPartyType(v party.PartyType) *PartyUpsert {
+	u.Set(party.FieldPartyType, v)
+	return u
+}
+
+// UpdatePartyType sets the "party_type" field to the value that was provided on create.
+func (u *PartyUpsert) UpdatePartyType() *PartyUpsert {
+	u.SetExcluded(party.FieldPartyType)
+	return u
+}
+
+// SetDisplayName sets the "display_name" field.
+func (u *PartyUpsert) SetDisplayName(v string) *PartyUpsert {
+	u.Set(party.FieldDisplayName, v)
+	return u
+}
+
+// UpdateDisplayName sets the "display_name" field to the value that was provided on create.
+func (u *PartyUpsert) UpdateDisplayName() *PartyUpsert {
+	u.SetExcluded(party.FieldDisplayName)
+	return u
+}
+
+// SetCanonicalPartyID sets the "canonical_party_id" field.
+func (u *PartyUpsert) SetCanonicalPartyID(v uuid.UUID) *PartyUpsert {
+	u.Set(party.FieldCanonicalPartyID, v)
+	return u
+}
+
+// UpdateCanonicalPartyID sets the "canonical_party_id" field to the value that was provided on create.
+func (u *PartyUpsert) UpdateCanonicalPartyID() *PartyUpsert {
+	u.SetExcluded(party.FieldCanonicalPartyID)
+	return u
+}
+
+// ClearCanonicalPartyID clears the value of the "canonical_party_id" field.
+func (u *PartyUpsert) ClearCanonicalPartyID() *PartyUpsert {
+	u.SetNull(party.FieldCanonicalPartyID)
+	return u
+}
+
+// SetRecordStatus sets the "record_status" field.
+func (u *PartyUpsert) SetRecordStatus(v party.RecordStatus) *PartyUpsert {
+	u.Set(party.FieldRecordStatus, v)
+	return u
+}
+
+// UpdateRecordStatus sets the "record_status" field to the value that was provided on create.
+func (u *PartyUpsert) UpdateRecordStatus() *PartyUpsert {
+	u.SetExcluded(party.FieldRecordStatus)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartyUpsert) SetUpdatedAt(v time.Time) *PartyUpsert {
+	u.Set(party.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartyUpsert) UpdateUpdatedAt() *PartyUpsert {
+	u.SetExcluded(party.FieldUpdatedAt)
+	return u
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *PartyUpsert) SetDeletedAt(v time.Time) *PartyUpsert {
+	u.Set(party.FieldDeletedAt, v)
+	return u
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *PartyUpsert) UpdateDeletedAt() *PartyUpsert {
+	u.SetExcluded(party.FieldDeletedAt)
+	return u
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *PartyUpsert) ClearDeletedAt() *PartyUpsert {
+	u.SetNull(party.FieldDeletedAt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Party.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(party.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartyUpsertOne) UpdateNewValues() *PartyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(party.FieldID)
+		}
+		if _, exists := u.create.mutation.CreatedAt(); exists {
+			s.SetIgnore(party.FieldCreatedAt)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Party.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *PartyUpsertOne) Ignore() *PartyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartyUpsertOne) DoNothing() *PartyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartyCreate.OnConflict
+// documentation for more info.
+func (u *PartyUpsertOne) Update(set func(*PartyUpsert)) *PartyUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartyUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PartyUpsertOne) SetTenantID(v uuid.UUID) *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PartyUpsertOne) UpdateTenantID() *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyType sets the "party_type" field.
+func (u *PartyUpsertOne) SetPartyType(v party.PartyType) *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetPartyType(v)
+	})
+}
+
+// UpdatePartyType sets the "party_type" field to the value that was provided on create.
+func (u *PartyUpsertOne) UpdatePartyType() *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdatePartyType()
+	})
+}
+
+// SetDisplayName sets the "display_name" field.
+func (u *PartyUpsertOne) SetDisplayName(v string) *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetDisplayName(v)
+	})
+}
+
+// UpdateDisplayName sets the "display_name" field to the value that was provided on create.
+func (u *PartyUpsertOne) UpdateDisplayName() *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateDisplayName()
+	})
+}
+
+// SetCanonicalPartyID sets the "canonical_party_id" field.
+func (u *PartyUpsertOne) SetCanonicalPartyID(v uuid.UUID) *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetCanonicalPartyID(v)
+	})
+}
+
+// UpdateCanonicalPartyID sets the "canonical_party_id" field to the value that was provided on create.
+func (u *PartyUpsertOne) UpdateCanonicalPartyID() *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateCanonicalPartyID()
+	})
+}
+
+// ClearCanonicalPartyID clears the value of the "canonical_party_id" field.
+func (u *PartyUpsertOne) ClearCanonicalPartyID() *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.ClearCanonicalPartyID()
+	})
+}
+
+// SetRecordStatus sets the "record_status" field.
+func (u *PartyUpsertOne) SetRecordStatus(v party.RecordStatus) *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetRecordStatus(v)
+	})
+}
+
+// UpdateRecordStatus sets the "record_status" field to the value that was provided on create.
+func (u *PartyUpsertOne) UpdateRecordStatus() *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateRecordStatus()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartyUpsertOne) SetUpdatedAt(v time.Time) *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartyUpsertOne) UpdateUpdatedAt() *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *PartyUpsertOne) SetDeletedAt(v time.Time) *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *PartyUpsertOne) UpdateDeletedAt() *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *PartyUpsertOne) ClearDeletedAt() *PartyUpsertOne {
+	return u.Update(func(s *PartyUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PartyUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartyCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartyUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *PartyUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: PartyUpsertOne.ID is not supported by MySQL driver. Use PartyUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *PartyUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // PartyCreateBulk is the builder for creating many Party entities in bulk.
 type PartyCreateBulk struct {
 	config
 	err      error
 	builders []*PartyCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Party entities in the database.
@@ -725,6 +1239,7 @@ func (_c *PartyCreateBulk) Save(ctx context.Context) ([]*Party, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -771,6 +1286,235 @@ func (_c *PartyCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *PartyCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Party.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.PartyUpsert) {
+//			SetTenantID(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *PartyCreateBulk) OnConflict(opts ...sql.ConflictOption) *PartyUpsertBulk {
+	_c.conflict = opts
+	return &PartyUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Party.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *PartyCreateBulk) OnConflictColumns(columns ...string) *PartyUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &PartyUpsertBulk{
+		create: _c,
+	}
+}
+
+// PartyUpsertBulk is the builder for "upsert"-ing
+// a bulk of Party nodes.
+type PartyUpsertBulk struct {
+	create *PartyCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Party.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(party.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *PartyUpsertBulk) UpdateNewValues() *PartyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(party.FieldID)
+			}
+			if _, exists := b.mutation.CreatedAt(); exists {
+				s.SetIgnore(party.FieldCreatedAt)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Party.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *PartyUpsertBulk) Ignore() *PartyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *PartyUpsertBulk) DoNothing() *PartyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the PartyCreateBulk.OnConflict
+// documentation for more info.
+func (u *PartyUpsertBulk) Update(set func(*PartyUpsert)) *PartyUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&PartyUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (u *PartyUpsertBulk) SetTenantID(v uuid.UUID) *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetTenantID(v)
+	})
+}
+
+// UpdateTenantID sets the "tenant_id" field to the value that was provided on create.
+func (u *PartyUpsertBulk) UpdateTenantID() *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateTenantID()
+	})
+}
+
+// SetPartyType sets the "party_type" field.
+func (u *PartyUpsertBulk) SetPartyType(v party.PartyType) *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetPartyType(v)
+	})
+}
+
+// UpdatePartyType sets the "party_type" field to the value that was provided on create.
+func (u *PartyUpsertBulk) UpdatePartyType() *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdatePartyType()
+	})
+}
+
+// SetDisplayName sets the "display_name" field.
+func (u *PartyUpsertBulk) SetDisplayName(v string) *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetDisplayName(v)
+	})
+}
+
+// UpdateDisplayName sets the "display_name" field to the value that was provided on create.
+func (u *PartyUpsertBulk) UpdateDisplayName() *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateDisplayName()
+	})
+}
+
+// SetCanonicalPartyID sets the "canonical_party_id" field.
+func (u *PartyUpsertBulk) SetCanonicalPartyID(v uuid.UUID) *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetCanonicalPartyID(v)
+	})
+}
+
+// UpdateCanonicalPartyID sets the "canonical_party_id" field to the value that was provided on create.
+func (u *PartyUpsertBulk) UpdateCanonicalPartyID() *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateCanonicalPartyID()
+	})
+}
+
+// ClearCanonicalPartyID clears the value of the "canonical_party_id" field.
+func (u *PartyUpsertBulk) ClearCanonicalPartyID() *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.ClearCanonicalPartyID()
+	})
+}
+
+// SetRecordStatus sets the "record_status" field.
+func (u *PartyUpsertBulk) SetRecordStatus(v party.RecordStatus) *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetRecordStatus(v)
+	})
+}
+
+// UpdateRecordStatus sets the "record_status" field to the value that was provided on create.
+func (u *PartyUpsertBulk) UpdateRecordStatus() *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateRecordStatus()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *PartyUpsertBulk) SetUpdatedAt(v time.Time) *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *PartyUpsertBulk) UpdateUpdatedAt() *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (u *PartyUpsertBulk) SetDeletedAt(v time.Time) *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.SetDeletedAt(v)
+	})
+}
+
+// UpdateDeletedAt sets the "deleted_at" field to the value that was provided on create.
+func (u *PartyUpsertBulk) UpdateDeletedAt() *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.UpdateDeletedAt()
+	})
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (u *PartyUpsertBulk) ClearDeletedAt() *PartyUpsertBulk {
+	return u.Update(func(s *PartyUpsert) {
+		s.ClearDeletedAt()
+	})
+}
+
+// Exec executes the query.
+func (u *PartyUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the PartyCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for PartyCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *PartyUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

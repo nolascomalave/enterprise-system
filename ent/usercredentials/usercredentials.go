@@ -19,8 +19,8 @@ const (
 	FieldTenantID = "tenant_id"
 	// FieldPartyID holds the string denoting the party_id field in the database.
 	FieldPartyID = "party_id"
-	// FieldEmail holds the string denoting the email field in the database.
-	FieldEmail = "email"
+	// FieldPartyContactMechanismID holds the string denoting the party_contact_mechanism_id field in the database.
+	FieldPartyContactMechanismID = "party_contact_mechanism_id"
 	// FieldPasswordHash holds the string denoting the password_hash field in the database.
 	FieldPasswordHash = "password_hash"
 	// FieldTotpSecret holds the string denoting the totp_secret field in the database.
@@ -39,6 +39,8 @@ const (
 	EdgeTenant = "tenant"
 	// EdgeParty holds the string denoting the party edge name in mutations.
 	EdgeParty = "party"
+	// EdgePartyContactMechanism holds the string denoting the party_contact_mechanism edge name in mutations.
+	EdgePartyContactMechanism = "party_contact_mechanism"
 	// Table holds the table name of the usercredentials in the database.
 	Table = "user_credentials"
 	// TenantTable is the table that holds the tenant relation/edge.
@@ -55,6 +57,13 @@ const (
 	PartyInverseTable = "parties"
 	// PartyColumn is the table column denoting the party relation/edge.
 	PartyColumn = "party_id"
+	// PartyContactMechanismTable is the table that holds the party_contact_mechanism relation/edge.
+	PartyContactMechanismTable = "user_credentials"
+	// PartyContactMechanismInverseTable is the table name for the PartyContactMechanism entity.
+	// It exists in this package in order to avoid circular dependency with the "partycontactmechanism" package.
+	PartyContactMechanismInverseTable = "party_contact_mechanisms"
+	// PartyContactMechanismColumn is the table column denoting the party_contact_mechanism relation/edge.
+	PartyContactMechanismColumn = "party_contact_mechanism_id"
 )
 
 // Columns holds all SQL columns for usercredentials fields.
@@ -62,7 +71,7 @@ var Columns = []string{
 	FieldID,
 	FieldTenantID,
 	FieldPartyID,
-	FieldEmail,
+	FieldPartyContactMechanismID,
 	FieldPasswordHash,
 	FieldTotpSecret,
 	FieldTotpEnabled,
@@ -83,8 +92,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	EmailValidator func(string) error
 	// PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
 	PasswordHashValidator func(string) error
 	// DefaultTotpEnabled holds the default value on creation for the "totp_enabled" field.
@@ -119,9 +126,9 @@ func ByPartyID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPartyID, opts...).ToFunc()
 }
 
-// ByEmail orders the results by the email field.
-func ByEmail(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldEmail, opts...).ToFunc()
+// ByPartyContactMechanismID orders the results by the party_contact_mechanism_id field.
+func ByPartyContactMechanismID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPartyContactMechanismID, opts...).ToFunc()
 }
 
 // ByPasswordHash orders the results by the password_hash field.
@@ -167,6 +174,13 @@ func ByPartyField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newPartyStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByPartyContactMechanismField orders the results by party_contact_mechanism field.
+func ByPartyContactMechanismField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPartyContactMechanismStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -179,5 +193,12 @@ func newPartyStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartyInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, true, PartyTable, PartyColumn),
+	)
+}
+func newPartyContactMechanismStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PartyContactMechanismInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, PartyContactMechanismTable, PartyContactMechanismColumn),
 	)
 }

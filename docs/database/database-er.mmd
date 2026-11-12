@@ -1,0 +1,257 @@
+%% Enterprise System — Party Model
+%% Los nombres de entidad omiten el esquema. Mapeo:
+%% GLOBAL_* -> global.*, TENANT_* -> tenants.*, AUDIT_* -> audit.*
+erDiagram
+    SUBSCRIPTIONS ||--o{ PARTIES : "tenant_id"
+    SUBSCRIPTIONS ||--o{ PERSON_PROFILES : "tenant_id"
+    SUBSCRIPTIONS ||--o{ ORGANIZATION_PROFILES : "tenant_id"
+    SUBSCRIPTIONS ||--o{ PARTY_ROLES : "tenant_id"
+    SUBSCRIPTIONS ||--o{ PARTY_MERGE_LOG : "tenant_id"
+    SUBSCRIPTIONS ||--o{ SESSIONS : "tenant_id"
+    SUBSCRIPTIONS ||--o{ USER_CREDENTIALS : "tenant_id"
+    SUBSCRIPTIONS ||--o{ PASSWORD_RESET_TOKENS : "tenant_id"
+    SUBSCRIPTIONS ||--o{ JOB_FAMILIES : "tenant_id"
+    SUBSCRIPTIONS ||--o{ JOBS : "tenant_id"
+    SUBSCRIPTIONS ||--o{ DEPARTMENTS : "tenant_id"
+    SUBSCRIPTIONS ||--o{ EMPLOYEES : "tenant_id"
+    SUBSCRIPTIONS ||--o{ EMPLOYEE_ASSIGNMENTS : "tenant_id"
+    SUBSCRIPTIONS ||--o{ PARTY_CONTACT_MECHANISMS : "tenant_id"
+    SUBSCRIPTIONS ||--o{ ADDRESSES : "tenant_id"
+
+    ROLE_TYPES ||--o{ PARTY_ROLES : "role_type_id"
+    CONTACT_MECHANISMS ||--o{ PARTY_CONTACT_MECHANISMS : "contact_mechanism_id"
+    PARTY_CONTACT_MECHANISMS ||--o| USER_CREDENTIALS : "party_contact_mechanism_id"
+
+    PARTIES ||--o| PERSON_PROFILES : "person_profile"
+    PARTIES ||--o| ORGANIZATION_PROFILES : "organization_profile"
+    PARTIES ||--o{ PARTY_ROLES : "party_id"
+    PARTIES ||--o{ PARTY_MERGE_LOG : "source_party_id"
+    PARTIES ||--o{ PARTY_MERGE_LOG : "target_party_id"
+    PARTIES ||--o{ PARTIES : "canonical_party_id"
+    PARTIES ||--o| USER_CREDENTIALS : "credentials"
+    PARTIES ||--o{ SESSIONS : "user_id"
+    PARTIES ||--o{ PASSWORD_RESET_TOKENS : "party_id"
+    PARTIES ||--o{ PARTY_CONTACT_MECHANISMS : "party_id"
+    PARTIES ||--o{ ADDRESSES : "party_id"
+    PARTIES ||--o| EMPLOYEES : "party_id"
+
+    JOB_FAMILIES ||--o{ JOBS : "job_family_id"
+    JOBS ||--o{ EMPLOYEES : "job_id"
+    DEPARTMENTS ||--o{ EMPLOYEES : "department_id"
+    DEPARTMENTS ||--o{ DEPARTMENTS : "parent_department_id"
+    EMPLOYEES ||--o{ EMPLOYEES : "manager_party_id"
+    JOBS ||--o{ EMPLOYEE_ASSIGNMENTS : "job_id"
+    DEPARTMENTS ||--o{ EMPLOYEE_ASSIGNMENTS : "department_id"
+    EMPLOYEES ||--o{ EMPLOYEE_ASSIGNMENTS : "employee_party_id"
+
+    SUBSCRIPTIONS {
+        uuid id PK
+        text name
+        text slug UK
+        text status
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    ROLE_TYPES {
+        uuid id PK
+        text code UK
+        text name
+        bool is_system
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    PARTIES {
+        uuid id PK
+        uuid tenant_id FK
+        text party_type
+        text display_name
+        uuid canonical_party_id FK
+        text record_status
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    PERSON_PROFILES {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK,UK
+        text first_name
+        text middle_name
+        text last_name
+        text second_last_name
+        timestamptz birth_date
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    ORGANIZATION_PROFILES {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK,UK
+        text legal_name
+        text trade_name
+        text tax_id
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    PARTY_ROLES {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK
+        uuid role_type_id FK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    PARTY_MERGE_LOG {
+        uuid id PK
+        uuid tenant_id FK
+        uuid source_party_id FK
+        uuid target_party_id FK
+        timestamptz merged_at
+        uuid merged_by
+    }
+    SESSIONS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid user_id FK
+        bytea token_hash UK
+        timestamptz expires_at
+        timestamptz revoked_at
+        timestamptz last_used_at
+        jsonb metadata
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    USER_CREDENTIALS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK,UK
+        uuid party_contact_mechanism_id FK,UK
+        text password_hash
+        text totp_secret
+        bool totp_enabled
+        jsonb backup_codes_hash
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    PASSWORD_RESET_TOKENS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK
+        bytea token_hash UK
+        timestamptz expires_at
+        timestamptz used_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    JOB_FAMILIES {
+        uuid id PK
+        uuid tenant_id FK
+        text name
+        text code UK
+        text description
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    JOBS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid job_family_id FK
+        text title
+        text code UK
+        numeric min_salary
+        numeric max_salary
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    DEPARTMENTS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid parent_department_id FK
+        text name
+        text code UK
+        uuid manager_party_id FK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    EMPLOYEES {
+        uuid party_id PK,FK
+        uuid tenant_id FK
+        text employee_code UK
+        timestamptz hire_date
+        text status
+        uuid job_id FK
+        uuid department_id FK
+        uuid manager_party_id FK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    EMPLOYEE_ASSIGNMENTS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid employee_party_id FK
+        uuid job_id FK
+        uuid department_id FK
+        timestamptz start_date
+        timestamptz end_date
+        numeric salary
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    CONTACT_MECHANISMS {
+        uuid id PK
+        text type
+        text value UK
+    }
+    PARTY_CONTACT_MECHANISMS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK
+        uuid contact_mechanism_id FK
+        bool is_primary
+        bool is_verified
+        int contact_mechanism_order
+        timestamptz start_date
+        timestamptz end_date
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    ADDRESSES {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK
+        text type
+        text line1
+        text line2
+        text city
+        text state
+        text postal_code
+        text country
+        bool is_primary
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    AUDIT_CHANGE_LOG {
+        uuid id PK
+        text table_name
+        text record_id
+        text operation
+        jsonb old_data
+        jsonb new_data
+        jsonb changed_fields
+        uuid changed_by
+        uuid tenant_id
+        uuid session_id
+        timestamptz changed_at PK
+    }
