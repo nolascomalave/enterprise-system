@@ -20,6 +20,18 @@ func (f AddressFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AddressMutation", m)
 }
 
+// The AddressValidityFunc type is an adapter to allow the use of ordinary
+// function as AddressValidity mutator.
+type AddressValidityFunc func(context.Context, *ent.AddressValidityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AddressValidityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AddressValidityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AddressValidityMutation", m)
+}
+
 // The AttachedDocumentFunc type is an adapter to allow the use of ordinary
 // function as AttachedDocument mutator.
 type AttachedDocumentFunc func(context.Context, *ent.AttachedDocumentMutation) (ent.Value, error)
@@ -66,6 +78,54 @@ func (f DepartmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepartmentMutation", m)
+}
+
+// The DepartmentAddressFunc type is an adapter to allow the use of ordinary
+// function as DepartmentAddress mutator.
+type DepartmentAddressFunc func(context.Context, *ent.DepartmentAddressMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DepartmentAddressFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DepartmentAddressMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepartmentAddressMutation", m)
+}
+
+// The DepartmentAddressValidityFunc type is an adapter to allow the use of ordinary
+// function as DepartmentAddressValidity mutator.
+type DepartmentAddressValidityFunc func(context.Context, *ent.DepartmentAddressValidityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DepartmentAddressValidityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DepartmentAddressValidityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepartmentAddressValidityMutation", m)
+}
+
+// The DepartmentContactMechanismFunc type is an adapter to allow the use of ordinary
+// function as DepartmentContactMechanism mutator.
+type DepartmentContactMechanismFunc func(context.Context, *ent.DepartmentContactMechanismMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DepartmentContactMechanismFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DepartmentContactMechanismMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepartmentContactMechanismMutation", m)
+}
+
+// The DepartmentContactMechanismValidityFunc type is an adapter to allow the use of ordinary
+// function as DepartmentContactMechanismValidity mutator.
+type DepartmentContactMechanismValidityFunc func(context.Context, *ent.DepartmentContactMechanismValidityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DepartmentContactMechanismValidityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DepartmentContactMechanismValidityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepartmentContactMechanismValidityMutation", m)
 }
 
 // The DepartmentGroupAssignmentFunc type is an adapter to allow the use of ordinary

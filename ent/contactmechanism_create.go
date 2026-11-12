@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/contactmechanism"
+	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/partycontactmechanism"
 	"errors"
 	"fmt"
@@ -63,6 +64,21 @@ func (_c *ContactMechanismCreate) AddPartyContactMechanisms(v ...*PartyContactMe
 		ids[i] = v[i].ID
 	}
 	return _c.AddPartyContactMechanismIDs(ids...)
+}
+
+// AddDepartmentContactMechanismIDs adds the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity by IDs.
+func (_c *ContactMechanismCreate) AddDepartmentContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismCreate {
+	_c.mutation.AddDepartmentContactMechanismIDs(ids...)
+	return _c
+}
+
+// AddDepartmentContactMechanisms adds the "department_contact_mechanisms" edges to the DepartmentContactMechanism entity.
+func (_c *ContactMechanismCreate) AddDepartmentContactMechanisms(v ...*DepartmentContactMechanism) *ContactMechanismCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDepartmentContactMechanismIDs(ids...)
 }
 
 // Mutation returns the ContactMechanismMutation object of the builder.
@@ -181,6 +197,23 @@ func (_c *ContactMechanismCreate) createSpec() (*ContactMechanism, *sqlgraph.Cre
 			},
 		}
 		edge.Schema = _c.schemaConfig.PartyContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DepartmentContactMechanismsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.DepartmentContactMechanismsTable,
+			Columns: []string{contactmechanism.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

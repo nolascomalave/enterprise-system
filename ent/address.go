@@ -37,8 +37,6 @@ type Address struct {
 	PostalCode string `json:"postal_code,omitempty"`
 	// Country holds the value of the "country" field.
 	Country string `json:"country,omitempty"`
-	// IsPrimary holds the value of the "is_primary" field.
-	IsPrimary bool `json:"is_primary,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -59,9 +57,11 @@ type AddressEdges struct {
 	Party *Party `json:"party,omitempty"`
 	// CityLocation holds the value of the city_location edge.
 	CityLocation *Location `json:"city_location,omitempty"`
+	// Validities holds the value of the validities edge.
+	Validities []*AddressValidity `json:"validities,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -97,13 +97,20 @@ func (e AddressEdges) CityLocationOrErr() (*Location, error) {
 	return nil, &NotLoadedError{edge: "city_location"}
 }
 
+// ValiditiesOrErr returns the Validities value or an error if the edge
+// was not loaded in eager-loading.
+func (e AddressEdges) ValiditiesOrErr() ([]*AddressValidity, error) {
+	if e.loadedTypes[3] {
+		return e.Validities, nil
+	}
+	return nil, &NotLoadedError{edge: "validities"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Address) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case address.FieldIsPrimary:
-			values[i] = new(sql.NullBool)
 		case address.FieldType, address.FieldLine1, address.FieldLine2, address.FieldPostalCode, address.FieldCountry:
 			values[i] = new(sql.NullString)
 		case address.FieldCreatedAt, address.FieldUpdatedAt, address.FieldDeletedAt:
@@ -179,12 +186,6 @@ func (_m *Address) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Country = value.String
 			}
-		case address.FieldIsPrimary:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field is_primary", values[i])
-			} else if value.Valid {
-				_m.IsPrimary = value.Bool
-			}
 		case address.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -230,6 +231,11 @@ func (_m *Address) QueryParty() *PartyQuery {
 // QueryCityLocation queries the "city_location" edge of the Address entity.
 func (_m *Address) QueryCityLocation() *LocationQuery {
 	return NewAddressClient(_m.config).QueryCityLocation(_m)
+}
+
+// QueryValidities queries the "validities" edge of the Address entity.
+func (_m *Address) QueryValidities() *AddressValidityQuery {
+	return NewAddressClient(_m.config).QueryValidities(_m)
 }
 
 // Update returns a builder for updating this Address.
@@ -278,9 +284,6 @@ func (_m *Address) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("country=")
 	builder.WriteString(_m.Country)
-	builder.WriteString(", ")
-	builder.WriteString("is_primary=")
-	builder.WriteString(fmt.Sprintf("%v", _m.IsPrimary))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

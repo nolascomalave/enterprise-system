@@ -17,7 +17,6 @@ var (
 		{Name: "line2", Type: field.TypeString, Nullable: true, Collation: "unaccent_case_insensitive"},
 		{Name: "postal_code", Type: field.TypeString, Nullable: true, Collation: "unaccent_case_insensitive"},
 		{Name: "country", Type: field.TypeString},
-		{Name: "is_primary", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
@@ -33,19 +32,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "addresses_locations_addresses",
-				Columns:    []*schema.Column{AddressesColumns[10]},
+				Columns:    []*schema.Column{AddressesColumns[9]},
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "addresses_parties_addresses",
-				Columns:    []*schema.Column{AddressesColumns[11]},
+				Columns:    []*schema.Column{AddressesColumns[10]},
 				RefColumns: []*schema.Column{PartiesColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "addresses_subscriptions_addresses",
-				Columns:    []*schema.Column{AddressesColumns[12]},
+				Columns:    []*schema.Column{AddressesColumns[11]},
 				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -54,7 +53,7 @@ var (
 			{
 				Name:    "address_tenant_id_party_id",
 				Unique:  false,
-				Columns: []*schema.Column{AddressesColumns[12], AddressesColumns[11]},
+				Columns: []*schema.Column{AddressesColumns[11], AddressesColumns[10]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
@@ -62,7 +61,7 @@ var (
 			{
 				Name:    "address_tenant_party_type_idx",
 				Unique:  false,
-				Columns: []*schema.Column{AddressesColumns[12], AddressesColumns[11], AddressesColumns[1]},
+				Columns: []*schema.Column{AddressesColumns[11], AddressesColumns[10], AddressesColumns[1]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
@@ -70,17 +69,71 @@ var (
 			{
 				Name:    "address_tenant_id_city_location_id",
 				Unique:  false,
-				Columns: []*schema.Column{AddressesColumns[12], AddressesColumns[10]},
+				Columns: []*schema.Column{AddressesColumns[11], AddressesColumns[9]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
 			},
+		},
+	}
+	// AddressValiditiesColumns holds the columns for the "address_validities" table.
+	AddressValiditiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"LEGAL", "FISCAL", "POSTAL", "DELIVERY"}},
+		{Name: "is_primary", Type: field.TypeBool, Default: false},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "address_id", Type: field.TypeUUID},
+		{Name: "party_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// AddressValiditiesTable holds the schema information for the "address_validities" table.
+	AddressValiditiesTable = &schema.Table{
+		Name:       "address_validities",
+		Columns:    AddressValiditiesColumns,
+		PrimaryKey: []*schema.Column{AddressValiditiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
 			{
-				Name:    "address_one_primary_uq",
+				Symbol:     "address_validities_addresses_validities",
+				Columns:    []*schema.Column{AddressValiditiesColumns[7]},
+				RefColumns: []*schema.Column{AddressesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "address_validities_parties_address_validities",
+				Columns:    []*schema.Column{AddressValiditiesColumns[8]},
+				RefColumns: []*schema.Column{PartiesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "address_validities_subscriptions_address_validities",
+				Columns:    []*schema.Column{AddressValiditiesColumns[9]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "addressvalidity_tenant_id_party_id_type_start_date",
+				Unique:  false,
+				Columns: []*schema.Column{AddressValiditiesColumns[9], AddressValiditiesColumns[8], AddressValiditiesColumns[1], AddressValiditiesColumns[3]},
+			},
+			{
+				Name:    "addressvalidity_tenant_id_address_id",
 				Unique:  true,
-				Columns: []*schema.Column{AddressesColumns[12], AddressesColumns[11], AddressesColumns[1]},
+				Columns: []*schema.Column{AddressValiditiesColumns[9], AddressValiditiesColumns[7]},
 				Annotation: &entsql.IndexAnnotation{
-					Where: "is_primary AND deleted_at IS NULL",
+					Where: "end_date IS NULL AND deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "addressvalidity_tenant_id_party_id_type",
+				Unique:  true,
+				Columns: []*schema.Column{AddressValiditiesColumns[9], AddressValiditiesColumns[8], AddressValiditiesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_primary AND end_date IS NULL AND deleted_at IS NULL",
 				},
 			},
 		},
@@ -256,6 +309,243 @@ var (
 				Columns: []*schema.Column{DepartmentsColumns[9], DepartmentsColumns[8]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
+	// DepartmentAddressesColumns holds the columns for the "department_addresses" table.
+	DepartmentAddressesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"LEGAL", "FISCAL", "POSTAL", "DELIVERY"}},
+		{Name: "line1", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "line2", Type: field.TypeString, Nullable: true, Collation: "unaccent_case_insensitive"},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "department_id", Type: field.TypeUUID},
+		{Name: "city_location_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// DepartmentAddressesTable holds the schema information for the "department_addresses" table.
+	DepartmentAddressesTable = &schema.Table{
+		Name:       "department_addresses",
+		Columns:    DepartmentAddressesColumns,
+		PrimaryKey: []*schema.Column{DepartmentAddressesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "department_addresses_departments_addresses",
+				Columns:    []*schema.Column{DepartmentAddressesColumns[7]},
+				RefColumns: []*schema.Column{DepartmentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_addresses_locations_department_addresses",
+				Columns:    []*schema.Column{DepartmentAddressesColumns[8]},
+				RefColumns: []*schema.Column{LocationsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_addresses_subscriptions_department_addresses",
+				Columns:    []*schema.Column{DepartmentAddressesColumns[9]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "departmentaddress_tenant_id_department_id",
+				Unique:  false,
+				Columns: []*schema.Column{DepartmentAddressesColumns[9], DepartmentAddressesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "departmentaddress_tenant_id_city_location_id",
+				Unique:  false,
+				Columns: []*schema.Column{DepartmentAddressesColumns[9], DepartmentAddressesColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
+	// DepartmentAddressValiditiesColumns holds the columns for the "department_address_validities" table.
+	DepartmentAddressValiditiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"LEGAL", "FISCAL", "POSTAL", "DELIVERY"}},
+		{Name: "is_primary", Type: field.TypeBool, Default: false},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "department_id", Type: field.TypeUUID},
+		{Name: "department_address_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// DepartmentAddressValiditiesTable holds the schema information for the "department_address_validities" table.
+	DepartmentAddressValiditiesTable = &schema.Table{
+		Name:       "department_address_validities",
+		Columns:    DepartmentAddressValiditiesColumns,
+		PrimaryKey: []*schema.Column{DepartmentAddressValiditiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "department_address_validities_departments_address_validities",
+				Columns:    []*schema.Column{DepartmentAddressValiditiesColumns[7]},
+				RefColumns: []*schema.Column{DepartmentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_address_validities_department_addresses_validities",
+				Columns:    []*schema.Column{DepartmentAddressValiditiesColumns[8]},
+				RefColumns: []*schema.Column{DepartmentAddressesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_address_validities_subscriptions_department_address_validities",
+				Columns:    []*schema.Column{DepartmentAddressValiditiesColumns[9]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "departmentaddressvalidity_tenant_id_department_id_start_date",
+				Unique:  false,
+				Columns: []*schema.Column{DepartmentAddressValiditiesColumns[9], DepartmentAddressValiditiesColumns[7], DepartmentAddressValiditiesColumns[3]},
+			},
+			{
+				Name:    "departmentaddressvalidity_tenant_id_department_address_id",
+				Unique:  true,
+				Columns: []*schema.Column{DepartmentAddressValiditiesColumns[9], DepartmentAddressValiditiesColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "end_date IS NULL",
+				},
+			},
+			{
+				Name:    "departmentaddressvalidity_tenant_id_department_id_type",
+				Unique:  true,
+				Columns: []*schema.Column{DepartmentAddressValiditiesColumns[9], DepartmentAddressValiditiesColumns[7], DepartmentAddressValiditiesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_primary AND end_date IS NULL",
+				},
+			},
+		},
+	}
+	// DepartmentContactMechanismsColumns holds the columns for the "department_contact_mechanisms" table.
+	DepartmentContactMechanismsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "contact_mechanism_order", Type: field.TypeInt, Default: 0},
+		{Name: "is_primary", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "contact_mechanism_id", Type: field.TypeUUID},
+		{Name: "department_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// DepartmentContactMechanismsTable holds the schema information for the "department_contact_mechanisms" table.
+	DepartmentContactMechanismsTable = &schema.Table{
+		Name:       "department_contact_mechanisms",
+		Columns:    DepartmentContactMechanismsColumns,
+		PrimaryKey: []*schema.Column{DepartmentContactMechanismsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "department_contact_mechanisms_contact_mechanisms_department_contact_mechanisms",
+				Columns:    []*schema.Column{DepartmentContactMechanismsColumns[6]},
+				RefColumns: []*schema.Column{ContactMechanismsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_contact_mechanisms_departments_contact_mechanisms",
+				Columns:    []*schema.Column{DepartmentContactMechanismsColumns[7]},
+				RefColumns: []*schema.Column{DepartmentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_contact_mechanisms_subscriptions_department_contact_mechanisms",
+				Columns:    []*schema.Column{DepartmentContactMechanismsColumns[8]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "departmentcontactmechanism_tenant_id_department_id",
+				Unique:  false,
+				Columns: []*schema.Column{DepartmentContactMechanismsColumns[8], DepartmentContactMechanismsColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "departmentcontactmechanism_tenant_id_contact_mechanism_id",
+				Unique:  false,
+				Columns: []*schema.Column{DepartmentContactMechanismsColumns[8], DepartmentContactMechanismsColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
+	// DepartmentContactMechanismValiditiesColumns holds the columns for the "department_contact_mechanism_validities" table.
+	DepartmentContactMechanismValiditiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "contact_type", Type: field.TypeEnum, Enums: []string{"EMAIL", "PHONE", "MOBILE", "FAX", "WEBSITE"}},
+		{Name: "is_primary", Type: field.TypeBool, Default: false},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "department_id", Type: field.TypeUUID},
+		{Name: "department_contact_mechanism_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// DepartmentContactMechanismValiditiesTable holds the schema information for the "department_contact_mechanism_validities" table.
+	DepartmentContactMechanismValiditiesTable = &schema.Table{
+		Name:       "department_contact_mechanism_validities",
+		Columns:    DepartmentContactMechanismValiditiesColumns,
+		PrimaryKey: []*schema.Column{DepartmentContactMechanismValiditiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "department_contact_mechanism_validities_departments_contact_mechanism_validities",
+				Columns:    []*schema.Column{DepartmentContactMechanismValiditiesColumns[7]},
+				RefColumns: []*schema.Column{DepartmentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_contact_mechanism_validities_department_contact_mechanisms_validities",
+				Columns:    []*schema.Column{DepartmentContactMechanismValiditiesColumns[8]},
+				RefColumns: []*schema.Column{DepartmentContactMechanismsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_contact_mechanism_validities_subscriptions_department_contact_mechanism_validities",
+				Columns:    []*schema.Column{DepartmentContactMechanismValiditiesColumns[9]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "departmentcontactmechanismvalidity_tenant_id_department_id_start_date",
+				Unique:  false,
+				Columns: []*schema.Column{DepartmentContactMechanismValiditiesColumns[9], DepartmentContactMechanismValiditiesColumns[7], DepartmentContactMechanismValiditiesColumns[3]},
+			},
+			{
+				Name:    "departmentcontactmechanismvalidity_tenant_id_department_contact_mechanism_id",
+				Unique:  true,
+				Columns: []*schema.Column{DepartmentContactMechanismValiditiesColumns[9], DepartmentContactMechanismValiditiesColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "end_date IS NULL",
+				},
+			},
+			{
+				Name:    "departmentcontactmechanismvalidity_tenant_id_department_id_contact_type",
+				Unique:  true,
+				Columns: []*schema.Column{DepartmentContactMechanismValiditiesColumns[9], DepartmentContactMechanismValiditiesColumns[7], DepartmentContactMechanismValiditiesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "is_primary AND end_date IS NULL",
 				},
 			},
 		},
@@ -1634,10 +1924,15 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AddressesTable,
+		AddressValiditiesTable,
 		AttachedDocumentsTable,
 		ContactMechanismsTable,
 		CorporateGroupsTable,
 		DepartmentsTable,
+		DepartmentAddressesTable,
+		DepartmentAddressValiditiesTable,
+		DepartmentContactMechanismsTable,
+		DepartmentContactMechanismValiditiesTable,
 		DepartmentGroupAssignmentsTable,
 		EmployeesTable,
 		EmployeeAssignmentsTable,
@@ -1675,6 +1970,12 @@ func init() {
 	AddressesTable.Annotation = &entsql.Annotation{
 		Table: "addresses",
 	}
+	AddressValiditiesTable.ForeignKeys[0].RefTable = AddressesTable
+	AddressValiditiesTable.ForeignKeys[1].RefTable = PartiesTable
+	AddressValiditiesTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	AddressValiditiesTable.Annotation = &entsql.Annotation{
+		Table: "address_validities",
+	}
 	AttachedDocumentsTable.ForeignKeys[0].RefTable = SubscriptionsTable
 	AttachedDocumentsTable.Annotation = &entsql.Annotation{
 		Table: "attached_documents",
@@ -1691,6 +1992,30 @@ func init() {
 	DepartmentsTable.ForeignKeys[2].RefTable = SubscriptionsTable
 	DepartmentsTable.Annotation = &entsql.Annotation{
 		Table: "departments",
+	}
+	DepartmentAddressesTable.ForeignKeys[0].RefTable = DepartmentsTable
+	DepartmentAddressesTable.ForeignKeys[1].RefTable = LocationsTable
+	DepartmentAddressesTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	DepartmentAddressesTable.Annotation = &entsql.Annotation{
+		Table: "department_addresses",
+	}
+	DepartmentAddressValiditiesTable.ForeignKeys[0].RefTable = DepartmentsTable
+	DepartmentAddressValiditiesTable.ForeignKeys[1].RefTable = DepartmentAddressesTable
+	DepartmentAddressValiditiesTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	DepartmentAddressValiditiesTable.Annotation = &entsql.Annotation{
+		Table: "department_address_validities",
+	}
+	DepartmentContactMechanismsTable.ForeignKeys[0].RefTable = ContactMechanismsTable
+	DepartmentContactMechanismsTable.ForeignKeys[1].RefTable = DepartmentsTable
+	DepartmentContactMechanismsTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	DepartmentContactMechanismsTable.Annotation = &entsql.Annotation{
+		Table: "department_contact_mechanisms",
+	}
+	DepartmentContactMechanismValiditiesTable.ForeignKeys[0].RefTable = DepartmentsTable
+	DepartmentContactMechanismValiditiesTable.ForeignKeys[1].RefTable = DepartmentContactMechanismsTable
+	DepartmentContactMechanismValiditiesTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	DepartmentContactMechanismValiditiesTable.Annotation = &entsql.Annotation{
+		Table: "department_contact_mechanism_validities",
 	}
 	DepartmentGroupAssignmentsTable.ForeignKeys[0].RefTable = CorporateGroupsTable
 	DepartmentGroupAssignmentsTable.ForeignKeys[1].RefTable = DepartmentsTable

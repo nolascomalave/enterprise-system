@@ -156,6 +156,8 @@ Los archivos `docs/docs.go`, `docs/swagger.json` y `docs/swagger.yaml` se versio
 | `PUT` | `/api/v1/jobs/{id}` | JWT | Actualiza job |
 | `GET` | `/api/v1/departments` | JWT | Lista departments |
 | `POST` | `/api/v1/departments` | JWT | Crea department (manager opcional) |
+| `POST` | `/api/v1/departments/{id}/contacts` | JWT | Crea contacto de department con vigencia |
+| `POST` | `/api/v1/departments/{id}/addresses` | JWT | Crea dirección de department con vigencia |
 | `GET` | `/api/v1/employees` | JWT | Lista employees |
 | `POST` | `/api/v1/employees` | JWT | Crea employee |
 
@@ -188,6 +190,12 @@ La respuesta incluye `name` (nombre resuelto), `default_name` (valor base) y
 `locale` (locale efectivo usado). El middleware `LocaleMiddleware` inyecta el
 locale en el `context.Context`; el caso de uso
 `GetTranslatedLocation` aplica la cadena de fallback.
+
+Las direcciones de Parties conservan su historial en
+`tenants.address_validities`; `is_primary` ya no vive en `tenants.addresses`.
+Los contactos y direcciones de Departments usan el mismo patrón mediante
+`department_contact_mechanism_validities` y
+`department_address_validities`.
 
 ## CORS
 

@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/contactmechanism"
+	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/predicate"
@@ -73,6 +74,21 @@ func (_u *ContactMechanismUpdate) AddPartyContactMechanisms(v ...*PartyContactMe
 	return _u.AddPartyContactMechanismIDs(ids...)
 }
 
+// AddDepartmentContactMechanismIDs adds the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity by IDs.
+func (_u *ContactMechanismUpdate) AddDepartmentContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismUpdate {
+	_u.mutation.AddDepartmentContactMechanismIDs(ids...)
+	return _u
+}
+
+// AddDepartmentContactMechanisms adds the "department_contact_mechanisms" edges to the DepartmentContactMechanism entity.
+func (_u *ContactMechanismUpdate) AddDepartmentContactMechanisms(v ...*DepartmentContactMechanism) *ContactMechanismUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentContactMechanismIDs(ids...)
+}
+
 // Mutation returns the ContactMechanismMutation object of the builder.
 func (_u *ContactMechanismUpdate) Mutation() *ContactMechanismMutation {
 	return _u.mutation
@@ -97,6 +113,27 @@ func (_u *ContactMechanismUpdate) RemovePartyContactMechanisms(v ...*PartyContac
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartyContactMechanismIDs(ids...)
+}
+
+// ClearDepartmentContactMechanisms clears all "department_contact_mechanisms" edges to the DepartmentContactMechanism entity.
+func (_u *ContactMechanismUpdate) ClearDepartmentContactMechanisms() *ContactMechanismUpdate {
+	_u.mutation.ClearDepartmentContactMechanisms()
+	return _u
+}
+
+// RemoveDepartmentContactMechanismIDs removes the "department_contact_mechanisms" edge to DepartmentContactMechanism entities by IDs.
+func (_u *ContactMechanismUpdate) RemoveDepartmentContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismUpdate {
+	_u.mutation.RemoveDepartmentContactMechanismIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentContactMechanisms removes "department_contact_mechanisms" edges to DepartmentContactMechanism entities.
+func (_u *ContactMechanismUpdate) RemoveDepartmentContactMechanisms(v ...*DepartmentContactMechanism) *ContactMechanismUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentContactMechanismIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -207,6 +244,54 @@ func (_u *ContactMechanismUpdate) sqlSave(ctx context.Context) (_node int, err e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.DepartmentContactMechanismsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.DepartmentContactMechanismsTable,
+			Columns: []string{contactmechanism.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentContactMechanismsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentContactMechanismsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.DepartmentContactMechanismsTable,
+			Columns: []string{contactmechanism.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentContactMechanismsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.DepartmentContactMechanismsTable,
+			Columns: []string{contactmechanism.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.ContactMechanism
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -272,6 +357,21 @@ func (_u *ContactMechanismUpdateOne) AddPartyContactMechanisms(v ...*PartyContac
 	return _u.AddPartyContactMechanismIDs(ids...)
 }
 
+// AddDepartmentContactMechanismIDs adds the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity by IDs.
+func (_u *ContactMechanismUpdateOne) AddDepartmentContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismUpdateOne {
+	_u.mutation.AddDepartmentContactMechanismIDs(ids...)
+	return _u
+}
+
+// AddDepartmentContactMechanisms adds the "department_contact_mechanisms" edges to the DepartmentContactMechanism entity.
+func (_u *ContactMechanismUpdateOne) AddDepartmentContactMechanisms(v ...*DepartmentContactMechanism) *ContactMechanismUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentContactMechanismIDs(ids...)
+}
+
 // Mutation returns the ContactMechanismMutation object of the builder.
 func (_u *ContactMechanismUpdateOne) Mutation() *ContactMechanismMutation {
 	return _u.mutation
@@ -296,6 +396,27 @@ func (_u *ContactMechanismUpdateOne) RemovePartyContactMechanisms(v ...*PartyCon
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartyContactMechanismIDs(ids...)
+}
+
+// ClearDepartmentContactMechanisms clears all "department_contact_mechanisms" edges to the DepartmentContactMechanism entity.
+func (_u *ContactMechanismUpdateOne) ClearDepartmentContactMechanisms() *ContactMechanismUpdateOne {
+	_u.mutation.ClearDepartmentContactMechanisms()
+	return _u
+}
+
+// RemoveDepartmentContactMechanismIDs removes the "department_contact_mechanisms" edge to DepartmentContactMechanism entities by IDs.
+func (_u *ContactMechanismUpdateOne) RemoveDepartmentContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismUpdateOne {
+	_u.mutation.RemoveDepartmentContactMechanismIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentContactMechanisms removes "department_contact_mechanisms" edges to DepartmentContactMechanism entities.
+func (_u *ContactMechanismUpdateOne) RemoveDepartmentContactMechanisms(v ...*DepartmentContactMechanism) *ContactMechanismUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentContactMechanismIDs(ids...)
 }
 
 // Where appends a list predicates to the ContactMechanismUpdate builder.
@@ -431,6 +552,54 @@ func (_u *ContactMechanismUpdateOne) sqlSave(ctx context.Context) (_node *Contac
 			},
 		}
 		edge.Schema = _u.schemaConfig.PartyContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentContactMechanismsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.DepartmentContactMechanismsTable,
+			Columns: []string{contactmechanism.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentContactMechanismsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentContactMechanismsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.DepartmentContactMechanismsTable,
+			Columns: []string{contactmechanism.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentContactMechanismsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   contactmechanism.DepartmentContactMechanismsTable,
+			Columns: []string{contactmechanism.DepartmentContactMechanismsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentcontactmechanism.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentContactMechanism
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

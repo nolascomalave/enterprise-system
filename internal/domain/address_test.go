@@ -26,11 +26,11 @@ func TestNewAddress(t *testing.T) {
 func TestAddressValidation(t *testing.T) {
 	cityID := uuid.New()
 	tests := []struct {
-		name      string
-		atype     AddressType
-		line1     string
-		cityID    uuid.UUID
-		country   string
+		name    string
+		atype   AddressType
+		line1   string
+		cityID  uuid.UUID
+		country string
 	}{
 		{name: "empty line1", atype: AddressTypeLegal, line1: "", cityID: cityID, country: "VE"},
 		{name: "missing city location", atype: AddressTypeLegal, line1: "Av. Principal", cityID: uuid.Nil, country: "VE"},

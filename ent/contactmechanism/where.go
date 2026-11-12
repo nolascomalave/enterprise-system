@@ -175,6 +175,35 @@ func HasPartyContactMechanismsWith(preds ...predicate.PartyContactMechanism) pre
 	})
 }
 
+// HasDepartmentContactMechanisms applies the HasEdge predicate on the "department_contact_mechanisms" edge.
+func HasDepartmentContactMechanisms() predicate.ContactMechanism {
+	return predicate.ContactMechanism(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentContactMechanismsTable, DepartmentContactMechanismsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentContactMechanismsWith applies the HasEdge predicate on the "department_contact_mechanisms" edge with a given conditions (other predicates).
+func HasDepartmentContactMechanismsWith(preds ...predicate.DepartmentContactMechanism) predicate.ContactMechanism {
+	return predicate.ContactMechanism(func(s *sql.Selector) {
+		step := newDepartmentContactMechanismsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ContactMechanism) predicate.ContactMechanism {
 	return predicate.ContactMechanism(sql.AndPredicates(predicates...))

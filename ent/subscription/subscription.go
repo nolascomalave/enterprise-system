@@ -76,6 +76,16 @@ const (
 	EdgePartyIdentityDocuments = "party_identity_documents"
 	// EdgePartyIdentityDocumentValidities holds the string denoting the party_identity_document_validities edge name in mutations.
 	EdgePartyIdentityDocumentValidities = "party_identity_document_validities"
+	// EdgeAddressValidities holds the string denoting the address_validities edge name in mutations.
+	EdgeAddressValidities = "address_validities"
+	// EdgeDepartmentContactMechanisms holds the string denoting the department_contact_mechanisms edge name in mutations.
+	EdgeDepartmentContactMechanisms = "department_contact_mechanisms"
+	// EdgeDepartmentContactMechanismValidities holds the string denoting the department_contact_mechanism_validities edge name in mutations.
+	EdgeDepartmentContactMechanismValidities = "department_contact_mechanism_validities"
+	// EdgeDepartmentAddresses holds the string denoting the department_addresses edge name in mutations.
+	EdgeDepartmentAddresses = "department_addresses"
+	// EdgeDepartmentAddressValidities holds the string denoting the department_address_validities edge name in mutations.
+	EdgeDepartmentAddressValidities = "department_address_validities"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the subscription in the database.
@@ -248,6 +258,41 @@ const (
 	PartyIdentityDocumentValiditiesInverseTable = "party_identity_document_validities"
 	// PartyIdentityDocumentValiditiesColumn is the table column denoting the party_identity_document_validities relation/edge.
 	PartyIdentityDocumentValiditiesColumn = "tenant_id"
+	// AddressValiditiesTable is the table that holds the address_validities relation/edge.
+	AddressValiditiesTable = "address_validities"
+	// AddressValiditiesInverseTable is the table name for the AddressValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "addressvalidity" package.
+	AddressValiditiesInverseTable = "address_validities"
+	// AddressValiditiesColumn is the table column denoting the address_validities relation/edge.
+	AddressValiditiesColumn = "tenant_id"
+	// DepartmentContactMechanismsTable is the table that holds the department_contact_mechanisms relation/edge.
+	DepartmentContactMechanismsTable = "department_contact_mechanisms"
+	// DepartmentContactMechanismsInverseTable is the table name for the DepartmentContactMechanism entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentcontactmechanism" package.
+	DepartmentContactMechanismsInverseTable = "department_contact_mechanisms"
+	// DepartmentContactMechanismsColumn is the table column denoting the department_contact_mechanisms relation/edge.
+	DepartmentContactMechanismsColumn = "tenant_id"
+	// DepartmentContactMechanismValiditiesTable is the table that holds the department_contact_mechanism_validities relation/edge.
+	DepartmentContactMechanismValiditiesTable = "department_contact_mechanism_validities"
+	// DepartmentContactMechanismValiditiesInverseTable is the table name for the DepartmentContactMechanismValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentcontactmechanismvalidity" package.
+	DepartmentContactMechanismValiditiesInverseTable = "department_contact_mechanism_validities"
+	// DepartmentContactMechanismValiditiesColumn is the table column denoting the department_contact_mechanism_validities relation/edge.
+	DepartmentContactMechanismValiditiesColumn = "tenant_id"
+	// DepartmentAddressesTable is the table that holds the department_addresses relation/edge.
+	DepartmentAddressesTable = "department_addresses"
+	// DepartmentAddressesInverseTable is the table name for the DepartmentAddress entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentaddress" package.
+	DepartmentAddressesInverseTable = "department_addresses"
+	// DepartmentAddressesColumn is the table column denoting the department_addresses relation/edge.
+	DepartmentAddressesColumn = "tenant_id"
+	// DepartmentAddressValiditiesTable is the table that holds the department_address_validities relation/edge.
+	DepartmentAddressValiditiesTable = "department_address_validities"
+	// DepartmentAddressValiditiesInverseTable is the table name for the DepartmentAddressValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentaddressvalidity" package.
+	DepartmentAddressValiditiesInverseTable = "department_address_validities"
+	// DepartmentAddressValiditiesColumn is the table column denoting the department_address_validities relation/edge.
+	DepartmentAddressValiditiesColumn = "tenant_id"
 )
 
 // Columns holds all SQL columns for subscription fields.
@@ -686,6 +731,76 @@ func ByPartyIdentityDocumentValidities(term sql.OrderTerm, terms ...sql.OrderTer
 		sqlgraph.OrderByNeighborTerms(s, newPartyIdentityDocumentValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAddressValiditiesCount orders the results by address_validities count.
+func ByAddressValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAddressValiditiesStep(), opts...)
+	}
+}
+
+// ByAddressValidities orders the results by address_validities terms.
+func ByAddressValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAddressValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDepartmentContactMechanismsCount orders the results by department_contact_mechanisms count.
+func ByDepartmentContactMechanismsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentContactMechanismsStep(), opts...)
+	}
+}
+
+// ByDepartmentContactMechanisms orders the results by department_contact_mechanisms terms.
+func ByDepartmentContactMechanisms(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentContactMechanismsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDepartmentContactMechanismValiditiesCount orders the results by department_contact_mechanism_validities count.
+func ByDepartmentContactMechanismValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentContactMechanismValiditiesStep(), opts...)
+	}
+}
+
+// ByDepartmentContactMechanismValidities orders the results by department_contact_mechanism_validities terms.
+func ByDepartmentContactMechanismValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentContactMechanismValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDepartmentAddressesCount orders the results by department_addresses count.
+func ByDepartmentAddressesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentAddressesStep(), opts...)
+	}
+}
+
+// ByDepartmentAddresses orders the results by department_addresses terms.
+func ByDepartmentAddresses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentAddressesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDepartmentAddressValiditiesCount orders the results by department_address_validities count.
+func ByDepartmentAddressValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentAddressValiditiesStep(), opts...)
+	}
+}
+
+// ByDepartmentAddressValidities orders the results by department_address_validities terms.
+func ByDepartmentAddressValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentAddressValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPartiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -852,5 +967,40 @@ func newPartyIdentityDocumentValiditiesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartyIdentityDocumentValiditiesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PartyIdentityDocumentValiditiesTable, PartyIdentityDocumentValiditiesColumn),
+	)
+}
+func newAddressValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AddressValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AddressValiditiesTable, AddressValiditiesColumn),
+	)
+}
+func newDepartmentContactMechanismsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentContactMechanismsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentContactMechanismsTable, DepartmentContactMechanismsColumn),
+	)
+}
+func newDepartmentContactMechanismValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentContactMechanismValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentContactMechanismValiditiesTable, DepartmentContactMechanismValiditiesColumn),
+	)
+}
+func newDepartmentAddressesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentAddressesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentAddressesTable, DepartmentAddressesColumn),
+	)
+}
+func newDepartmentAddressValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentAddressValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentAddressValiditiesTable, DepartmentAddressValiditiesColumn),
 	)
 }

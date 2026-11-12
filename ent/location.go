@@ -54,9 +54,11 @@ type LocationEdges struct {
 	Addresses []*Address `json:"addresses,omitempty"`
 	// IdentityDocuments holds the value of the identity_documents edge.
 	IdentityDocuments []*PartyIdentityDocument `json:"identity_documents,omitempty"`
+	// DepartmentAddresses holds the value of the department_addresses edge.
+	DepartmentAddresses []*DepartmentAddress `json:"department_addresses,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // ChildrenOrErr returns the Children value or an error if the edge
@@ -104,6 +106,15 @@ func (e LocationEdges) IdentityDocumentsOrErr() ([]*PartyIdentityDocument, error
 		return e.IdentityDocuments, nil
 	}
 	return nil, &NotLoadedError{edge: "identity_documents"}
+}
+
+// DepartmentAddressesOrErr returns the DepartmentAddresses value or an error if the edge
+// was not loaded in eager-loading.
+func (e LocationEdges) DepartmentAddressesOrErr() ([]*DepartmentAddress, error) {
+	if e.loadedTypes[5] {
+		return e.DepartmentAddresses, nil
+	}
+	return nil, &NotLoadedError{edge: "department_addresses"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -233,6 +244,11 @@ func (_m *Location) QueryAddresses() *AddressQuery {
 // QueryIdentityDocuments queries the "identity_documents" edge of the Location entity.
 func (_m *Location) QueryIdentityDocuments() *PartyIdentityDocumentQuery {
 	return NewLocationClient(_m.config).QueryIdentityDocuments(_m)
+}
+
+// QueryDepartmentAddresses queries the "department_addresses" edge of the Location entity.
+func (_m *Location) QueryDepartmentAddresses() *DepartmentAddressQuery {
+	return NewLocationClient(_m.config).QueryDepartmentAddresses(_m)
 }
 
 // Update returns a builder for updating this Location.

@@ -92,7 +92,10 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrNameTypeNotFound),
 		errors.Is(err, domain.ErrLocationNotFound),
 		errors.Is(err, domain.ErrIdentityDocumentNotFound),
-		errors.Is(err, domain.ErrIdentityDocumentTypeNotFound):
+		errors.Is(err, domain.ErrIdentityDocumentTypeNotFound),
+		errors.Is(err, domain.ErrDepartmentContactNotFound),
+		errors.Is(err, domain.ErrDepartmentAddressNotFound),
+		errors.Is(err, domain.ErrAddressValidityNotFound):
 		return http.StatusNotFound, "not_found"
 	case errors.Is(err, context.DeadlineExceeded):
 		return http.StatusGatewayTimeout, "timeout"
@@ -132,6 +135,8 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrInvalidNationality),
 		errors.Is(err, domain.ErrInvalidIdentityDocument),
 		errors.Is(err, domain.ErrJurisdictionCountryMismatch),
+		errors.Is(err, domain.ErrInvalidDepartmentContact),
+		errors.Is(err, domain.ErrInvalidDepartmentAddress),
 		errors.Is(err, domain.ErrEmployeeSelfManager),
 		errors.Is(err, domain.ErrInvalidPartyMerge),
 		errors.Is(err, domain.ErrInvalidSubscription),

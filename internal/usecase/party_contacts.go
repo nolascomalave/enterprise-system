@@ -171,9 +171,27 @@ func (s *PartyContacts) CreateAddress(ctx context.Context, in CreateAddressInput
 		return nil, err
 	}
 	if err := s.withinTx(ctx, func(ctx context.Context) error {
-		return s.repo.CreateAddress(ctx, entity)
+		now := s.now().UTC()
+		if err := s.repo.CreateAddress(ctx, entity); err != nil {
+			return fmt.Errorf("create address: %w", err)
+		}
+		if entity.IsPrimary {
+			if err := s.closeOpenPrimaryAddress(ctx, in.TenantID, in.PartyID, entity.Type, entity.ID, now); err != nil {
+				return err
+			}
+		}
+		validity, err := domain.NewAddressValidity(
+			in.TenantID, in.PartyID, entity.ID, entity.Type, entity.IsPrimary, now, nil, now,
+		)
+		if err != nil {
+			return err
+		}
+		if err := s.repo.CreateAddressValidity(ctx, validity); err != nil {
+			return fmt.Errorf("create address validity: %w", err)
+		}
+		return nil
 	}); err != nil {
-		return nil, fmt.Errorf("create address: %w", err)
+		return nil, err
 	}
 	return entity, nil
 }
@@ -205,6 +223,28 @@ func (s *PartyContacts) UpdateAddress(ctx context.Context, in UpdateAddressInput
 		if err := s.repo.UpdateAddress(ctx, entity); err != nil {
 			return fmt.Errorf("update address: %w", err)
 		}
+		now := s.now().UTC()
+		if open, err := s.repo.GetOpenAddressValidity(ctx, entity.TenantID, entity.ID); err == nil {
+			if err := s.repo.CloseAddressValidity(ctx, entity.TenantID, open.ID, now); err != nil {
+				return fmt.Errorf("close address validity: %w", err)
+			}
+		} else if !errors.Is(err, domain.ErrAddressValidityNotFound) {
+			return fmt.Errorf("get address validity: %w", err)
+		}
+		if entity.IsPrimary {
+			if err := s.closeOpenPrimaryAddress(ctx, entity.TenantID, entity.PartyID, entity.Type, entity.ID, now); err != nil {
+				return err
+			}
+		}
+		validity, err := domain.NewAddressValidity(
+			entity.TenantID, entity.PartyID, entity.ID, entity.Type, entity.IsPrimary, now, nil, now,
+		)
+		if err != nil {
+			return err
+		}
+		if err := s.repo.CreateAddressValidity(ctx, validity); err != nil {
+			return fmt.Errorf("create address validity: %w", err)
+		}
 		return nil
 	})
 	if err != nil {
@@ -219,7 +259,15 @@ func (s *PartyContacts) DeleteAddress(ctx context.Context, id uuid.UUID) error {
 		if err != nil {
 			return err
 		}
-		if err := entity.SoftDelete(s.now()); err != nil {
+		now := s.now().UTC()
+		if open, err := s.repo.GetOpenAddressValidity(ctx, entity.TenantID, entity.ID); err == nil {
+			if err := s.repo.CloseAddressValidity(ctx, entity.TenantID, open.ID, now); err != nil {
+				return fmt.Errorf("close address validity: %w", err)
+			}
+		} else if !errors.Is(err, domain.ErrAddressValidityNotFound) {
+			return fmt.Errorf("get address validity: %w", err)
+		}
+		if err := entity.SoftDelete(now); err != nil {
 			return err
 		}
 		if err := s.repo.UpdateAddress(ctx, entity); err != nil {
@@ -227,4 +275,27 @@ func (s *PartyContacts) DeleteAddress(ctx context.Context, id uuid.UUID) error {
 		}
 		return nil
 	})
+}
+
+func (s *PartyContacts) closeOpenPrimaryAddress(
+	ctx context.Context,
+	tenantID, partyID uuid.UUID,
+	addressType domain.AddressType,
+	excludeAddressID uuid.UUID,
+	at time.Time,
+) error {
+	open, err := s.repo.GetOpenPrimaryAddressValidity(ctx, tenantID, partyID, addressType)
+	if errors.Is(err, domain.ErrAddressValidityNotFound) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("get open primary address: %w", err)
+	}
+	if open.AddressID == excludeAddressID {
+		return nil
+	}
+	if err := s.repo.CloseAddressValidity(ctx, tenantID, open.ID, at); err != nil {
+		return fmt.Errorf("close open primary address: %w", err)
+	}
+	return nil
 }

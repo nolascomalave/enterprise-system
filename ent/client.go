@@ -12,10 +12,15 @@ import (
 	"enterprise-system/ent/migrate"
 
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentaddress"
+	"enterprise-system/ent/departmentaddressvalidity"
+	"enterprise-system/ent/departmentcontactmechanism"
+	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -61,6 +66,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Address is the client for interacting with the Address builders.
 	Address *AddressClient
+	// AddressValidity is the client for interacting with the AddressValidity builders.
+	AddressValidity *AddressValidityClient
 	// AttachedDocument is the client for interacting with the AttachedDocument builders.
 	AttachedDocument *AttachedDocumentClient
 	// ContactMechanism is the client for interacting with the ContactMechanism builders.
@@ -69,6 +76,14 @@ type Client struct {
 	CorporateGroup *CorporateGroupClient
 	// Department is the client for interacting with the Department builders.
 	Department *DepartmentClient
+	// DepartmentAddress is the client for interacting with the DepartmentAddress builders.
+	DepartmentAddress *DepartmentAddressClient
+	// DepartmentAddressValidity is the client for interacting with the DepartmentAddressValidity builders.
+	DepartmentAddressValidity *DepartmentAddressValidityClient
+	// DepartmentContactMechanism is the client for interacting with the DepartmentContactMechanism builders.
+	DepartmentContactMechanism *DepartmentContactMechanismClient
+	// DepartmentContactMechanismValidity is the client for interacting with the DepartmentContactMechanismValidity builders.
+	DepartmentContactMechanismValidity *DepartmentContactMechanismValidityClient
 	// DepartmentGroupAssignment is the client for interacting with the DepartmentGroupAssignment builders.
 	DepartmentGroupAssignment *DepartmentGroupAssignmentClient
 	// Employee is the client for interacting with the Employee builders.
@@ -135,10 +150,15 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Address = NewAddressClient(c.config)
+	c.AddressValidity = NewAddressValidityClient(c.config)
 	c.AttachedDocument = NewAttachedDocumentClient(c.config)
 	c.ContactMechanism = NewContactMechanismClient(c.config)
 	c.CorporateGroup = NewCorporateGroupClient(c.config)
 	c.Department = NewDepartmentClient(c.config)
+	c.DepartmentAddress = NewDepartmentAddressClient(c.config)
+	c.DepartmentAddressValidity = NewDepartmentAddressValidityClient(c.config)
+	c.DepartmentContactMechanism = NewDepartmentContactMechanismClient(c.config)
+	c.DepartmentContactMechanismValidity = NewDepartmentContactMechanismValidityClient(c.config)
 	c.DepartmentGroupAssignment = NewDepartmentGroupAssignmentClient(c.config)
 	c.Employee = NewEmployeeClient(c.config)
 	c.EmployeeAssignment = NewEmployeeAssignmentClient(c.config)
@@ -259,40 +279,45 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                           ctx,
-		config:                        cfg,
-		Address:                       NewAddressClient(cfg),
-		AttachedDocument:              NewAttachedDocumentClient(cfg),
-		ContactMechanism:              NewContactMechanismClient(cfg),
-		CorporateGroup:                NewCorporateGroupClient(cfg),
-		Department:                    NewDepartmentClient(cfg),
-		DepartmentGroupAssignment:     NewDepartmentGroupAssignmentClient(cfg),
-		Employee:                      NewEmployeeClient(cfg),
-		EmployeeAssignment:            NewEmployeeAssignmentClient(cfg),
-		IdentityDocumentType:          NewIdentityDocumentTypeClient(cfg),
-		Job:                           NewJobClient(cfg),
-		JobFamily:                     NewJobFamilyClient(cfg),
-		Locale:                        NewLocaleClient(cfg),
-		Location:                      NewLocationClient(cfg),
-		LocationTranslation:           NewLocationTranslationClient(cfg),
-		NameType:                      NewNameTypeClient(cfg),
-		OrganizationProfile:           NewOrganizationProfileClient(cfg),
-		Party:                         NewPartyClient(cfg),
-		PartyContactMechanism:         NewPartyContactMechanismClient(cfg),
-		PartyContactMechanismValidity: NewPartyContactMechanismValidityClient(cfg),
-		PartyIdentityDocument:         NewPartyIdentityDocumentClient(cfg),
-		PartyIdentityDocumentValidity: NewPartyIdentityDocumentValidityClient(cfg),
-		PartyMergeLog:                 NewPartyMergeLogClient(cfg),
-		PartyName:                     NewPartyNameClient(cfg),
-		PartyNameValidity:             NewPartyNameValidityClient(cfg),
-		PartyNationality:              NewPartyNationalityClient(cfg),
-		PartyRole:                     NewPartyRoleClient(cfg),
-		PasswordResetToken:            NewPasswordResetTokenClient(cfg),
-		PersonProfile:                 NewPersonProfileClient(cfg),
-		RoleType:                      NewRoleTypeClient(cfg),
-		Session:                       NewSessionClient(cfg),
-		Subscription:                  NewSubscriptionClient(cfg),
-		UserCredentials:               NewUserCredentialsClient(cfg),
+		ctx:                                ctx,
+		config:                             cfg,
+		Address:                            NewAddressClient(cfg),
+		AddressValidity:                    NewAddressValidityClient(cfg),
+		AttachedDocument:                   NewAttachedDocumentClient(cfg),
+		ContactMechanism:                   NewContactMechanismClient(cfg),
+		CorporateGroup:                     NewCorporateGroupClient(cfg),
+		Department:                         NewDepartmentClient(cfg),
+		DepartmentAddress:                  NewDepartmentAddressClient(cfg),
+		DepartmentAddressValidity:          NewDepartmentAddressValidityClient(cfg),
+		DepartmentContactMechanism:         NewDepartmentContactMechanismClient(cfg),
+		DepartmentContactMechanismValidity: NewDepartmentContactMechanismValidityClient(cfg),
+		DepartmentGroupAssignment:          NewDepartmentGroupAssignmentClient(cfg),
+		Employee:                           NewEmployeeClient(cfg),
+		EmployeeAssignment:                 NewEmployeeAssignmentClient(cfg),
+		IdentityDocumentType:               NewIdentityDocumentTypeClient(cfg),
+		Job:                                NewJobClient(cfg),
+		JobFamily:                          NewJobFamilyClient(cfg),
+		Locale:                             NewLocaleClient(cfg),
+		Location:                           NewLocationClient(cfg),
+		LocationTranslation:                NewLocationTranslationClient(cfg),
+		NameType:                           NewNameTypeClient(cfg),
+		OrganizationProfile:                NewOrganizationProfileClient(cfg),
+		Party:                              NewPartyClient(cfg),
+		PartyContactMechanism:              NewPartyContactMechanismClient(cfg),
+		PartyContactMechanismValidity:      NewPartyContactMechanismValidityClient(cfg),
+		PartyIdentityDocument:              NewPartyIdentityDocumentClient(cfg),
+		PartyIdentityDocumentValidity:      NewPartyIdentityDocumentValidityClient(cfg),
+		PartyMergeLog:                      NewPartyMergeLogClient(cfg),
+		PartyName:                          NewPartyNameClient(cfg),
+		PartyNameValidity:                  NewPartyNameValidityClient(cfg),
+		PartyNationality:                   NewPartyNationalityClient(cfg),
+		PartyRole:                          NewPartyRoleClient(cfg),
+		PasswordResetToken:                 NewPasswordResetTokenClient(cfg),
+		PersonProfile:                      NewPersonProfileClient(cfg),
+		RoleType:                           NewRoleTypeClient(cfg),
+		Session:                            NewSessionClient(cfg),
+		Subscription:                       NewSubscriptionClient(cfg),
+		UserCredentials:                    NewUserCredentialsClient(cfg),
 	}, nil
 }
 
@@ -310,40 +335,45 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                           ctx,
-		config:                        cfg,
-		Address:                       NewAddressClient(cfg),
-		AttachedDocument:              NewAttachedDocumentClient(cfg),
-		ContactMechanism:              NewContactMechanismClient(cfg),
-		CorporateGroup:                NewCorporateGroupClient(cfg),
-		Department:                    NewDepartmentClient(cfg),
-		DepartmentGroupAssignment:     NewDepartmentGroupAssignmentClient(cfg),
-		Employee:                      NewEmployeeClient(cfg),
-		EmployeeAssignment:            NewEmployeeAssignmentClient(cfg),
-		IdentityDocumentType:          NewIdentityDocumentTypeClient(cfg),
-		Job:                           NewJobClient(cfg),
-		JobFamily:                     NewJobFamilyClient(cfg),
-		Locale:                        NewLocaleClient(cfg),
-		Location:                      NewLocationClient(cfg),
-		LocationTranslation:           NewLocationTranslationClient(cfg),
-		NameType:                      NewNameTypeClient(cfg),
-		OrganizationProfile:           NewOrganizationProfileClient(cfg),
-		Party:                         NewPartyClient(cfg),
-		PartyContactMechanism:         NewPartyContactMechanismClient(cfg),
-		PartyContactMechanismValidity: NewPartyContactMechanismValidityClient(cfg),
-		PartyIdentityDocument:         NewPartyIdentityDocumentClient(cfg),
-		PartyIdentityDocumentValidity: NewPartyIdentityDocumentValidityClient(cfg),
-		PartyMergeLog:                 NewPartyMergeLogClient(cfg),
-		PartyName:                     NewPartyNameClient(cfg),
-		PartyNameValidity:             NewPartyNameValidityClient(cfg),
-		PartyNationality:              NewPartyNationalityClient(cfg),
-		PartyRole:                     NewPartyRoleClient(cfg),
-		PasswordResetToken:            NewPasswordResetTokenClient(cfg),
-		PersonProfile:                 NewPersonProfileClient(cfg),
-		RoleType:                      NewRoleTypeClient(cfg),
-		Session:                       NewSessionClient(cfg),
-		Subscription:                  NewSubscriptionClient(cfg),
-		UserCredentials:               NewUserCredentialsClient(cfg),
+		ctx:                                ctx,
+		config:                             cfg,
+		Address:                            NewAddressClient(cfg),
+		AddressValidity:                    NewAddressValidityClient(cfg),
+		AttachedDocument:                   NewAttachedDocumentClient(cfg),
+		ContactMechanism:                   NewContactMechanismClient(cfg),
+		CorporateGroup:                     NewCorporateGroupClient(cfg),
+		Department:                         NewDepartmentClient(cfg),
+		DepartmentAddress:                  NewDepartmentAddressClient(cfg),
+		DepartmentAddressValidity:          NewDepartmentAddressValidityClient(cfg),
+		DepartmentContactMechanism:         NewDepartmentContactMechanismClient(cfg),
+		DepartmentContactMechanismValidity: NewDepartmentContactMechanismValidityClient(cfg),
+		DepartmentGroupAssignment:          NewDepartmentGroupAssignmentClient(cfg),
+		Employee:                           NewEmployeeClient(cfg),
+		EmployeeAssignment:                 NewEmployeeAssignmentClient(cfg),
+		IdentityDocumentType:               NewIdentityDocumentTypeClient(cfg),
+		Job:                                NewJobClient(cfg),
+		JobFamily:                          NewJobFamilyClient(cfg),
+		Locale:                             NewLocaleClient(cfg),
+		Location:                           NewLocationClient(cfg),
+		LocationTranslation:                NewLocationTranslationClient(cfg),
+		NameType:                           NewNameTypeClient(cfg),
+		OrganizationProfile:                NewOrganizationProfileClient(cfg),
+		Party:                              NewPartyClient(cfg),
+		PartyContactMechanism:              NewPartyContactMechanismClient(cfg),
+		PartyContactMechanismValidity:      NewPartyContactMechanismValidityClient(cfg),
+		PartyIdentityDocument:              NewPartyIdentityDocumentClient(cfg),
+		PartyIdentityDocumentValidity:      NewPartyIdentityDocumentValidityClient(cfg),
+		PartyMergeLog:                      NewPartyMergeLogClient(cfg),
+		PartyName:                          NewPartyNameClient(cfg),
+		PartyNameValidity:                  NewPartyNameValidityClient(cfg),
+		PartyNationality:                   NewPartyNationalityClient(cfg),
+		PartyRole:                          NewPartyRoleClient(cfg),
+		PasswordResetToken:                 NewPasswordResetTokenClient(cfg),
+		PersonProfile:                      NewPersonProfileClient(cfg),
+		RoleType:                           NewRoleTypeClient(cfg),
+		Session:                            NewSessionClient(cfg),
+		Subscription:                       NewSubscriptionClient(cfg),
+		UserCredentials:                    NewUserCredentialsClient(cfg),
 	}, nil
 }
 
@@ -373,10 +403,12 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Address, c.AttachedDocument, c.ContactMechanism, c.CorporateGroup,
-		c.Department, c.DepartmentGroupAssignment, c.Employee, c.EmployeeAssignment,
-		c.IdentityDocumentType, c.Job, c.JobFamily, c.Locale, c.Location,
-		c.LocationTranslation, c.NameType, c.OrganizationProfile, c.Party,
+		c.Address, c.AddressValidity, c.AttachedDocument, c.ContactMechanism,
+		c.CorporateGroup, c.Department, c.DepartmentAddress,
+		c.DepartmentAddressValidity, c.DepartmentContactMechanism,
+		c.DepartmentContactMechanismValidity, c.DepartmentGroupAssignment, c.Employee,
+		c.EmployeeAssignment, c.IdentityDocumentType, c.Job, c.JobFamily, c.Locale,
+		c.Location, c.LocationTranslation, c.NameType, c.OrganizationProfile, c.Party,
 		c.PartyContactMechanism, c.PartyContactMechanismValidity,
 		c.PartyIdentityDocument, c.PartyIdentityDocumentValidity, c.PartyMergeLog,
 		c.PartyName, c.PartyNameValidity, c.PartyNationality, c.PartyRole,
@@ -391,10 +423,12 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Address, c.AttachedDocument, c.ContactMechanism, c.CorporateGroup,
-		c.Department, c.DepartmentGroupAssignment, c.Employee, c.EmployeeAssignment,
-		c.IdentityDocumentType, c.Job, c.JobFamily, c.Locale, c.Location,
-		c.LocationTranslation, c.NameType, c.OrganizationProfile, c.Party,
+		c.Address, c.AddressValidity, c.AttachedDocument, c.ContactMechanism,
+		c.CorporateGroup, c.Department, c.DepartmentAddress,
+		c.DepartmentAddressValidity, c.DepartmentContactMechanism,
+		c.DepartmentContactMechanismValidity, c.DepartmentGroupAssignment, c.Employee,
+		c.EmployeeAssignment, c.IdentityDocumentType, c.Job, c.JobFamily, c.Locale,
+		c.Location, c.LocationTranslation, c.NameType, c.OrganizationProfile, c.Party,
 		c.PartyContactMechanism, c.PartyContactMechanismValidity,
 		c.PartyIdentityDocument, c.PartyIdentityDocumentValidity, c.PartyMergeLog,
 		c.PartyName, c.PartyNameValidity, c.PartyNationality, c.PartyRole,
@@ -410,6 +444,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AddressMutation:
 		return c.Address.mutate(ctx, m)
+	case *AddressValidityMutation:
+		return c.AddressValidity.mutate(ctx, m)
 	case *AttachedDocumentMutation:
 		return c.AttachedDocument.mutate(ctx, m)
 	case *ContactMechanismMutation:
@@ -418,6 +454,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CorporateGroup.mutate(ctx, m)
 	case *DepartmentMutation:
 		return c.Department.mutate(ctx, m)
+	case *DepartmentAddressMutation:
+		return c.DepartmentAddress.mutate(ctx, m)
+	case *DepartmentAddressValidityMutation:
+		return c.DepartmentAddressValidity.mutate(ctx, m)
+	case *DepartmentContactMechanismMutation:
+		return c.DepartmentContactMechanism.mutate(ctx, m)
+	case *DepartmentContactMechanismValidityMutation:
+		return c.DepartmentContactMechanismValidity.mutate(ctx, m)
 	case *DepartmentGroupAssignmentMutation:
 		return c.DepartmentGroupAssignment.mutate(ctx, m)
 	case *EmployeeMutation:
@@ -642,6 +686,25 @@ func (c *AddressClient) QueryCityLocation(_m *Address) *LocationQuery {
 	return query
 }
 
+// QueryValidities queries the validities edge of a Address.
+func (c *AddressClient) QueryValidities(_m *Address) *AddressValidityQuery {
+	query := (&AddressValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(address.Table, address.FieldID, id),
+			sqlgraph.To(addressvalidity.Table, addressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, address.ValiditiesTable, address.ValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *AddressClient) Hooks() []Hook {
 	return c.hooks.Address
@@ -664,6 +727,196 @@ func (c *AddressClient) mutate(ctx context.Context, m *AddressMutation) (Value, 
 		return (&AddressDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Address mutation op: %q", m.Op())
+	}
+}
+
+// AddressValidityClient is a client for the AddressValidity schema.
+type AddressValidityClient struct {
+	config
+}
+
+// NewAddressValidityClient returns a client for the AddressValidity from the given config.
+func NewAddressValidityClient(c config) *AddressValidityClient {
+	return &AddressValidityClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `addressvalidity.Hooks(f(g(h())))`.
+func (c *AddressValidityClient) Use(hooks ...Hook) {
+	c.hooks.AddressValidity = append(c.hooks.AddressValidity, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `addressvalidity.Intercept(f(g(h())))`.
+func (c *AddressValidityClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AddressValidity = append(c.inters.AddressValidity, interceptors...)
+}
+
+// Create returns a builder for creating a AddressValidity entity.
+func (c *AddressValidityClient) Create() *AddressValidityCreate {
+	mutation := newAddressValidityMutation(c.config, OpCreate)
+	return &AddressValidityCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AddressValidity entities.
+func (c *AddressValidityClient) CreateBulk(builders ...*AddressValidityCreate) *AddressValidityCreateBulk {
+	return &AddressValidityCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AddressValidityClient) MapCreateBulk(slice any, setFunc func(*AddressValidityCreate, int)) *AddressValidityCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AddressValidityCreateBulk{err: fmt.Errorf("calling to AddressValidityClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AddressValidityCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AddressValidityCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AddressValidity.
+func (c *AddressValidityClient) Update() *AddressValidityUpdate {
+	mutation := newAddressValidityMutation(c.config, OpUpdate)
+	return &AddressValidityUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AddressValidityClient) UpdateOne(_m *AddressValidity) *AddressValidityUpdateOne {
+	mutation := newAddressValidityMutation(c.config, OpUpdateOne, withAddressValidity(_m))
+	return &AddressValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AddressValidityClient) UpdateOneID(id uuid.UUID) *AddressValidityUpdateOne {
+	mutation := newAddressValidityMutation(c.config, OpUpdateOne, withAddressValidityID(id))
+	return &AddressValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AddressValidity.
+func (c *AddressValidityClient) Delete() *AddressValidityDelete {
+	mutation := newAddressValidityMutation(c.config, OpDelete)
+	return &AddressValidityDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AddressValidityClient) DeleteOne(_m *AddressValidity) *AddressValidityDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AddressValidityClient) DeleteOneID(id uuid.UUID) *AddressValidityDeleteOne {
+	builder := c.Delete().Where(addressvalidity.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AddressValidityDeleteOne{builder}
+}
+
+// Query returns a query builder for AddressValidity.
+func (c *AddressValidityClient) Query() *AddressValidityQuery {
+	return &AddressValidityQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAddressValidity},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AddressValidity entity by its id.
+func (c *AddressValidityClient) Get(ctx context.Context, id uuid.UUID) (*AddressValidity, error) {
+	return c.Query().Where(addressvalidity.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AddressValidityClient) GetX(ctx context.Context, id uuid.UUID) *AddressValidity {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a AddressValidity.
+func (c *AddressValidityClient) QueryTenant(_m *AddressValidity) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(addressvalidity.Table, addressvalidity.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, addressvalidity.TenantTable, addressvalidity.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.AddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryParty queries the party edge of a AddressValidity.
+func (c *AddressValidityClient) QueryParty(_m *AddressValidity) *PartyQuery {
+	query := (&PartyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(addressvalidity.Table, addressvalidity.FieldID, id),
+			sqlgraph.To(party.Table, party.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, addressvalidity.PartyTable, addressvalidity.PartyColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Party
+		step.Edge.Schema = schemaConfig.AddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAddress queries the address edge of a AddressValidity.
+func (c *AddressValidityClient) QueryAddress(_m *AddressValidity) *AddressQuery {
+	query := (&AddressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(addressvalidity.Table, addressvalidity.FieldID, id),
+			sqlgraph.To(address.Table, address.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, addressvalidity.AddressTable, addressvalidity.AddressColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Address
+		step.Edge.Schema = schemaConfig.AddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AddressValidityClient) Hooks() []Hook {
+	return c.hooks.AddressValidity
+}
+
+// Interceptors returns the client interceptors.
+func (c *AddressValidityClient) Interceptors() []Interceptor {
+	return c.inters.AddressValidity
+}
+
+func (c *AddressValidityClient) mutate(ctx context.Context, m *AddressValidityMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AddressValidityCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AddressValidityUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AddressValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AddressValidityDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AddressValidity mutation op: %q", m.Op())
 	}
 }
 
@@ -940,6 +1193,25 @@ func (c *ContactMechanismClient) QueryPartyContactMechanisms(_m *ContactMechanis
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.PartyContactMechanism
 		step.Edge.Schema = schemaConfig.PartyContactMechanism
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentContactMechanisms queries the department_contact_mechanisms edge of a ContactMechanism.
+func (c *ContactMechanismClient) QueryDepartmentContactMechanisms(_m *ContactMechanism) *DepartmentContactMechanismQuery {
+	query := (&DepartmentContactMechanismClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(contactmechanism.Table, contactmechanism.FieldID, id),
+			sqlgraph.To(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, contactmechanism.DepartmentContactMechanismsTable, contactmechanism.DepartmentContactMechanismsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -1383,6 +1655,82 @@ func (c *DepartmentClient) QueryGroupAssignments(_m *Department) *DepartmentGrou
 	return query
 }
 
+// QueryContactMechanisms queries the contact_mechanisms edge of a Department.
+func (c *DepartmentClient) QueryContactMechanisms(_m *Department) *DepartmentContactMechanismQuery {
+	query := (&DepartmentContactMechanismClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, id),
+			sqlgraph.To(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.ContactMechanismsTable, department.ContactMechanismsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryContactMechanismValidities queries the contact_mechanism_validities edge of a Department.
+func (c *DepartmentClient) QueryContactMechanismValidities(_m *Department) *DepartmentContactMechanismValidityQuery {
+	query := (&DepartmentContactMechanismValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, id),
+			sqlgraph.To(departmentcontactmechanismvalidity.Table, departmentcontactmechanismvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.ContactMechanismValiditiesTable, department.ContactMechanismValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanismValidity
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAddresses queries the addresses edge of a Department.
+func (c *DepartmentClient) QueryAddresses(_m *Department) *DepartmentAddressQuery {
+	query := (&DepartmentAddressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, id),
+			sqlgraph.To(departmentaddress.Table, departmentaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.AddressesTable, department.AddressesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAddressValidities queries the address_validities edge of a Department.
+func (c *DepartmentClient) QueryAddressValidities(_m *Department) *DepartmentAddressValidityQuery {
+	query := (&DepartmentAddressValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, id),
+			sqlgraph.To(departmentaddressvalidity.Table, departmentaddressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.AddressValiditiesTable, department.AddressValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddressValidity
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *DepartmentClient) Hooks() []Hook {
 	return c.hooks.Department
@@ -1405,6 +1753,804 @@ func (c *DepartmentClient) mutate(ctx context.Context, m *DepartmentMutation) (V
 		return (&DepartmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Department mutation op: %q", m.Op())
+	}
+}
+
+// DepartmentAddressClient is a client for the DepartmentAddress schema.
+type DepartmentAddressClient struct {
+	config
+}
+
+// NewDepartmentAddressClient returns a client for the DepartmentAddress from the given config.
+func NewDepartmentAddressClient(c config) *DepartmentAddressClient {
+	return &DepartmentAddressClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `departmentaddress.Hooks(f(g(h())))`.
+func (c *DepartmentAddressClient) Use(hooks ...Hook) {
+	c.hooks.DepartmentAddress = append(c.hooks.DepartmentAddress, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `departmentaddress.Intercept(f(g(h())))`.
+func (c *DepartmentAddressClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepartmentAddress = append(c.inters.DepartmentAddress, interceptors...)
+}
+
+// Create returns a builder for creating a DepartmentAddress entity.
+func (c *DepartmentAddressClient) Create() *DepartmentAddressCreate {
+	mutation := newDepartmentAddressMutation(c.config, OpCreate)
+	return &DepartmentAddressCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepartmentAddress entities.
+func (c *DepartmentAddressClient) CreateBulk(builders ...*DepartmentAddressCreate) *DepartmentAddressCreateBulk {
+	return &DepartmentAddressCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepartmentAddressClient) MapCreateBulk(slice any, setFunc func(*DepartmentAddressCreate, int)) *DepartmentAddressCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepartmentAddressCreateBulk{err: fmt.Errorf("calling to DepartmentAddressClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepartmentAddressCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepartmentAddressCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepartmentAddress.
+func (c *DepartmentAddressClient) Update() *DepartmentAddressUpdate {
+	mutation := newDepartmentAddressMutation(c.config, OpUpdate)
+	return &DepartmentAddressUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepartmentAddressClient) UpdateOne(_m *DepartmentAddress) *DepartmentAddressUpdateOne {
+	mutation := newDepartmentAddressMutation(c.config, OpUpdateOne, withDepartmentAddress(_m))
+	return &DepartmentAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepartmentAddressClient) UpdateOneID(id uuid.UUID) *DepartmentAddressUpdateOne {
+	mutation := newDepartmentAddressMutation(c.config, OpUpdateOne, withDepartmentAddressID(id))
+	return &DepartmentAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepartmentAddress.
+func (c *DepartmentAddressClient) Delete() *DepartmentAddressDelete {
+	mutation := newDepartmentAddressMutation(c.config, OpDelete)
+	return &DepartmentAddressDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepartmentAddressClient) DeleteOne(_m *DepartmentAddress) *DepartmentAddressDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepartmentAddressClient) DeleteOneID(id uuid.UUID) *DepartmentAddressDeleteOne {
+	builder := c.Delete().Where(departmentaddress.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepartmentAddressDeleteOne{builder}
+}
+
+// Query returns a query builder for DepartmentAddress.
+func (c *DepartmentAddressClient) Query() *DepartmentAddressQuery {
+	return &DepartmentAddressQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepartmentAddress},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepartmentAddress entity by its id.
+func (c *DepartmentAddressClient) Get(ctx context.Context, id uuid.UUID) (*DepartmentAddress, error) {
+	return c.Query().Where(departmentaddress.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepartmentAddressClient) GetX(ctx context.Context, id uuid.UUID) *DepartmentAddress {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a DepartmentAddress.
+func (c *DepartmentAddressClient) QueryTenant(_m *DepartmentAddress) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentaddress.Table, departmentaddress.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentaddress.TenantTable, departmentaddress.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartment queries the department edge of a DepartmentAddress.
+func (c *DepartmentAddressClient) QueryDepartment(_m *DepartmentAddress) *DepartmentQuery {
+	query := (&DepartmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentaddress.Table, departmentaddress.FieldID, id),
+			sqlgraph.To(department.Table, department.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentaddress.DepartmentTable, departmentaddress.DepartmentColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Department
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCityLocation queries the city_location edge of a DepartmentAddress.
+func (c *DepartmentAddressClient) QueryCityLocation(_m *DepartmentAddress) *LocationQuery {
+	query := (&LocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentaddress.Table, departmentaddress.FieldID, id),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentaddress.CityLocationTable, departmentaddress.CityLocationColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Location
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryValidities queries the validities edge of a DepartmentAddress.
+func (c *DepartmentAddressClient) QueryValidities(_m *DepartmentAddress) *DepartmentAddressValidityQuery {
+	query := (&DepartmentAddressValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentaddress.Table, departmentaddress.FieldID, id),
+			sqlgraph.To(departmentaddressvalidity.Table, departmentaddressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, departmentaddress.ValiditiesTable, departmentaddress.ValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddressValidity
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DepartmentAddressClient) Hooks() []Hook {
+	return c.hooks.DepartmentAddress
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepartmentAddressClient) Interceptors() []Interceptor {
+	return c.inters.DepartmentAddress
+}
+
+func (c *DepartmentAddressClient) mutate(ctx context.Context, m *DepartmentAddressMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepartmentAddressCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepartmentAddressUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepartmentAddressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepartmentAddressDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepartmentAddress mutation op: %q", m.Op())
+	}
+}
+
+// DepartmentAddressValidityClient is a client for the DepartmentAddressValidity schema.
+type DepartmentAddressValidityClient struct {
+	config
+}
+
+// NewDepartmentAddressValidityClient returns a client for the DepartmentAddressValidity from the given config.
+func NewDepartmentAddressValidityClient(c config) *DepartmentAddressValidityClient {
+	return &DepartmentAddressValidityClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `departmentaddressvalidity.Hooks(f(g(h())))`.
+func (c *DepartmentAddressValidityClient) Use(hooks ...Hook) {
+	c.hooks.DepartmentAddressValidity = append(c.hooks.DepartmentAddressValidity, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `departmentaddressvalidity.Intercept(f(g(h())))`.
+func (c *DepartmentAddressValidityClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepartmentAddressValidity = append(c.inters.DepartmentAddressValidity, interceptors...)
+}
+
+// Create returns a builder for creating a DepartmentAddressValidity entity.
+func (c *DepartmentAddressValidityClient) Create() *DepartmentAddressValidityCreate {
+	mutation := newDepartmentAddressValidityMutation(c.config, OpCreate)
+	return &DepartmentAddressValidityCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepartmentAddressValidity entities.
+func (c *DepartmentAddressValidityClient) CreateBulk(builders ...*DepartmentAddressValidityCreate) *DepartmentAddressValidityCreateBulk {
+	return &DepartmentAddressValidityCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepartmentAddressValidityClient) MapCreateBulk(slice any, setFunc func(*DepartmentAddressValidityCreate, int)) *DepartmentAddressValidityCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepartmentAddressValidityCreateBulk{err: fmt.Errorf("calling to DepartmentAddressValidityClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepartmentAddressValidityCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepartmentAddressValidityCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepartmentAddressValidity.
+func (c *DepartmentAddressValidityClient) Update() *DepartmentAddressValidityUpdate {
+	mutation := newDepartmentAddressValidityMutation(c.config, OpUpdate)
+	return &DepartmentAddressValidityUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepartmentAddressValidityClient) UpdateOne(_m *DepartmentAddressValidity) *DepartmentAddressValidityUpdateOne {
+	mutation := newDepartmentAddressValidityMutation(c.config, OpUpdateOne, withDepartmentAddressValidity(_m))
+	return &DepartmentAddressValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepartmentAddressValidityClient) UpdateOneID(id uuid.UUID) *DepartmentAddressValidityUpdateOne {
+	mutation := newDepartmentAddressValidityMutation(c.config, OpUpdateOne, withDepartmentAddressValidityID(id))
+	return &DepartmentAddressValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepartmentAddressValidity.
+func (c *DepartmentAddressValidityClient) Delete() *DepartmentAddressValidityDelete {
+	mutation := newDepartmentAddressValidityMutation(c.config, OpDelete)
+	return &DepartmentAddressValidityDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepartmentAddressValidityClient) DeleteOne(_m *DepartmentAddressValidity) *DepartmentAddressValidityDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepartmentAddressValidityClient) DeleteOneID(id uuid.UUID) *DepartmentAddressValidityDeleteOne {
+	builder := c.Delete().Where(departmentaddressvalidity.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepartmentAddressValidityDeleteOne{builder}
+}
+
+// Query returns a query builder for DepartmentAddressValidity.
+func (c *DepartmentAddressValidityClient) Query() *DepartmentAddressValidityQuery {
+	return &DepartmentAddressValidityQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepartmentAddressValidity},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepartmentAddressValidity entity by its id.
+func (c *DepartmentAddressValidityClient) Get(ctx context.Context, id uuid.UUID) (*DepartmentAddressValidity, error) {
+	return c.Query().Where(departmentaddressvalidity.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepartmentAddressValidityClient) GetX(ctx context.Context, id uuid.UUID) *DepartmentAddressValidity {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a DepartmentAddressValidity.
+func (c *DepartmentAddressValidityClient) QueryTenant(_m *DepartmentAddressValidity) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentaddressvalidity.Table, departmentaddressvalidity.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentaddressvalidity.TenantTable, departmentaddressvalidity.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartment queries the department edge of a DepartmentAddressValidity.
+func (c *DepartmentAddressValidityClient) QueryDepartment(_m *DepartmentAddressValidity) *DepartmentQuery {
+	query := (&DepartmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentaddressvalidity.Table, departmentaddressvalidity.FieldID, id),
+			sqlgraph.To(department.Table, department.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentaddressvalidity.DepartmentTable, departmentaddressvalidity.DepartmentColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Department
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentAddress queries the department_address edge of a DepartmentAddressValidity.
+func (c *DepartmentAddressValidityClient) QueryDepartmentAddress(_m *DepartmentAddressValidity) *DepartmentAddressQuery {
+	query := (&DepartmentAddressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentaddressvalidity.Table, departmentaddressvalidity.FieldID, id),
+			sqlgraph.To(departmentaddress.Table, departmentaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentaddressvalidity.DepartmentAddressTable, departmentaddressvalidity.DepartmentAddressColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DepartmentAddressValidityClient) Hooks() []Hook {
+	return c.hooks.DepartmentAddressValidity
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepartmentAddressValidityClient) Interceptors() []Interceptor {
+	return c.inters.DepartmentAddressValidity
+}
+
+func (c *DepartmentAddressValidityClient) mutate(ctx context.Context, m *DepartmentAddressValidityMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepartmentAddressValidityCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepartmentAddressValidityUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepartmentAddressValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepartmentAddressValidityDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepartmentAddressValidity mutation op: %q", m.Op())
+	}
+}
+
+// DepartmentContactMechanismClient is a client for the DepartmentContactMechanism schema.
+type DepartmentContactMechanismClient struct {
+	config
+}
+
+// NewDepartmentContactMechanismClient returns a client for the DepartmentContactMechanism from the given config.
+func NewDepartmentContactMechanismClient(c config) *DepartmentContactMechanismClient {
+	return &DepartmentContactMechanismClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `departmentcontactmechanism.Hooks(f(g(h())))`.
+func (c *DepartmentContactMechanismClient) Use(hooks ...Hook) {
+	c.hooks.DepartmentContactMechanism = append(c.hooks.DepartmentContactMechanism, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `departmentcontactmechanism.Intercept(f(g(h())))`.
+func (c *DepartmentContactMechanismClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepartmentContactMechanism = append(c.inters.DepartmentContactMechanism, interceptors...)
+}
+
+// Create returns a builder for creating a DepartmentContactMechanism entity.
+func (c *DepartmentContactMechanismClient) Create() *DepartmentContactMechanismCreate {
+	mutation := newDepartmentContactMechanismMutation(c.config, OpCreate)
+	return &DepartmentContactMechanismCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepartmentContactMechanism entities.
+func (c *DepartmentContactMechanismClient) CreateBulk(builders ...*DepartmentContactMechanismCreate) *DepartmentContactMechanismCreateBulk {
+	return &DepartmentContactMechanismCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepartmentContactMechanismClient) MapCreateBulk(slice any, setFunc func(*DepartmentContactMechanismCreate, int)) *DepartmentContactMechanismCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepartmentContactMechanismCreateBulk{err: fmt.Errorf("calling to DepartmentContactMechanismClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepartmentContactMechanismCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepartmentContactMechanismCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepartmentContactMechanism.
+func (c *DepartmentContactMechanismClient) Update() *DepartmentContactMechanismUpdate {
+	mutation := newDepartmentContactMechanismMutation(c.config, OpUpdate)
+	return &DepartmentContactMechanismUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepartmentContactMechanismClient) UpdateOne(_m *DepartmentContactMechanism) *DepartmentContactMechanismUpdateOne {
+	mutation := newDepartmentContactMechanismMutation(c.config, OpUpdateOne, withDepartmentContactMechanism(_m))
+	return &DepartmentContactMechanismUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepartmentContactMechanismClient) UpdateOneID(id uuid.UUID) *DepartmentContactMechanismUpdateOne {
+	mutation := newDepartmentContactMechanismMutation(c.config, OpUpdateOne, withDepartmentContactMechanismID(id))
+	return &DepartmentContactMechanismUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepartmentContactMechanism.
+func (c *DepartmentContactMechanismClient) Delete() *DepartmentContactMechanismDelete {
+	mutation := newDepartmentContactMechanismMutation(c.config, OpDelete)
+	return &DepartmentContactMechanismDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepartmentContactMechanismClient) DeleteOne(_m *DepartmentContactMechanism) *DepartmentContactMechanismDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepartmentContactMechanismClient) DeleteOneID(id uuid.UUID) *DepartmentContactMechanismDeleteOne {
+	builder := c.Delete().Where(departmentcontactmechanism.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepartmentContactMechanismDeleteOne{builder}
+}
+
+// Query returns a query builder for DepartmentContactMechanism.
+func (c *DepartmentContactMechanismClient) Query() *DepartmentContactMechanismQuery {
+	return &DepartmentContactMechanismQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepartmentContactMechanism},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepartmentContactMechanism entity by its id.
+func (c *DepartmentContactMechanismClient) Get(ctx context.Context, id uuid.UUID) (*DepartmentContactMechanism, error) {
+	return c.Query().Where(departmentcontactmechanism.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepartmentContactMechanismClient) GetX(ctx context.Context, id uuid.UUID) *DepartmentContactMechanism {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a DepartmentContactMechanism.
+func (c *DepartmentContactMechanismClient) QueryTenant(_m *DepartmentContactMechanism) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentcontactmechanism.TenantTable, departmentcontactmechanism.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartment queries the department edge of a DepartmentContactMechanism.
+func (c *DepartmentContactMechanismClient) QueryDepartment(_m *DepartmentContactMechanism) *DepartmentQuery {
+	query := (&DepartmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID, id),
+			sqlgraph.To(department.Table, department.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentcontactmechanism.DepartmentTable, departmentcontactmechanism.DepartmentColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Department
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryContactMechanism queries the contact_mechanism edge of a DepartmentContactMechanism.
+func (c *DepartmentContactMechanismClient) QueryContactMechanism(_m *DepartmentContactMechanism) *ContactMechanismQuery {
+	query := (&ContactMechanismClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID, id),
+			sqlgraph.To(contactmechanism.Table, contactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentcontactmechanism.ContactMechanismTable, departmentcontactmechanism.ContactMechanismColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.ContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryValidities queries the validities edge of a DepartmentContactMechanism.
+func (c *DepartmentContactMechanismClient) QueryValidities(_m *DepartmentContactMechanism) *DepartmentContactMechanismValidityQuery {
+	query := (&DepartmentContactMechanismValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID, id),
+			sqlgraph.To(departmentcontactmechanismvalidity.Table, departmentcontactmechanismvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, departmentcontactmechanism.ValiditiesTable, departmentcontactmechanism.ValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanismValidity
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DepartmentContactMechanismClient) Hooks() []Hook {
+	return c.hooks.DepartmentContactMechanism
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepartmentContactMechanismClient) Interceptors() []Interceptor {
+	return c.inters.DepartmentContactMechanism
+}
+
+func (c *DepartmentContactMechanismClient) mutate(ctx context.Context, m *DepartmentContactMechanismMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepartmentContactMechanismCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepartmentContactMechanismUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepartmentContactMechanismUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepartmentContactMechanismDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepartmentContactMechanism mutation op: %q", m.Op())
+	}
+}
+
+// DepartmentContactMechanismValidityClient is a client for the DepartmentContactMechanismValidity schema.
+type DepartmentContactMechanismValidityClient struct {
+	config
+}
+
+// NewDepartmentContactMechanismValidityClient returns a client for the DepartmentContactMechanismValidity from the given config.
+func NewDepartmentContactMechanismValidityClient(c config) *DepartmentContactMechanismValidityClient {
+	return &DepartmentContactMechanismValidityClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `departmentcontactmechanismvalidity.Hooks(f(g(h())))`.
+func (c *DepartmentContactMechanismValidityClient) Use(hooks ...Hook) {
+	c.hooks.DepartmentContactMechanismValidity = append(c.hooks.DepartmentContactMechanismValidity, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `departmentcontactmechanismvalidity.Intercept(f(g(h())))`.
+func (c *DepartmentContactMechanismValidityClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepartmentContactMechanismValidity = append(c.inters.DepartmentContactMechanismValidity, interceptors...)
+}
+
+// Create returns a builder for creating a DepartmentContactMechanismValidity entity.
+func (c *DepartmentContactMechanismValidityClient) Create() *DepartmentContactMechanismValidityCreate {
+	mutation := newDepartmentContactMechanismValidityMutation(c.config, OpCreate)
+	return &DepartmentContactMechanismValidityCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepartmentContactMechanismValidity entities.
+func (c *DepartmentContactMechanismValidityClient) CreateBulk(builders ...*DepartmentContactMechanismValidityCreate) *DepartmentContactMechanismValidityCreateBulk {
+	return &DepartmentContactMechanismValidityCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepartmentContactMechanismValidityClient) MapCreateBulk(slice any, setFunc func(*DepartmentContactMechanismValidityCreate, int)) *DepartmentContactMechanismValidityCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepartmentContactMechanismValidityCreateBulk{err: fmt.Errorf("calling to DepartmentContactMechanismValidityClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepartmentContactMechanismValidityCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepartmentContactMechanismValidityCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepartmentContactMechanismValidity.
+func (c *DepartmentContactMechanismValidityClient) Update() *DepartmentContactMechanismValidityUpdate {
+	mutation := newDepartmentContactMechanismValidityMutation(c.config, OpUpdate)
+	return &DepartmentContactMechanismValidityUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepartmentContactMechanismValidityClient) UpdateOne(_m *DepartmentContactMechanismValidity) *DepartmentContactMechanismValidityUpdateOne {
+	mutation := newDepartmentContactMechanismValidityMutation(c.config, OpUpdateOne, withDepartmentContactMechanismValidity(_m))
+	return &DepartmentContactMechanismValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepartmentContactMechanismValidityClient) UpdateOneID(id uuid.UUID) *DepartmentContactMechanismValidityUpdateOne {
+	mutation := newDepartmentContactMechanismValidityMutation(c.config, OpUpdateOne, withDepartmentContactMechanismValidityID(id))
+	return &DepartmentContactMechanismValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepartmentContactMechanismValidity.
+func (c *DepartmentContactMechanismValidityClient) Delete() *DepartmentContactMechanismValidityDelete {
+	mutation := newDepartmentContactMechanismValidityMutation(c.config, OpDelete)
+	return &DepartmentContactMechanismValidityDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepartmentContactMechanismValidityClient) DeleteOne(_m *DepartmentContactMechanismValidity) *DepartmentContactMechanismValidityDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepartmentContactMechanismValidityClient) DeleteOneID(id uuid.UUID) *DepartmentContactMechanismValidityDeleteOne {
+	builder := c.Delete().Where(departmentcontactmechanismvalidity.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepartmentContactMechanismValidityDeleteOne{builder}
+}
+
+// Query returns a query builder for DepartmentContactMechanismValidity.
+func (c *DepartmentContactMechanismValidityClient) Query() *DepartmentContactMechanismValidityQuery {
+	return &DepartmentContactMechanismValidityQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepartmentContactMechanismValidity},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepartmentContactMechanismValidity entity by its id.
+func (c *DepartmentContactMechanismValidityClient) Get(ctx context.Context, id uuid.UUID) (*DepartmentContactMechanismValidity, error) {
+	return c.Query().Where(departmentcontactmechanismvalidity.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepartmentContactMechanismValidityClient) GetX(ctx context.Context, id uuid.UUID) *DepartmentContactMechanismValidity {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a DepartmentContactMechanismValidity.
+func (c *DepartmentContactMechanismValidityClient) QueryTenant(_m *DepartmentContactMechanismValidity) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentcontactmechanismvalidity.Table, departmentcontactmechanismvalidity.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentcontactmechanismvalidity.TenantTable, departmentcontactmechanismvalidity.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartment queries the department edge of a DepartmentContactMechanismValidity.
+func (c *DepartmentContactMechanismValidityClient) QueryDepartment(_m *DepartmentContactMechanismValidity) *DepartmentQuery {
+	query := (&DepartmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentcontactmechanismvalidity.Table, departmentcontactmechanismvalidity.FieldID, id),
+			sqlgraph.To(department.Table, department.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentcontactmechanismvalidity.DepartmentTable, departmentcontactmechanismvalidity.DepartmentColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Department
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentContactMechanism queries the department_contact_mechanism edge of a DepartmentContactMechanismValidity.
+func (c *DepartmentContactMechanismValidityClient) QueryDepartmentContactMechanism(_m *DepartmentContactMechanismValidity) *DepartmentContactMechanismQuery {
+	query := (&DepartmentContactMechanismClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentcontactmechanismvalidity.Table, departmentcontactmechanismvalidity.FieldID, id),
+			sqlgraph.To(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentcontactmechanismvalidity.DepartmentContactMechanismTable, departmentcontactmechanismvalidity.DepartmentContactMechanismColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DepartmentContactMechanismValidityClient) Hooks() []Hook {
+	return c.hooks.DepartmentContactMechanismValidity
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepartmentContactMechanismValidityClient) Interceptors() []Interceptor {
+	return c.inters.DepartmentContactMechanismValidity
+}
+
+func (c *DepartmentContactMechanismValidityClient) mutate(ctx context.Context, m *DepartmentContactMechanismValidityMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepartmentContactMechanismValidityCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepartmentContactMechanismValidityUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepartmentContactMechanismValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepartmentContactMechanismValidityDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepartmentContactMechanismValidity mutation op: %q", m.Op())
 	}
 }
 
@@ -2960,6 +4106,25 @@ func (c *LocationClient) QueryIdentityDocuments(_m *Location) *PartyIdentityDocu
 	return query
 }
 
+// QueryDepartmentAddresses queries the department_addresses edge of a Location.
+func (c *LocationClient) QueryDepartmentAddresses(_m *Location) *DepartmentAddressQuery {
+	query := (&DepartmentAddressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, id),
+			sqlgraph.To(departmentaddress.Table, departmentaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.DepartmentAddressesTable, location.DepartmentAddressesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *LocationClient) Hooks() []Hook {
 	return c.hooks.Location
@@ -3790,6 +4955,25 @@ func (c *PartyClient) QueryIdentityDocumentValidities(_m *Party) *PartyIdentityD
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.PartyIdentityDocumentValidity
 		step.Edge.Schema = schemaConfig.PartyIdentityDocumentValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAddressValidities queries the address_validities edge of a Party.
+func (c *PartyClient) QueryAddressValidities(_m *Party) *AddressValidityQuery {
+	query := (&AddressValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(party.Table, party.FieldID, id),
+			sqlgraph.To(addressvalidity.Table, addressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, party.AddressValiditiesTable, party.AddressValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -7045,6 +8229,101 @@ func (c *SubscriptionClient) QueryPartyIdentityDocumentValidities(_m *Subscripti
 	return query
 }
 
+// QueryAddressValidities queries the address_validities edge of a Subscription.
+func (c *SubscriptionClient) QueryAddressValidities(_m *Subscription) *AddressValidityQuery {
+	query := (&AddressValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(addressvalidity.Table, addressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.AddressValiditiesTable, subscription.AddressValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentContactMechanisms queries the department_contact_mechanisms edge of a Subscription.
+func (c *SubscriptionClient) QueryDepartmentContactMechanisms(_m *Subscription) *DepartmentContactMechanismQuery {
+	query := (&DepartmentContactMechanismClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(departmentcontactmechanism.Table, departmentcontactmechanism.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentContactMechanismsTable, subscription.DepartmentContactMechanismsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentContactMechanismValidities queries the department_contact_mechanism_validities edge of a Subscription.
+func (c *SubscriptionClient) QueryDepartmentContactMechanismValidities(_m *Subscription) *DepartmentContactMechanismValidityQuery {
+	query := (&DepartmentContactMechanismValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(departmentcontactmechanismvalidity.Table, departmentcontactmechanismvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentContactMechanismValiditiesTable, subscription.DepartmentContactMechanismValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentContactMechanismValidity
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentAddresses queries the department_addresses edge of a Subscription.
+func (c *SubscriptionClient) QueryDepartmentAddresses(_m *Subscription) *DepartmentAddressQuery {
+	query := (&DepartmentAddressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(departmentaddress.Table, departmentaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentAddressesTable, subscription.DepartmentAddressesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentAddressValidities queries the department_address_validities edge of a Subscription.
+func (c *SubscriptionClient) QueryDepartmentAddressValidities(_m *Subscription) *DepartmentAddressValidityQuery {
+	query := (&DepartmentAddressValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(departmentaddressvalidity.Table, departmentaddressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentAddressValiditiesTable, subscription.DepartmentAddressValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddressValidity
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SubscriptionClient) Hooks() []Hook {
 	return c.hooks.Subscription
@@ -7263,7 +8542,9 @@ func (c *UserCredentialsClient) mutate(ctx context.Context, m *UserCredentialsMu
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Address, AttachedDocument, ContactMechanism, CorporateGroup, Department,
+		Address, AddressValidity, AttachedDocument, ContactMechanism, CorporateGroup,
+		Department, DepartmentAddress, DepartmentAddressValidity,
+		DepartmentContactMechanism, DepartmentContactMechanismValidity,
 		DepartmentGroupAssignment, Employee, EmployeeAssignment, IdentityDocumentType,
 		Job, JobFamily, Locale, Location, LocationTranslation, NameType,
 		OrganizationProfile, Party, PartyContactMechanism,
@@ -7273,7 +8554,9 @@ type (
 		Session, Subscription, UserCredentials []ent.Hook
 	}
 	inters struct {
-		Address, AttachedDocument, ContactMechanism, CorporateGroup, Department,
+		Address, AddressValidity, AttachedDocument, ContactMechanism, CorporateGroup,
+		Department, DepartmentAddress, DepartmentAddressValidity,
+		DepartmentContactMechanism, DepartmentContactMechanismValidity,
 		DepartmentGroupAssignment, Employee, EmployeeAssignment, IdentityDocumentType,
 		Job, JobFamily, Locale, Location, LocationTranslation, NameType,
 		OrganizationProfile, Party, PartyContactMechanism,
@@ -7287,38 +8570,43 @@ type (
 var (
 	// DefaultSchemaConfig represents the default schema names for all tables as defined in ent/schema.
 	DefaultSchemaConfig = SchemaConfig{
-		Address:                       tableSchemas[1],
-		AttachedDocument:              tableSchemas[1],
-		ContactMechanism:              tableSchemas[0],
-		CorporateGroup:                tableSchemas[1],
-		Department:                    tableSchemas[1],
-		DepartmentGroupAssignment:     tableSchemas[1],
-		Employee:                      tableSchemas[1],
-		EmployeeAssignment:            tableSchemas[1],
-		IdentityDocumentType:          tableSchemas[0],
-		Job:                           tableSchemas[1],
-		JobFamily:                     tableSchemas[1],
-		Locale:                        tableSchemas[0],
-		Location:                      tableSchemas[0],
-		LocationTranslation:           tableSchemas[0],
-		NameType:                      tableSchemas[0],
-		OrganizationProfile:           tableSchemas[1],
-		Party:                         tableSchemas[1],
-		PartyContactMechanism:         tableSchemas[1],
-		PartyContactMechanismValidity: tableSchemas[1],
-		PartyIdentityDocument:         tableSchemas[1],
-		PartyIdentityDocumentValidity: tableSchemas[1],
-		PartyMergeLog:                 tableSchemas[1],
-		PartyName:                     tableSchemas[1],
-		PartyNameValidity:             tableSchemas[1],
-		PartyNationality:              tableSchemas[1],
-		PartyRole:                     tableSchemas[1],
-		PasswordResetToken:            tableSchemas[1],
-		PersonProfile:                 tableSchemas[1],
-		RoleType:                      tableSchemas[0],
-		Session:                       tableSchemas[1],
-		Subscription:                  tableSchemas[0],
-		UserCredentials:               tableSchemas[1],
+		Address:                            tableSchemas[1],
+		AddressValidity:                    tableSchemas[1],
+		AttachedDocument:                   tableSchemas[1],
+		ContactMechanism:                   tableSchemas[0],
+		CorporateGroup:                     tableSchemas[1],
+		Department:                         tableSchemas[1],
+		DepartmentAddress:                  tableSchemas[1],
+		DepartmentAddressValidity:          tableSchemas[1],
+		DepartmentContactMechanism:         tableSchemas[1],
+		DepartmentContactMechanismValidity: tableSchemas[1],
+		DepartmentGroupAssignment:          tableSchemas[1],
+		Employee:                           tableSchemas[1],
+		EmployeeAssignment:                 tableSchemas[1],
+		IdentityDocumentType:               tableSchemas[0],
+		Job:                                tableSchemas[1],
+		JobFamily:                          tableSchemas[1],
+		Locale:                             tableSchemas[0],
+		Location:                           tableSchemas[0],
+		LocationTranslation:                tableSchemas[0],
+		NameType:                           tableSchemas[0],
+		OrganizationProfile:                tableSchemas[1],
+		Party:                              tableSchemas[1],
+		PartyContactMechanism:              tableSchemas[1],
+		PartyContactMechanismValidity:      tableSchemas[1],
+		PartyIdentityDocument:              tableSchemas[1],
+		PartyIdentityDocumentValidity:      tableSchemas[1],
+		PartyMergeLog:                      tableSchemas[1],
+		PartyName:                          tableSchemas[1],
+		PartyNameValidity:                  tableSchemas[1],
+		PartyNationality:                   tableSchemas[1],
+		PartyRole:                          tableSchemas[1],
+		PasswordResetToken:                 tableSchemas[1],
+		PersonProfile:                      tableSchemas[1],
+		RoleType:                           tableSchemas[0],
+		Session:                            tableSchemas[1],
+		Subscription:                       tableSchemas[0],
+		UserCredentials:                    tableSchemas[1],
 	}
 	tableSchemas = [...]string{"global", "tenants"}
 )

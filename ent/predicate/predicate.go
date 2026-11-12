@@ -9,6 +9,9 @@ import (
 // Address is the predicate function for address builders.
 type Address func(*sql.Selector)
 
+// AddressValidity is the predicate function for addressvalidity builders.
+type AddressValidity func(*sql.Selector)
+
 // AttachedDocument is the predicate function for attacheddocument builders.
 type AttachedDocument func(*sql.Selector)
 
@@ -20,6 +23,18 @@ type CorporateGroup func(*sql.Selector)
 
 // Department is the predicate function for department builders.
 type Department func(*sql.Selector)
+
+// DepartmentAddress is the predicate function for departmentaddress builders.
+type DepartmentAddress func(*sql.Selector)
+
+// DepartmentAddressValidity is the predicate function for departmentaddressvalidity builders.
+type DepartmentAddressValidity func(*sql.Selector)
+
+// DepartmentContactMechanism is the predicate function for departmentcontactmechanism builders.
+type DepartmentContactMechanism func(*sql.Selector)
+
+// DepartmentContactMechanismValidity is the predicate function for departmentcontactmechanismvalidity builders.
+type DepartmentContactMechanismValidity func(*sql.Selector)
 
 // DepartmentGroupAssignment is the predicate function for departmentgroupassignment builders.
 type DepartmentGroupAssignment func(*sql.Selector)

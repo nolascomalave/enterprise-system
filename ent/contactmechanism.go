@@ -31,9 +31,11 @@ type ContactMechanism struct {
 type ContactMechanismEdges struct {
 	// PartyContactMechanisms holds the value of the party_contact_mechanisms edge.
 	PartyContactMechanisms []*PartyContactMechanism `json:"party_contact_mechanisms,omitempty"`
+	// DepartmentContactMechanisms holds the value of the department_contact_mechanisms edge.
+	DepartmentContactMechanisms []*DepartmentContactMechanism `json:"department_contact_mechanisms,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // PartyContactMechanismsOrErr returns the PartyContactMechanisms value or an error if the edge
@@ -43,6 +45,15 @@ func (e ContactMechanismEdges) PartyContactMechanismsOrErr() ([]*PartyContactMec
 		return e.PartyContactMechanisms, nil
 	}
 	return nil, &NotLoadedError{edge: "party_contact_mechanisms"}
+}
+
+// DepartmentContactMechanismsOrErr returns the DepartmentContactMechanisms value or an error if the edge
+// was not loaded in eager-loading.
+func (e ContactMechanismEdges) DepartmentContactMechanismsOrErr() ([]*DepartmentContactMechanism, error) {
+	if e.loadedTypes[1] {
+		return e.DepartmentContactMechanisms, nil
+	}
+	return nil, &NotLoadedError{edge: "department_contact_mechanisms"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -103,6 +114,11 @@ func (_m *ContactMechanism) GetValue(name string) (ent.Value, error) {
 // QueryPartyContactMechanisms queries the "party_contact_mechanisms" edge of the ContactMechanism entity.
 func (_m *ContactMechanism) QueryPartyContactMechanisms() *PartyContactMechanismQuery {
 	return NewContactMechanismClient(_m.config).QueryPartyContactMechanisms(_m)
+}
+
+// QueryDepartmentContactMechanisms queries the "department_contact_mechanisms" edge of the ContactMechanism entity.
+func (_m *ContactMechanism) QueryDepartmentContactMechanisms() *DepartmentContactMechanismQuery {
+	return NewContactMechanismClient(_m.config).QueryDepartmentContactMechanisms(_m)
 }
 
 // Update returns a builder for updating this ContactMechanism.

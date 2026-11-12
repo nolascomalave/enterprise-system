@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/departmentaddress"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
@@ -24,15 +25,16 @@ import (
 // LocationQuery is the builder for querying Location entities.
 type LocationQuery struct {
 	config
-	ctx                   *QueryContext
-	order                 []location.OrderOption
-	inters                []Interceptor
-	predicates            []predicate.Location
-	withChildren          *LocationQuery
-	withParent            *LocationQuery
-	withTranslations      *LocationTranslationQuery
-	withAddresses         *AddressQuery
-	withIdentityDocuments *PartyIdentityDocumentQuery
+	ctx                     *QueryContext
+	order                   []location.OrderOption
+	inters                  []Interceptor
+	predicates              []predicate.Location
+	withChildren            *LocationQuery
+	withParent              *LocationQuery
+	withTranslations        *LocationTranslationQuery
+	withAddresses           *AddressQuery
+	withIdentityDocuments   *PartyIdentityDocumentQuery
+	withDepartmentAddresses *DepartmentAddressQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -188,6 +190,31 @@ func (_q *LocationQuery) QueryIdentityDocuments() *PartyIdentityDocumentQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.PartyIdentityDocument
 		step.Edge.Schema = schemaConfig.PartyIdentityDocument
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartmentAddresses chains the current query on the "department_addresses" edge.
+func (_q *LocationQuery) QueryDepartmentAddresses() *DepartmentAddressQuery {
+	query := (&DepartmentAddressClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, selector),
+			sqlgraph.To(departmentaddress.Table, departmentaddress.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.DepartmentAddressesTable, location.DepartmentAddressesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -381,16 +408,17 @@ func (_q *LocationQuery) Clone() *LocationQuery {
 		return nil
 	}
 	return &LocationQuery{
-		config:                _q.config,
-		ctx:                   _q.ctx.Clone(),
-		order:                 append([]location.OrderOption{}, _q.order...),
-		inters:                append([]Interceptor{}, _q.inters...),
-		predicates:            append([]predicate.Location{}, _q.predicates...),
-		withChildren:          _q.withChildren.Clone(),
-		withParent:            _q.withParent.Clone(),
-		withTranslations:      _q.withTranslations.Clone(),
-		withAddresses:         _q.withAddresses.Clone(),
-		withIdentityDocuments: _q.withIdentityDocuments.Clone(),
+		config:                  _q.config,
+		ctx:                     _q.ctx.Clone(),
+		order:                   append([]location.OrderOption{}, _q.order...),
+		inters:                  append([]Interceptor{}, _q.inters...),
+		predicates:              append([]predicate.Location{}, _q.predicates...),
+		withChildren:            _q.withChildren.Clone(),
+		withParent:              _q.withParent.Clone(),
+		withTranslations:        _q.withTranslations.Clone(),
+		withAddresses:           _q.withAddresses.Clone(),
+		withIdentityDocuments:   _q.withIdentityDocuments.Clone(),
+		withDepartmentAddresses: _q.withDepartmentAddresses.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -449,6 +477,17 @@ func (_q *LocationQuery) WithIdentityDocuments(opts ...func(*PartyIdentityDocume
 		opt(query)
 	}
 	_q.withIdentityDocuments = query
+	return _q
+}
+
+// WithDepartmentAddresses tells the query-builder to eager-load the nodes that are connected to
+// the "department_addresses" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *LocationQuery) WithDepartmentAddresses(opts ...func(*DepartmentAddressQuery)) *LocationQuery {
+	query := (&DepartmentAddressClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentAddresses = query
 	return _q
 }
 
@@ -530,12 +569,13 @@ func (_q *LocationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Loc
 	var (
 		nodes       = []*Location{}
 		_spec       = _q.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			_q.withChildren != nil,
 			_q.withParent != nil,
 			_q.withTranslations != nil,
 			_q.withAddresses != nil,
 			_q.withIdentityDocuments != nil,
+			_q.withDepartmentAddresses != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -590,6 +630,15 @@ func (_q *LocationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Loc
 			func(n *Location) { n.Edges.IdentityDocuments = []*PartyIdentityDocument{} },
 			func(n *Location, e *PartyIdentityDocument) {
 				n.Edges.IdentityDocuments = append(n.Edges.IdentityDocuments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDepartmentAddresses; query != nil {
+		if err := _q.loadDepartmentAddresses(ctx, query, nodes,
+			func(n *Location) { n.Edges.DepartmentAddresses = []*DepartmentAddress{} },
+			func(n *Location, e *DepartmentAddress) {
+				n.Edges.DepartmentAddresses = append(n.Edges.DepartmentAddresses, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -750,6 +799,36 @@ func (_q *LocationQuery) loadIdentityDocuments(ctx context.Context, query *Party
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "issuing_jurisdiction_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *LocationQuery) loadDepartmentAddresses(ctx context.Context, query *DepartmentAddressQuery, nodes []*Location, init func(*Location), assign func(*Location, *DepartmentAddress)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Location)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentaddress.FieldCityLocationID)
+	}
+	query.Where(predicate.DepartmentAddress(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(location.DepartmentAddressesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.CityLocationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "city_location_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

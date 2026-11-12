@@ -4,7 +4,9 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/party"
@@ -30,6 +32,7 @@ type AddressQuery struct {
 	withTenant       *SubscriptionQuery
 	withParty        *PartyQuery
 	withCityLocation *LocationQuery
+	withValidities   *AddressValidityQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -135,6 +138,31 @@ func (_q *AddressQuery) QueryCityLocation() *LocationQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.Location
 		step.Edge.Schema = schemaConfig.Address
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryValidities chains the current query on the "validities" edge.
+func (_q *AddressQuery) QueryValidities() *AddressValidityQuery {
+	query := (&AddressValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(address.Table, address.FieldID, selector),
+			sqlgraph.To(addressvalidity.Table, addressvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, address.ValiditiesTable, address.ValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -336,6 +364,7 @@ func (_q *AddressQuery) Clone() *AddressQuery {
 		withTenant:       _q.withTenant.Clone(),
 		withParty:        _q.withParty.Clone(),
 		withCityLocation: _q.withCityLocation.Clone(),
+		withValidities:   _q.withValidities.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -372,6 +401,17 @@ func (_q *AddressQuery) WithCityLocation(opts ...func(*LocationQuery)) *AddressQ
 		opt(query)
 	}
 	_q.withCityLocation = query
+	return _q
+}
+
+// WithValidities tells the query-builder to eager-load the nodes that are connected to
+// the "validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AddressQuery) WithValidities(opts ...func(*AddressValidityQuery)) *AddressQuery {
+	query := (&AddressValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withValidities = query
 	return _q
 }
 
@@ -453,10 +493,11 @@ func (_q *AddressQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Addr
 	var (
 		nodes       = []*Address{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withTenant != nil,
 			_q.withParty != nil,
 			_q.withCityLocation != nil,
+			_q.withValidities != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -494,6 +535,13 @@ func (_q *AddressQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Addr
 	if query := _q.withCityLocation; query != nil {
 		if err := _q.loadCityLocation(ctx, query, nodes, nil,
 			func(n *Address, e *Location) { n.Edges.CityLocation = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withValidities; query != nil {
+		if err := _q.loadValidities(ctx, query, nodes,
+			func(n *Address) { n.Edges.Validities = []*AddressValidity{} },
+			func(n *Address, e *AddressValidity) { n.Edges.Validities = append(n.Edges.Validities, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -584,6 +632,36 @@ func (_q *AddressQuery) loadCityLocation(ctx context.Context, query *LocationQue
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *AddressQuery) loadValidities(ctx context.Context, query *AddressValidityQuery, nodes []*Address, init func(*Address), assign func(*Address, *AddressValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Address)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(addressvalidity.FieldAddressID)
+	}
+	query.Where(predicate.AddressValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(address.ValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.AddressID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "address_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

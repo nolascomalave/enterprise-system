@@ -14,22 +14,24 @@ import (
 )
 
 type fakePartyContactRepo struct {
-	contacts   map[uuid.UUID]*domain.ContactMechanism
-	byValue    map[string]*domain.ContactMechanism
-	relations  map[uuid.UUID]*domain.PartyContactMechanism
-	addresses  map[uuid.UUID]*domain.Address
-	createCErr error
-	updateCErr error
-	createAErr error
-	updateAErr error
+	contacts          map[uuid.UUID]*domain.ContactMechanism
+	byValue           map[string]*domain.ContactMechanism
+	relations         map[uuid.UUID]*domain.PartyContactMechanism
+	addresses         map[uuid.UUID]*domain.Address
+	addressValidities map[uuid.UUID]*domain.AddressValidity
+	createCErr        error
+	updateCErr        error
+	createAErr        error
+	updateAErr        error
 }
 
 func newFakePartyContactRepo() *fakePartyContactRepo {
 	return &fakePartyContactRepo{
-		contacts:  make(map[uuid.UUID]*domain.ContactMechanism),
-		byValue:   make(map[string]*domain.ContactMechanism),
-		relations: make(map[uuid.UUID]*domain.PartyContactMechanism),
-		addresses: make(map[uuid.UUID]*domain.Address),
+		contacts:          make(map[uuid.UUID]*domain.ContactMechanism),
+		byValue:           make(map[string]*domain.ContactMechanism),
+		relations:         make(map[uuid.UUID]*domain.PartyContactMechanism),
+		addresses:         make(map[uuid.UUID]*domain.Address),
+		addressValidities: make(map[uuid.UUID]*domain.AddressValidity),
 	}
 }
 
@@ -293,4 +295,89 @@ func TestPartyContactsPropagatesRepositoryError(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "find or create contact mechanism")
+}
+
+func (r *fakePartyContactRepo) GetOpenAddressValidity(ctx context.Context, tenantID, addressID uuid.UUID) (*domain.AddressValidity, error) {
+	for _, validity := range r.addressValidities {
+		if validity.TenantID == tenantID && validity.AddressID == addressID && validity.EndDate == nil && validity.DeletedAt == nil {
+			return validity, nil
+		}
+	}
+	return nil, domain.ErrAddressValidityNotFound
+}
+
+func (r *fakePartyContactRepo) GetOpenPrimaryAddressValidity(ctx context.Context, tenantID, partyID uuid.UUID, addressType domain.AddressType) (*domain.AddressValidity, error) {
+	for _, validity := range r.addressValidities {
+		if validity.TenantID == tenantID && validity.PartyID == partyID &&
+			validity.Type == addressType && validity.IsPrimary && validity.EndDate == nil && validity.DeletedAt == nil {
+			return validity, nil
+		}
+	}
+	return nil, domain.ErrAddressValidityNotFound
+}
+
+func (r *fakePartyContactRepo) CreateAddressValidity(ctx context.Context, validity *domain.AddressValidity) error {
+	r.addressValidities[validity.ID] = validity
+	return nil
+}
+
+func (r *fakePartyContactRepo) CloseAddressValidity(ctx context.Context, tenantID, validityID uuid.UUID, at time.Time) error {
+	validity, ok := r.addressValidities[validityID]
+	if !ok || validity.TenantID != tenantID {
+		return domain.ErrAddressValidityNotFound
+	}
+	return validity.Close(at)
+}
+
+func TestAddressValiditiesHistory(t *testing.T) {
+	repo := newFakePartyContactRepo()
+	uc := NewPartyContacts(repo, newFakeTxManager(), contactTestNow)
+	ctx := context.Background()
+	tenantID := testTenantID()
+	partyID := uuid.New()
+
+	first, err := uc.CreateAddress(ctx, CreateAddressInput{
+		TenantID: tenantID, PartyID: partyID, Type: domain.AddressTypeLegal,
+		Line1: "Av. Principal", CityLocationID: uuid.New(), Country: "VE", IsPrimary: true,
+	})
+	require.NoError(t, err)
+	require.Len(t, repo.addressValidities, 1)
+
+	second, err := uc.CreateAddress(ctx, CreateAddressInput{
+		TenantID: tenantID, PartyID: partyID, Type: domain.AddressTypeLegal,
+		Line1: "Calle 2", CityLocationID: uuid.New(), Country: "VE", IsPrimary: true,
+	})
+	require.NoError(t, err)
+	require.Len(t, repo.addressValidities, 2)
+
+	var firstValidity, secondValidity *domain.AddressValidity
+	for _, validity := range repo.addressValidities {
+		if validity.AddressID == first.ID {
+			firstValidity = validity
+		}
+		if validity.AddressID == second.ID {
+			secondValidity = validity
+		}
+	}
+	require.NotNil(t, firstValidity)
+	require.NotNil(t, secondValidity)
+	assert.NotNil(t, firstValidity.EndDate, "the previous primary address validity must be closed")
+	assert.Nil(t, secondValidity.EndDate)
+
+	_, err = uc.UpdateAddress(ctx, UpdateAddressInput{
+		ID: second.ID, Type: domain.AddressTypeLegal, Line1: "Calle 3",
+		CityLocationID: second.CityLocationID, Country: "VE", IsPrimary: true,
+	})
+	require.NoError(t, err)
+	assert.NotNil(t, secondValidity.EndDate, "updating an address must close its current validity")
+	require.Len(t, repo.addressValidities, 3)
+
+	require.NoError(t, uc.DeleteAddress(ctx, second.ID))
+	open := 0
+	for _, validity := range repo.addressValidities {
+		if validity.AddressID == second.ID && validity.EndDate == nil {
+			open++
+		}
+	}
+	assert.Zero(t, open, "deleting an address must close its open validity")
 }

@@ -5,10 +5,15 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/addressvalidity"
 	"enterprise-system/ent/attacheddocument"
 	"enterprise-system/ent/contactmechanism"
 	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmentaddress"
+	"enterprise-system/ent/departmentaddressvalidity"
+	"enterprise-system/ent/departmentcontactmechanism"
+	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -57,38 +62,43 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAddress                       = "Address"
-	TypeAttachedDocument              = "AttachedDocument"
-	TypeContactMechanism              = "ContactMechanism"
-	TypeCorporateGroup                = "CorporateGroup"
-	TypeDepartment                    = "Department"
-	TypeDepartmentGroupAssignment     = "DepartmentGroupAssignment"
-	TypeEmployee                      = "Employee"
-	TypeEmployeeAssignment            = "EmployeeAssignment"
-	TypeIdentityDocumentType          = "IdentityDocumentType"
-	TypeJob                           = "Job"
-	TypeJobFamily                     = "JobFamily"
-	TypeLocale                        = "Locale"
-	TypeLocation                      = "Location"
-	TypeLocationTranslation           = "LocationTranslation"
-	TypeNameType                      = "NameType"
-	TypeOrganizationProfile           = "OrganizationProfile"
-	TypeParty                         = "Party"
-	TypePartyContactMechanism         = "PartyContactMechanism"
-	TypePartyContactMechanismValidity = "PartyContactMechanismValidity"
-	TypePartyIdentityDocument         = "PartyIdentityDocument"
-	TypePartyIdentityDocumentValidity = "PartyIdentityDocumentValidity"
-	TypePartyMergeLog                 = "PartyMergeLog"
-	TypePartyName                     = "PartyName"
-	TypePartyNameValidity             = "PartyNameValidity"
-	TypePartyNationality              = "PartyNationality"
-	TypePartyRole                     = "PartyRole"
-	TypePasswordResetToken            = "PasswordResetToken"
-	TypePersonProfile                 = "PersonProfile"
-	TypeRoleType                      = "RoleType"
-	TypeSession                       = "Session"
-	TypeSubscription                  = "Subscription"
-	TypeUserCredentials               = "UserCredentials"
+	TypeAddress                            = "Address"
+	TypeAddressValidity                    = "AddressValidity"
+	TypeAttachedDocument                   = "AttachedDocument"
+	TypeContactMechanism                   = "ContactMechanism"
+	TypeCorporateGroup                     = "CorporateGroup"
+	TypeDepartment                         = "Department"
+	TypeDepartmentAddress                  = "DepartmentAddress"
+	TypeDepartmentAddressValidity          = "DepartmentAddressValidity"
+	TypeDepartmentContactMechanism         = "DepartmentContactMechanism"
+	TypeDepartmentContactMechanismValidity = "DepartmentContactMechanismValidity"
+	TypeDepartmentGroupAssignment          = "DepartmentGroupAssignment"
+	TypeEmployee                           = "Employee"
+	TypeEmployeeAssignment                 = "EmployeeAssignment"
+	TypeIdentityDocumentType               = "IdentityDocumentType"
+	TypeJob                                = "Job"
+	TypeJobFamily                          = "JobFamily"
+	TypeLocale                             = "Locale"
+	TypeLocation                           = "Location"
+	TypeLocationTranslation                = "LocationTranslation"
+	TypeNameType                           = "NameType"
+	TypeOrganizationProfile                = "OrganizationProfile"
+	TypeParty                              = "Party"
+	TypePartyContactMechanism              = "PartyContactMechanism"
+	TypePartyContactMechanismValidity      = "PartyContactMechanismValidity"
+	TypePartyIdentityDocument              = "PartyIdentityDocument"
+	TypePartyIdentityDocumentValidity      = "PartyIdentityDocumentValidity"
+	TypePartyMergeLog                      = "PartyMergeLog"
+	TypePartyName                          = "PartyName"
+	TypePartyNameValidity                  = "PartyNameValidity"
+	TypePartyNationality                   = "PartyNationality"
+	TypePartyRole                          = "PartyRole"
+	TypePasswordResetToken                 = "PasswordResetToken"
+	TypePersonProfile                      = "PersonProfile"
+	TypeRoleType                           = "RoleType"
+	TypeSession                            = "Session"
+	TypeSubscription                       = "Subscription"
+	TypeUserCredentials                    = "UserCredentials"
 )
 
 // AddressMutation represents an operation that mutates the Address nodes in the graph.
@@ -102,7 +112,6 @@ type AddressMutation struct {
 	line2                *string
 	postal_code          *string
 	country              *string
-	is_primary           *bool
 	created_at           *time.Time
 	updated_at           *time.Time
 	deleted_at           *time.Time
@@ -113,6 +122,9 @@ type AddressMutation struct {
 	clearedparty         bool
 	city_location        *uuid.UUID
 	clearedcity_location bool
+	validities           map[uuid.UUID]struct{}
+	removedvalidities    map[uuid.UUID]struct{}
+	clearedvalidities    bool
 	done                 bool
 	oldValue             func(context.Context) (*Address, error)
 	predicates           []predicate.Address
@@ -536,42 +548,6 @@ func (m *AddressMutation) ResetCountry() {
 	m.country = nil
 }
 
-// SetIsPrimary sets the "is_primary" field.
-func (m *AddressMutation) SetIsPrimary(b bool) {
-	m.is_primary = &b
-}
-
-// IsPrimary returns the value of the "is_primary" field in the mutation.
-func (m *AddressMutation) IsPrimary() (r bool, exists bool) {
-	v := m.is_primary
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsPrimary returns the old "is_primary" field's value of the Address entity.
-// If the Address object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AddressMutation) OldIsPrimary(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsPrimary is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsPrimary requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsPrimary: %w", err)
-	}
-	return oldValue.IsPrimary, nil
-}
-
-// ResetIsPrimary resets all changes to the "is_primary" field.
-func (m *AddressMutation) ResetIsPrimary() {
-	m.is_primary = nil
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (m *AddressMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -774,6 +750,60 @@ func (m *AddressMutation) ResetCityLocation() {
 	m.clearedcity_location = false
 }
 
+// AddValidityIDs adds the "validities" edge to the AddressValidity entity by ids.
+func (m *AddressMutation) AddValidityIDs(ids ...uuid.UUID) {
+	if m.validities == nil {
+		m.validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearValidities clears the "validities" edge to the AddressValidity entity.
+func (m *AddressMutation) ClearValidities() {
+	m.clearedvalidities = true
+}
+
+// ValiditiesCleared reports if the "validities" edge to the AddressValidity entity was cleared.
+func (m *AddressMutation) ValiditiesCleared() bool {
+	return m.clearedvalidities
+}
+
+// RemoveValidityIDs removes the "validities" edge to the AddressValidity entity by IDs.
+func (m *AddressMutation) RemoveValidityIDs(ids ...uuid.UUID) {
+	if m.removedvalidities == nil {
+		m.removedvalidities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.validities, ids[i])
+		m.removedvalidities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedValidities returns the removed IDs of the "validities" edge to the AddressValidity entity.
+func (m *AddressMutation) RemovedValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedvalidities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ValiditiesIDs returns the "validities" edge IDs in the mutation.
+func (m *AddressMutation) ValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetValidities resets all changes to the "validities" edge.
+func (m *AddressMutation) ResetValidities() {
+	m.validities = nil
+	m.clearedvalidities = false
+	m.removedvalidities = nil
+}
+
 // Where appends a list predicates to the AddressMutation builder.
 func (m *AddressMutation) Where(ps ...predicate.Address) {
 	m.predicates = append(m.predicates, ps...)
@@ -808,7 +838,7 @@ func (m *AddressMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AddressMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 11)
 	if m.tenant != nil {
 		fields = append(fields, address.FieldTenantID)
 	}
@@ -832,9 +862,6 @@ func (m *AddressMutation) Fields() []string {
 	}
 	if m.country != nil {
 		fields = append(fields, address.FieldCountry)
-	}
-	if m.is_primary != nil {
-		fields = append(fields, address.FieldIsPrimary)
 	}
 	if m.created_at != nil {
 		fields = append(fields, address.FieldCreatedAt)
@@ -869,8 +896,6 @@ func (m *AddressMutation) Field(name string) (ent.Value, bool) {
 		return m.PostalCode()
 	case address.FieldCountry:
 		return m.Country()
-	case address.FieldIsPrimary:
-		return m.IsPrimary()
 	case address.FieldCreatedAt:
 		return m.CreatedAt()
 	case address.FieldUpdatedAt:
@@ -902,8 +927,6 @@ func (m *AddressMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldPostalCode(ctx)
 	case address.FieldCountry:
 		return m.OldCountry(ctx)
-	case address.FieldIsPrimary:
-		return m.OldIsPrimary(ctx)
 	case address.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case address.FieldUpdatedAt:
@@ -974,13 +997,6 @@ func (m *AddressMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCountry(v)
-		return nil
-	case address.FieldIsPrimary:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsPrimary(v)
 		return nil
 	case address.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -1097,9 +1113,6 @@ func (m *AddressMutation) ResetField(name string) error {
 	case address.FieldCountry:
 		m.ResetCountry()
 		return nil
-	case address.FieldIsPrimary:
-		m.ResetIsPrimary()
-		return nil
 	case address.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
@@ -1115,7 +1128,7 @@ func (m *AddressMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AddressMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.tenant != nil {
 		edges = append(edges, address.EdgeTenant)
 	}
@@ -1124,6 +1137,9 @@ func (m *AddressMutation) AddedEdges() []string {
 	}
 	if m.city_location != nil {
 		edges = append(edges, address.EdgeCityLocation)
+	}
+	if m.validities != nil {
+		edges = append(edges, address.EdgeValidities)
 	}
 	return edges
 }
@@ -1144,25 +1160,42 @@ func (m *AddressMutation) AddedIDs(name string) []ent.Value {
 		if id := m.city_location; id != nil {
 			return []ent.Value{*id}
 		}
+	case address.EdgeValidities:
+		ids := make([]ent.Value, 0, len(m.validities))
+		for id := range m.validities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AddressMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
+	if m.removedvalidities != nil {
+		edges = append(edges, address.EdgeValidities)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *AddressMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case address.EdgeValidities:
+		ids := make([]ent.Value, 0, len(m.removedvalidities))
+		for id := range m.removedvalidities {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AddressMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedtenant {
 		edges = append(edges, address.EdgeTenant)
 	}
@@ -1171,6 +1204,9 @@ func (m *AddressMutation) ClearedEdges() []string {
 	}
 	if m.clearedcity_location {
 		edges = append(edges, address.EdgeCityLocation)
+	}
+	if m.clearedvalidities {
+		edges = append(edges, address.EdgeValidities)
 	}
 	return edges
 }
@@ -1185,6 +1221,8 @@ func (m *AddressMutation) EdgeCleared(name string) bool {
 		return m.clearedparty
 	case address.EdgeCityLocation:
 		return m.clearedcity_location
+	case address.EdgeValidities:
+		return m.clearedvalidities
 	}
 	return false
 }
@@ -1219,8 +1257,962 @@ func (m *AddressMutation) ResetEdge(name string) error {
 	case address.EdgeCityLocation:
 		m.ResetCityLocation()
 		return nil
+	case address.EdgeValidities:
+		m.ResetValidities()
+		return nil
 	}
 	return fmt.Errorf("unknown Address edge %s", name)
+}
+
+// AddressValidityMutation represents an operation that mutates the AddressValidity nodes in the graph.
+type AddressValidityMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	_type          *addressvalidity.Type
+	is_primary     *bool
+	start_date     *time.Time
+	end_date       *time.Time
+	created_at     *time.Time
+	deleted_at     *time.Time
+	clearedFields  map[string]struct{}
+	tenant         *uuid.UUID
+	clearedtenant  bool
+	party          *uuid.UUID
+	clearedparty   bool
+	address        *uuid.UUID
+	clearedaddress bool
+	done           bool
+	oldValue       func(context.Context) (*AddressValidity, error)
+	predicates     []predicate.AddressValidity
+}
+
+var _ ent.Mutation = (*AddressValidityMutation)(nil)
+
+// addressvalidityOption allows management of the mutation configuration using functional options.
+type addressvalidityOption func(*AddressValidityMutation)
+
+// newAddressValidityMutation creates new mutation for the AddressValidity entity.
+func newAddressValidityMutation(c config, op Op, opts ...addressvalidityOption) *AddressValidityMutation {
+	m := &AddressValidityMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAddressValidity,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAddressValidityID sets the ID field of the mutation.
+func withAddressValidityID(id uuid.UUID) addressvalidityOption {
+	return func(m *AddressValidityMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AddressValidity
+		)
+		m.oldValue = func(ctx context.Context) (*AddressValidity, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AddressValidity.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAddressValidity sets the old AddressValidity of the mutation.
+func withAddressValidity(node *AddressValidity) addressvalidityOption {
+	return func(m *AddressValidityMutation) {
+		m.oldValue = func(context.Context) (*AddressValidity, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AddressValidityMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AddressValidityMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AddressValidity entities.
+func (m *AddressValidityMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AddressValidityMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AddressValidityMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AddressValidity.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (m *AddressValidityMutation) SetTenantID(u uuid.UUID) {
+	m.tenant = &u
+}
+
+// TenantID returns the value of the "tenant_id" field in the mutation.
+func (m *AddressValidityMutation) TenantID() (r uuid.UUID, exists bool) {
+	v := m.tenant
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTenantID returns the old "tenant_id" field's value of the AddressValidity entity.
+// If the AddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressValidityMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTenantID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+	}
+	return oldValue.TenantID, nil
+}
+
+// ResetTenantID resets all changes to the "tenant_id" field.
+func (m *AddressValidityMutation) ResetTenantID() {
+	m.tenant = nil
+}
+
+// SetPartyID sets the "party_id" field.
+func (m *AddressValidityMutation) SetPartyID(u uuid.UUID) {
+	m.party = &u
+}
+
+// PartyID returns the value of the "party_id" field in the mutation.
+func (m *AddressValidityMutation) PartyID() (r uuid.UUID, exists bool) {
+	v := m.party
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPartyID returns the old "party_id" field's value of the AddressValidity entity.
+// If the AddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressValidityMutation) OldPartyID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPartyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPartyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPartyID: %w", err)
+	}
+	return oldValue.PartyID, nil
+}
+
+// ResetPartyID resets all changes to the "party_id" field.
+func (m *AddressValidityMutation) ResetPartyID() {
+	m.party = nil
+}
+
+// SetAddressID sets the "address_id" field.
+func (m *AddressValidityMutation) SetAddressID(u uuid.UUID) {
+	m.address = &u
+}
+
+// AddressID returns the value of the "address_id" field in the mutation.
+func (m *AddressValidityMutation) AddressID() (r uuid.UUID, exists bool) {
+	v := m.address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAddressID returns the old "address_id" field's value of the AddressValidity entity.
+// If the AddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressValidityMutation) OldAddressID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAddressID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAddressID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAddressID: %w", err)
+	}
+	return oldValue.AddressID, nil
+}
+
+// ResetAddressID resets all changes to the "address_id" field.
+func (m *AddressValidityMutation) ResetAddressID() {
+	m.address = nil
+}
+
+// SetType sets the "type" field.
+func (m *AddressValidityMutation) SetType(a addressvalidity.Type) {
+	m._type = &a
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *AddressValidityMutation) GetType() (r addressvalidity.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the AddressValidity entity.
+// If the AddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressValidityMutation) OldType(ctx context.Context) (v addressvalidity.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *AddressValidityMutation) ResetType() {
+	m._type = nil
+}
+
+// SetIsPrimary sets the "is_primary" field.
+func (m *AddressValidityMutation) SetIsPrimary(b bool) {
+	m.is_primary = &b
+}
+
+// IsPrimary returns the value of the "is_primary" field in the mutation.
+func (m *AddressValidityMutation) IsPrimary() (r bool, exists bool) {
+	v := m.is_primary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPrimary returns the old "is_primary" field's value of the AddressValidity entity.
+// If the AddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressValidityMutation) OldIsPrimary(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPrimary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPrimary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPrimary: %w", err)
+	}
+	return oldValue.IsPrimary, nil
+}
+
+// ResetIsPrimary resets all changes to the "is_primary" field.
+func (m *AddressValidityMutation) ResetIsPrimary() {
+	m.is_primary = nil
+}
+
+// SetStartDate sets the "start_date" field.
+func (m *AddressValidityMutation) SetStartDate(t time.Time) {
+	m.start_date = &t
+}
+
+// StartDate returns the value of the "start_date" field in the mutation.
+func (m *AddressValidityMutation) StartDate() (r time.Time, exists bool) {
+	v := m.start_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartDate returns the old "start_date" field's value of the AddressValidity entity.
+// If the AddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressValidityMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
+	}
+	return oldValue.StartDate, nil
+}
+
+// ResetStartDate resets all changes to the "start_date" field.
+func (m *AddressValidityMutation) ResetStartDate() {
+	m.start_date = nil
+}
+
+// SetEndDate sets the "end_date" field.
+func (m *AddressValidityMutation) SetEndDate(t time.Time) {
+	m.end_date = &t
+}
+
+// EndDate returns the value of the "end_date" field in the mutation.
+func (m *AddressValidityMutation) EndDate() (r time.Time, exists bool) {
+	v := m.end_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndDate returns the old "end_date" field's value of the AddressValidity entity.
+// If the AddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressValidityMutation) OldEndDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndDate: %w", err)
+	}
+	return oldValue.EndDate, nil
+}
+
+// ClearEndDate clears the value of the "end_date" field.
+func (m *AddressValidityMutation) ClearEndDate() {
+	m.end_date = nil
+	m.clearedFields[addressvalidity.FieldEndDate] = struct{}{}
+}
+
+// EndDateCleared returns if the "end_date" field was cleared in this mutation.
+func (m *AddressValidityMutation) EndDateCleared() bool {
+	_, ok := m.clearedFields[addressvalidity.FieldEndDate]
+	return ok
+}
+
+// ResetEndDate resets all changes to the "end_date" field.
+func (m *AddressValidityMutation) ResetEndDate() {
+	m.end_date = nil
+	delete(m.clearedFields, addressvalidity.FieldEndDate)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AddressValidityMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AddressValidityMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AddressValidity entity.
+// If the AddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressValidityMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AddressValidityMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *AddressValidityMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *AddressValidityMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the AddressValidity entity.
+// If the AddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AddressValidityMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *AddressValidityMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[addressvalidity.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *AddressValidityMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[addressvalidity.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *AddressValidityMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, addressvalidity.FieldDeletedAt)
+}
+
+// ClearTenant clears the "tenant" edge to the Subscription entity.
+func (m *AddressValidityMutation) ClearTenant() {
+	m.clearedtenant = true
+	m.clearedFields[addressvalidity.FieldTenantID] = struct{}{}
+}
+
+// TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
+func (m *AddressValidityMutation) TenantCleared() bool {
+	return m.clearedtenant
+}
+
+// TenantIDs returns the "tenant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TenantID instead. It exists only for internal usage by the builders.
+func (m *AddressValidityMutation) TenantIDs() (ids []uuid.UUID) {
+	if id := m.tenant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTenant resets all changes to the "tenant" edge.
+func (m *AddressValidityMutation) ResetTenant() {
+	m.tenant = nil
+	m.clearedtenant = false
+}
+
+// ClearParty clears the "party" edge to the Party entity.
+func (m *AddressValidityMutation) ClearParty() {
+	m.clearedparty = true
+	m.clearedFields[addressvalidity.FieldPartyID] = struct{}{}
+}
+
+// PartyCleared reports if the "party" edge to the Party entity was cleared.
+func (m *AddressValidityMutation) PartyCleared() bool {
+	return m.clearedparty
+}
+
+// PartyIDs returns the "party" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PartyID instead. It exists only for internal usage by the builders.
+func (m *AddressValidityMutation) PartyIDs() (ids []uuid.UUID) {
+	if id := m.party; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParty resets all changes to the "party" edge.
+func (m *AddressValidityMutation) ResetParty() {
+	m.party = nil
+	m.clearedparty = false
+}
+
+// ClearAddress clears the "address" edge to the Address entity.
+func (m *AddressValidityMutation) ClearAddress() {
+	m.clearedaddress = true
+	m.clearedFields[addressvalidity.FieldAddressID] = struct{}{}
+}
+
+// AddressCleared reports if the "address" edge to the Address entity was cleared.
+func (m *AddressValidityMutation) AddressCleared() bool {
+	return m.clearedaddress
+}
+
+// AddressIDs returns the "address" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AddressID instead. It exists only for internal usage by the builders.
+func (m *AddressValidityMutation) AddressIDs() (ids []uuid.UUID) {
+	if id := m.address; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAddress resets all changes to the "address" edge.
+func (m *AddressValidityMutation) ResetAddress() {
+	m.address = nil
+	m.clearedaddress = false
+}
+
+// Where appends a list predicates to the AddressValidityMutation builder.
+func (m *AddressValidityMutation) Where(ps ...predicate.AddressValidity) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AddressValidityMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AddressValidityMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AddressValidity, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AddressValidityMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AddressValidityMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AddressValidity).
+func (m *AddressValidityMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AddressValidityMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.tenant != nil {
+		fields = append(fields, addressvalidity.FieldTenantID)
+	}
+	if m.party != nil {
+		fields = append(fields, addressvalidity.FieldPartyID)
+	}
+	if m.address != nil {
+		fields = append(fields, addressvalidity.FieldAddressID)
+	}
+	if m._type != nil {
+		fields = append(fields, addressvalidity.FieldType)
+	}
+	if m.is_primary != nil {
+		fields = append(fields, addressvalidity.FieldIsPrimary)
+	}
+	if m.start_date != nil {
+		fields = append(fields, addressvalidity.FieldStartDate)
+	}
+	if m.end_date != nil {
+		fields = append(fields, addressvalidity.FieldEndDate)
+	}
+	if m.created_at != nil {
+		fields = append(fields, addressvalidity.FieldCreatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, addressvalidity.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AddressValidityMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case addressvalidity.FieldTenantID:
+		return m.TenantID()
+	case addressvalidity.FieldPartyID:
+		return m.PartyID()
+	case addressvalidity.FieldAddressID:
+		return m.AddressID()
+	case addressvalidity.FieldType:
+		return m.GetType()
+	case addressvalidity.FieldIsPrimary:
+		return m.IsPrimary()
+	case addressvalidity.FieldStartDate:
+		return m.StartDate()
+	case addressvalidity.FieldEndDate:
+		return m.EndDate()
+	case addressvalidity.FieldCreatedAt:
+		return m.CreatedAt()
+	case addressvalidity.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AddressValidityMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case addressvalidity.FieldTenantID:
+		return m.OldTenantID(ctx)
+	case addressvalidity.FieldPartyID:
+		return m.OldPartyID(ctx)
+	case addressvalidity.FieldAddressID:
+		return m.OldAddressID(ctx)
+	case addressvalidity.FieldType:
+		return m.OldType(ctx)
+	case addressvalidity.FieldIsPrimary:
+		return m.OldIsPrimary(ctx)
+	case addressvalidity.FieldStartDate:
+		return m.OldStartDate(ctx)
+	case addressvalidity.FieldEndDate:
+		return m.OldEndDate(ctx)
+	case addressvalidity.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case addressvalidity.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown AddressValidity field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AddressValidityMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case addressvalidity.FieldTenantID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTenantID(v)
+		return nil
+	case addressvalidity.FieldPartyID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPartyID(v)
+		return nil
+	case addressvalidity.FieldAddressID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAddressID(v)
+		return nil
+	case addressvalidity.FieldType:
+		v, ok := value.(addressvalidity.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case addressvalidity.FieldIsPrimary:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPrimary(v)
+		return nil
+	case addressvalidity.FieldStartDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartDate(v)
+		return nil
+	case addressvalidity.FieldEndDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndDate(v)
+		return nil
+	case addressvalidity.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case addressvalidity.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AddressValidity field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AddressValidityMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AddressValidityMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AddressValidityMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AddressValidity numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AddressValidityMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(addressvalidity.FieldEndDate) {
+		fields = append(fields, addressvalidity.FieldEndDate)
+	}
+	if m.FieldCleared(addressvalidity.FieldDeletedAt) {
+		fields = append(fields, addressvalidity.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AddressValidityMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AddressValidityMutation) ClearField(name string) error {
+	switch name {
+	case addressvalidity.FieldEndDate:
+		m.ClearEndDate()
+		return nil
+	case addressvalidity.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AddressValidity nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AddressValidityMutation) ResetField(name string) error {
+	switch name {
+	case addressvalidity.FieldTenantID:
+		m.ResetTenantID()
+		return nil
+	case addressvalidity.FieldPartyID:
+		m.ResetPartyID()
+		return nil
+	case addressvalidity.FieldAddressID:
+		m.ResetAddressID()
+		return nil
+	case addressvalidity.FieldType:
+		m.ResetType()
+		return nil
+	case addressvalidity.FieldIsPrimary:
+		m.ResetIsPrimary()
+		return nil
+	case addressvalidity.FieldStartDate:
+		m.ResetStartDate()
+		return nil
+	case addressvalidity.FieldEndDate:
+		m.ResetEndDate()
+		return nil
+	case addressvalidity.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case addressvalidity.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AddressValidity field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AddressValidityMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.tenant != nil {
+		edges = append(edges, addressvalidity.EdgeTenant)
+	}
+	if m.party != nil {
+		edges = append(edges, addressvalidity.EdgeParty)
+	}
+	if m.address != nil {
+		edges = append(edges, addressvalidity.EdgeAddress)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AddressValidityMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case addressvalidity.EdgeTenant:
+		if id := m.tenant; id != nil {
+			return []ent.Value{*id}
+		}
+	case addressvalidity.EdgeParty:
+		if id := m.party; id != nil {
+			return []ent.Value{*id}
+		}
+	case addressvalidity.EdgeAddress:
+		if id := m.address; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AddressValidityMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AddressValidityMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AddressValidityMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedtenant {
+		edges = append(edges, addressvalidity.EdgeTenant)
+	}
+	if m.clearedparty {
+		edges = append(edges, addressvalidity.EdgeParty)
+	}
+	if m.clearedaddress {
+		edges = append(edges, addressvalidity.EdgeAddress)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AddressValidityMutation) EdgeCleared(name string) bool {
+	switch name {
+	case addressvalidity.EdgeTenant:
+		return m.clearedtenant
+	case addressvalidity.EdgeParty:
+		return m.clearedparty
+	case addressvalidity.EdgeAddress:
+		return m.clearedaddress
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AddressValidityMutation) ClearEdge(name string) error {
+	switch name {
+	case addressvalidity.EdgeTenant:
+		m.ClearTenant()
+		return nil
+	case addressvalidity.EdgeParty:
+		m.ClearParty()
+		return nil
+	case addressvalidity.EdgeAddress:
+		m.ClearAddress()
+		return nil
+	}
+	return fmt.Errorf("unknown AddressValidity unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AddressValidityMutation) ResetEdge(name string) error {
+	switch name {
+	case addressvalidity.EdgeTenant:
+		m.ResetTenant()
+		return nil
+	case addressvalidity.EdgeParty:
+		m.ResetParty()
+		return nil
+	case addressvalidity.EdgeAddress:
+		m.ResetAddress()
+		return nil
+	}
+	return fmt.Errorf("unknown AddressValidity edge %s", name)
 }
 
 // AttachedDocumentMutation represents an operation that mutates the AttachedDocument nodes in the graph.
@@ -2337,18 +3329,21 @@ func (m *AttachedDocumentMutation) ResetEdge(name string) error {
 // ContactMechanismMutation represents an operation that mutates the ContactMechanism nodes in the graph.
 type ContactMechanismMutation struct {
 	config
-	op                              Op
-	typ                             string
-	id                              *uuid.UUID
-	_type                           *contactmechanism.Type
-	value                           *string
-	clearedFields                   map[string]struct{}
-	party_contact_mechanisms        map[uuid.UUID]struct{}
-	removedparty_contact_mechanisms map[uuid.UUID]struct{}
-	clearedparty_contact_mechanisms bool
-	done                            bool
-	oldValue                        func(context.Context) (*ContactMechanism, error)
-	predicates                      []predicate.ContactMechanism
+	op                                   Op
+	typ                                  string
+	id                                   *uuid.UUID
+	_type                                *contactmechanism.Type
+	value                                *string
+	clearedFields                        map[string]struct{}
+	party_contact_mechanisms             map[uuid.UUID]struct{}
+	removedparty_contact_mechanisms      map[uuid.UUID]struct{}
+	clearedparty_contact_mechanisms      bool
+	department_contact_mechanisms        map[uuid.UUID]struct{}
+	removeddepartment_contact_mechanisms map[uuid.UUID]struct{}
+	cleareddepartment_contact_mechanisms bool
+	done                                 bool
+	oldValue                             func(context.Context) (*ContactMechanism, error)
+	predicates                           []predicate.ContactMechanism
 }
 
 var _ ent.Mutation = (*ContactMechanismMutation)(nil)
@@ -2581,6 +3576,60 @@ func (m *ContactMechanismMutation) ResetPartyContactMechanisms() {
 	m.removedparty_contact_mechanisms = nil
 }
 
+// AddDepartmentContactMechanismIDs adds the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity by ids.
+func (m *ContactMechanismMutation) AddDepartmentContactMechanismIDs(ids ...uuid.UUID) {
+	if m.department_contact_mechanisms == nil {
+		m.department_contact_mechanisms = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.department_contact_mechanisms[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDepartmentContactMechanisms clears the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity.
+func (m *ContactMechanismMutation) ClearDepartmentContactMechanisms() {
+	m.cleareddepartment_contact_mechanisms = true
+}
+
+// DepartmentContactMechanismsCleared reports if the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity was cleared.
+func (m *ContactMechanismMutation) DepartmentContactMechanismsCleared() bool {
+	return m.cleareddepartment_contact_mechanisms
+}
+
+// RemoveDepartmentContactMechanismIDs removes the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity by IDs.
+func (m *ContactMechanismMutation) RemoveDepartmentContactMechanismIDs(ids ...uuid.UUID) {
+	if m.removeddepartment_contact_mechanisms == nil {
+		m.removeddepartment_contact_mechanisms = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.department_contact_mechanisms, ids[i])
+		m.removeddepartment_contact_mechanisms[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDepartmentContactMechanisms returns the removed IDs of the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity.
+func (m *ContactMechanismMutation) RemovedDepartmentContactMechanismsIDs() (ids []uuid.UUID) {
+	for id := range m.removeddepartment_contact_mechanisms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DepartmentContactMechanismsIDs returns the "department_contact_mechanisms" edge IDs in the mutation.
+func (m *ContactMechanismMutation) DepartmentContactMechanismsIDs() (ids []uuid.UUID) {
+	for id := range m.department_contact_mechanisms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDepartmentContactMechanisms resets all changes to the "department_contact_mechanisms" edge.
+func (m *ContactMechanismMutation) ResetDepartmentContactMechanisms() {
+	m.department_contact_mechanisms = nil
+	m.cleareddepartment_contact_mechanisms = false
+	m.removeddepartment_contact_mechanisms = nil
+}
+
 // Where appends a list predicates to the ContactMechanismMutation builder.
 func (m *ContactMechanismMutation) Where(ps ...predicate.ContactMechanism) {
 	m.predicates = append(m.predicates, ps...)
@@ -2731,9 +3780,12 @@ func (m *ContactMechanismMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ContactMechanismMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.party_contact_mechanisms != nil {
 		edges = append(edges, contactmechanism.EdgePartyContactMechanisms)
+	}
+	if m.department_contact_mechanisms != nil {
+		edges = append(edges, contactmechanism.EdgeDepartmentContactMechanisms)
 	}
 	return edges
 }
@@ -2748,15 +3800,24 @@ func (m *ContactMechanismMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case contactmechanism.EdgeDepartmentContactMechanisms:
+		ids := make([]ent.Value, 0, len(m.department_contact_mechanisms))
+		for id := range m.department_contact_mechanisms {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ContactMechanismMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedparty_contact_mechanisms != nil {
 		edges = append(edges, contactmechanism.EdgePartyContactMechanisms)
+	}
+	if m.removeddepartment_contact_mechanisms != nil {
+		edges = append(edges, contactmechanism.EdgeDepartmentContactMechanisms)
 	}
 	return edges
 }
@@ -2771,15 +3832,24 @@ func (m *ContactMechanismMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case contactmechanism.EdgeDepartmentContactMechanisms:
+		ids := make([]ent.Value, 0, len(m.removeddepartment_contact_mechanisms))
+		for id := range m.removeddepartment_contact_mechanisms {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ContactMechanismMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedparty_contact_mechanisms {
 		edges = append(edges, contactmechanism.EdgePartyContactMechanisms)
+	}
+	if m.cleareddepartment_contact_mechanisms {
+		edges = append(edges, contactmechanism.EdgeDepartmentContactMechanisms)
 	}
 	return edges
 }
@@ -2790,6 +3860,8 @@ func (m *ContactMechanismMutation) EdgeCleared(name string) bool {
 	switch name {
 	case contactmechanism.EdgePartyContactMechanisms:
 		return m.clearedparty_contact_mechanisms
+	case contactmechanism.EdgeDepartmentContactMechanisms:
+		return m.cleareddepartment_contact_mechanisms
 	}
 	return false
 }
@@ -2808,6 +3880,9 @@ func (m *ContactMechanismMutation) ResetEdge(name string) error {
 	switch name {
 	case contactmechanism.EdgePartyContactMechanisms:
 		m.ResetPartyContactMechanisms()
+		return nil
+	case contactmechanism.EdgeDepartmentContactMechanisms:
+		m.ResetDepartmentContactMechanisms()
 		return nil
 	}
 	return fmt.Errorf("unknown ContactMechanism edge %s", name)
@@ -3598,37 +4673,49 @@ func (m *CorporateGroupMutation) ResetEdge(name string) error {
 // DepartmentMutation represents an operation that mutates the Department nodes in the graph.
 type DepartmentMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *uuid.UUID
-	name                     *string
-	code                     *string
-	unit_type                *department.UnitType
-	created_at               *time.Time
-	updated_at               *time.Time
-	deleted_at               *time.Time
-	clearedFields            map[string]struct{}
-	tenant                   *uuid.UUID
-	clearedtenant            bool
-	children                 map[uuid.UUID]struct{}
-	removedchildren          map[uuid.UUID]struct{}
-	clearedchildren          bool
-	parent                   *uuid.UUID
-	clearedparent            bool
-	manager                  *uuid.UUID
-	clearedmanager           bool
-	employees                map[uuid.UUID]struct{}
-	removedemployees         map[uuid.UUID]struct{}
-	clearedemployees         bool
-	assignments              map[uuid.UUID]struct{}
-	removedassignments       map[uuid.UUID]struct{}
-	clearedassignments       bool
-	group_assignments        map[uuid.UUID]struct{}
-	removedgroup_assignments map[uuid.UUID]struct{}
-	clearedgroup_assignments bool
-	done                     bool
-	oldValue                 func(context.Context) (*Department, error)
-	predicates               []predicate.Department
+	op                                  Op
+	typ                                 string
+	id                                  *uuid.UUID
+	name                                *string
+	code                                *string
+	unit_type                           *department.UnitType
+	created_at                          *time.Time
+	updated_at                          *time.Time
+	deleted_at                          *time.Time
+	clearedFields                       map[string]struct{}
+	tenant                              *uuid.UUID
+	clearedtenant                       bool
+	children                            map[uuid.UUID]struct{}
+	removedchildren                     map[uuid.UUID]struct{}
+	clearedchildren                     bool
+	parent                              *uuid.UUID
+	clearedparent                       bool
+	manager                             *uuid.UUID
+	clearedmanager                      bool
+	employees                           map[uuid.UUID]struct{}
+	removedemployees                    map[uuid.UUID]struct{}
+	clearedemployees                    bool
+	assignments                         map[uuid.UUID]struct{}
+	removedassignments                  map[uuid.UUID]struct{}
+	clearedassignments                  bool
+	group_assignments                   map[uuid.UUID]struct{}
+	removedgroup_assignments            map[uuid.UUID]struct{}
+	clearedgroup_assignments            bool
+	contact_mechanisms                  map[uuid.UUID]struct{}
+	removedcontact_mechanisms           map[uuid.UUID]struct{}
+	clearedcontact_mechanisms           bool
+	contact_mechanism_validities        map[uuid.UUID]struct{}
+	removedcontact_mechanism_validities map[uuid.UUID]struct{}
+	clearedcontact_mechanism_validities bool
+	addresses                           map[uuid.UUID]struct{}
+	removedaddresses                    map[uuid.UUID]struct{}
+	clearedaddresses                    bool
+	address_validities                  map[uuid.UUID]struct{}
+	removedaddress_validities           map[uuid.UUID]struct{}
+	clearedaddress_validities           bool
+	done                                bool
+	oldValue                            func(context.Context) (*Department, error)
+	predicates                          []predicate.Department
 }
 
 var _ ent.Mutation = (*DepartmentMutation)(nil)
@@ -4421,6 +5508,222 @@ func (m *DepartmentMutation) ResetGroupAssignments() {
 	m.removedgroup_assignments = nil
 }
 
+// AddContactMechanismIDs adds the "contact_mechanisms" edge to the DepartmentContactMechanism entity by ids.
+func (m *DepartmentMutation) AddContactMechanismIDs(ids ...uuid.UUID) {
+	if m.contact_mechanisms == nil {
+		m.contact_mechanisms = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.contact_mechanisms[ids[i]] = struct{}{}
+	}
+}
+
+// ClearContactMechanisms clears the "contact_mechanisms" edge to the DepartmentContactMechanism entity.
+func (m *DepartmentMutation) ClearContactMechanisms() {
+	m.clearedcontact_mechanisms = true
+}
+
+// ContactMechanismsCleared reports if the "contact_mechanisms" edge to the DepartmentContactMechanism entity was cleared.
+func (m *DepartmentMutation) ContactMechanismsCleared() bool {
+	return m.clearedcontact_mechanisms
+}
+
+// RemoveContactMechanismIDs removes the "contact_mechanisms" edge to the DepartmentContactMechanism entity by IDs.
+func (m *DepartmentMutation) RemoveContactMechanismIDs(ids ...uuid.UUID) {
+	if m.removedcontact_mechanisms == nil {
+		m.removedcontact_mechanisms = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.contact_mechanisms, ids[i])
+		m.removedcontact_mechanisms[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedContactMechanisms returns the removed IDs of the "contact_mechanisms" edge to the DepartmentContactMechanism entity.
+func (m *DepartmentMutation) RemovedContactMechanismsIDs() (ids []uuid.UUID) {
+	for id := range m.removedcontact_mechanisms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ContactMechanismsIDs returns the "contact_mechanisms" edge IDs in the mutation.
+func (m *DepartmentMutation) ContactMechanismsIDs() (ids []uuid.UUID) {
+	for id := range m.contact_mechanisms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetContactMechanisms resets all changes to the "contact_mechanisms" edge.
+func (m *DepartmentMutation) ResetContactMechanisms() {
+	m.contact_mechanisms = nil
+	m.clearedcontact_mechanisms = false
+	m.removedcontact_mechanisms = nil
+}
+
+// AddContactMechanismValidityIDs adds the "contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity by ids.
+func (m *DepartmentMutation) AddContactMechanismValidityIDs(ids ...uuid.UUID) {
+	if m.contact_mechanism_validities == nil {
+		m.contact_mechanism_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.contact_mechanism_validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearContactMechanismValidities clears the "contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity.
+func (m *DepartmentMutation) ClearContactMechanismValidities() {
+	m.clearedcontact_mechanism_validities = true
+}
+
+// ContactMechanismValiditiesCleared reports if the "contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity was cleared.
+func (m *DepartmentMutation) ContactMechanismValiditiesCleared() bool {
+	return m.clearedcontact_mechanism_validities
+}
+
+// RemoveContactMechanismValidityIDs removes the "contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity by IDs.
+func (m *DepartmentMutation) RemoveContactMechanismValidityIDs(ids ...uuid.UUID) {
+	if m.removedcontact_mechanism_validities == nil {
+		m.removedcontact_mechanism_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.contact_mechanism_validities, ids[i])
+		m.removedcontact_mechanism_validities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedContactMechanismValidities returns the removed IDs of the "contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity.
+func (m *DepartmentMutation) RemovedContactMechanismValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedcontact_mechanism_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ContactMechanismValiditiesIDs returns the "contact_mechanism_validities" edge IDs in the mutation.
+func (m *DepartmentMutation) ContactMechanismValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.contact_mechanism_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetContactMechanismValidities resets all changes to the "contact_mechanism_validities" edge.
+func (m *DepartmentMutation) ResetContactMechanismValidities() {
+	m.contact_mechanism_validities = nil
+	m.clearedcontact_mechanism_validities = false
+	m.removedcontact_mechanism_validities = nil
+}
+
+// AddAddressIDs adds the "addresses" edge to the DepartmentAddress entity by ids.
+func (m *DepartmentMutation) AddAddressIDs(ids ...uuid.UUID) {
+	if m.addresses == nil {
+		m.addresses = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.addresses[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAddresses clears the "addresses" edge to the DepartmentAddress entity.
+func (m *DepartmentMutation) ClearAddresses() {
+	m.clearedaddresses = true
+}
+
+// AddressesCleared reports if the "addresses" edge to the DepartmentAddress entity was cleared.
+func (m *DepartmentMutation) AddressesCleared() bool {
+	return m.clearedaddresses
+}
+
+// RemoveAddressIDs removes the "addresses" edge to the DepartmentAddress entity by IDs.
+func (m *DepartmentMutation) RemoveAddressIDs(ids ...uuid.UUID) {
+	if m.removedaddresses == nil {
+		m.removedaddresses = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.addresses, ids[i])
+		m.removedaddresses[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAddresses returns the removed IDs of the "addresses" edge to the DepartmentAddress entity.
+func (m *DepartmentMutation) RemovedAddressesIDs() (ids []uuid.UUID) {
+	for id := range m.removedaddresses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AddressesIDs returns the "addresses" edge IDs in the mutation.
+func (m *DepartmentMutation) AddressesIDs() (ids []uuid.UUID) {
+	for id := range m.addresses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAddresses resets all changes to the "addresses" edge.
+func (m *DepartmentMutation) ResetAddresses() {
+	m.addresses = nil
+	m.clearedaddresses = false
+	m.removedaddresses = nil
+}
+
+// AddAddressValidityIDs adds the "address_validities" edge to the DepartmentAddressValidity entity by ids.
+func (m *DepartmentMutation) AddAddressValidityIDs(ids ...uuid.UUID) {
+	if m.address_validities == nil {
+		m.address_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.address_validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAddressValidities clears the "address_validities" edge to the DepartmentAddressValidity entity.
+func (m *DepartmentMutation) ClearAddressValidities() {
+	m.clearedaddress_validities = true
+}
+
+// AddressValiditiesCleared reports if the "address_validities" edge to the DepartmentAddressValidity entity was cleared.
+func (m *DepartmentMutation) AddressValiditiesCleared() bool {
+	return m.clearedaddress_validities
+}
+
+// RemoveAddressValidityIDs removes the "address_validities" edge to the DepartmentAddressValidity entity by IDs.
+func (m *DepartmentMutation) RemoveAddressValidityIDs(ids ...uuid.UUID) {
+	if m.removedaddress_validities == nil {
+		m.removedaddress_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.address_validities, ids[i])
+		m.removedaddress_validities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAddressValidities returns the removed IDs of the "address_validities" edge to the DepartmentAddressValidity entity.
+func (m *DepartmentMutation) RemovedAddressValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedaddress_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AddressValiditiesIDs returns the "address_validities" edge IDs in the mutation.
+func (m *DepartmentMutation) AddressValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.address_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAddressValidities resets all changes to the "address_validities" edge.
+func (m *DepartmentMutation) ResetAddressValidities() {
+	m.address_validities = nil
+	m.clearedaddress_validities = false
+	m.removedaddress_validities = nil
+}
+
 // Where appends a list predicates to the DepartmentMutation builder.
 func (m *DepartmentMutation) Where(ps ...predicate.Department) {
 	m.predicates = append(m.predicates, ps...)
@@ -4711,7 +6014,7 @@ func (m *DepartmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DepartmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 11)
 	if m.tenant != nil {
 		edges = append(edges, department.EdgeTenant)
 	}
@@ -4732,6 +6035,18 @@ func (m *DepartmentMutation) AddedEdges() []string {
 	}
 	if m.group_assignments != nil {
 		edges = append(edges, department.EdgeGroupAssignments)
+	}
+	if m.contact_mechanisms != nil {
+		edges = append(edges, department.EdgeContactMechanisms)
+	}
+	if m.contact_mechanism_validities != nil {
+		edges = append(edges, department.EdgeContactMechanismValidities)
+	}
+	if m.addresses != nil {
+		edges = append(edges, department.EdgeAddresses)
+	}
+	if m.address_validities != nil {
+		edges = append(edges, department.EdgeAddressValidities)
 	}
 	return edges
 }
@@ -4776,13 +6091,37 @@ func (m *DepartmentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case department.EdgeContactMechanisms:
+		ids := make([]ent.Value, 0, len(m.contact_mechanisms))
+		for id := range m.contact_mechanisms {
+			ids = append(ids, id)
+		}
+		return ids
+	case department.EdgeContactMechanismValidities:
+		ids := make([]ent.Value, 0, len(m.contact_mechanism_validities))
+		for id := range m.contact_mechanism_validities {
+			ids = append(ids, id)
+		}
+		return ids
+	case department.EdgeAddresses:
+		ids := make([]ent.Value, 0, len(m.addresses))
+		for id := range m.addresses {
+			ids = append(ids, id)
+		}
+		return ids
+	case department.EdgeAddressValidities:
+		ids := make([]ent.Value, 0, len(m.address_validities))
+		for id := range m.address_validities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DepartmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 11)
 	if m.removedchildren != nil {
 		edges = append(edges, department.EdgeChildren)
 	}
@@ -4794,6 +6133,18 @@ func (m *DepartmentMutation) RemovedEdges() []string {
 	}
 	if m.removedgroup_assignments != nil {
 		edges = append(edges, department.EdgeGroupAssignments)
+	}
+	if m.removedcontact_mechanisms != nil {
+		edges = append(edges, department.EdgeContactMechanisms)
+	}
+	if m.removedcontact_mechanism_validities != nil {
+		edges = append(edges, department.EdgeContactMechanismValidities)
+	}
+	if m.removedaddresses != nil {
+		edges = append(edges, department.EdgeAddresses)
+	}
+	if m.removedaddress_validities != nil {
+		edges = append(edges, department.EdgeAddressValidities)
 	}
 	return edges
 }
@@ -4826,13 +6177,37 @@ func (m *DepartmentMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case department.EdgeContactMechanisms:
+		ids := make([]ent.Value, 0, len(m.removedcontact_mechanisms))
+		for id := range m.removedcontact_mechanisms {
+			ids = append(ids, id)
+		}
+		return ids
+	case department.EdgeContactMechanismValidities:
+		ids := make([]ent.Value, 0, len(m.removedcontact_mechanism_validities))
+		for id := range m.removedcontact_mechanism_validities {
+			ids = append(ids, id)
+		}
+		return ids
+	case department.EdgeAddresses:
+		ids := make([]ent.Value, 0, len(m.removedaddresses))
+		for id := range m.removedaddresses {
+			ids = append(ids, id)
+		}
+		return ids
+	case department.EdgeAddressValidities:
+		ids := make([]ent.Value, 0, len(m.removedaddress_validities))
+		for id := range m.removedaddress_validities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DepartmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 7)
+	edges := make([]string, 0, 11)
 	if m.clearedtenant {
 		edges = append(edges, department.EdgeTenant)
 	}
@@ -4853,6 +6228,18 @@ func (m *DepartmentMutation) ClearedEdges() []string {
 	}
 	if m.clearedgroup_assignments {
 		edges = append(edges, department.EdgeGroupAssignments)
+	}
+	if m.clearedcontact_mechanisms {
+		edges = append(edges, department.EdgeContactMechanisms)
+	}
+	if m.clearedcontact_mechanism_validities {
+		edges = append(edges, department.EdgeContactMechanismValidities)
+	}
+	if m.clearedaddresses {
+		edges = append(edges, department.EdgeAddresses)
+	}
+	if m.clearedaddress_validities {
+		edges = append(edges, department.EdgeAddressValidities)
 	}
 	return edges
 }
@@ -4875,6 +6262,14 @@ func (m *DepartmentMutation) EdgeCleared(name string) bool {
 		return m.clearedassignments
 	case department.EdgeGroupAssignments:
 		return m.clearedgroup_assignments
+	case department.EdgeContactMechanisms:
+		return m.clearedcontact_mechanisms
+	case department.EdgeContactMechanismValidities:
+		return m.clearedcontact_mechanism_validities
+	case department.EdgeAddresses:
+		return m.clearedaddresses
+	case department.EdgeAddressValidities:
+		return m.clearedaddress_validities
 	}
 	return false
 }
@@ -4921,8 +6316,3919 @@ func (m *DepartmentMutation) ResetEdge(name string) error {
 	case department.EdgeGroupAssignments:
 		m.ResetGroupAssignments()
 		return nil
+	case department.EdgeContactMechanisms:
+		m.ResetContactMechanisms()
+		return nil
+	case department.EdgeContactMechanismValidities:
+		m.ResetContactMechanismValidities()
+		return nil
+	case department.EdgeAddresses:
+		m.ResetAddresses()
+		return nil
+	case department.EdgeAddressValidities:
+		m.ResetAddressValidities()
+		return nil
 	}
 	return fmt.Errorf("unknown Department edge %s", name)
+}
+
+// DepartmentAddressMutation represents an operation that mutates the DepartmentAddress nodes in the graph.
+type DepartmentAddressMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	_type                *departmentaddress.Type
+	line1                *string
+	line2                *string
+	created_at           *time.Time
+	updated_at           *time.Time
+	deleted_at           *time.Time
+	clearedFields        map[string]struct{}
+	tenant               *uuid.UUID
+	clearedtenant        bool
+	department           *uuid.UUID
+	cleareddepartment    bool
+	city_location        *uuid.UUID
+	clearedcity_location bool
+	validities           map[uuid.UUID]struct{}
+	removedvalidities    map[uuid.UUID]struct{}
+	clearedvalidities    bool
+	done                 bool
+	oldValue             func(context.Context) (*DepartmentAddress, error)
+	predicates           []predicate.DepartmentAddress
+}
+
+var _ ent.Mutation = (*DepartmentAddressMutation)(nil)
+
+// departmentaddressOption allows management of the mutation configuration using functional options.
+type departmentaddressOption func(*DepartmentAddressMutation)
+
+// newDepartmentAddressMutation creates new mutation for the DepartmentAddress entity.
+func newDepartmentAddressMutation(c config, op Op, opts ...departmentaddressOption) *DepartmentAddressMutation {
+	m := &DepartmentAddressMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDepartmentAddress,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDepartmentAddressID sets the ID field of the mutation.
+func withDepartmentAddressID(id uuid.UUID) departmentaddressOption {
+	return func(m *DepartmentAddressMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DepartmentAddress
+		)
+		m.oldValue = func(ctx context.Context) (*DepartmentAddress, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DepartmentAddress.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDepartmentAddress sets the old DepartmentAddress of the mutation.
+func withDepartmentAddress(node *DepartmentAddress) departmentaddressOption {
+	return func(m *DepartmentAddressMutation) {
+		m.oldValue = func(context.Context) (*DepartmentAddress, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DepartmentAddressMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DepartmentAddressMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DepartmentAddress entities.
+func (m *DepartmentAddressMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DepartmentAddressMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DepartmentAddressMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DepartmentAddress.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (m *DepartmentAddressMutation) SetTenantID(u uuid.UUID) {
+	m.tenant = &u
+}
+
+// TenantID returns the value of the "tenant_id" field in the mutation.
+func (m *DepartmentAddressMutation) TenantID() (r uuid.UUID, exists bool) {
+	v := m.tenant
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTenantID returns the old "tenant_id" field's value of the DepartmentAddress entity.
+// If the DepartmentAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTenantID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+	}
+	return oldValue.TenantID, nil
+}
+
+// ResetTenantID resets all changes to the "tenant_id" field.
+func (m *DepartmentAddressMutation) ResetTenantID() {
+	m.tenant = nil
+}
+
+// SetDepartmentID sets the "department_id" field.
+func (m *DepartmentAddressMutation) SetDepartmentID(u uuid.UUID) {
+	m.department = &u
+}
+
+// DepartmentID returns the value of the "department_id" field in the mutation.
+func (m *DepartmentAddressMutation) DepartmentID() (r uuid.UUID, exists bool) {
+	v := m.department
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepartmentID returns the old "department_id" field's value of the DepartmentAddress entity.
+// If the DepartmentAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressMutation) OldDepartmentID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepartmentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepartmentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepartmentID: %w", err)
+	}
+	return oldValue.DepartmentID, nil
+}
+
+// ResetDepartmentID resets all changes to the "department_id" field.
+func (m *DepartmentAddressMutation) ResetDepartmentID() {
+	m.department = nil
+}
+
+// SetCityLocationID sets the "city_location_id" field.
+func (m *DepartmentAddressMutation) SetCityLocationID(u uuid.UUID) {
+	m.city_location = &u
+}
+
+// CityLocationID returns the value of the "city_location_id" field in the mutation.
+func (m *DepartmentAddressMutation) CityLocationID() (r uuid.UUID, exists bool) {
+	v := m.city_location
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCityLocationID returns the old "city_location_id" field's value of the DepartmentAddress entity.
+// If the DepartmentAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressMutation) OldCityLocationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCityLocationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCityLocationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCityLocationID: %w", err)
+	}
+	return oldValue.CityLocationID, nil
+}
+
+// ResetCityLocationID resets all changes to the "city_location_id" field.
+func (m *DepartmentAddressMutation) ResetCityLocationID() {
+	m.city_location = nil
+}
+
+// SetType sets the "type" field.
+func (m *DepartmentAddressMutation) SetType(d departmentaddress.Type) {
+	m._type = &d
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *DepartmentAddressMutation) GetType() (r departmentaddress.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the DepartmentAddress entity.
+// If the DepartmentAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressMutation) OldType(ctx context.Context) (v departmentaddress.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *DepartmentAddressMutation) ResetType() {
+	m._type = nil
+}
+
+// SetLine1 sets the "line1" field.
+func (m *DepartmentAddressMutation) SetLine1(s string) {
+	m.line1 = &s
+}
+
+// Line1 returns the value of the "line1" field in the mutation.
+func (m *DepartmentAddressMutation) Line1() (r string, exists bool) {
+	v := m.line1
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLine1 returns the old "line1" field's value of the DepartmentAddress entity.
+// If the DepartmentAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressMutation) OldLine1(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLine1 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLine1 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLine1: %w", err)
+	}
+	return oldValue.Line1, nil
+}
+
+// ResetLine1 resets all changes to the "line1" field.
+func (m *DepartmentAddressMutation) ResetLine1() {
+	m.line1 = nil
+}
+
+// SetLine2 sets the "line2" field.
+func (m *DepartmentAddressMutation) SetLine2(s string) {
+	m.line2 = &s
+}
+
+// Line2 returns the value of the "line2" field in the mutation.
+func (m *DepartmentAddressMutation) Line2() (r string, exists bool) {
+	v := m.line2
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLine2 returns the old "line2" field's value of the DepartmentAddress entity.
+// If the DepartmentAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressMutation) OldLine2(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLine2 is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLine2 requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLine2: %w", err)
+	}
+	return oldValue.Line2, nil
+}
+
+// ClearLine2 clears the value of the "line2" field.
+func (m *DepartmentAddressMutation) ClearLine2() {
+	m.line2 = nil
+	m.clearedFields[departmentaddress.FieldLine2] = struct{}{}
+}
+
+// Line2Cleared returns if the "line2" field was cleared in this mutation.
+func (m *DepartmentAddressMutation) Line2Cleared() bool {
+	_, ok := m.clearedFields[departmentaddress.FieldLine2]
+	return ok
+}
+
+// ResetLine2 resets all changes to the "line2" field.
+func (m *DepartmentAddressMutation) ResetLine2() {
+	m.line2 = nil
+	delete(m.clearedFields, departmentaddress.FieldLine2)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DepartmentAddressMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DepartmentAddressMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DepartmentAddress entity.
+// If the DepartmentAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DepartmentAddressMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DepartmentAddressMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DepartmentAddressMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DepartmentAddress entity.
+// If the DepartmentAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DepartmentAddressMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *DepartmentAddressMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *DepartmentAddressMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the DepartmentAddress entity.
+// If the DepartmentAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *DepartmentAddressMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[departmentaddress.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *DepartmentAddressMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[departmentaddress.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *DepartmentAddressMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, departmentaddress.FieldDeletedAt)
+}
+
+// ClearTenant clears the "tenant" edge to the Subscription entity.
+func (m *DepartmentAddressMutation) ClearTenant() {
+	m.clearedtenant = true
+	m.clearedFields[departmentaddress.FieldTenantID] = struct{}{}
+}
+
+// TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
+func (m *DepartmentAddressMutation) TenantCleared() bool {
+	return m.clearedtenant
+}
+
+// TenantIDs returns the "tenant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TenantID instead. It exists only for internal usage by the builders.
+func (m *DepartmentAddressMutation) TenantIDs() (ids []uuid.UUID) {
+	if id := m.tenant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTenant resets all changes to the "tenant" edge.
+func (m *DepartmentAddressMutation) ResetTenant() {
+	m.tenant = nil
+	m.clearedtenant = false
+}
+
+// ClearDepartment clears the "department" edge to the Department entity.
+func (m *DepartmentAddressMutation) ClearDepartment() {
+	m.cleareddepartment = true
+	m.clearedFields[departmentaddress.FieldDepartmentID] = struct{}{}
+}
+
+// DepartmentCleared reports if the "department" edge to the Department entity was cleared.
+func (m *DepartmentAddressMutation) DepartmentCleared() bool {
+	return m.cleareddepartment
+}
+
+// DepartmentIDs returns the "department" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DepartmentID instead. It exists only for internal usage by the builders.
+func (m *DepartmentAddressMutation) DepartmentIDs() (ids []uuid.UUID) {
+	if id := m.department; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDepartment resets all changes to the "department" edge.
+func (m *DepartmentAddressMutation) ResetDepartment() {
+	m.department = nil
+	m.cleareddepartment = false
+}
+
+// ClearCityLocation clears the "city_location" edge to the Location entity.
+func (m *DepartmentAddressMutation) ClearCityLocation() {
+	m.clearedcity_location = true
+	m.clearedFields[departmentaddress.FieldCityLocationID] = struct{}{}
+}
+
+// CityLocationCleared reports if the "city_location" edge to the Location entity was cleared.
+func (m *DepartmentAddressMutation) CityLocationCleared() bool {
+	return m.clearedcity_location
+}
+
+// CityLocationIDs returns the "city_location" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CityLocationID instead. It exists only for internal usage by the builders.
+func (m *DepartmentAddressMutation) CityLocationIDs() (ids []uuid.UUID) {
+	if id := m.city_location; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCityLocation resets all changes to the "city_location" edge.
+func (m *DepartmentAddressMutation) ResetCityLocation() {
+	m.city_location = nil
+	m.clearedcity_location = false
+}
+
+// AddValidityIDs adds the "validities" edge to the DepartmentAddressValidity entity by ids.
+func (m *DepartmentAddressMutation) AddValidityIDs(ids ...uuid.UUID) {
+	if m.validities == nil {
+		m.validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearValidities clears the "validities" edge to the DepartmentAddressValidity entity.
+func (m *DepartmentAddressMutation) ClearValidities() {
+	m.clearedvalidities = true
+}
+
+// ValiditiesCleared reports if the "validities" edge to the DepartmentAddressValidity entity was cleared.
+func (m *DepartmentAddressMutation) ValiditiesCleared() bool {
+	return m.clearedvalidities
+}
+
+// RemoveValidityIDs removes the "validities" edge to the DepartmentAddressValidity entity by IDs.
+func (m *DepartmentAddressMutation) RemoveValidityIDs(ids ...uuid.UUID) {
+	if m.removedvalidities == nil {
+		m.removedvalidities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.validities, ids[i])
+		m.removedvalidities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedValidities returns the removed IDs of the "validities" edge to the DepartmentAddressValidity entity.
+func (m *DepartmentAddressMutation) RemovedValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedvalidities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ValiditiesIDs returns the "validities" edge IDs in the mutation.
+func (m *DepartmentAddressMutation) ValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetValidities resets all changes to the "validities" edge.
+func (m *DepartmentAddressMutation) ResetValidities() {
+	m.validities = nil
+	m.clearedvalidities = false
+	m.removedvalidities = nil
+}
+
+// Where appends a list predicates to the DepartmentAddressMutation builder.
+func (m *DepartmentAddressMutation) Where(ps ...predicate.DepartmentAddress) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DepartmentAddressMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DepartmentAddressMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DepartmentAddress, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DepartmentAddressMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DepartmentAddressMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DepartmentAddress).
+func (m *DepartmentAddressMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DepartmentAddressMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.tenant != nil {
+		fields = append(fields, departmentaddress.FieldTenantID)
+	}
+	if m.department != nil {
+		fields = append(fields, departmentaddress.FieldDepartmentID)
+	}
+	if m.city_location != nil {
+		fields = append(fields, departmentaddress.FieldCityLocationID)
+	}
+	if m._type != nil {
+		fields = append(fields, departmentaddress.FieldType)
+	}
+	if m.line1 != nil {
+		fields = append(fields, departmentaddress.FieldLine1)
+	}
+	if m.line2 != nil {
+		fields = append(fields, departmentaddress.FieldLine2)
+	}
+	if m.created_at != nil {
+		fields = append(fields, departmentaddress.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, departmentaddress.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, departmentaddress.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DepartmentAddressMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case departmentaddress.FieldTenantID:
+		return m.TenantID()
+	case departmentaddress.FieldDepartmentID:
+		return m.DepartmentID()
+	case departmentaddress.FieldCityLocationID:
+		return m.CityLocationID()
+	case departmentaddress.FieldType:
+		return m.GetType()
+	case departmentaddress.FieldLine1:
+		return m.Line1()
+	case departmentaddress.FieldLine2:
+		return m.Line2()
+	case departmentaddress.FieldCreatedAt:
+		return m.CreatedAt()
+	case departmentaddress.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case departmentaddress.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DepartmentAddressMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case departmentaddress.FieldTenantID:
+		return m.OldTenantID(ctx)
+	case departmentaddress.FieldDepartmentID:
+		return m.OldDepartmentID(ctx)
+	case departmentaddress.FieldCityLocationID:
+		return m.OldCityLocationID(ctx)
+	case departmentaddress.FieldType:
+		return m.OldType(ctx)
+	case departmentaddress.FieldLine1:
+		return m.OldLine1(ctx)
+	case departmentaddress.FieldLine2:
+		return m.OldLine2(ctx)
+	case departmentaddress.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case departmentaddress.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case departmentaddress.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown DepartmentAddress field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepartmentAddressMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case departmentaddress.FieldTenantID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTenantID(v)
+		return nil
+	case departmentaddress.FieldDepartmentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepartmentID(v)
+		return nil
+	case departmentaddress.FieldCityLocationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCityLocationID(v)
+		return nil
+	case departmentaddress.FieldType:
+		v, ok := value.(departmentaddress.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case departmentaddress.FieldLine1:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLine1(v)
+		return nil
+	case departmentaddress.FieldLine2:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLine2(v)
+		return nil
+	case departmentaddress.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case departmentaddress.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case departmentaddress.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentAddress field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DepartmentAddressMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DepartmentAddressMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepartmentAddressMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DepartmentAddress numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DepartmentAddressMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(departmentaddress.FieldLine2) {
+		fields = append(fields, departmentaddress.FieldLine2)
+	}
+	if m.FieldCleared(departmentaddress.FieldDeletedAt) {
+		fields = append(fields, departmentaddress.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DepartmentAddressMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DepartmentAddressMutation) ClearField(name string) error {
+	switch name {
+	case departmentaddress.FieldLine2:
+		m.ClearLine2()
+		return nil
+	case departmentaddress.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentAddress nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DepartmentAddressMutation) ResetField(name string) error {
+	switch name {
+	case departmentaddress.FieldTenantID:
+		m.ResetTenantID()
+		return nil
+	case departmentaddress.FieldDepartmentID:
+		m.ResetDepartmentID()
+		return nil
+	case departmentaddress.FieldCityLocationID:
+		m.ResetCityLocationID()
+		return nil
+	case departmentaddress.FieldType:
+		m.ResetType()
+		return nil
+	case departmentaddress.FieldLine1:
+		m.ResetLine1()
+		return nil
+	case departmentaddress.FieldLine2:
+		m.ResetLine2()
+		return nil
+	case departmentaddress.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case departmentaddress.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case departmentaddress.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentAddress field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DepartmentAddressMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.tenant != nil {
+		edges = append(edges, departmentaddress.EdgeTenant)
+	}
+	if m.department != nil {
+		edges = append(edges, departmentaddress.EdgeDepartment)
+	}
+	if m.city_location != nil {
+		edges = append(edges, departmentaddress.EdgeCityLocation)
+	}
+	if m.validities != nil {
+		edges = append(edges, departmentaddress.EdgeValidities)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DepartmentAddressMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case departmentaddress.EdgeTenant:
+		if id := m.tenant; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmentaddress.EdgeDepartment:
+		if id := m.department; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmentaddress.EdgeCityLocation:
+		if id := m.city_location; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmentaddress.EdgeValidities:
+		ids := make([]ent.Value, 0, len(m.validities))
+		for id := range m.validities {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DepartmentAddressMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.removedvalidities != nil {
+		edges = append(edges, departmentaddress.EdgeValidities)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DepartmentAddressMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case departmentaddress.EdgeValidities:
+		ids := make([]ent.Value, 0, len(m.removedvalidities))
+		for id := range m.removedvalidities {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DepartmentAddressMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedtenant {
+		edges = append(edges, departmentaddress.EdgeTenant)
+	}
+	if m.cleareddepartment {
+		edges = append(edges, departmentaddress.EdgeDepartment)
+	}
+	if m.clearedcity_location {
+		edges = append(edges, departmentaddress.EdgeCityLocation)
+	}
+	if m.clearedvalidities {
+		edges = append(edges, departmentaddress.EdgeValidities)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DepartmentAddressMutation) EdgeCleared(name string) bool {
+	switch name {
+	case departmentaddress.EdgeTenant:
+		return m.clearedtenant
+	case departmentaddress.EdgeDepartment:
+		return m.cleareddepartment
+	case departmentaddress.EdgeCityLocation:
+		return m.clearedcity_location
+	case departmentaddress.EdgeValidities:
+		return m.clearedvalidities
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DepartmentAddressMutation) ClearEdge(name string) error {
+	switch name {
+	case departmentaddress.EdgeTenant:
+		m.ClearTenant()
+		return nil
+	case departmentaddress.EdgeDepartment:
+		m.ClearDepartment()
+		return nil
+	case departmentaddress.EdgeCityLocation:
+		m.ClearCityLocation()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentAddress unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DepartmentAddressMutation) ResetEdge(name string) error {
+	switch name {
+	case departmentaddress.EdgeTenant:
+		m.ResetTenant()
+		return nil
+	case departmentaddress.EdgeDepartment:
+		m.ResetDepartment()
+		return nil
+	case departmentaddress.EdgeCityLocation:
+		m.ResetCityLocation()
+		return nil
+	case departmentaddress.EdgeValidities:
+		m.ResetValidities()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentAddress edge %s", name)
+}
+
+// DepartmentAddressValidityMutation represents an operation that mutates the DepartmentAddressValidity nodes in the graph.
+type DepartmentAddressValidityMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	_type                     *departmentaddressvalidity.Type
+	is_primary                *bool
+	start_date                *time.Time
+	end_date                  *time.Time
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	tenant                    *uuid.UUID
+	clearedtenant             bool
+	department                *uuid.UUID
+	cleareddepartment         bool
+	department_address        *uuid.UUID
+	cleareddepartment_address bool
+	done                      bool
+	oldValue                  func(context.Context) (*DepartmentAddressValidity, error)
+	predicates                []predicate.DepartmentAddressValidity
+}
+
+var _ ent.Mutation = (*DepartmentAddressValidityMutation)(nil)
+
+// departmentaddressvalidityOption allows management of the mutation configuration using functional options.
+type departmentaddressvalidityOption func(*DepartmentAddressValidityMutation)
+
+// newDepartmentAddressValidityMutation creates new mutation for the DepartmentAddressValidity entity.
+func newDepartmentAddressValidityMutation(c config, op Op, opts ...departmentaddressvalidityOption) *DepartmentAddressValidityMutation {
+	m := &DepartmentAddressValidityMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDepartmentAddressValidity,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDepartmentAddressValidityID sets the ID field of the mutation.
+func withDepartmentAddressValidityID(id uuid.UUID) departmentaddressvalidityOption {
+	return func(m *DepartmentAddressValidityMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DepartmentAddressValidity
+		)
+		m.oldValue = func(ctx context.Context) (*DepartmentAddressValidity, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DepartmentAddressValidity.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDepartmentAddressValidity sets the old DepartmentAddressValidity of the mutation.
+func withDepartmentAddressValidity(node *DepartmentAddressValidity) departmentaddressvalidityOption {
+	return func(m *DepartmentAddressValidityMutation) {
+		m.oldValue = func(context.Context) (*DepartmentAddressValidity, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DepartmentAddressValidityMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DepartmentAddressValidityMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DepartmentAddressValidity entities.
+func (m *DepartmentAddressValidityMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DepartmentAddressValidityMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DepartmentAddressValidityMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DepartmentAddressValidity.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (m *DepartmentAddressValidityMutation) SetTenantID(u uuid.UUID) {
+	m.tenant = &u
+}
+
+// TenantID returns the value of the "tenant_id" field in the mutation.
+func (m *DepartmentAddressValidityMutation) TenantID() (r uuid.UUID, exists bool) {
+	v := m.tenant
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTenantID returns the old "tenant_id" field's value of the DepartmentAddressValidity entity.
+// If the DepartmentAddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressValidityMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTenantID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+	}
+	return oldValue.TenantID, nil
+}
+
+// ResetTenantID resets all changes to the "tenant_id" field.
+func (m *DepartmentAddressValidityMutation) ResetTenantID() {
+	m.tenant = nil
+}
+
+// SetDepartmentAddressID sets the "department_address_id" field.
+func (m *DepartmentAddressValidityMutation) SetDepartmentAddressID(u uuid.UUID) {
+	m.department_address = &u
+}
+
+// DepartmentAddressID returns the value of the "department_address_id" field in the mutation.
+func (m *DepartmentAddressValidityMutation) DepartmentAddressID() (r uuid.UUID, exists bool) {
+	v := m.department_address
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepartmentAddressID returns the old "department_address_id" field's value of the DepartmentAddressValidity entity.
+// If the DepartmentAddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressValidityMutation) OldDepartmentAddressID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepartmentAddressID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepartmentAddressID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepartmentAddressID: %w", err)
+	}
+	return oldValue.DepartmentAddressID, nil
+}
+
+// ResetDepartmentAddressID resets all changes to the "department_address_id" field.
+func (m *DepartmentAddressValidityMutation) ResetDepartmentAddressID() {
+	m.department_address = nil
+}
+
+// SetDepartmentID sets the "department_id" field.
+func (m *DepartmentAddressValidityMutation) SetDepartmentID(u uuid.UUID) {
+	m.department = &u
+}
+
+// DepartmentID returns the value of the "department_id" field in the mutation.
+func (m *DepartmentAddressValidityMutation) DepartmentID() (r uuid.UUID, exists bool) {
+	v := m.department
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepartmentID returns the old "department_id" field's value of the DepartmentAddressValidity entity.
+// If the DepartmentAddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressValidityMutation) OldDepartmentID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepartmentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepartmentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepartmentID: %w", err)
+	}
+	return oldValue.DepartmentID, nil
+}
+
+// ResetDepartmentID resets all changes to the "department_id" field.
+func (m *DepartmentAddressValidityMutation) ResetDepartmentID() {
+	m.department = nil
+}
+
+// SetType sets the "type" field.
+func (m *DepartmentAddressValidityMutation) SetType(d departmentaddressvalidity.Type) {
+	m._type = &d
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *DepartmentAddressValidityMutation) GetType() (r departmentaddressvalidity.Type, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the DepartmentAddressValidity entity.
+// If the DepartmentAddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressValidityMutation) OldType(ctx context.Context) (v departmentaddressvalidity.Type, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *DepartmentAddressValidityMutation) ResetType() {
+	m._type = nil
+}
+
+// SetIsPrimary sets the "is_primary" field.
+func (m *DepartmentAddressValidityMutation) SetIsPrimary(b bool) {
+	m.is_primary = &b
+}
+
+// IsPrimary returns the value of the "is_primary" field in the mutation.
+func (m *DepartmentAddressValidityMutation) IsPrimary() (r bool, exists bool) {
+	v := m.is_primary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPrimary returns the old "is_primary" field's value of the DepartmentAddressValidity entity.
+// If the DepartmentAddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressValidityMutation) OldIsPrimary(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPrimary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPrimary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPrimary: %w", err)
+	}
+	return oldValue.IsPrimary, nil
+}
+
+// ResetIsPrimary resets all changes to the "is_primary" field.
+func (m *DepartmentAddressValidityMutation) ResetIsPrimary() {
+	m.is_primary = nil
+}
+
+// SetStartDate sets the "start_date" field.
+func (m *DepartmentAddressValidityMutation) SetStartDate(t time.Time) {
+	m.start_date = &t
+}
+
+// StartDate returns the value of the "start_date" field in the mutation.
+func (m *DepartmentAddressValidityMutation) StartDate() (r time.Time, exists bool) {
+	v := m.start_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartDate returns the old "start_date" field's value of the DepartmentAddressValidity entity.
+// If the DepartmentAddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressValidityMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
+	}
+	return oldValue.StartDate, nil
+}
+
+// ResetStartDate resets all changes to the "start_date" field.
+func (m *DepartmentAddressValidityMutation) ResetStartDate() {
+	m.start_date = nil
+}
+
+// SetEndDate sets the "end_date" field.
+func (m *DepartmentAddressValidityMutation) SetEndDate(t time.Time) {
+	m.end_date = &t
+}
+
+// EndDate returns the value of the "end_date" field in the mutation.
+func (m *DepartmentAddressValidityMutation) EndDate() (r time.Time, exists bool) {
+	v := m.end_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndDate returns the old "end_date" field's value of the DepartmentAddressValidity entity.
+// If the DepartmentAddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressValidityMutation) OldEndDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndDate: %w", err)
+	}
+	return oldValue.EndDate, nil
+}
+
+// ClearEndDate clears the value of the "end_date" field.
+func (m *DepartmentAddressValidityMutation) ClearEndDate() {
+	m.end_date = nil
+	m.clearedFields[departmentaddressvalidity.FieldEndDate] = struct{}{}
+}
+
+// EndDateCleared returns if the "end_date" field was cleared in this mutation.
+func (m *DepartmentAddressValidityMutation) EndDateCleared() bool {
+	_, ok := m.clearedFields[departmentaddressvalidity.FieldEndDate]
+	return ok
+}
+
+// ResetEndDate resets all changes to the "end_date" field.
+func (m *DepartmentAddressValidityMutation) ResetEndDate() {
+	m.end_date = nil
+	delete(m.clearedFields, departmentaddressvalidity.FieldEndDate)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DepartmentAddressValidityMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DepartmentAddressValidityMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DepartmentAddressValidity entity.
+// If the DepartmentAddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressValidityMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DepartmentAddressValidityMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DepartmentAddressValidityMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DepartmentAddressValidityMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DepartmentAddressValidity entity.
+// If the DepartmentAddressValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentAddressValidityMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DepartmentAddressValidityMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearTenant clears the "tenant" edge to the Subscription entity.
+func (m *DepartmentAddressValidityMutation) ClearTenant() {
+	m.clearedtenant = true
+	m.clearedFields[departmentaddressvalidity.FieldTenantID] = struct{}{}
+}
+
+// TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
+func (m *DepartmentAddressValidityMutation) TenantCleared() bool {
+	return m.clearedtenant
+}
+
+// TenantIDs returns the "tenant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TenantID instead. It exists only for internal usage by the builders.
+func (m *DepartmentAddressValidityMutation) TenantIDs() (ids []uuid.UUID) {
+	if id := m.tenant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTenant resets all changes to the "tenant" edge.
+func (m *DepartmentAddressValidityMutation) ResetTenant() {
+	m.tenant = nil
+	m.clearedtenant = false
+}
+
+// ClearDepartment clears the "department" edge to the Department entity.
+func (m *DepartmentAddressValidityMutation) ClearDepartment() {
+	m.cleareddepartment = true
+	m.clearedFields[departmentaddressvalidity.FieldDepartmentID] = struct{}{}
+}
+
+// DepartmentCleared reports if the "department" edge to the Department entity was cleared.
+func (m *DepartmentAddressValidityMutation) DepartmentCleared() bool {
+	return m.cleareddepartment
+}
+
+// DepartmentIDs returns the "department" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DepartmentID instead. It exists only for internal usage by the builders.
+func (m *DepartmentAddressValidityMutation) DepartmentIDs() (ids []uuid.UUID) {
+	if id := m.department; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDepartment resets all changes to the "department" edge.
+func (m *DepartmentAddressValidityMutation) ResetDepartment() {
+	m.department = nil
+	m.cleareddepartment = false
+}
+
+// ClearDepartmentAddress clears the "department_address" edge to the DepartmentAddress entity.
+func (m *DepartmentAddressValidityMutation) ClearDepartmentAddress() {
+	m.cleareddepartment_address = true
+	m.clearedFields[departmentaddressvalidity.FieldDepartmentAddressID] = struct{}{}
+}
+
+// DepartmentAddressCleared reports if the "department_address" edge to the DepartmentAddress entity was cleared.
+func (m *DepartmentAddressValidityMutation) DepartmentAddressCleared() bool {
+	return m.cleareddepartment_address
+}
+
+// DepartmentAddressIDs returns the "department_address" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DepartmentAddressID instead. It exists only for internal usage by the builders.
+func (m *DepartmentAddressValidityMutation) DepartmentAddressIDs() (ids []uuid.UUID) {
+	if id := m.department_address; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDepartmentAddress resets all changes to the "department_address" edge.
+func (m *DepartmentAddressValidityMutation) ResetDepartmentAddress() {
+	m.department_address = nil
+	m.cleareddepartment_address = false
+}
+
+// Where appends a list predicates to the DepartmentAddressValidityMutation builder.
+func (m *DepartmentAddressValidityMutation) Where(ps ...predicate.DepartmentAddressValidity) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DepartmentAddressValidityMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DepartmentAddressValidityMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DepartmentAddressValidity, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DepartmentAddressValidityMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DepartmentAddressValidityMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DepartmentAddressValidity).
+func (m *DepartmentAddressValidityMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DepartmentAddressValidityMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.tenant != nil {
+		fields = append(fields, departmentaddressvalidity.FieldTenantID)
+	}
+	if m.department_address != nil {
+		fields = append(fields, departmentaddressvalidity.FieldDepartmentAddressID)
+	}
+	if m.department != nil {
+		fields = append(fields, departmentaddressvalidity.FieldDepartmentID)
+	}
+	if m._type != nil {
+		fields = append(fields, departmentaddressvalidity.FieldType)
+	}
+	if m.is_primary != nil {
+		fields = append(fields, departmentaddressvalidity.FieldIsPrimary)
+	}
+	if m.start_date != nil {
+		fields = append(fields, departmentaddressvalidity.FieldStartDate)
+	}
+	if m.end_date != nil {
+		fields = append(fields, departmentaddressvalidity.FieldEndDate)
+	}
+	if m.created_at != nil {
+		fields = append(fields, departmentaddressvalidity.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, departmentaddressvalidity.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DepartmentAddressValidityMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case departmentaddressvalidity.FieldTenantID:
+		return m.TenantID()
+	case departmentaddressvalidity.FieldDepartmentAddressID:
+		return m.DepartmentAddressID()
+	case departmentaddressvalidity.FieldDepartmentID:
+		return m.DepartmentID()
+	case departmentaddressvalidity.FieldType:
+		return m.GetType()
+	case departmentaddressvalidity.FieldIsPrimary:
+		return m.IsPrimary()
+	case departmentaddressvalidity.FieldStartDate:
+		return m.StartDate()
+	case departmentaddressvalidity.FieldEndDate:
+		return m.EndDate()
+	case departmentaddressvalidity.FieldCreatedAt:
+		return m.CreatedAt()
+	case departmentaddressvalidity.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DepartmentAddressValidityMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case departmentaddressvalidity.FieldTenantID:
+		return m.OldTenantID(ctx)
+	case departmentaddressvalidity.FieldDepartmentAddressID:
+		return m.OldDepartmentAddressID(ctx)
+	case departmentaddressvalidity.FieldDepartmentID:
+		return m.OldDepartmentID(ctx)
+	case departmentaddressvalidity.FieldType:
+		return m.OldType(ctx)
+	case departmentaddressvalidity.FieldIsPrimary:
+		return m.OldIsPrimary(ctx)
+	case departmentaddressvalidity.FieldStartDate:
+		return m.OldStartDate(ctx)
+	case departmentaddressvalidity.FieldEndDate:
+		return m.OldEndDate(ctx)
+	case departmentaddressvalidity.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case departmentaddressvalidity.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown DepartmentAddressValidity field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepartmentAddressValidityMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case departmentaddressvalidity.FieldTenantID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTenantID(v)
+		return nil
+	case departmentaddressvalidity.FieldDepartmentAddressID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepartmentAddressID(v)
+		return nil
+	case departmentaddressvalidity.FieldDepartmentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepartmentID(v)
+		return nil
+	case departmentaddressvalidity.FieldType:
+		v, ok := value.(departmentaddressvalidity.Type)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	case departmentaddressvalidity.FieldIsPrimary:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPrimary(v)
+		return nil
+	case departmentaddressvalidity.FieldStartDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartDate(v)
+		return nil
+	case departmentaddressvalidity.FieldEndDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndDate(v)
+		return nil
+	case departmentaddressvalidity.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case departmentaddressvalidity.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentAddressValidity field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DepartmentAddressValidityMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DepartmentAddressValidityMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepartmentAddressValidityMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DepartmentAddressValidity numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DepartmentAddressValidityMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(departmentaddressvalidity.FieldEndDate) {
+		fields = append(fields, departmentaddressvalidity.FieldEndDate)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DepartmentAddressValidityMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DepartmentAddressValidityMutation) ClearField(name string) error {
+	switch name {
+	case departmentaddressvalidity.FieldEndDate:
+		m.ClearEndDate()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentAddressValidity nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DepartmentAddressValidityMutation) ResetField(name string) error {
+	switch name {
+	case departmentaddressvalidity.FieldTenantID:
+		m.ResetTenantID()
+		return nil
+	case departmentaddressvalidity.FieldDepartmentAddressID:
+		m.ResetDepartmentAddressID()
+		return nil
+	case departmentaddressvalidity.FieldDepartmentID:
+		m.ResetDepartmentID()
+		return nil
+	case departmentaddressvalidity.FieldType:
+		m.ResetType()
+		return nil
+	case departmentaddressvalidity.FieldIsPrimary:
+		m.ResetIsPrimary()
+		return nil
+	case departmentaddressvalidity.FieldStartDate:
+		m.ResetStartDate()
+		return nil
+	case departmentaddressvalidity.FieldEndDate:
+		m.ResetEndDate()
+		return nil
+	case departmentaddressvalidity.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case departmentaddressvalidity.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentAddressValidity field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DepartmentAddressValidityMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.tenant != nil {
+		edges = append(edges, departmentaddressvalidity.EdgeTenant)
+	}
+	if m.department != nil {
+		edges = append(edges, departmentaddressvalidity.EdgeDepartment)
+	}
+	if m.department_address != nil {
+		edges = append(edges, departmentaddressvalidity.EdgeDepartmentAddress)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DepartmentAddressValidityMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case departmentaddressvalidity.EdgeTenant:
+		if id := m.tenant; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmentaddressvalidity.EdgeDepartment:
+		if id := m.department; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmentaddressvalidity.EdgeDepartmentAddress:
+		if id := m.department_address; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DepartmentAddressValidityMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DepartmentAddressValidityMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DepartmentAddressValidityMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedtenant {
+		edges = append(edges, departmentaddressvalidity.EdgeTenant)
+	}
+	if m.cleareddepartment {
+		edges = append(edges, departmentaddressvalidity.EdgeDepartment)
+	}
+	if m.cleareddepartment_address {
+		edges = append(edges, departmentaddressvalidity.EdgeDepartmentAddress)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DepartmentAddressValidityMutation) EdgeCleared(name string) bool {
+	switch name {
+	case departmentaddressvalidity.EdgeTenant:
+		return m.clearedtenant
+	case departmentaddressvalidity.EdgeDepartment:
+		return m.cleareddepartment
+	case departmentaddressvalidity.EdgeDepartmentAddress:
+		return m.cleareddepartment_address
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DepartmentAddressValidityMutation) ClearEdge(name string) error {
+	switch name {
+	case departmentaddressvalidity.EdgeTenant:
+		m.ClearTenant()
+		return nil
+	case departmentaddressvalidity.EdgeDepartment:
+		m.ClearDepartment()
+		return nil
+	case departmentaddressvalidity.EdgeDepartmentAddress:
+		m.ClearDepartmentAddress()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentAddressValidity unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DepartmentAddressValidityMutation) ResetEdge(name string) error {
+	switch name {
+	case departmentaddressvalidity.EdgeTenant:
+		m.ResetTenant()
+		return nil
+	case departmentaddressvalidity.EdgeDepartment:
+		m.ResetDepartment()
+		return nil
+	case departmentaddressvalidity.EdgeDepartmentAddress:
+		m.ResetDepartmentAddress()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentAddressValidity edge %s", name)
+}
+
+// DepartmentContactMechanismMutation represents an operation that mutates the DepartmentContactMechanism nodes in the graph.
+type DepartmentContactMechanismMutation struct {
+	config
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	contact_mechanism_order    *int
+	addcontact_mechanism_order *int
+	is_primary                 *bool
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	deleted_at                 *time.Time
+	clearedFields              map[string]struct{}
+	tenant                     *uuid.UUID
+	clearedtenant              bool
+	department                 *uuid.UUID
+	cleareddepartment          bool
+	contact_mechanism          *uuid.UUID
+	clearedcontact_mechanism   bool
+	validities                 map[uuid.UUID]struct{}
+	removedvalidities          map[uuid.UUID]struct{}
+	clearedvalidities          bool
+	done                       bool
+	oldValue                   func(context.Context) (*DepartmentContactMechanism, error)
+	predicates                 []predicate.DepartmentContactMechanism
+}
+
+var _ ent.Mutation = (*DepartmentContactMechanismMutation)(nil)
+
+// departmentcontactmechanismOption allows management of the mutation configuration using functional options.
+type departmentcontactmechanismOption func(*DepartmentContactMechanismMutation)
+
+// newDepartmentContactMechanismMutation creates new mutation for the DepartmentContactMechanism entity.
+func newDepartmentContactMechanismMutation(c config, op Op, opts ...departmentcontactmechanismOption) *DepartmentContactMechanismMutation {
+	m := &DepartmentContactMechanismMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDepartmentContactMechanism,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDepartmentContactMechanismID sets the ID field of the mutation.
+func withDepartmentContactMechanismID(id uuid.UUID) departmentcontactmechanismOption {
+	return func(m *DepartmentContactMechanismMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DepartmentContactMechanism
+		)
+		m.oldValue = func(ctx context.Context) (*DepartmentContactMechanism, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DepartmentContactMechanism.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDepartmentContactMechanism sets the old DepartmentContactMechanism of the mutation.
+func withDepartmentContactMechanism(node *DepartmentContactMechanism) departmentcontactmechanismOption {
+	return func(m *DepartmentContactMechanismMutation) {
+		m.oldValue = func(context.Context) (*DepartmentContactMechanism, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DepartmentContactMechanismMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DepartmentContactMechanismMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DepartmentContactMechanism entities.
+func (m *DepartmentContactMechanismMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DepartmentContactMechanismMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DepartmentContactMechanismMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DepartmentContactMechanism.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (m *DepartmentContactMechanismMutation) SetTenantID(u uuid.UUID) {
+	m.tenant = &u
+}
+
+// TenantID returns the value of the "tenant_id" field in the mutation.
+func (m *DepartmentContactMechanismMutation) TenantID() (r uuid.UUID, exists bool) {
+	v := m.tenant
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTenantID returns the old "tenant_id" field's value of the DepartmentContactMechanism entity.
+// If the DepartmentContactMechanism object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTenantID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+	}
+	return oldValue.TenantID, nil
+}
+
+// ResetTenantID resets all changes to the "tenant_id" field.
+func (m *DepartmentContactMechanismMutation) ResetTenantID() {
+	m.tenant = nil
+}
+
+// SetDepartmentID sets the "department_id" field.
+func (m *DepartmentContactMechanismMutation) SetDepartmentID(u uuid.UUID) {
+	m.department = &u
+}
+
+// DepartmentID returns the value of the "department_id" field in the mutation.
+func (m *DepartmentContactMechanismMutation) DepartmentID() (r uuid.UUID, exists bool) {
+	v := m.department
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepartmentID returns the old "department_id" field's value of the DepartmentContactMechanism entity.
+// If the DepartmentContactMechanism object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismMutation) OldDepartmentID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepartmentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepartmentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepartmentID: %w", err)
+	}
+	return oldValue.DepartmentID, nil
+}
+
+// ResetDepartmentID resets all changes to the "department_id" field.
+func (m *DepartmentContactMechanismMutation) ResetDepartmentID() {
+	m.department = nil
+}
+
+// SetContactMechanismID sets the "contact_mechanism_id" field.
+func (m *DepartmentContactMechanismMutation) SetContactMechanismID(u uuid.UUID) {
+	m.contact_mechanism = &u
+}
+
+// ContactMechanismID returns the value of the "contact_mechanism_id" field in the mutation.
+func (m *DepartmentContactMechanismMutation) ContactMechanismID() (r uuid.UUID, exists bool) {
+	v := m.contact_mechanism
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContactMechanismID returns the old "contact_mechanism_id" field's value of the DepartmentContactMechanism entity.
+// If the DepartmentContactMechanism object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismMutation) OldContactMechanismID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContactMechanismID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContactMechanismID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContactMechanismID: %w", err)
+	}
+	return oldValue.ContactMechanismID, nil
+}
+
+// ResetContactMechanismID resets all changes to the "contact_mechanism_id" field.
+func (m *DepartmentContactMechanismMutation) ResetContactMechanismID() {
+	m.contact_mechanism = nil
+}
+
+// SetContactMechanismOrder sets the "contact_mechanism_order" field.
+func (m *DepartmentContactMechanismMutation) SetContactMechanismOrder(i int) {
+	m.contact_mechanism_order = &i
+	m.addcontact_mechanism_order = nil
+}
+
+// ContactMechanismOrder returns the value of the "contact_mechanism_order" field in the mutation.
+func (m *DepartmentContactMechanismMutation) ContactMechanismOrder() (r int, exists bool) {
+	v := m.contact_mechanism_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContactMechanismOrder returns the old "contact_mechanism_order" field's value of the DepartmentContactMechanism entity.
+// If the DepartmentContactMechanism object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismMutation) OldContactMechanismOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContactMechanismOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContactMechanismOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContactMechanismOrder: %w", err)
+	}
+	return oldValue.ContactMechanismOrder, nil
+}
+
+// AddContactMechanismOrder adds i to the "contact_mechanism_order" field.
+func (m *DepartmentContactMechanismMutation) AddContactMechanismOrder(i int) {
+	if m.addcontact_mechanism_order != nil {
+		*m.addcontact_mechanism_order += i
+	} else {
+		m.addcontact_mechanism_order = &i
+	}
+}
+
+// AddedContactMechanismOrder returns the value that was added to the "contact_mechanism_order" field in this mutation.
+func (m *DepartmentContactMechanismMutation) AddedContactMechanismOrder() (r int, exists bool) {
+	v := m.addcontact_mechanism_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetContactMechanismOrder resets all changes to the "contact_mechanism_order" field.
+func (m *DepartmentContactMechanismMutation) ResetContactMechanismOrder() {
+	m.contact_mechanism_order = nil
+	m.addcontact_mechanism_order = nil
+}
+
+// SetIsPrimary sets the "is_primary" field.
+func (m *DepartmentContactMechanismMutation) SetIsPrimary(b bool) {
+	m.is_primary = &b
+}
+
+// IsPrimary returns the value of the "is_primary" field in the mutation.
+func (m *DepartmentContactMechanismMutation) IsPrimary() (r bool, exists bool) {
+	v := m.is_primary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPrimary returns the old "is_primary" field's value of the DepartmentContactMechanism entity.
+// If the DepartmentContactMechanism object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismMutation) OldIsPrimary(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPrimary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPrimary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPrimary: %w", err)
+	}
+	return oldValue.IsPrimary, nil
+}
+
+// ResetIsPrimary resets all changes to the "is_primary" field.
+func (m *DepartmentContactMechanismMutation) ResetIsPrimary() {
+	m.is_primary = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DepartmentContactMechanismMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DepartmentContactMechanismMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DepartmentContactMechanism entity.
+// If the DepartmentContactMechanism object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DepartmentContactMechanismMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DepartmentContactMechanismMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DepartmentContactMechanismMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DepartmentContactMechanism entity.
+// If the DepartmentContactMechanism object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DepartmentContactMechanismMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *DepartmentContactMechanismMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *DepartmentContactMechanismMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the DepartmentContactMechanism entity.
+// If the DepartmentContactMechanism object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *DepartmentContactMechanismMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[departmentcontactmechanism.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *DepartmentContactMechanismMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[departmentcontactmechanism.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *DepartmentContactMechanismMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, departmentcontactmechanism.FieldDeletedAt)
+}
+
+// ClearTenant clears the "tenant" edge to the Subscription entity.
+func (m *DepartmentContactMechanismMutation) ClearTenant() {
+	m.clearedtenant = true
+	m.clearedFields[departmentcontactmechanism.FieldTenantID] = struct{}{}
+}
+
+// TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
+func (m *DepartmentContactMechanismMutation) TenantCleared() bool {
+	return m.clearedtenant
+}
+
+// TenantIDs returns the "tenant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TenantID instead. It exists only for internal usage by the builders.
+func (m *DepartmentContactMechanismMutation) TenantIDs() (ids []uuid.UUID) {
+	if id := m.tenant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTenant resets all changes to the "tenant" edge.
+func (m *DepartmentContactMechanismMutation) ResetTenant() {
+	m.tenant = nil
+	m.clearedtenant = false
+}
+
+// ClearDepartment clears the "department" edge to the Department entity.
+func (m *DepartmentContactMechanismMutation) ClearDepartment() {
+	m.cleareddepartment = true
+	m.clearedFields[departmentcontactmechanism.FieldDepartmentID] = struct{}{}
+}
+
+// DepartmentCleared reports if the "department" edge to the Department entity was cleared.
+func (m *DepartmentContactMechanismMutation) DepartmentCleared() bool {
+	return m.cleareddepartment
+}
+
+// DepartmentIDs returns the "department" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DepartmentID instead. It exists only for internal usage by the builders.
+func (m *DepartmentContactMechanismMutation) DepartmentIDs() (ids []uuid.UUID) {
+	if id := m.department; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDepartment resets all changes to the "department" edge.
+func (m *DepartmentContactMechanismMutation) ResetDepartment() {
+	m.department = nil
+	m.cleareddepartment = false
+}
+
+// ClearContactMechanism clears the "contact_mechanism" edge to the ContactMechanism entity.
+func (m *DepartmentContactMechanismMutation) ClearContactMechanism() {
+	m.clearedcontact_mechanism = true
+	m.clearedFields[departmentcontactmechanism.FieldContactMechanismID] = struct{}{}
+}
+
+// ContactMechanismCleared reports if the "contact_mechanism" edge to the ContactMechanism entity was cleared.
+func (m *DepartmentContactMechanismMutation) ContactMechanismCleared() bool {
+	return m.clearedcontact_mechanism
+}
+
+// ContactMechanismIDs returns the "contact_mechanism" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ContactMechanismID instead. It exists only for internal usage by the builders.
+func (m *DepartmentContactMechanismMutation) ContactMechanismIDs() (ids []uuid.UUID) {
+	if id := m.contact_mechanism; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetContactMechanism resets all changes to the "contact_mechanism" edge.
+func (m *DepartmentContactMechanismMutation) ResetContactMechanism() {
+	m.contact_mechanism = nil
+	m.clearedcontact_mechanism = false
+}
+
+// AddValidityIDs adds the "validities" edge to the DepartmentContactMechanismValidity entity by ids.
+func (m *DepartmentContactMechanismMutation) AddValidityIDs(ids ...uuid.UUID) {
+	if m.validities == nil {
+		m.validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearValidities clears the "validities" edge to the DepartmentContactMechanismValidity entity.
+func (m *DepartmentContactMechanismMutation) ClearValidities() {
+	m.clearedvalidities = true
+}
+
+// ValiditiesCleared reports if the "validities" edge to the DepartmentContactMechanismValidity entity was cleared.
+func (m *DepartmentContactMechanismMutation) ValiditiesCleared() bool {
+	return m.clearedvalidities
+}
+
+// RemoveValidityIDs removes the "validities" edge to the DepartmentContactMechanismValidity entity by IDs.
+func (m *DepartmentContactMechanismMutation) RemoveValidityIDs(ids ...uuid.UUID) {
+	if m.removedvalidities == nil {
+		m.removedvalidities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.validities, ids[i])
+		m.removedvalidities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedValidities returns the removed IDs of the "validities" edge to the DepartmentContactMechanismValidity entity.
+func (m *DepartmentContactMechanismMutation) RemovedValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedvalidities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ValiditiesIDs returns the "validities" edge IDs in the mutation.
+func (m *DepartmentContactMechanismMutation) ValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetValidities resets all changes to the "validities" edge.
+func (m *DepartmentContactMechanismMutation) ResetValidities() {
+	m.validities = nil
+	m.clearedvalidities = false
+	m.removedvalidities = nil
+}
+
+// Where appends a list predicates to the DepartmentContactMechanismMutation builder.
+func (m *DepartmentContactMechanismMutation) Where(ps ...predicate.DepartmentContactMechanism) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DepartmentContactMechanismMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DepartmentContactMechanismMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DepartmentContactMechanism, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DepartmentContactMechanismMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DepartmentContactMechanismMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DepartmentContactMechanism).
+func (m *DepartmentContactMechanismMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DepartmentContactMechanismMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.tenant != nil {
+		fields = append(fields, departmentcontactmechanism.FieldTenantID)
+	}
+	if m.department != nil {
+		fields = append(fields, departmentcontactmechanism.FieldDepartmentID)
+	}
+	if m.contact_mechanism != nil {
+		fields = append(fields, departmentcontactmechanism.FieldContactMechanismID)
+	}
+	if m.contact_mechanism_order != nil {
+		fields = append(fields, departmentcontactmechanism.FieldContactMechanismOrder)
+	}
+	if m.is_primary != nil {
+		fields = append(fields, departmentcontactmechanism.FieldIsPrimary)
+	}
+	if m.created_at != nil {
+		fields = append(fields, departmentcontactmechanism.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, departmentcontactmechanism.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, departmentcontactmechanism.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DepartmentContactMechanismMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case departmentcontactmechanism.FieldTenantID:
+		return m.TenantID()
+	case departmentcontactmechanism.FieldDepartmentID:
+		return m.DepartmentID()
+	case departmentcontactmechanism.FieldContactMechanismID:
+		return m.ContactMechanismID()
+	case departmentcontactmechanism.FieldContactMechanismOrder:
+		return m.ContactMechanismOrder()
+	case departmentcontactmechanism.FieldIsPrimary:
+		return m.IsPrimary()
+	case departmentcontactmechanism.FieldCreatedAt:
+		return m.CreatedAt()
+	case departmentcontactmechanism.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case departmentcontactmechanism.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DepartmentContactMechanismMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case departmentcontactmechanism.FieldTenantID:
+		return m.OldTenantID(ctx)
+	case departmentcontactmechanism.FieldDepartmentID:
+		return m.OldDepartmentID(ctx)
+	case departmentcontactmechanism.FieldContactMechanismID:
+		return m.OldContactMechanismID(ctx)
+	case departmentcontactmechanism.FieldContactMechanismOrder:
+		return m.OldContactMechanismOrder(ctx)
+	case departmentcontactmechanism.FieldIsPrimary:
+		return m.OldIsPrimary(ctx)
+	case departmentcontactmechanism.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case departmentcontactmechanism.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case departmentcontactmechanism.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown DepartmentContactMechanism field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepartmentContactMechanismMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case departmentcontactmechanism.FieldTenantID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTenantID(v)
+		return nil
+	case departmentcontactmechanism.FieldDepartmentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepartmentID(v)
+		return nil
+	case departmentcontactmechanism.FieldContactMechanismID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContactMechanismID(v)
+		return nil
+	case departmentcontactmechanism.FieldContactMechanismOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContactMechanismOrder(v)
+		return nil
+	case departmentcontactmechanism.FieldIsPrimary:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPrimary(v)
+		return nil
+	case departmentcontactmechanism.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case departmentcontactmechanism.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case departmentcontactmechanism.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanism field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DepartmentContactMechanismMutation) AddedFields() []string {
+	var fields []string
+	if m.addcontact_mechanism_order != nil {
+		fields = append(fields, departmentcontactmechanism.FieldContactMechanismOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DepartmentContactMechanismMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case departmentcontactmechanism.FieldContactMechanismOrder:
+		return m.AddedContactMechanismOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepartmentContactMechanismMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case departmentcontactmechanism.FieldContactMechanismOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddContactMechanismOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanism numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DepartmentContactMechanismMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(departmentcontactmechanism.FieldDeletedAt) {
+		fields = append(fields, departmentcontactmechanism.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DepartmentContactMechanismMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DepartmentContactMechanismMutation) ClearField(name string) error {
+	switch name {
+	case departmentcontactmechanism.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanism nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DepartmentContactMechanismMutation) ResetField(name string) error {
+	switch name {
+	case departmentcontactmechanism.FieldTenantID:
+		m.ResetTenantID()
+		return nil
+	case departmentcontactmechanism.FieldDepartmentID:
+		m.ResetDepartmentID()
+		return nil
+	case departmentcontactmechanism.FieldContactMechanismID:
+		m.ResetContactMechanismID()
+		return nil
+	case departmentcontactmechanism.FieldContactMechanismOrder:
+		m.ResetContactMechanismOrder()
+		return nil
+	case departmentcontactmechanism.FieldIsPrimary:
+		m.ResetIsPrimary()
+		return nil
+	case departmentcontactmechanism.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case departmentcontactmechanism.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case departmentcontactmechanism.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanism field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DepartmentContactMechanismMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.tenant != nil {
+		edges = append(edges, departmentcontactmechanism.EdgeTenant)
+	}
+	if m.department != nil {
+		edges = append(edges, departmentcontactmechanism.EdgeDepartment)
+	}
+	if m.contact_mechanism != nil {
+		edges = append(edges, departmentcontactmechanism.EdgeContactMechanism)
+	}
+	if m.validities != nil {
+		edges = append(edges, departmentcontactmechanism.EdgeValidities)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DepartmentContactMechanismMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case departmentcontactmechanism.EdgeTenant:
+		if id := m.tenant; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmentcontactmechanism.EdgeDepartment:
+		if id := m.department; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmentcontactmechanism.EdgeContactMechanism:
+		if id := m.contact_mechanism; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmentcontactmechanism.EdgeValidities:
+		ids := make([]ent.Value, 0, len(m.validities))
+		for id := range m.validities {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DepartmentContactMechanismMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.removedvalidities != nil {
+		edges = append(edges, departmentcontactmechanism.EdgeValidities)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DepartmentContactMechanismMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case departmentcontactmechanism.EdgeValidities:
+		ids := make([]ent.Value, 0, len(m.removedvalidities))
+		for id := range m.removedvalidities {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DepartmentContactMechanismMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedtenant {
+		edges = append(edges, departmentcontactmechanism.EdgeTenant)
+	}
+	if m.cleareddepartment {
+		edges = append(edges, departmentcontactmechanism.EdgeDepartment)
+	}
+	if m.clearedcontact_mechanism {
+		edges = append(edges, departmentcontactmechanism.EdgeContactMechanism)
+	}
+	if m.clearedvalidities {
+		edges = append(edges, departmentcontactmechanism.EdgeValidities)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DepartmentContactMechanismMutation) EdgeCleared(name string) bool {
+	switch name {
+	case departmentcontactmechanism.EdgeTenant:
+		return m.clearedtenant
+	case departmentcontactmechanism.EdgeDepartment:
+		return m.cleareddepartment
+	case departmentcontactmechanism.EdgeContactMechanism:
+		return m.clearedcontact_mechanism
+	case departmentcontactmechanism.EdgeValidities:
+		return m.clearedvalidities
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DepartmentContactMechanismMutation) ClearEdge(name string) error {
+	switch name {
+	case departmentcontactmechanism.EdgeTenant:
+		m.ClearTenant()
+		return nil
+	case departmentcontactmechanism.EdgeDepartment:
+		m.ClearDepartment()
+		return nil
+	case departmentcontactmechanism.EdgeContactMechanism:
+		m.ClearContactMechanism()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanism unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DepartmentContactMechanismMutation) ResetEdge(name string) error {
+	switch name {
+	case departmentcontactmechanism.EdgeTenant:
+		m.ResetTenant()
+		return nil
+	case departmentcontactmechanism.EdgeDepartment:
+		m.ResetDepartment()
+		return nil
+	case departmentcontactmechanism.EdgeContactMechanism:
+		m.ResetContactMechanism()
+		return nil
+	case departmentcontactmechanism.EdgeValidities:
+		m.ResetValidities()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanism edge %s", name)
+}
+
+// DepartmentContactMechanismValidityMutation represents an operation that mutates the DepartmentContactMechanismValidity nodes in the graph.
+type DepartmentContactMechanismValidityMutation struct {
+	config
+	op                                  Op
+	typ                                 string
+	id                                  *uuid.UUID
+	contact_type                        *departmentcontactmechanismvalidity.ContactType
+	is_primary                          *bool
+	start_date                          *time.Time
+	end_date                            *time.Time
+	created_at                          *time.Time
+	updated_at                          *time.Time
+	clearedFields                       map[string]struct{}
+	tenant                              *uuid.UUID
+	clearedtenant                       bool
+	department                          *uuid.UUID
+	cleareddepartment                   bool
+	department_contact_mechanism        *uuid.UUID
+	cleareddepartment_contact_mechanism bool
+	done                                bool
+	oldValue                            func(context.Context) (*DepartmentContactMechanismValidity, error)
+	predicates                          []predicate.DepartmentContactMechanismValidity
+}
+
+var _ ent.Mutation = (*DepartmentContactMechanismValidityMutation)(nil)
+
+// departmentcontactmechanismvalidityOption allows management of the mutation configuration using functional options.
+type departmentcontactmechanismvalidityOption func(*DepartmentContactMechanismValidityMutation)
+
+// newDepartmentContactMechanismValidityMutation creates new mutation for the DepartmentContactMechanismValidity entity.
+func newDepartmentContactMechanismValidityMutation(c config, op Op, opts ...departmentcontactmechanismvalidityOption) *DepartmentContactMechanismValidityMutation {
+	m := &DepartmentContactMechanismValidityMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDepartmentContactMechanismValidity,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDepartmentContactMechanismValidityID sets the ID field of the mutation.
+func withDepartmentContactMechanismValidityID(id uuid.UUID) departmentcontactmechanismvalidityOption {
+	return func(m *DepartmentContactMechanismValidityMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DepartmentContactMechanismValidity
+		)
+		m.oldValue = func(ctx context.Context) (*DepartmentContactMechanismValidity, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DepartmentContactMechanismValidity.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDepartmentContactMechanismValidity sets the old DepartmentContactMechanismValidity of the mutation.
+func withDepartmentContactMechanismValidity(node *DepartmentContactMechanismValidity) departmentcontactmechanismvalidityOption {
+	return func(m *DepartmentContactMechanismValidityMutation) {
+		m.oldValue = func(context.Context) (*DepartmentContactMechanismValidity, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DepartmentContactMechanismValidityMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DepartmentContactMechanismValidityMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of DepartmentContactMechanismValidity entities.
+func (m *DepartmentContactMechanismValidityMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *DepartmentContactMechanismValidityMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *DepartmentContactMechanismValidityMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().DepartmentContactMechanismValidity.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (m *DepartmentContactMechanismValidityMutation) SetTenantID(u uuid.UUID) {
+	m.tenant = &u
+}
+
+// TenantID returns the value of the "tenant_id" field in the mutation.
+func (m *DepartmentContactMechanismValidityMutation) TenantID() (r uuid.UUID, exists bool) {
+	v := m.tenant
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTenantID returns the old "tenant_id" field's value of the DepartmentContactMechanismValidity entity.
+// If the DepartmentContactMechanismValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismValidityMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTenantID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+	}
+	return oldValue.TenantID, nil
+}
+
+// ResetTenantID resets all changes to the "tenant_id" field.
+func (m *DepartmentContactMechanismValidityMutation) ResetTenantID() {
+	m.tenant = nil
+}
+
+// SetDepartmentContactMechanismID sets the "department_contact_mechanism_id" field.
+func (m *DepartmentContactMechanismValidityMutation) SetDepartmentContactMechanismID(u uuid.UUID) {
+	m.department_contact_mechanism = &u
+}
+
+// DepartmentContactMechanismID returns the value of the "department_contact_mechanism_id" field in the mutation.
+func (m *DepartmentContactMechanismValidityMutation) DepartmentContactMechanismID() (r uuid.UUID, exists bool) {
+	v := m.department_contact_mechanism
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepartmentContactMechanismID returns the old "department_contact_mechanism_id" field's value of the DepartmentContactMechanismValidity entity.
+// If the DepartmentContactMechanismValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismValidityMutation) OldDepartmentContactMechanismID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepartmentContactMechanismID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepartmentContactMechanismID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepartmentContactMechanismID: %w", err)
+	}
+	return oldValue.DepartmentContactMechanismID, nil
+}
+
+// ResetDepartmentContactMechanismID resets all changes to the "department_contact_mechanism_id" field.
+func (m *DepartmentContactMechanismValidityMutation) ResetDepartmentContactMechanismID() {
+	m.department_contact_mechanism = nil
+}
+
+// SetDepartmentID sets the "department_id" field.
+func (m *DepartmentContactMechanismValidityMutation) SetDepartmentID(u uuid.UUID) {
+	m.department = &u
+}
+
+// DepartmentID returns the value of the "department_id" field in the mutation.
+func (m *DepartmentContactMechanismValidityMutation) DepartmentID() (r uuid.UUID, exists bool) {
+	v := m.department
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepartmentID returns the old "department_id" field's value of the DepartmentContactMechanismValidity entity.
+// If the DepartmentContactMechanismValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismValidityMutation) OldDepartmentID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepartmentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepartmentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepartmentID: %w", err)
+	}
+	return oldValue.DepartmentID, nil
+}
+
+// ResetDepartmentID resets all changes to the "department_id" field.
+func (m *DepartmentContactMechanismValidityMutation) ResetDepartmentID() {
+	m.department = nil
+}
+
+// SetContactType sets the "contact_type" field.
+func (m *DepartmentContactMechanismValidityMutation) SetContactType(dt departmentcontactmechanismvalidity.ContactType) {
+	m.contact_type = &dt
+}
+
+// ContactType returns the value of the "contact_type" field in the mutation.
+func (m *DepartmentContactMechanismValidityMutation) ContactType() (r departmentcontactmechanismvalidity.ContactType, exists bool) {
+	v := m.contact_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContactType returns the old "contact_type" field's value of the DepartmentContactMechanismValidity entity.
+// If the DepartmentContactMechanismValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismValidityMutation) OldContactType(ctx context.Context) (v departmentcontactmechanismvalidity.ContactType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContactType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContactType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContactType: %w", err)
+	}
+	return oldValue.ContactType, nil
+}
+
+// ResetContactType resets all changes to the "contact_type" field.
+func (m *DepartmentContactMechanismValidityMutation) ResetContactType() {
+	m.contact_type = nil
+}
+
+// SetIsPrimary sets the "is_primary" field.
+func (m *DepartmentContactMechanismValidityMutation) SetIsPrimary(b bool) {
+	m.is_primary = &b
+}
+
+// IsPrimary returns the value of the "is_primary" field in the mutation.
+func (m *DepartmentContactMechanismValidityMutation) IsPrimary() (r bool, exists bool) {
+	v := m.is_primary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsPrimary returns the old "is_primary" field's value of the DepartmentContactMechanismValidity entity.
+// If the DepartmentContactMechanismValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismValidityMutation) OldIsPrimary(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsPrimary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsPrimary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsPrimary: %w", err)
+	}
+	return oldValue.IsPrimary, nil
+}
+
+// ResetIsPrimary resets all changes to the "is_primary" field.
+func (m *DepartmentContactMechanismValidityMutation) ResetIsPrimary() {
+	m.is_primary = nil
+}
+
+// SetStartDate sets the "start_date" field.
+func (m *DepartmentContactMechanismValidityMutation) SetStartDate(t time.Time) {
+	m.start_date = &t
+}
+
+// StartDate returns the value of the "start_date" field in the mutation.
+func (m *DepartmentContactMechanismValidityMutation) StartDate() (r time.Time, exists bool) {
+	v := m.start_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartDate returns the old "start_date" field's value of the DepartmentContactMechanismValidity entity.
+// If the DepartmentContactMechanismValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismValidityMutation) OldStartDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartDate: %w", err)
+	}
+	return oldValue.StartDate, nil
+}
+
+// ResetStartDate resets all changes to the "start_date" field.
+func (m *DepartmentContactMechanismValidityMutation) ResetStartDate() {
+	m.start_date = nil
+}
+
+// SetEndDate sets the "end_date" field.
+func (m *DepartmentContactMechanismValidityMutation) SetEndDate(t time.Time) {
+	m.end_date = &t
+}
+
+// EndDate returns the value of the "end_date" field in the mutation.
+func (m *DepartmentContactMechanismValidityMutation) EndDate() (r time.Time, exists bool) {
+	v := m.end_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndDate returns the old "end_date" field's value of the DepartmentContactMechanismValidity entity.
+// If the DepartmentContactMechanismValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismValidityMutation) OldEndDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndDate: %w", err)
+	}
+	return oldValue.EndDate, nil
+}
+
+// ClearEndDate clears the value of the "end_date" field.
+func (m *DepartmentContactMechanismValidityMutation) ClearEndDate() {
+	m.end_date = nil
+	m.clearedFields[departmentcontactmechanismvalidity.FieldEndDate] = struct{}{}
+}
+
+// EndDateCleared returns if the "end_date" field was cleared in this mutation.
+func (m *DepartmentContactMechanismValidityMutation) EndDateCleared() bool {
+	_, ok := m.clearedFields[departmentcontactmechanismvalidity.FieldEndDate]
+	return ok
+}
+
+// ResetEndDate resets all changes to the "end_date" field.
+func (m *DepartmentContactMechanismValidityMutation) ResetEndDate() {
+	m.end_date = nil
+	delete(m.clearedFields, departmentcontactmechanismvalidity.FieldEndDate)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DepartmentContactMechanismValidityMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DepartmentContactMechanismValidityMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DepartmentContactMechanismValidity entity.
+// If the DepartmentContactMechanismValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismValidityMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DepartmentContactMechanismValidityMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DepartmentContactMechanismValidityMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DepartmentContactMechanismValidityMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DepartmentContactMechanismValidity entity.
+// If the DepartmentContactMechanismValidity object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DepartmentContactMechanismValidityMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DepartmentContactMechanismValidityMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearTenant clears the "tenant" edge to the Subscription entity.
+func (m *DepartmentContactMechanismValidityMutation) ClearTenant() {
+	m.clearedtenant = true
+	m.clearedFields[departmentcontactmechanismvalidity.FieldTenantID] = struct{}{}
+}
+
+// TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
+func (m *DepartmentContactMechanismValidityMutation) TenantCleared() bool {
+	return m.clearedtenant
+}
+
+// TenantIDs returns the "tenant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TenantID instead. It exists only for internal usage by the builders.
+func (m *DepartmentContactMechanismValidityMutation) TenantIDs() (ids []uuid.UUID) {
+	if id := m.tenant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTenant resets all changes to the "tenant" edge.
+func (m *DepartmentContactMechanismValidityMutation) ResetTenant() {
+	m.tenant = nil
+	m.clearedtenant = false
+}
+
+// ClearDepartment clears the "department" edge to the Department entity.
+func (m *DepartmentContactMechanismValidityMutation) ClearDepartment() {
+	m.cleareddepartment = true
+	m.clearedFields[departmentcontactmechanismvalidity.FieldDepartmentID] = struct{}{}
+}
+
+// DepartmentCleared reports if the "department" edge to the Department entity was cleared.
+func (m *DepartmentContactMechanismValidityMutation) DepartmentCleared() bool {
+	return m.cleareddepartment
+}
+
+// DepartmentIDs returns the "department" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DepartmentID instead. It exists only for internal usage by the builders.
+func (m *DepartmentContactMechanismValidityMutation) DepartmentIDs() (ids []uuid.UUID) {
+	if id := m.department; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDepartment resets all changes to the "department" edge.
+func (m *DepartmentContactMechanismValidityMutation) ResetDepartment() {
+	m.department = nil
+	m.cleareddepartment = false
+}
+
+// ClearDepartmentContactMechanism clears the "department_contact_mechanism" edge to the DepartmentContactMechanism entity.
+func (m *DepartmentContactMechanismValidityMutation) ClearDepartmentContactMechanism() {
+	m.cleareddepartment_contact_mechanism = true
+	m.clearedFields[departmentcontactmechanismvalidity.FieldDepartmentContactMechanismID] = struct{}{}
+}
+
+// DepartmentContactMechanismCleared reports if the "department_contact_mechanism" edge to the DepartmentContactMechanism entity was cleared.
+func (m *DepartmentContactMechanismValidityMutation) DepartmentContactMechanismCleared() bool {
+	return m.cleareddepartment_contact_mechanism
+}
+
+// DepartmentContactMechanismIDs returns the "department_contact_mechanism" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DepartmentContactMechanismID instead. It exists only for internal usage by the builders.
+func (m *DepartmentContactMechanismValidityMutation) DepartmentContactMechanismIDs() (ids []uuid.UUID) {
+	if id := m.department_contact_mechanism; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDepartmentContactMechanism resets all changes to the "department_contact_mechanism" edge.
+func (m *DepartmentContactMechanismValidityMutation) ResetDepartmentContactMechanism() {
+	m.department_contact_mechanism = nil
+	m.cleareddepartment_contact_mechanism = false
+}
+
+// Where appends a list predicates to the DepartmentContactMechanismValidityMutation builder.
+func (m *DepartmentContactMechanismValidityMutation) Where(ps ...predicate.DepartmentContactMechanismValidity) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the DepartmentContactMechanismValidityMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DepartmentContactMechanismValidityMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DepartmentContactMechanismValidity, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *DepartmentContactMechanismValidityMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DepartmentContactMechanismValidityMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (DepartmentContactMechanismValidity).
+func (m *DepartmentContactMechanismValidityMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DepartmentContactMechanismValidityMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.tenant != nil {
+		fields = append(fields, departmentcontactmechanismvalidity.FieldTenantID)
+	}
+	if m.department_contact_mechanism != nil {
+		fields = append(fields, departmentcontactmechanismvalidity.FieldDepartmentContactMechanismID)
+	}
+	if m.department != nil {
+		fields = append(fields, departmentcontactmechanismvalidity.FieldDepartmentID)
+	}
+	if m.contact_type != nil {
+		fields = append(fields, departmentcontactmechanismvalidity.FieldContactType)
+	}
+	if m.is_primary != nil {
+		fields = append(fields, departmentcontactmechanismvalidity.FieldIsPrimary)
+	}
+	if m.start_date != nil {
+		fields = append(fields, departmentcontactmechanismvalidity.FieldStartDate)
+	}
+	if m.end_date != nil {
+		fields = append(fields, departmentcontactmechanismvalidity.FieldEndDate)
+	}
+	if m.created_at != nil {
+		fields = append(fields, departmentcontactmechanismvalidity.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, departmentcontactmechanismvalidity.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DepartmentContactMechanismValidityMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case departmentcontactmechanismvalidity.FieldTenantID:
+		return m.TenantID()
+	case departmentcontactmechanismvalidity.FieldDepartmentContactMechanismID:
+		return m.DepartmentContactMechanismID()
+	case departmentcontactmechanismvalidity.FieldDepartmentID:
+		return m.DepartmentID()
+	case departmentcontactmechanismvalidity.FieldContactType:
+		return m.ContactType()
+	case departmentcontactmechanismvalidity.FieldIsPrimary:
+		return m.IsPrimary()
+	case departmentcontactmechanismvalidity.FieldStartDate:
+		return m.StartDate()
+	case departmentcontactmechanismvalidity.FieldEndDate:
+		return m.EndDate()
+	case departmentcontactmechanismvalidity.FieldCreatedAt:
+		return m.CreatedAt()
+	case departmentcontactmechanismvalidity.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DepartmentContactMechanismValidityMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case departmentcontactmechanismvalidity.FieldTenantID:
+		return m.OldTenantID(ctx)
+	case departmentcontactmechanismvalidity.FieldDepartmentContactMechanismID:
+		return m.OldDepartmentContactMechanismID(ctx)
+	case departmentcontactmechanismvalidity.FieldDepartmentID:
+		return m.OldDepartmentID(ctx)
+	case departmentcontactmechanismvalidity.FieldContactType:
+		return m.OldContactType(ctx)
+	case departmentcontactmechanismvalidity.FieldIsPrimary:
+		return m.OldIsPrimary(ctx)
+	case departmentcontactmechanismvalidity.FieldStartDate:
+		return m.OldStartDate(ctx)
+	case departmentcontactmechanismvalidity.FieldEndDate:
+		return m.OldEndDate(ctx)
+	case departmentcontactmechanismvalidity.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case departmentcontactmechanismvalidity.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown DepartmentContactMechanismValidity field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepartmentContactMechanismValidityMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case departmentcontactmechanismvalidity.FieldTenantID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTenantID(v)
+		return nil
+	case departmentcontactmechanismvalidity.FieldDepartmentContactMechanismID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepartmentContactMechanismID(v)
+		return nil
+	case departmentcontactmechanismvalidity.FieldDepartmentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepartmentID(v)
+		return nil
+	case departmentcontactmechanismvalidity.FieldContactType:
+		v, ok := value.(departmentcontactmechanismvalidity.ContactType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContactType(v)
+		return nil
+	case departmentcontactmechanismvalidity.FieldIsPrimary:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsPrimary(v)
+		return nil
+	case departmentcontactmechanismvalidity.FieldStartDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartDate(v)
+		return nil
+	case departmentcontactmechanismvalidity.FieldEndDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndDate(v)
+		return nil
+	case departmentcontactmechanismvalidity.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case departmentcontactmechanismvalidity.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanismValidity field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DepartmentContactMechanismValidityMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DepartmentContactMechanismValidityMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DepartmentContactMechanismValidityMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanismValidity numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DepartmentContactMechanismValidityMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(departmentcontactmechanismvalidity.FieldEndDate) {
+		fields = append(fields, departmentcontactmechanismvalidity.FieldEndDate)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DepartmentContactMechanismValidityMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DepartmentContactMechanismValidityMutation) ClearField(name string) error {
+	switch name {
+	case departmentcontactmechanismvalidity.FieldEndDate:
+		m.ClearEndDate()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanismValidity nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DepartmentContactMechanismValidityMutation) ResetField(name string) error {
+	switch name {
+	case departmentcontactmechanismvalidity.FieldTenantID:
+		m.ResetTenantID()
+		return nil
+	case departmentcontactmechanismvalidity.FieldDepartmentContactMechanismID:
+		m.ResetDepartmentContactMechanismID()
+		return nil
+	case departmentcontactmechanismvalidity.FieldDepartmentID:
+		m.ResetDepartmentID()
+		return nil
+	case departmentcontactmechanismvalidity.FieldContactType:
+		m.ResetContactType()
+		return nil
+	case departmentcontactmechanismvalidity.FieldIsPrimary:
+		m.ResetIsPrimary()
+		return nil
+	case departmentcontactmechanismvalidity.FieldStartDate:
+		m.ResetStartDate()
+		return nil
+	case departmentcontactmechanismvalidity.FieldEndDate:
+		m.ResetEndDate()
+		return nil
+	case departmentcontactmechanismvalidity.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case departmentcontactmechanismvalidity.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanismValidity field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DepartmentContactMechanismValidityMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.tenant != nil {
+		edges = append(edges, departmentcontactmechanismvalidity.EdgeTenant)
+	}
+	if m.department != nil {
+		edges = append(edges, departmentcontactmechanismvalidity.EdgeDepartment)
+	}
+	if m.department_contact_mechanism != nil {
+		edges = append(edges, departmentcontactmechanismvalidity.EdgeDepartmentContactMechanism)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DepartmentContactMechanismValidityMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case departmentcontactmechanismvalidity.EdgeTenant:
+		if id := m.tenant; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmentcontactmechanismvalidity.EdgeDepartment:
+		if id := m.department; id != nil {
+			return []ent.Value{*id}
+		}
+	case departmentcontactmechanismvalidity.EdgeDepartmentContactMechanism:
+		if id := m.department_contact_mechanism; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DepartmentContactMechanismValidityMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DepartmentContactMechanismValidityMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DepartmentContactMechanismValidityMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedtenant {
+		edges = append(edges, departmentcontactmechanismvalidity.EdgeTenant)
+	}
+	if m.cleareddepartment {
+		edges = append(edges, departmentcontactmechanismvalidity.EdgeDepartment)
+	}
+	if m.cleareddepartment_contact_mechanism {
+		edges = append(edges, departmentcontactmechanismvalidity.EdgeDepartmentContactMechanism)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DepartmentContactMechanismValidityMutation) EdgeCleared(name string) bool {
+	switch name {
+	case departmentcontactmechanismvalidity.EdgeTenant:
+		return m.clearedtenant
+	case departmentcontactmechanismvalidity.EdgeDepartment:
+		return m.cleareddepartment
+	case departmentcontactmechanismvalidity.EdgeDepartmentContactMechanism:
+		return m.cleareddepartment_contact_mechanism
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DepartmentContactMechanismValidityMutation) ClearEdge(name string) error {
+	switch name {
+	case departmentcontactmechanismvalidity.EdgeTenant:
+		m.ClearTenant()
+		return nil
+	case departmentcontactmechanismvalidity.EdgeDepartment:
+		m.ClearDepartment()
+		return nil
+	case departmentcontactmechanismvalidity.EdgeDepartmentContactMechanism:
+		m.ClearDepartmentContactMechanism()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanismValidity unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DepartmentContactMechanismValidityMutation) ResetEdge(name string) error {
+	switch name {
+	case departmentcontactmechanismvalidity.EdgeTenant:
+		m.ResetTenant()
+		return nil
+	case departmentcontactmechanismvalidity.EdgeDepartment:
+		m.ResetDepartment()
+		return nil
+	case departmentcontactmechanismvalidity.EdgeDepartmentContactMechanism:
+		m.ResetDepartmentContactMechanism()
+		return nil
+	}
+	return fmt.Errorf("unknown DepartmentContactMechanismValidity edge %s", name)
 }
 
 // DepartmentGroupAssignmentMutation represents an operation that mutates the DepartmentGroupAssignment nodes in the graph.
@@ -11103,35 +16409,38 @@ func (m *LocaleMutation) ResetEdge(name string) error {
 // LocationMutation represents an operation that mutates the Location nodes in the graph.
 type LocationMutation struct {
 	config
-	op                        Op
-	typ                       string
-	id                        *uuid.UUID
-	location_type             *location.LocationType
-	country_code              *string
-	iso_code                  *string
-	external_id               *string
-	default_name              *string
-	_path                     *string
-	created_at                *time.Time
-	updated_at                *time.Time
-	clearedFields             map[string]struct{}
-	children                  map[uuid.UUID]struct{}
-	removedchildren           map[uuid.UUID]struct{}
-	clearedchildren           bool
-	parent                    *uuid.UUID
-	clearedparent             bool
-	translations              map[uuid.UUID]struct{}
-	removedtranslations       map[uuid.UUID]struct{}
-	clearedtranslations       bool
-	addresses                 map[uuid.UUID]struct{}
-	removedaddresses          map[uuid.UUID]struct{}
-	clearedaddresses          bool
-	identity_documents        map[uuid.UUID]struct{}
-	removedidentity_documents map[uuid.UUID]struct{}
-	clearedidentity_documents bool
-	done                      bool
-	oldValue                  func(context.Context) (*Location, error)
-	predicates                []predicate.Location
+	op                          Op
+	typ                         string
+	id                          *uuid.UUID
+	location_type               *location.LocationType
+	country_code                *string
+	iso_code                    *string
+	external_id                 *string
+	default_name                *string
+	_path                       *string
+	created_at                  *time.Time
+	updated_at                  *time.Time
+	clearedFields               map[string]struct{}
+	children                    map[uuid.UUID]struct{}
+	removedchildren             map[uuid.UUID]struct{}
+	clearedchildren             bool
+	parent                      *uuid.UUID
+	clearedparent               bool
+	translations                map[uuid.UUID]struct{}
+	removedtranslations         map[uuid.UUID]struct{}
+	clearedtranslations         bool
+	addresses                   map[uuid.UUID]struct{}
+	removedaddresses            map[uuid.UUID]struct{}
+	clearedaddresses            bool
+	identity_documents          map[uuid.UUID]struct{}
+	removedidentity_documents   map[uuid.UUID]struct{}
+	clearedidentity_documents   bool
+	department_addresses        map[uuid.UUID]struct{}
+	removeddepartment_addresses map[uuid.UUID]struct{}
+	cleareddepartment_addresses bool
+	done                        bool
+	oldValue                    func(context.Context) (*Location, error)
+	predicates                  []predicate.Location
 }
 
 var _ ent.Mutation = (*LocationMutation)(nil)
@@ -11844,6 +17153,60 @@ func (m *LocationMutation) ResetIdentityDocuments() {
 	m.removedidentity_documents = nil
 }
 
+// AddDepartmentAddressIDs adds the "department_addresses" edge to the DepartmentAddress entity by ids.
+func (m *LocationMutation) AddDepartmentAddressIDs(ids ...uuid.UUID) {
+	if m.department_addresses == nil {
+		m.department_addresses = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.department_addresses[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDepartmentAddresses clears the "department_addresses" edge to the DepartmentAddress entity.
+func (m *LocationMutation) ClearDepartmentAddresses() {
+	m.cleareddepartment_addresses = true
+}
+
+// DepartmentAddressesCleared reports if the "department_addresses" edge to the DepartmentAddress entity was cleared.
+func (m *LocationMutation) DepartmentAddressesCleared() bool {
+	return m.cleareddepartment_addresses
+}
+
+// RemoveDepartmentAddressIDs removes the "department_addresses" edge to the DepartmentAddress entity by IDs.
+func (m *LocationMutation) RemoveDepartmentAddressIDs(ids ...uuid.UUID) {
+	if m.removeddepartment_addresses == nil {
+		m.removeddepartment_addresses = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.department_addresses, ids[i])
+		m.removeddepartment_addresses[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDepartmentAddresses returns the removed IDs of the "department_addresses" edge to the DepartmentAddress entity.
+func (m *LocationMutation) RemovedDepartmentAddressesIDs() (ids []uuid.UUID) {
+	for id := range m.removeddepartment_addresses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DepartmentAddressesIDs returns the "department_addresses" edge IDs in the mutation.
+func (m *LocationMutation) DepartmentAddressesIDs() (ids []uuid.UUID) {
+	for id := range m.department_addresses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDepartmentAddresses resets all changes to the "department_addresses" edge.
+func (m *LocationMutation) ResetDepartmentAddresses() {
+	m.department_addresses = nil
+	m.cleareddepartment_addresses = false
+	m.removeddepartment_addresses = nil
+}
+
 // Where appends a list predicates to the LocationMutation builder.
 func (m *LocationMutation) Where(ps ...predicate.Location) {
 	m.predicates = append(m.predicates, ps...)
@@ -12134,7 +17497,7 @@ func (m *LocationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LocationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.children != nil {
 		edges = append(edges, location.EdgeChildren)
 	}
@@ -12149,6 +17512,9 @@ func (m *LocationMutation) AddedEdges() []string {
 	}
 	if m.identity_documents != nil {
 		edges = append(edges, location.EdgeIdentityDocuments)
+	}
+	if m.department_addresses != nil {
+		edges = append(edges, location.EdgeDepartmentAddresses)
 	}
 	return edges
 }
@@ -12185,13 +17551,19 @@ func (m *LocationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case location.EdgeDepartmentAddresses:
+		ids := make([]ent.Value, 0, len(m.department_addresses))
+		for id := range m.department_addresses {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LocationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedchildren != nil {
 		edges = append(edges, location.EdgeChildren)
 	}
@@ -12203,6 +17575,9 @@ func (m *LocationMutation) RemovedEdges() []string {
 	}
 	if m.removedidentity_documents != nil {
 		edges = append(edges, location.EdgeIdentityDocuments)
+	}
+	if m.removeddepartment_addresses != nil {
+		edges = append(edges, location.EdgeDepartmentAddresses)
 	}
 	return edges
 }
@@ -12235,13 +17610,19 @@ func (m *LocationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case location.EdgeDepartmentAddresses:
+		ids := make([]ent.Value, 0, len(m.removeddepartment_addresses))
+		for id := range m.removeddepartment_addresses {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LocationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedchildren {
 		edges = append(edges, location.EdgeChildren)
 	}
@@ -12256,6 +17637,9 @@ func (m *LocationMutation) ClearedEdges() []string {
 	}
 	if m.clearedidentity_documents {
 		edges = append(edges, location.EdgeIdentityDocuments)
+	}
+	if m.cleareddepartment_addresses {
+		edges = append(edges, location.EdgeDepartmentAddresses)
 	}
 	return edges
 }
@@ -12274,6 +17658,8 @@ func (m *LocationMutation) EdgeCleared(name string) bool {
 		return m.clearedaddresses
 	case location.EdgeIdentityDocuments:
 		return m.clearedidentity_documents
+	case location.EdgeDepartmentAddresses:
+		return m.cleareddepartment_addresses
 	}
 	return false
 }
@@ -12307,6 +17693,9 @@ func (m *LocationMutation) ResetEdge(name string) error {
 		return nil
 	case location.EdgeIdentityDocuments:
 		m.ResetIdentityDocuments()
+		return nil
+	case location.EdgeDepartmentAddresses:
+		m.ResetDepartmentAddresses()
 		return nil
 	}
 	return fmt.Errorf("unknown Location edge %s", name)
@@ -14664,6 +20053,9 @@ type PartyMutation struct {
 	identity_document_validities              map[uuid.UUID]struct{}
 	removedidentity_document_validities       map[uuid.UUID]struct{}
 	clearedidentity_document_validities       bool
+	address_validities                        map[uuid.UUID]struct{}
+	removedaddress_validities                 map[uuid.UUID]struct{}
+	clearedaddress_validities                 bool
 	addresses                                 map[uuid.UUID]struct{}
 	removedaddresses                          map[uuid.UUID]struct{}
 	clearedaddresses                          bool
@@ -15601,6 +20993,60 @@ func (m *PartyMutation) ResetIdentityDocumentValidities() {
 	m.removedidentity_document_validities = nil
 }
 
+// AddAddressValidityIDs adds the "address_validities" edge to the AddressValidity entity by ids.
+func (m *PartyMutation) AddAddressValidityIDs(ids ...uuid.UUID) {
+	if m.address_validities == nil {
+		m.address_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.address_validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAddressValidities clears the "address_validities" edge to the AddressValidity entity.
+func (m *PartyMutation) ClearAddressValidities() {
+	m.clearedaddress_validities = true
+}
+
+// AddressValiditiesCleared reports if the "address_validities" edge to the AddressValidity entity was cleared.
+func (m *PartyMutation) AddressValiditiesCleared() bool {
+	return m.clearedaddress_validities
+}
+
+// RemoveAddressValidityIDs removes the "address_validities" edge to the AddressValidity entity by IDs.
+func (m *PartyMutation) RemoveAddressValidityIDs(ids ...uuid.UUID) {
+	if m.removedaddress_validities == nil {
+		m.removedaddress_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.address_validities, ids[i])
+		m.removedaddress_validities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAddressValidities returns the removed IDs of the "address_validities" edge to the AddressValidity entity.
+func (m *PartyMutation) RemovedAddressValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedaddress_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AddressValiditiesIDs returns the "address_validities" edge IDs in the mutation.
+func (m *PartyMutation) AddressValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.address_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAddressValidities resets all changes to the "address_validities" edge.
+func (m *PartyMutation) ResetAddressValidities() {
+	m.address_validities = nil
+	m.clearedaddress_validities = false
+	m.removedaddress_validities = nil
+}
+
 // AddAddressIDs adds the "addresses" edge to the Address entity by ids.
 func (m *PartyMutation) AddAddressIDs(ids ...uuid.UUID) {
 	if m.addresses == nil {
@@ -16420,7 +21866,7 @@ func (m *PartyMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PartyMutation) AddedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.tenant != nil {
 		edges = append(edges, party.EdgeTenant)
 	}
@@ -16450,6 +21896,9 @@ func (m *PartyMutation) AddedEdges() []string {
 	}
 	if m.identity_document_validities != nil {
 		edges = append(edges, party.EdgeIdentityDocumentValidities)
+	}
+	if m.address_validities != nil {
+		edges = append(edges, party.EdgeAddressValidities)
 	}
 	if m.addresses != nil {
 		edges = append(edges, party.EdgeAddresses)
@@ -16545,6 +21994,12 @@ func (m *PartyMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case party.EdgeAddressValidities:
+		ids := make([]ent.Value, 0, len(m.address_validities))
+		for id := range m.address_validities {
+			ids = append(ids, id)
+		}
+		return ids
 	case party.EdgeAddresses:
 		ids := make([]ent.Value, 0, len(m.addresses))
 		for id := range m.addresses {
@@ -16613,7 +22068,7 @@ func (m *PartyMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PartyMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.removedparty_roles != nil {
 		edges = append(edges, party.EdgePartyRoles)
 	}
@@ -16634,6 +22089,9 @@ func (m *PartyMutation) RemovedEdges() []string {
 	}
 	if m.removedidentity_document_validities != nil {
 		edges = append(edges, party.EdgeIdentityDocumentValidities)
+	}
+	if m.removedaddress_validities != nil {
+		edges = append(edges, party.EdgeAddressValidities)
 	}
 	if m.removedaddresses != nil {
 		edges = append(edges, party.EdgeAddresses)
@@ -16711,6 +22169,12 @@ func (m *PartyMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case party.EdgeAddressValidities:
+		ids := make([]ent.Value, 0, len(m.removedaddress_validities))
+		for id := range m.removedaddress_validities {
+			ids = append(ids, id)
+		}
+		return ids
 	case party.EdgeAddresses:
 		ids := make([]ent.Value, 0, len(m.removedaddresses))
 		for id := range m.removedaddresses {
@@ -16771,7 +22235,7 @@ func (m *PartyMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PartyMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 21)
+	edges := make([]string, 0, 22)
 	if m.clearedtenant {
 		edges = append(edges, party.EdgeTenant)
 	}
@@ -16801,6 +22265,9 @@ func (m *PartyMutation) ClearedEdges() []string {
 	}
 	if m.clearedidentity_document_validities {
 		edges = append(edges, party.EdgeIdentityDocumentValidities)
+	}
+	if m.clearedaddress_validities {
+		edges = append(edges, party.EdgeAddressValidities)
 	}
 	if m.clearedaddresses {
 		edges = append(edges, party.EdgeAddresses)
@@ -16862,6 +22329,8 @@ func (m *PartyMutation) EdgeCleared(name string) bool {
 		return m.clearedidentity_documents
 	case party.EdgeIdentityDocumentValidities:
 		return m.clearedidentity_document_validities
+	case party.EdgeAddressValidities:
+		return m.clearedaddress_validities
 	case party.EdgeAddresses:
 		return m.clearedaddresses
 	case party.EdgeSessions:
@@ -16944,6 +22413,9 @@ func (m *PartyMutation) ResetEdge(name string) error {
 		return nil
 	case party.EdgeIdentityDocumentValidities:
 		m.ResetIdentityDocumentValidities()
+		return nil
+	case party.EdgeAddressValidities:
+		m.ResetAddressValidities()
 		return nil
 	case party.EdgeAddresses:
 		m.ResetAddresses()
@@ -28683,91 +34155,106 @@ func (m *SessionMutation) ResetEdge(name string) error {
 // SubscriptionMutation represents an operation that mutates the Subscription nodes in the graph.
 type SubscriptionMutation struct {
 	config
-	op                                        Op
-	typ                                       string
-	id                                        *uuid.UUID
-	name                                      *string
-	slug                                      *string
-	status                                    *subscription.Status
-	created_at                                *time.Time
-	updated_at                                *time.Time
-	deleted_at                                *time.Time
-	clearedFields                             map[string]struct{}
-	parties                                   map[uuid.UUID]struct{}
-	removedparties                            map[uuid.UUID]struct{}
-	clearedparties                            bool
-	person_profiles                           map[uuid.UUID]struct{}
-	removedperson_profiles                    map[uuid.UUID]struct{}
-	clearedperson_profiles                    bool
-	organization_profiles                     map[uuid.UUID]struct{}
-	removedorganization_profiles              map[uuid.UUID]struct{}
-	clearedorganization_profiles              bool
-	party_roles                               map[uuid.UUID]struct{}
-	removedparty_roles                        map[uuid.UUID]struct{}
-	clearedparty_roles                        bool
-	party_merge_logs                          map[uuid.UUID]struct{}
-	removedparty_merge_logs                   map[uuid.UUID]struct{}
-	clearedparty_merge_logs                   bool
-	job_families                              map[uuid.UUID]struct{}
-	removedjob_families                       map[uuid.UUID]struct{}
-	clearedjob_families                       bool
-	jobs                                      map[uuid.UUID]struct{}
-	removedjobs                               map[uuid.UUID]struct{}
-	clearedjobs                               bool
-	employees                                 map[uuid.UUID]struct{}
-	removedemployees                          map[uuid.UUID]struct{}
-	clearedemployees                          bool
-	departments                               map[uuid.UUID]struct{}
-	removeddepartments                        map[uuid.UUID]struct{}
-	cleareddepartments                        bool
-	employee_assignments                      map[uuid.UUID]struct{}
-	removedemployee_assignments               map[uuid.UUID]struct{}
-	clearedemployee_assignments               bool
-	party_contact_mechanisms                  map[uuid.UUID]struct{}
-	removedparty_contact_mechanisms           map[uuid.UUID]struct{}
-	clearedparty_contact_mechanisms           bool
-	addresses                                 map[uuid.UUID]struct{}
-	removedaddresses                          map[uuid.UUID]struct{}
-	clearedaddresses                          bool
-	sessions                                  map[uuid.UUID]struct{}
-	removedsessions                           map[uuid.UUID]struct{}
-	clearedsessions                           bool
-	user_credentials                          map[uuid.UUID]struct{}
-	removeduser_credentials                   map[uuid.UUID]struct{}
-	cleareduser_credentials                   bool
-	password_reset_tokens                     map[uuid.UUID]struct{}
-	removedpassword_reset_tokens              map[uuid.UUID]struct{}
-	clearedpassword_reset_tokens              bool
-	attached_documents                        map[uuid.UUID]struct{}
-	removedattached_documents                 map[uuid.UUID]struct{}
-	clearedattached_documents                 bool
-	corporate_groups                          map[uuid.UUID]struct{}
-	removedcorporate_groups                   map[uuid.UUID]struct{}
-	clearedcorporate_groups                   bool
-	department_group_assignments              map[uuid.UUID]struct{}
-	removeddepartment_group_assignments       map[uuid.UUID]struct{}
-	cleareddepartment_group_assignments       bool
-	party_names                               map[uuid.UUID]struct{}
-	removedparty_names                        map[uuid.UUID]struct{}
-	clearedparty_names                        bool
-	party_name_validities                     map[uuid.UUID]struct{}
-	removedparty_name_validities              map[uuid.UUID]struct{}
-	clearedparty_name_validities              bool
-	party_contact_mechanism_validities        map[uuid.UUID]struct{}
-	removedparty_contact_mechanism_validities map[uuid.UUID]struct{}
-	clearedparty_contact_mechanism_validities bool
-	party_nationalities                       map[uuid.UUID]struct{}
-	removedparty_nationalities                map[uuid.UUID]struct{}
-	clearedparty_nationalities                bool
-	party_identity_documents                  map[uuid.UUID]struct{}
-	removedparty_identity_documents           map[uuid.UUID]struct{}
-	clearedparty_identity_documents           bool
-	party_identity_document_validities        map[uuid.UUID]struct{}
-	removedparty_identity_document_validities map[uuid.UUID]struct{}
-	clearedparty_identity_document_validities bool
-	done                                      bool
-	oldValue                                  func(context.Context) (*Subscription, error)
-	predicates                                []predicate.Subscription
+	op                                             Op
+	typ                                            string
+	id                                             *uuid.UUID
+	name                                           *string
+	slug                                           *string
+	status                                         *subscription.Status
+	created_at                                     *time.Time
+	updated_at                                     *time.Time
+	deleted_at                                     *time.Time
+	clearedFields                                  map[string]struct{}
+	parties                                        map[uuid.UUID]struct{}
+	removedparties                                 map[uuid.UUID]struct{}
+	clearedparties                                 bool
+	person_profiles                                map[uuid.UUID]struct{}
+	removedperson_profiles                         map[uuid.UUID]struct{}
+	clearedperson_profiles                         bool
+	organization_profiles                          map[uuid.UUID]struct{}
+	removedorganization_profiles                   map[uuid.UUID]struct{}
+	clearedorganization_profiles                   bool
+	party_roles                                    map[uuid.UUID]struct{}
+	removedparty_roles                             map[uuid.UUID]struct{}
+	clearedparty_roles                             bool
+	party_merge_logs                               map[uuid.UUID]struct{}
+	removedparty_merge_logs                        map[uuid.UUID]struct{}
+	clearedparty_merge_logs                        bool
+	job_families                                   map[uuid.UUID]struct{}
+	removedjob_families                            map[uuid.UUID]struct{}
+	clearedjob_families                            bool
+	jobs                                           map[uuid.UUID]struct{}
+	removedjobs                                    map[uuid.UUID]struct{}
+	clearedjobs                                    bool
+	employees                                      map[uuid.UUID]struct{}
+	removedemployees                               map[uuid.UUID]struct{}
+	clearedemployees                               bool
+	departments                                    map[uuid.UUID]struct{}
+	removeddepartments                             map[uuid.UUID]struct{}
+	cleareddepartments                             bool
+	employee_assignments                           map[uuid.UUID]struct{}
+	removedemployee_assignments                    map[uuid.UUID]struct{}
+	clearedemployee_assignments                    bool
+	party_contact_mechanisms                       map[uuid.UUID]struct{}
+	removedparty_contact_mechanisms                map[uuid.UUID]struct{}
+	clearedparty_contact_mechanisms                bool
+	addresses                                      map[uuid.UUID]struct{}
+	removedaddresses                               map[uuid.UUID]struct{}
+	clearedaddresses                               bool
+	sessions                                       map[uuid.UUID]struct{}
+	removedsessions                                map[uuid.UUID]struct{}
+	clearedsessions                                bool
+	user_credentials                               map[uuid.UUID]struct{}
+	removeduser_credentials                        map[uuid.UUID]struct{}
+	cleareduser_credentials                        bool
+	password_reset_tokens                          map[uuid.UUID]struct{}
+	removedpassword_reset_tokens                   map[uuid.UUID]struct{}
+	clearedpassword_reset_tokens                   bool
+	attached_documents                             map[uuid.UUID]struct{}
+	removedattached_documents                      map[uuid.UUID]struct{}
+	clearedattached_documents                      bool
+	corporate_groups                               map[uuid.UUID]struct{}
+	removedcorporate_groups                        map[uuid.UUID]struct{}
+	clearedcorporate_groups                        bool
+	department_group_assignments                   map[uuid.UUID]struct{}
+	removeddepartment_group_assignments            map[uuid.UUID]struct{}
+	cleareddepartment_group_assignments            bool
+	party_names                                    map[uuid.UUID]struct{}
+	removedparty_names                             map[uuid.UUID]struct{}
+	clearedparty_names                             bool
+	party_name_validities                          map[uuid.UUID]struct{}
+	removedparty_name_validities                   map[uuid.UUID]struct{}
+	clearedparty_name_validities                   bool
+	party_contact_mechanism_validities             map[uuid.UUID]struct{}
+	removedparty_contact_mechanism_validities      map[uuid.UUID]struct{}
+	clearedparty_contact_mechanism_validities      bool
+	party_nationalities                            map[uuid.UUID]struct{}
+	removedparty_nationalities                     map[uuid.UUID]struct{}
+	clearedparty_nationalities                     bool
+	party_identity_documents                       map[uuid.UUID]struct{}
+	removedparty_identity_documents                map[uuid.UUID]struct{}
+	clearedparty_identity_documents                bool
+	party_identity_document_validities             map[uuid.UUID]struct{}
+	removedparty_identity_document_validities      map[uuid.UUID]struct{}
+	clearedparty_identity_document_validities      bool
+	address_validities                             map[uuid.UUID]struct{}
+	removedaddress_validities                      map[uuid.UUID]struct{}
+	clearedaddress_validities                      bool
+	department_contact_mechanisms                  map[uuid.UUID]struct{}
+	removeddepartment_contact_mechanisms           map[uuid.UUID]struct{}
+	cleareddepartment_contact_mechanisms           bool
+	department_contact_mechanism_validities        map[uuid.UUID]struct{}
+	removeddepartment_contact_mechanism_validities map[uuid.UUID]struct{}
+	cleareddepartment_contact_mechanism_validities bool
+	department_addresses                           map[uuid.UUID]struct{}
+	removeddepartment_addresses                    map[uuid.UUID]struct{}
+	cleareddepartment_addresses                    bool
+	department_address_validities                  map[uuid.UUID]struct{}
+	removeddepartment_address_validities           map[uuid.UUID]struct{}
+	cleareddepartment_address_validities           bool
+	done                                           bool
+	oldValue                                       func(context.Context) (*Subscription, error)
+	predicates                                     []predicate.Subscription
 }
 
 var _ ent.Mutation = (*SubscriptionMutation)(nil)
@@ -30399,6 +35886,276 @@ func (m *SubscriptionMutation) ResetPartyIdentityDocumentValidities() {
 	m.removedparty_identity_document_validities = nil
 }
 
+// AddAddressValidityIDs adds the "address_validities" edge to the AddressValidity entity by ids.
+func (m *SubscriptionMutation) AddAddressValidityIDs(ids ...uuid.UUID) {
+	if m.address_validities == nil {
+		m.address_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.address_validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAddressValidities clears the "address_validities" edge to the AddressValidity entity.
+func (m *SubscriptionMutation) ClearAddressValidities() {
+	m.clearedaddress_validities = true
+}
+
+// AddressValiditiesCleared reports if the "address_validities" edge to the AddressValidity entity was cleared.
+func (m *SubscriptionMutation) AddressValiditiesCleared() bool {
+	return m.clearedaddress_validities
+}
+
+// RemoveAddressValidityIDs removes the "address_validities" edge to the AddressValidity entity by IDs.
+func (m *SubscriptionMutation) RemoveAddressValidityIDs(ids ...uuid.UUID) {
+	if m.removedaddress_validities == nil {
+		m.removedaddress_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.address_validities, ids[i])
+		m.removedaddress_validities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAddressValidities returns the removed IDs of the "address_validities" edge to the AddressValidity entity.
+func (m *SubscriptionMutation) RemovedAddressValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removedaddress_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AddressValiditiesIDs returns the "address_validities" edge IDs in the mutation.
+func (m *SubscriptionMutation) AddressValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.address_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAddressValidities resets all changes to the "address_validities" edge.
+func (m *SubscriptionMutation) ResetAddressValidities() {
+	m.address_validities = nil
+	m.clearedaddress_validities = false
+	m.removedaddress_validities = nil
+}
+
+// AddDepartmentContactMechanismIDs adds the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity by ids.
+func (m *SubscriptionMutation) AddDepartmentContactMechanismIDs(ids ...uuid.UUID) {
+	if m.department_contact_mechanisms == nil {
+		m.department_contact_mechanisms = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.department_contact_mechanisms[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDepartmentContactMechanisms clears the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity.
+func (m *SubscriptionMutation) ClearDepartmentContactMechanisms() {
+	m.cleareddepartment_contact_mechanisms = true
+}
+
+// DepartmentContactMechanismsCleared reports if the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity was cleared.
+func (m *SubscriptionMutation) DepartmentContactMechanismsCleared() bool {
+	return m.cleareddepartment_contact_mechanisms
+}
+
+// RemoveDepartmentContactMechanismIDs removes the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity by IDs.
+func (m *SubscriptionMutation) RemoveDepartmentContactMechanismIDs(ids ...uuid.UUID) {
+	if m.removeddepartment_contact_mechanisms == nil {
+		m.removeddepartment_contact_mechanisms = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.department_contact_mechanisms, ids[i])
+		m.removeddepartment_contact_mechanisms[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDepartmentContactMechanisms returns the removed IDs of the "department_contact_mechanisms" edge to the DepartmentContactMechanism entity.
+func (m *SubscriptionMutation) RemovedDepartmentContactMechanismsIDs() (ids []uuid.UUID) {
+	for id := range m.removeddepartment_contact_mechanisms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DepartmentContactMechanismsIDs returns the "department_contact_mechanisms" edge IDs in the mutation.
+func (m *SubscriptionMutation) DepartmentContactMechanismsIDs() (ids []uuid.UUID) {
+	for id := range m.department_contact_mechanisms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDepartmentContactMechanisms resets all changes to the "department_contact_mechanisms" edge.
+func (m *SubscriptionMutation) ResetDepartmentContactMechanisms() {
+	m.department_contact_mechanisms = nil
+	m.cleareddepartment_contact_mechanisms = false
+	m.removeddepartment_contact_mechanisms = nil
+}
+
+// AddDepartmentContactMechanismValidityIDs adds the "department_contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity by ids.
+func (m *SubscriptionMutation) AddDepartmentContactMechanismValidityIDs(ids ...uuid.UUID) {
+	if m.department_contact_mechanism_validities == nil {
+		m.department_contact_mechanism_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.department_contact_mechanism_validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDepartmentContactMechanismValidities clears the "department_contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity.
+func (m *SubscriptionMutation) ClearDepartmentContactMechanismValidities() {
+	m.cleareddepartment_contact_mechanism_validities = true
+}
+
+// DepartmentContactMechanismValiditiesCleared reports if the "department_contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity was cleared.
+func (m *SubscriptionMutation) DepartmentContactMechanismValiditiesCleared() bool {
+	return m.cleareddepartment_contact_mechanism_validities
+}
+
+// RemoveDepartmentContactMechanismValidityIDs removes the "department_contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity by IDs.
+func (m *SubscriptionMutation) RemoveDepartmentContactMechanismValidityIDs(ids ...uuid.UUID) {
+	if m.removeddepartment_contact_mechanism_validities == nil {
+		m.removeddepartment_contact_mechanism_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.department_contact_mechanism_validities, ids[i])
+		m.removeddepartment_contact_mechanism_validities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDepartmentContactMechanismValidities returns the removed IDs of the "department_contact_mechanism_validities" edge to the DepartmentContactMechanismValidity entity.
+func (m *SubscriptionMutation) RemovedDepartmentContactMechanismValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removeddepartment_contact_mechanism_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DepartmentContactMechanismValiditiesIDs returns the "department_contact_mechanism_validities" edge IDs in the mutation.
+func (m *SubscriptionMutation) DepartmentContactMechanismValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.department_contact_mechanism_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDepartmentContactMechanismValidities resets all changes to the "department_contact_mechanism_validities" edge.
+func (m *SubscriptionMutation) ResetDepartmentContactMechanismValidities() {
+	m.department_contact_mechanism_validities = nil
+	m.cleareddepartment_contact_mechanism_validities = false
+	m.removeddepartment_contact_mechanism_validities = nil
+}
+
+// AddDepartmentAddressIDs adds the "department_addresses" edge to the DepartmentAddress entity by ids.
+func (m *SubscriptionMutation) AddDepartmentAddressIDs(ids ...uuid.UUID) {
+	if m.department_addresses == nil {
+		m.department_addresses = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.department_addresses[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDepartmentAddresses clears the "department_addresses" edge to the DepartmentAddress entity.
+func (m *SubscriptionMutation) ClearDepartmentAddresses() {
+	m.cleareddepartment_addresses = true
+}
+
+// DepartmentAddressesCleared reports if the "department_addresses" edge to the DepartmentAddress entity was cleared.
+func (m *SubscriptionMutation) DepartmentAddressesCleared() bool {
+	return m.cleareddepartment_addresses
+}
+
+// RemoveDepartmentAddressIDs removes the "department_addresses" edge to the DepartmentAddress entity by IDs.
+func (m *SubscriptionMutation) RemoveDepartmentAddressIDs(ids ...uuid.UUID) {
+	if m.removeddepartment_addresses == nil {
+		m.removeddepartment_addresses = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.department_addresses, ids[i])
+		m.removeddepartment_addresses[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDepartmentAddresses returns the removed IDs of the "department_addresses" edge to the DepartmentAddress entity.
+func (m *SubscriptionMutation) RemovedDepartmentAddressesIDs() (ids []uuid.UUID) {
+	for id := range m.removeddepartment_addresses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DepartmentAddressesIDs returns the "department_addresses" edge IDs in the mutation.
+func (m *SubscriptionMutation) DepartmentAddressesIDs() (ids []uuid.UUID) {
+	for id := range m.department_addresses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDepartmentAddresses resets all changes to the "department_addresses" edge.
+func (m *SubscriptionMutation) ResetDepartmentAddresses() {
+	m.department_addresses = nil
+	m.cleareddepartment_addresses = false
+	m.removeddepartment_addresses = nil
+}
+
+// AddDepartmentAddressValidityIDs adds the "department_address_validities" edge to the DepartmentAddressValidity entity by ids.
+func (m *SubscriptionMutation) AddDepartmentAddressValidityIDs(ids ...uuid.UUID) {
+	if m.department_address_validities == nil {
+		m.department_address_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.department_address_validities[ids[i]] = struct{}{}
+	}
+}
+
+// ClearDepartmentAddressValidities clears the "department_address_validities" edge to the DepartmentAddressValidity entity.
+func (m *SubscriptionMutation) ClearDepartmentAddressValidities() {
+	m.cleareddepartment_address_validities = true
+}
+
+// DepartmentAddressValiditiesCleared reports if the "department_address_validities" edge to the DepartmentAddressValidity entity was cleared.
+func (m *SubscriptionMutation) DepartmentAddressValiditiesCleared() bool {
+	return m.cleareddepartment_address_validities
+}
+
+// RemoveDepartmentAddressValidityIDs removes the "department_address_validities" edge to the DepartmentAddressValidity entity by IDs.
+func (m *SubscriptionMutation) RemoveDepartmentAddressValidityIDs(ids ...uuid.UUID) {
+	if m.removeddepartment_address_validities == nil {
+		m.removeddepartment_address_validities = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.department_address_validities, ids[i])
+		m.removeddepartment_address_validities[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDepartmentAddressValidities returns the removed IDs of the "department_address_validities" edge to the DepartmentAddressValidity entity.
+func (m *SubscriptionMutation) RemovedDepartmentAddressValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.removeddepartment_address_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DepartmentAddressValiditiesIDs returns the "department_address_validities" edge IDs in the mutation.
+func (m *SubscriptionMutation) DepartmentAddressValiditiesIDs() (ids []uuid.UUID) {
+	for id := range m.department_address_validities {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDepartmentAddressValidities resets all changes to the "department_address_validities" edge.
+func (m *SubscriptionMutation) ResetDepartmentAddressValidities() {
+	m.department_address_validities = nil
+	m.cleareddepartment_address_validities = false
+	m.removeddepartment_address_validities = nil
+}
+
 // Where appends a list predicates to the SubscriptionMutation builder.
 func (m *SubscriptionMutation) Where(ps ...predicate.Subscription) {
 	m.predicates = append(m.predicates, ps...)
@@ -30626,7 +36383,7 @@ func (m *SubscriptionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SubscriptionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 24)
+	edges := make([]string, 0, 29)
 	if m.parties != nil {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -30698,6 +36455,21 @@ func (m *SubscriptionMutation) AddedEdges() []string {
 	}
 	if m.party_identity_document_validities != nil {
 		edges = append(edges, subscription.EdgePartyIdentityDocumentValidities)
+	}
+	if m.address_validities != nil {
+		edges = append(edges, subscription.EdgeAddressValidities)
+	}
+	if m.department_contact_mechanisms != nil {
+		edges = append(edges, subscription.EdgeDepartmentContactMechanisms)
+	}
+	if m.department_contact_mechanism_validities != nil {
+		edges = append(edges, subscription.EdgeDepartmentContactMechanismValidities)
+	}
+	if m.department_addresses != nil {
+		edges = append(edges, subscription.EdgeDepartmentAddresses)
+	}
+	if m.department_address_validities != nil {
+		edges = append(edges, subscription.EdgeDepartmentAddressValidities)
 	}
 	return edges
 }
@@ -30850,13 +36622,43 @@ func (m *SubscriptionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case subscription.EdgeAddressValidities:
+		ids := make([]ent.Value, 0, len(m.address_validities))
+		for id := range m.address_validities {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgeDepartmentContactMechanisms:
+		ids := make([]ent.Value, 0, len(m.department_contact_mechanisms))
+		for id := range m.department_contact_mechanisms {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgeDepartmentContactMechanismValidities:
+		ids := make([]ent.Value, 0, len(m.department_contact_mechanism_validities))
+		for id := range m.department_contact_mechanism_validities {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgeDepartmentAddresses:
+		ids := make([]ent.Value, 0, len(m.department_addresses))
+		for id := range m.department_addresses {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgeDepartmentAddressValidities:
+		ids := make([]ent.Value, 0, len(m.department_address_validities))
+		for id := range m.department_address_validities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SubscriptionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 24)
+	edges := make([]string, 0, 29)
 	if m.removedparties != nil {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -30928,6 +36730,21 @@ func (m *SubscriptionMutation) RemovedEdges() []string {
 	}
 	if m.removedparty_identity_document_validities != nil {
 		edges = append(edges, subscription.EdgePartyIdentityDocumentValidities)
+	}
+	if m.removedaddress_validities != nil {
+		edges = append(edges, subscription.EdgeAddressValidities)
+	}
+	if m.removeddepartment_contact_mechanisms != nil {
+		edges = append(edges, subscription.EdgeDepartmentContactMechanisms)
+	}
+	if m.removeddepartment_contact_mechanism_validities != nil {
+		edges = append(edges, subscription.EdgeDepartmentContactMechanismValidities)
+	}
+	if m.removeddepartment_addresses != nil {
+		edges = append(edges, subscription.EdgeDepartmentAddresses)
+	}
+	if m.removeddepartment_address_validities != nil {
+		edges = append(edges, subscription.EdgeDepartmentAddressValidities)
 	}
 	return edges
 }
@@ -31080,13 +36897,43 @@ func (m *SubscriptionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case subscription.EdgeAddressValidities:
+		ids := make([]ent.Value, 0, len(m.removedaddress_validities))
+		for id := range m.removedaddress_validities {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgeDepartmentContactMechanisms:
+		ids := make([]ent.Value, 0, len(m.removeddepartment_contact_mechanisms))
+		for id := range m.removeddepartment_contact_mechanisms {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgeDepartmentContactMechanismValidities:
+		ids := make([]ent.Value, 0, len(m.removeddepartment_contact_mechanism_validities))
+		for id := range m.removeddepartment_contact_mechanism_validities {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgeDepartmentAddresses:
+		ids := make([]ent.Value, 0, len(m.removeddepartment_addresses))
+		for id := range m.removeddepartment_addresses {
+			ids = append(ids, id)
+		}
+		return ids
+	case subscription.EdgeDepartmentAddressValidities:
+		ids := make([]ent.Value, 0, len(m.removeddepartment_address_validities))
+		for id := range m.removeddepartment_address_validities {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SubscriptionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 24)
+	edges := make([]string, 0, 29)
 	if m.clearedparties {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -31159,6 +37006,21 @@ func (m *SubscriptionMutation) ClearedEdges() []string {
 	if m.clearedparty_identity_document_validities {
 		edges = append(edges, subscription.EdgePartyIdentityDocumentValidities)
 	}
+	if m.clearedaddress_validities {
+		edges = append(edges, subscription.EdgeAddressValidities)
+	}
+	if m.cleareddepartment_contact_mechanisms {
+		edges = append(edges, subscription.EdgeDepartmentContactMechanisms)
+	}
+	if m.cleareddepartment_contact_mechanism_validities {
+		edges = append(edges, subscription.EdgeDepartmentContactMechanismValidities)
+	}
+	if m.cleareddepartment_addresses {
+		edges = append(edges, subscription.EdgeDepartmentAddresses)
+	}
+	if m.cleareddepartment_address_validities {
+		edges = append(edges, subscription.EdgeDepartmentAddressValidities)
+	}
 	return edges
 }
 
@@ -31214,6 +37076,16 @@ func (m *SubscriptionMutation) EdgeCleared(name string) bool {
 		return m.clearedparty_identity_documents
 	case subscription.EdgePartyIdentityDocumentValidities:
 		return m.clearedparty_identity_document_validities
+	case subscription.EdgeAddressValidities:
+		return m.clearedaddress_validities
+	case subscription.EdgeDepartmentContactMechanisms:
+		return m.cleareddepartment_contact_mechanisms
+	case subscription.EdgeDepartmentContactMechanismValidities:
+		return m.cleareddepartment_contact_mechanism_validities
+	case subscription.EdgeDepartmentAddresses:
+		return m.cleareddepartment_addresses
+	case subscription.EdgeDepartmentAddressValidities:
+		return m.cleareddepartment_address_validities
 	}
 	return false
 }
@@ -31301,6 +37173,21 @@ func (m *SubscriptionMutation) ResetEdge(name string) error {
 		return nil
 	case subscription.EdgePartyIdentityDocumentValidities:
 		m.ResetPartyIdentityDocumentValidities()
+		return nil
+	case subscription.EdgeAddressValidities:
+		m.ResetAddressValidities()
+		return nil
+	case subscription.EdgeDepartmentContactMechanisms:
+		m.ResetDepartmentContactMechanisms()
+		return nil
+	case subscription.EdgeDepartmentContactMechanismValidities:
+		m.ResetDepartmentContactMechanismValidities()
+		return nil
+	case subscription.EdgeDepartmentAddresses:
+		m.ResetDepartmentAddresses()
+		return nil
+	case subscription.EdgeDepartmentAddressValidities:
+		m.ResetDepartmentAddressValidities()
 		return nil
 	}
 	return fmt.Errorf("unknown Subscription edge %s", name)

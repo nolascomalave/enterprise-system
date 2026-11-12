@@ -92,11 +92,6 @@ func Country(v string) predicate.Address {
 	return predicate.Address(sql.FieldEQ(FieldCountry, v))
 }
 
-// IsPrimary applies equality check predicate on the "is_primary" field. It's identical to IsPrimaryEQ.
-func IsPrimary(v bool) predicate.Address {
-	return predicate.Address(sql.FieldEQ(FieldIsPrimary, v))
-}
-
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Address {
 	return predicate.Address(sql.FieldEQ(FieldCreatedAt, v))
@@ -472,16 +467,6 @@ func CountryContainsFold(v string) predicate.Address {
 	return predicate.Address(sql.FieldContainsFold(FieldCountry, v))
 }
 
-// IsPrimaryEQ applies the EQ predicate on the "is_primary" field.
-func IsPrimaryEQ(v bool) predicate.Address {
-	return predicate.Address(sql.FieldEQ(FieldIsPrimary, v))
-}
-
-// IsPrimaryNEQ applies the NEQ predicate on the "is_primary" field.
-func IsPrimaryNEQ(v bool) predicate.Address {
-	return predicate.Address(sql.FieldNEQ(FieldIsPrimary, v))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Address {
 	return predicate.Address(sql.FieldEQ(FieldCreatedAt, v))
@@ -691,6 +676,35 @@ func HasCityLocationWith(preds ...predicate.Location) predicate.Address {
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Location
 		step.Edge.Schema = schemaConfig.Address
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasValidities applies the HasEdge predicate on the "validities" edge.
+func HasValidities() predicate.Address {
+	return predicate.Address(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ValiditiesTable, ValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasValiditiesWith applies the HasEdge predicate on the "validities" edge with a given conditions (other predicates).
+func HasValiditiesWith(preds ...predicate.AddressValidity) predicate.Address {
+	return predicate.Address(func(s *sql.Selector) {
+		step := newValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

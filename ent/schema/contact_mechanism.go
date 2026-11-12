@@ -40,6 +40,8 @@ func (ContactMechanism) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("party_contact_mechanisms", PartyContactMechanism.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("department_contact_mechanisms", DepartmentContactMechanism.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

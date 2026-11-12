@@ -12,17 +12,18 @@ import (
 )
 
 type Dependencies struct {
-	PartyUseCase        PartyUseCase
-	AuthUseCase         AuthUseCase
-	AccountUseCase      AccountUseCase
-	OnboardingUseCase   OnboardingUseCase
-	OrgStructureUseCase OrgStructureUseCase
-	MergePartiesUseCase MergePartiesUseCase
-	DocumentUseCase     DocumentUseCase
-	PartyNameUseCase    PartyNameUseCase
-	LocationUseCase     LocationUseCase
-	IdentityUseCase     IdentityUseCase
-	TokenManager        *auth.Manager
+	PartyUseCase         PartyUseCase
+	AuthUseCase          AuthUseCase
+	AccountUseCase       AccountUseCase
+	OnboardingUseCase    OnboardingUseCase
+	OrgStructureUseCase  OrgStructureUseCase
+	MergePartiesUseCase  MergePartiesUseCase
+	DocumentUseCase      DocumentUseCase
+	PartyNameUseCase     PartyNameUseCase
+	LocationUseCase      LocationUseCase
+	IdentityUseCase      IdentityUseCase
+	DepartmentMDMUseCase DepartmentMDMUseCase
+	TokenManager         *auth.Manager
 
 	CookieSecure   bool
 	RefreshTTL     time.Duration
@@ -74,6 +75,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	partyNameHandler := NewPartyNameHandler(deps.PartyNameUseCase)
 	locationHandler := NewLocationHandler(deps.LocationUseCase)
 	identityHandler := NewIdentityHandler(deps.IdentityUseCase)
+	departmentMDMHandler := NewDepartmentMDMHandler(deps.DepartmentMDMUseCase)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -107,6 +109,8 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.POST("/departments", orgHandler.CreateDepartment)
 		protected.GET("/departments", orgHandler.ListDepartments)
 		protected.POST("/departments/:id/groups", orgHandler.AssignDepartmentToGroup)
+		protected.POST("/departments/:id/contacts", departmentMDMHandler.AddContact)
+		protected.POST("/departments/:id/addresses", departmentMDMHandler.AddAddress)
 		protected.POST("/corporate-groups", orgHandler.CreateCorporateGroup)
 		protected.POST("/employees", orgHandler.CreateEmployee)
 		protected.GET("/employees", orgHandler.ListEmployees)

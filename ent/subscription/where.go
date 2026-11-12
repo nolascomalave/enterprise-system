@@ -1058,6 +1058,151 @@ func HasPartyIdentityDocumentValiditiesWith(preds ...predicate.PartyIdentityDocu
 	})
 }
 
+// HasAddressValidities applies the HasEdge predicate on the "address_validities" edge.
+func HasAddressValidities() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AddressValiditiesTable, AddressValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAddressValiditiesWith applies the HasEdge predicate on the "address_validities" edge with a given conditions (other predicates).
+func HasAddressValiditiesWith(preds ...predicate.AddressValidity) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newAddressValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.AddressValidity
+		step.Edge.Schema = schemaConfig.AddressValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDepartmentContactMechanisms applies the HasEdge predicate on the "department_contact_mechanisms" edge.
+func HasDepartmentContactMechanisms() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentContactMechanismsTable, DepartmentContactMechanismsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentContactMechanismsWith applies the HasEdge predicate on the "department_contact_mechanisms" edge with a given conditions (other predicates).
+func HasDepartmentContactMechanismsWith(preds ...predicate.DepartmentContactMechanism) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newDepartmentContactMechanismsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentContactMechanism
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanism
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDepartmentContactMechanismValidities applies the HasEdge predicate on the "department_contact_mechanism_validities" edge.
+func HasDepartmentContactMechanismValidities() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentContactMechanismValiditiesTable, DepartmentContactMechanismValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentContactMechanismValidity
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentContactMechanismValiditiesWith applies the HasEdge predicate on the "department_contact_mechanism_validities" edge with a given conditions (other predicates).
+func HasDepartmentContactMechanismValiditiesWith(preds ...predicate.DepartmentContactMechanismValidity) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newDepartmentContactMechanismValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentContactMechanismValidity
+		step.Edge.Schema = schemaConfig.DepartmentContactMechanismValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDepartmentAddresses applies the HasEdge predicate on the "department_addresses" edge.
+func HasDepartmentAddresses() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentAddressesTable, DepartmentAddressesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentAddressesWith applies the HasEdge predicate on the "department_addresses" edge with a given conditions (other predicates).
+func HasDepartmentAddressesWith(preds ...predicate.DepartmentAddress) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newDepartmentAddressesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentAddress
+		step.Edge.Schema = schemaConfig.DepartmentAddress
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDepartmentAddressValidities applies the HasEdge predicate on the "department_address_validities" edge.
+func HasDepartmentAddressValidities() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentAddressValiditiesTable, DepartmentAddressValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentAddressValidity
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentAddressValiditiesWith applies the HasEdge predicate on the "department_address_validities" edge with a given conditions (other predicates).
+func HasDepartmentAddressValiditiesWith(preds ...predicate.DepartmentAddressValidity) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newDepartmentAddressValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentAddressValidity
+		step.Edge.Schema = schemaConfig.DepartmentAddressValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Subscription) predicate.Subscription {
 	return predicate.Subscription(sql.AndPredicates(predicates...))
