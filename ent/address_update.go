@@ -6,6 +6,7 @@ import (
 	"context"
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/internal"
+	"enterprise-system/ent/location"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
@@ -108,37 +109,17 @@ func (_u *AddressUpdate) ClearLine2() *AddressUpdate {
 	return _u
 }
 
-// SetCity sets the "city" field.
-func (_u *AddressUpdate) SetCity(v string) *AddressUpdate {
-	_u.mutation.SetCity(v)
+// SetCityLocationID sets the "city_location_id" field.
+func (_u *AddressUpdate) SetCityLocationID(v uuid.UUID) *AddressUpdate {
+	_u.mutation.SetCityLocationID(v)
 	return _u
 }
 
-// SetNillableCity sets the "city" field if the given value is not nil.
-func (_u *AddressUpdate) SetNillableCity(v *string) *AddressUpdate {
+// SetNillableCityLocationID sets the "city_location_id" field if the given value is not nil.
+func (_u *AddressUpdate) SetNillableCityLocationID(v *uuid.UUID) *AddressUpdate {
 	if v != nil {
-		_u.SetCity(*v)
+		_u.SetCityLocationID(*v)
 	}
-	return _u
-}
-
-// SetState sets the "state" field.
-func (_u *AddressUpdate) SetState(v string) *AddressUpdate {
-	_u.mutation.SetState(v)
-	return _u
-}
-
-// SetNillableState sets the "state" field if the given value is not nil.
-func (_u *AddressUpdate) SetNillableState(v *string) *AddressUpdate {
-	if v != nil {
-		_u.SetState(*v)
-	}
-	return _u
-}
-
-// ClearState clears the value of the "state" field.
-func (_u *AddressUpdate) ClearState() *AddressUpdate {
-	_u.mutation.ClearState()
 	return _u
 }
 
@@ -226,6 +207,11 @@ func (_u *AddressUpdate) SetParty(v *Party) *AddressUpdate {
 	return _u.SetPartyID(v.ID)
 }
 
+// SetCityLocation sets the "city_location" edge to the Location entity.
+func (_u *AddressUpdate) SetCityLocation(v *Location) *AddressUpdate {
+	return _u.SetCityLocationID(v.ID)
+}
+
 // Mutation returns the AddressMutation object of the builder.
 func (_u *AddressUpdate) Mutation() *AddressMutation {
 	return _u.mutation
@@ -240,6 +226,12 @@ func (_u *AddressUpdate) ClearTenant() *AddressUpdate {
 // ClearParty clears the "party" edge to the Party entity.
 func (_u *AddressUpdate) ClearParty() *AddressUpdate {
 	_u.mutation.ClearParty()
+	return _u
+}
+
+// ClearCityLocation clears the "city_location" edge to the Location entity.
+func (_u *AddressUpdate) ClearCityLocation() *AddressUpdate {
+	_u.mutation.ClearCityLocation()
 	return _u
 }
 
@@ -291,11 +283,6 @@ func (_u *AddressUpdate) check() error {
 			return &ValidationError{Name: "line1", err: fmt.Errorf(`ent: validator failed for field "Address.line1": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.City(); ok {
-		if err := address.CityValidator(v); err != nil {
-			return &ValidationError{Name: "city", err: fmt.Errorf(`ent: validator failed for field "Address.city": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Country(); ok {
 		if err := address.CountryValidator(v); err != nil {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Address.country": %w`, err)}
@@ -306,6 +293,9 @@ func (_u *AddressUpdate) check() error {
 	}
 	if _u.mutation.PartyCleared() && len(_u.mutation.PartyIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Address.party"`)
+	}
+	if _u.mutation.CityLocationCleared() && len(_u.mutation.CityLocationIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Address.city_location"`)
 	}
 	return nil
 }
@@ -333,15 +323,6 @@ func (_u *AddressUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.Line2Cleared() {
 		_spec.ClearField(address.FieldLine2, field.TypeString)
-	}
-	if value, ok := _u.mutation.City(); ok {
-		_spec.SetField(address.FieldCity, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.State(); ok {
-		_spec.SetField(address.FieldState, field.TypeString, value)
-	}
-	if _u.mutation.StateCleared() {
-		_spec.ClearField(address.FieldState, field.TypeString)
 	}
 	if value, ok := _u.mutation.PostalCode(); ok {
 		_spec.SetField(address.FieldPostalCode, field.TypeString, value)
@@ -418,6 +399,37 @@ func (_u *AddressUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(party.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Address
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CityLocationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   address.CityLocationTable,
+			Columns: []string{address.CityLocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(location.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Address
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CityLocationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   address.CityLocationTable,
+			Columns: []string{address.CityLocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(location.FieldID, field.TypeUUID),
 			},
 		}
 		edge.Schema = _u.schemaConfig.Address
@@ -524,37 +536,17 @@ func (_u *AddressUpdateOne) ClearLine2() *AddressUpdateOne {
 	return _u
 }
 
-// SetCity sets the "city" field.
-func (_u *AddressUpdateOne) SetCity(v string) *AddressUpdateOne {
-	_u.mutation.SetCity(v)
+// SetCityLocationID sets the "city_location_id" field.
+func (_u *AddressUpdateOne) SetCityLocationID(v uuid.UUID) *AddressUpdateOne {
+	_u.mutation.SetCityLocationID(v)
 	return _u
 }
 
-// SetNillableCity sets the "city" field if the given value is not nil.
-func (_u *AddressUpdateOne) SetNillableCity(v *string) *AddressUpdateOne {
+// SetNillableCityLocationID sets the "city_location_id" field if the given value is not nil.
+func (_u *AddressUpdateOne) SetNillableCityLocationID(v *uuid.UUID) *AddressUpdateOne {
 	if v != nil {
-		_u.SetCity(*v)
+		_u.SetCityLocationID(*v)
 	}
-	return _u
-}
-
-// SetState sets the "state" field.
-func (_u *AddressUpdateOne) SetState(v string) *AddressUpdateOne {
-	_u.mutation.SetState(v)
-	return _u
-}
-
-// SetNillableState sets the "state" field if the given value is not nil.
-func (_u *AddressUpdateOne) SetNillableState(v *string) *AddressUpdateOne {
-	if v != nil {
-		_u.SetState(*v)
-	}
-	return _u
-}
-
-// ClearState clears the value of the "state" field.
-func (_u *AddressUpdateOne) ClearState() *AddressUpdateOne {
-	_u.mutation.ClearState()
 	return _u
 }
 
@@ -642,6 +634,11 @@ func (_u *AddressUpdateOne) SetParty(v *Party) *AddressUpdateOne {
 	return _u.SetPartyID(v.ID)
 }
 
+// SetCityLocation sets the "city_location" edge to the Location entity.
+func (_u *AddressUpdateOne) SetCityLocation(v *Location) *AddressUpdateOne {
+	return _u.SetCityLocationID(v.ID)
+}
+
 // Mutation returns the AddressMutation object of the builder.
 func (_u *AddressUpdateOne) Mutation() *AddressMutation {
 	return _u.mutation
@@ -656,6 +653,12 @@ func (_u *AddressUpdateOne) ClearTenant() *AddressUpdateOne {
 // ClearParty clears the "party" edge to the Party entity.
 func (_u *AddressUpdateOne) ClearParty() *AddressUpdateOne {
 	_u.mutation.ClearParty()
+	return _u
+}
+
+// ClearCityLocation clears the "city_location" edge to the Location entity.
+func (_u *AddressUpdateOne) ClearCityLocation() *AddressUpdateOne {
+	_u.mutation.ClearCityLocation()
 	return _u
 }
 
@@ -720,11 +723,6 @@ func (_u *AddressUpdateOne) check() error {
 			return &ValidationError{Name: "line1", err: fmt.Errorf(`ent: validator failed for field "Address.line1": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.City(); ok {
-		if err := address.CityValidator(v); err != nil {
-			return &ValidationError{Name: "city", err: fmt.Errorf(`ent: validator failed for field "Address.city": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Country(); ok {
 		if err := address.CountryValidator(v); err != nil {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Address.country": %w`, err)}
@@ -735,6 +733,9 @@ func (_u *AddressUpdateOne) check() error {
 	}
 	if _u.mutation.PartyCleared() && len(_u.mutation.PartyIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Address.party"`)
+	}
+	if _u.mutation.CityLocationCleared() && len(_u.mutation.CityLocationIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Address.city_location"`)
 	}
 	return nil
 }
@@ -779,15 +780,6 @@ func (_u *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err er
 	}
 	if _u.mutation.Line2Cleared() {
 		_spec.ClearField(address.FieldLine2, field.TypeString)
-	}
-	if value, ok := _u.mutation.City(); ok {
-		_spec.SetField(address.FieldCity, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.State(); ok {
-		_spec.SetField(address.FieldState, field.TypeString, value)
-	}
-	if _u.mutation.StateCleared() {
-		_spec.ClearField(address.FieldState, field.TypeString)
 	}
 	if value, ok := _u.mutation.PostalCode(); ok {
 		_spec.SetField(address.FieldPostalCode, field.TypeString, value)
@@ -864,6 +856,37 @@ func (_u *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(party.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Address
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.CityLocationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   address.CityLocationTable,
+			Columns: []string{address.CityLocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(location.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.Address
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.CityLocationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   address.CityLocationTable,
+			Columns: []string{address.CityLocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(location.FieldID, field.TypeUUID),
 			},
 		}
 		edge.Schema = _u.schemaConfig.Address

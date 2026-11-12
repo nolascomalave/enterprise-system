@@ -350,6 +350,36 @@ definitions:
       updated_at:
         type: string
     type: object
+  enterprise-system_internal_delivery_http_dto.LocationListEnvelope:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.LocationResponse'
+        type: array
+    type: object
+  enterprise-system_internal_delivery_http_dto.LocationResponse:
+    properties:
+      country_code:
+        type: string
+      created_at:
+        type: string
+      default_name:
+        type: string
+      external_id:
+        type: string
+      id:
+        type: string
+      iso_code:
+        type: string
+      location_type:
+        type: string
+      parent_id:
+        type: string
+      path:
+        type: string
+      updated_at:
+        type: string
+    type: object
   enterprise-system_internal_delivery_http_dto.LoginRequest:
     properties:
       email:
@@ -1190,6 +1220,38 @@ paths:
       summary: Update a job
       tags:
       - Jobs
+  /locations:
+    get:
+      description: Returns the children of parent_id (or country roots) from the global
+        geographic hierarchy.
+      parameters:
+      - description: ISO 3166-1 alpha-2 country code
+        in: query
+        name: country
+        required: true
+        type: string
+      - description: Parent location UUID
+        in: query
+        name: parent_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.LocationListEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      summary: List locations
+      tags:
+      - Locations
   /onboarding/register:
     post:
       consumes:

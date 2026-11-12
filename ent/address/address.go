@@ -26,10 +26,8 @@ const (
 	FieldLine1 = "line1"
 	// FieldLine2 holds the string denoting the line2 field in the database.
 	FieldLine2 = "line2"
-	// FieldCity holds the string denoting the city field in the database.
-	FieldCity = "city"
-	// FieldState holds the string denoting the state field in the database.
-	FieldState = "state"
+	// FieldCityLocationID holds the string denoting the city_location_id field in the database.
+	FieldCityLocationID = "city_location_id"
 	// FieldPostalCode holds the string denoting the postal_code field in the database.
 	FieldPostalCode = "postal_code"
 	// FieldCountry holds the string denoting the country field in the database.
@@ -46,6 +44,8 @@ const (
 	EdgeTenant = "tenant"
 	// EdgeParty holds the string denoting the party edge name in mutations.
 	EdgeParty = "party"
+	// EdgeCityLocation holds the string denoting the city_location edge name in mutations.
+	EdgeCityLocation = "city_location"
 	// Table holds the table name of the address in the database.
 	Table = "addresses"
 	// TenantTable is the table that holds the tenant relation/edge.
@@ -62,6 +62,13 @@ const (
 	PartyInverseTable = "parties"
 	// PartyColumn is the table column denoting the party relation/edge.
 	PartyColumn = "party_id"
+	// CityLocationTable is the table that holds the city_location relation/edge.
+	CityLocationTable = "addresses"
+	// CityLocationInverseTable is the table name for the Location entity.
+	// It exists in this package in order to avoid circular dependency with the "location" package.
+	CityLocationInverseTable = "locations"
+	// CityLocationColumn is the table column denoting the city_location relation/edge.
+	CityLocationColumn = "city_location_id"
 )
 
 // Columns holds all SQL columns for address fields.
@@ -72,8 +79,7 @@ var Columns = []string{
 	FieldType,
 	FieldLine1,
 	FieldLine2,
-	FieldCity,
-	FieldState,
+	FieldCityLocationID,
 	FieldPostalCode,
 	FieldCountry,
 	FieldIsPrimary,
@@ -95,8 +101,6 @@ func ValidColumn(column string) bool {
 var (
 	// Line1Validator is a validator for the "line1" field. It is called by the builders before save.
 	Line1Validator func(string) error
-	// CityValidator is a validator for the "city" field. It is called by the builders before save.
-	CityValidator func(string) error
 	// CountryValidator is a validator for the "country" field. It is called by the builders before save.
 	CountryValidator func(string) error
 	// DefaultIsPrimary holds the default value on creation for the "is_primary" field.
@@ -169,14 +173,9 @@ func ByLine2(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLine2, opts...).ToFunc()
 }
 
-// ByCity orders the results by the city field.
-func ByCity(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCity, opts...).ToFunc()
-}
-
-// ByState orders the results by the state field.
-func ByState(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldState, opts...).ToFunc()
+// ByCityLocationID orders the results by the city_location_id field.
+func ByCityLocationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCityLocationID, opts...).ToFunc()
 }
 
 // ByPostalCode orders the results by the postal_code field.
@@ -222,6 +221,13 @@ func ByPartyField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newPartyStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByCityLocationField orders the results by city_location field.
+func ByCityLocationField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCityLocationStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -234,5 +240,12 @@ func newPartyStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartyInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, PartyTable, PartyColumn),
+	)
+}
+func newCityLocationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CityLocationInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CityLocationTable, CityLocationColumn),
 	)
 }

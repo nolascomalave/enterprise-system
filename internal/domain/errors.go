@@ -43,4 +43,7 @@ var (
 	ErrPartyNameNotFound             = errors.New("party name not found")
 	ErrPartyNameValidityNotFound     = errors.New("party name validity not found")
 	ErrNameTypeNotFound              = errors.New("name type not found")
+	ErrInvalidLocation               = errors.New("invalid location")
+	ErrLocationNotFound              = errors.New("location not found")
+	ErrLocationCountryMismatch       = errors.New("parent location does not belong to the country")
 )

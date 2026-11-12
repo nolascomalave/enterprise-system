@@ -77,14 +77,9 @@ func Line2(v string) predicate.Address {
 	return predicate.Address(sql.FieldEQ(FieldLine2, v))
 }
 
-// City applies equality check predicate on the "city" field. It's identical to CityEQ.
-func City(v string) predicate.Address {
-	return predicate.Address(sql.FieldEQ(FieldCity, v))
-}
-
-// State applies equality check predicate on the "state" field. It's identical to StateEQ.
-func State(v string) predicate.Address {
-	return predicate.Address(sql.FieldEQ(FieldState, v))
+// CityLocationID applies equality check predicate on the "city_location_id" field. It's identical to CityLocationIDEQ.
+func CityLocationID(v uuid.UUID) predicate.Address {
+	return predicate.Address(sql.FieldEQ(FieldCityLocationID, v))
 }
 
 // PostalCode applies equality check predicate on the "postal_code" field. It's identical to PostalCodeEQ.
@@ -317,144 +312,24 @@ func Line2ContainsFold(v string) predicate.Address {
 	return predicate.Address(sql.FieldContainsFold(FieldLine2, v))
 }
 
-// CityEQ applies the EQ predicate on the "city" field.
-func CityEQ(v string) predicate.Address {
-	return predicate.Address(sql.FieldEQ(FieldCity, v))
+// CityLocationIDEQ applies the EQ predicate on the "city_location_id" field.
+func CityLocationIDEQ(v uuid.UUID) predicate.Address {
+	return predicate.Address(sql.FieldEQ(FieldCityLocationID, v))
 }
 
-// CityNEQ applies the NEQ predicate on the "city" field.
-func CityNEQ(v string) predicate.Address {
-	return predicate.Address(sql.FieldNEQ(FieldCity, v))
+// CityLocationIDNEQ applies the NEQ predicate on the "city_location_id" field.
+func CityLocationIDNEQ(v uuid.UUID) predicate.Address {
+	return predicate.Address(sql.FieldNEQ(FieldCityLocationID, v))
 }
 
-// CityIn applies the In predicate on the "city" field.
-func CityIn(vs ...string) predicate.Address {
-	return predicate.Address(sql.FieldIn(FieldCity, vs...))
+// CityLocationIDIn applies the In predicate on the "city_location_id" field.
+func CityLocationIDIn(vs ...uuid.UUID) predicate.Address {
+	return predicate.Address(sql.FieldIn(FieldCityLocationID, vs...))
 }
 
-// CityNotIn applies the NotIn predicate on the "city" field.
-func CityNotIn(vs ...string) predicate.Address {
-	return predicate.Address(sql.FieldNotIn(FieldCity, vs...))
-}
-
-// CityGT applies the GT predicate on the "city" field.
-func CityGT(v string) predicate.Address {
-	return predicate.Address(sql.FieldGT(FieldCity, v))
-}
-
-// CityGTE applies the GTE predicate on the "city" field.
-func CityGTE(v string) predicate.Address {
-	return predicate.Address(sql.FieldGTE(FieldCity, v))
-}
-
-// CityLT applies the LT predicate on the "city" field.
-func CityLT(v string) predicate.Address {
-	return predicate.Address(sql.FieldLT(FieldCity, v))
-}
-
-// CityLTE applies the LTE predicate on the "city" field.
-func CityLTE(v string) predicate.Address {
-	return predicate.Address(sql.FieldLTE(FieldCity, v))
-}
-
-// CityContains applies the Contains predicate on the "city" field.
-func CityContains(v string) predicate.Address {
-	return predicate.Address(sql.FieldContains(FieldCity, v))
-}
-
-// CityHasPrefix applies the HasPrefix predicate on the "city" field.
-func CityHasPrefix(v string) predicate.Address {
-	return predicate.Address(sql.FieldHasPrefix(FieldCity, v))
-}
-
-// CityHasSuffix applies the HasSuffix predicate on the "city" field.
-func CityHasSuffix(v string) predicate.Address {
-	return predicate.Address(sql.FieldHasSuffix(FieldCity, v))
-}
-
-// CityEqualFold applies the EqualFold predicate on the "city" field.
-func CityEqualFold(v string) predicate.Address {
-	return predicate.Address(sql.FieldEqualFold(FieldCity, v))
-}
-
-// CityContainsFold applies the ContainsFold predicate on the "city" field.
-func CityContainsFold(v string) predicate.Address {
-	return predicate.Address(sql.FieldContainsFold(FieldCity, v))
-}
-
-// StateEQ applies the EQ predicate on the "state" field.
-func StateEQ(v string) predicate.Address {
-	return predicate.Address(sql.FieldEQ(FieldState, v))
-}
-
-// StateNEQ applies the NEQ predicate on the "state" field.
-func StateNEQ(v string) predicate.Address {
-	return predicate.Address(sql.FieldNEQ(FieldState, v))
-}
-
-// StateIn applies the In predicate on the "state" field.
-func StateIn(vs ...string) predicate.Address {
-	return predicate.Address(sql.FieldIn(FieldState, vs...))
-}
-
-// StateNotIn applies the NotIn predicate on the "state" field.
-func StateNotIn(vs ...string) predicate.Address {
-	return predicate.Address(sql.FieldNotIn(FieldState, vs...))
-}
-
-// StateGT applies the GT predicate on the "state" field.
-func StateGT(v string) predicate.Address {
-	return predicate.Address(sql.FieldGT(FieldState, v))
-}
-
-// StateGTE applies the GTE predicate on the "state" field.
-func StateGTE(v string) predicate.Address {
-	return predicate.Address(sql.FieldGTE(FieldState, v))
-}
-
-// StateLT applies the LT predicate on the "state" field.
-func StateLT(v string) predicate.Address {
-	return predicate.Address(sql.FieldLT(FieldState, v))
-}
-
-// StateLTE applies the LTE predicate on the "state" field.
-func StateLTE(v string) predicate.Address {
-	return predicate.Address(sql.FieldLTE(FieldState, v))
-}
-
-// StateContains applies the Contains predicate on the "state" field.
-func StateContains(v string) predicate.Address {
-	return predicate.Address(sql.FieldContains(FieldState, v))
-}
-
-// StateHasPrefix applies the HasPrefix predicate on the "state" field.
-func StateHasPrefix(v string) predicate.Address {
-	return predicate.Address(sql.FieldHasPrefix(FieldState, v))
-}
-
-// StateHasSuffix applies the HasSuffix predicate on the "state" field.
-func StateHasSuffix(v string) predicate.Address {
-	return predicate.Address(sql.FieldHasSuffix(FieldState, v))
-}
-
-// StateIsNil applies the IsNil predicate on the "state" field.
-func StateIsNil() predicate.Address {
-	return predicate.Address(sql.FieldIsNull(FieldState))
-}
-
-// StateNotNil applies the NotNil predicate on the "state" field.
-func StateNotNil() predicate.Address {
-	return predicate.Address(sql.FieldNotNull(FieldState))
-}
-
-// StateEqualFold applies the EqualFold predicate on the "state" field.
-func StateEqualFold(v string) predicate.Address {
-	return predicate.Address(sql.FieldEqualFold(FieldState, v))
-}
-
-// StateContainsFold applies the ContainsFold predicate on the "state" field.
-func StateContainsFold(v string) predicate.Address {
-	return predicate.Address(sql.FieldContainsFold(FieldState, v))
+// CityLocationIDNotIn applies the NotIn predicate on the "city_location_id" field.
+func CityLocationIDNotIn(vs ...uuid.UUID) predicate.Address {
+	return predicate.Address(sql.FieldNotIn(FieldCityLocationID, vs...))
 }
 
 // PostalCodeEQ applies the EQ predicate on the "postal_code" field.
@@ -786,6 +661,35 @@ func HasPartyWith(preds ...predicate.Party) predicate.Address {
 		step := newPartyStep()
 		schemaConfig := internal.SchemaConfigFromContext(s.Context())
 		step.To.Schema = schemaConfig.Party
+		step.Edge.Schema = schemaConfig.Address
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasCityLocation applies the HasEdge predicate on the "city_location" edge.
+func HasCityLocation() predicate.Address {
+	return predicate.Address(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CityLocationTable, CityLocationColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Location
+		step.Edge.Schema = schemaConfig.Address
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCityLocationWith applies the HasEdge predicate on the "city_location" edge with a given conditions (other predicates).
+func HasCityLocationWith(preds ...predicate.Location) predicate.Address {
+	return predicate.Address(func(s *sql.Selector) {
+		step := newCityLocationStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.Location
 		step.Edge.Schema = schemaConfig.Address
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

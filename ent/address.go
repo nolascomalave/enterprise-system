@@ -4,6 +4,7 @@ package ent
 
 import (
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/location"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/subscription"
 	"fmt"
@@ -30,10 +31,8 @@ type Address struct {
 	Line1 string `json:"line1,omitempty"`
 	// Line2 holds the value of the "line2" field.
 	Line2 string `json:"line2,omitempty"`
-	// City holds the value of the "city" field.
-	City string `json:"city,omitempty"`
-	// State holds the value of the "state" field.
-	State string `json:"state,omitempty"`
+	// CityLocationID holds the value of the "city_location_id" field.
+	CityLocationID uuid.UUID `json:"city_location_id,omitempty"`
 	// PostalCode holds the value of the "postal_code" field.
 	PostalCode string `json:"postal_code,omitempty"`
 	// Country holds the value of the "country" field.
@@ -58,9 +57,11 @@ type AddressEdges struct {
 	Tenant *Subscription `json:"tenant,omitempty"`
 	// Party holds the value of the party edge.
 	Party *Party `json:"party,omitempty"`
+	// CityLocation holds the value of the city_location edge.
+	CityLocation *Location `json:"city_location,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -85,6 +86,17 @@ func (e AddressEdges) PartyOrErr() (*Party, error) {
 	return nil, &NotLoadedError{edge: "party"}
 }
 
+// CityLocationOrErr returns the CityLocation value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AddressEdges) CityLocationOrErr() (*Location, error) {
+	if e.CityLocation != nil {
+		return e.CityLocation, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: location.Label}
+	}
+	return nil, &NotLoadedError{edge: "city_location"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Address) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -92,11 +104,11 @@ func (*Address) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case address.FieldIsPrimary:
 			values[i] = new(sql.NullBool)
-		case address.FieldType, address.FieldLine1, address.FieldLine2, address.FieldCity, address.FieldState, address.FieldPostalCode, address.FieldCountry:
+		case address.FieldType, address.FieldLine1, address.FieldLine2, address.FieldPostalCode, address.FieldCountry:
 			values[i] = new(sql.NullString)
 		case address.FieldCreatedAt, address.FieldUpdatedAt, address.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
-		case address.FieldID, address.FieldTenantID, address.FieldPartyID:
+		case address.FieldID, address.FieldTenantID, address.FieldPartyID, address.FieldCityLocationID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -149,17 +161,11 @@ func (_m *Address) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Line2 = value.String
 			}
-		case address.FieldCity:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field city", values[i])
-			} else if value.Valid {
-				_m.City = value.String
-			}
-		case address.FieldState:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field state", values[i])
-			} else if value.Valid {
-				_m.State = value.String
+		case address.FieldCityLocationID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field city_location_id", values[i])
+			} else if value != nil {
+				_m.CityLocationID = *value
 			}
 		case address.FieldPostalCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -221,6 +227,11 @@ func (_m *Address) QueryParty() *PartyQuery {
 	return NewAddressClient(_m.config).QueryParty(_m)
 }
 
+// QueryCityLocation queries the "city_location" edge of the Address entity.
+func (_m *Address) QueryCityLocation() *LocationQuery {
+	return NewAddressClient(_m.config).QueryCityLocation(_m)
+}
+
 // Update returns a builder for updating this Address.
 // Note that you need to call Address.Unwrap() before calling this method if this Address
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -259,11 +270,8 @@ func (_m *Address) String() string {
 	builder.WriteString("line2=")
 	builder.WriteString(_m.Line2)
 	builder.WriteString(", ")
-	builder.WriteString("city=")
-	builder.WriteString(_m.City)
-	builder.WriteString(", ")
-	builder.WriteString("state=")
-	builder.WriteString(_m.State)
+	builder.WriteString("city_location_id=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CityLocationID))
 	builder.WriteString(", ")
 	builder.WriteString("postal_code=")
 	builder.WriteString(_m.PostalCode)

@@ -14,6 +14,8 @@ import (
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/location"
+	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/nametype"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
@@ -107,6 +109,8 @@ func checkColumn(t, c string) error {
 			employeeassignment.Table:            employeeassignment.ValidColumn,
 			job.Table:                           job.ValidColumn,
 			jobfamily.Table:                     jobfamily.ValidColumn,
+			location.Table:                      location.ValidColumn,
+			locationtranslation.Table:           locationtranslation.ValidColumn,
 			nametype.Table:                      nametype.ValidColumn,
 			organizationprofile.Table:           organizationprofile.ValidColumn,
 			party.Table:                         party.ValidColumn,

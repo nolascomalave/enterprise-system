@@ -17,6 +17,8 @@ type SchemaConfig struct {
 	EmployeeAssignment            string // EmployeeAssignment table.
 	Job                           string // Job table.
 	JobFamily                     string // JobFamily table.
+	Location                      string // Location table.
+	LocationTranslation           string // LocationTranslation table.
 	NameType                      string // NameType table.
 	OrganizationProfile           string // OrganizationProfile table.
 	Party                         string // Party table.

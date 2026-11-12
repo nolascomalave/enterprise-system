@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/address"
+	"enterprise-system/ent/location"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/subscription"
 	"errors"
@@ -64,23 +65,9 @@ func (_c *AddressCreate) SetNillableLine2(v *string) *AddressCreate {
 	return _c
 }
 
-// SetCity sets the "city" field.
-func (_c *AddressCreate) SetCity(v string) *AddressCreate {
-	_c.mutation.SetCity(v)
-	return _c
-}
-
-// SetState sets the "state" field.
-func (_c *AddressCreate) SetState(v string) *AddressCreate {
-	_c.mutation.SetState(v)
-	return _c
-}
-
-// SetNillableState sets the "state" field if the given value is not nil.
-func (_c *AddressCreate) SetNillableState(v *string) *AddressCreate {
-	if v != nil {
-		_c.SetState(*v)
-	}
+// SetCityLocationID sets the "city_location_id" field.
+func (_c *AddressCreate) SetCityLocationID(v uuid.UUID) *AddressCreate {
+	_c.mutation.SetCityLocationID(v)
 	return _c
 }
 
@@ -184,6 +171,11 @@ func (_c *AddressCreate) SetParty(v *Party) *AddressCreate {
 	return _c.SetPartyID(v.ID)
 }
 
+// SetCityLocation sets the "city_location" edge to the Location entity.
+func (_c *AddressCreate) SetCityLocation(v *Location) *AddressCreate {
+	return _c.SetCityLocationID(v.ID)
+}
+
 // Mutation returns the AddressMutation object of the builder.
 func (_c *AddressCreate) Mutation() *AddressMutation {
 	return _c.mutation
@@ -261,13 +253,8 @@ func (_c *AddressCreate) check() error {
 			return &ValidationError{Name: "line1", err: fmt.Errorf(`ent: validator failed for field "Address.line1": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.City(); !ok {
-		return &ValidationError{Name: "city", err: errors.New(`ent: missing required field "Address.city"`)}
-	}
-	if v, ok := _c.mutation.City(); ok {
-		if err := address.CityValidator(v); err != nil {
-			return &ValidationError{Name: "city", err: fmt.Errorf(`ent: validator failed for field "Address.city": %w`, err)}
-		}
+	if _, ok := _c.mutation.CityLocationID(); !ok {
+		return &ValidationError{Name: "city_location_id", err: errors.New(`ent: missing required field "Address.city_location_id"`)}
 	}
 	if _, ok := _c.mutation.Country(); !ok {
 		return &ValidationError{Name: "country", err: errors.New(`ent: missing required field "Address.country"`)}
@@ -285,6 +272,9 @@ func (_c *AddressCreate) check() error {
 	}
 	if len(_c.mutation.PartyIDs()) == 0 {
 		return &ValidationError{Name: "party", err: errors.New(`ent: missing required edge "Address.party"`)}
+	}
+	if len(_c.mutation.CityLocationIDs()) == 0 {
+		return &ValidationError{Name: "city_location", err: errors.New(`ent: missing required edge "Address.city_location"`)}
 	}
 	return nil
 }
@@ -334,14 +324,6 @@ func (_c *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Line2(); ok {
 		_spec.SetField(address.FieldLine2, field.TypeString, value)
 		_node.Line2 = value
-	}
-	if value, ok := _c.mutation.City(); ok {
-		_spec.SetField(address.FieldCity, field.TypeString, value)
-		_node.City = value
-	}
-	if value, ok := _c.mutation.State(); ok {
-		_spec.SetField(address.FieldState, field.TypeString, value)
-		_node.State = value
 	}
 	if value, ok := _c.mutation.PostalCode(); ok {
 		_spec.SetField(address.FieldPostalCode, field.TypeString, value)
@@ -401,6 +383,24 @@ func (_c *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.PartyID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CityLocationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   address.CityLocationTable,
+			Columns: []string{address.CityLocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(location.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.Address
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.CityLocationID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -521,33 +521,15 @@ func (u *AddressUpsert) ClearLine2() *AddressUpsert {
 	return u
 }
 
-// SetCity sets the "city" field.
-func (u *AddressUpsert) SetCity(v string) *AddressUpsert {
-	u.Set(address.FieldCity, v)
+// SetCityLocationID sets the "city_location_id" field.
+func (u *AddressUpsert) SetCityLocationID(v uuid.UUID) *AddressUpsert {
+	u.Set(address.FieldCityLocationID, v)
 	return u
 }
 
-// UpdateCity sets the "city" field to the value that was provided on create.
-func (u *AddressUpsert) UpdateCity() *AddressUpsert {
-	u.SetExcluded(address.FieldCity)
-	return u
-}
-
-// SetState sets the "state" field.
-func (u *AddressUpsert) SetState(v string) *AddressUpsert {
-	u.Set(address.FieldState, v)
-	return u
-}
-
-// UpdateState sets the "state" field to the value that was provided on create.
-func (u *AddressUpsert) UpdateState() *AddressUpsert {
-	u.SetExcluded(address.FieldState)
-	return u
-}
-
-// ClearState clears the value of the "state" field.
-func (u *AddressUpsert) ClearState() *AddressUpsert {
-	u.SetNull(address.FieldState)
+// UpdateCityLocationID sets the "city_location_id" field to the value that was provided on create.
+func (u *AddressUpsert) UpdateCityLocationID() *AddressUpsert {
+	u.SetExcluded(address.FieldCityLocationID)
 	return u
 }
 
@@ -751,38 +733,17 @@ func (u *AddressUpsertOne) ClearLine2() *AddressUpsertOne {
 	})
 }
 
-// SetCity sets the "city" field.
-func (u *AddressUpsertOne) SetCity(v string) *AddressUpsertOne {
+// SetCityLocationID sets the "city_location_id" field.
+func (u *AddressUpsertOne) SetCityLocationID(v uuid.UUID) *AddressUpsertOne {
 	return u.Update(func(s *AddressUpsert) {
-		s.SetCity(v)
+		s.SetCityLocationID(v)
 	})
 }
 
-// UpdateCity sets the "city" field to the value that was provided on create.
-func (u *AddressUpsertOne) UpdateCity() *AddressUpsertOne {
+// UpdateCityLocationID sets the "city_location_id" field to the value that was provided on create.
+func (u *AddressUpsertOne) UpdateCityLocationID() *AddressUpsertOne {
 	return u.Update(func(s *AddressUpsert) {
-		s.UpdateCity()
-	})
-}
-
-// SetState sets the "state" field.
-func (u *AddressUpsertOne) SetState(v string) *AddressUpsertOne {
-	return u.Update(func(s *AddressUpsert) {
-		s.SetState(v)
-	})
-}
-
-// UpdateState sets the "state" field to the value that was provided on create.
-func (u *AddressUpsertOne) UpdateState() *AddressUpsertOne {
-	return u.Update(func(s *AddressUpsert) {
-		s.UpdateState()
-	})
-}
-
-// ClearState clears the value of the "state" field.
-func (u *AddressUpsertOne) ClearState() *AddressUpsertOne {
-	return u.Update(func(s *AddressUpsert) {
-		s.ClearState()
+		s.UpdateCityLocationID()
 	})
 }
 
@@ -1165,38 +1126,17 @@ func (u *AddressUpsertBulk) ClearLine2() *AddressUpsertBulk {
 	})
 }
 
-// SetCity sets the "city" field.
-func (u *AddressUpsertBulk) SetCity(v string) *AddressUpsertBulk {
+// SetCityLocationID sets the "city_location_id" field.
+func (u *AddressUpsertBulk) SetCityLocationID(v uuid.UUID) *AddressUpsertBulk {
 	return u.Update(func(s *AddressUpsert) {
-		s.SetCity(v)
+		s.SetCityLocationID(v)
 	})
 }
 
-// UpdateCity sets the "city" field to the value that was provided on create.
-func (u *AddressUpsertBulk) UpdateCity() *AddressUpsertBulk {
+// UpdateCityLocationID sets the "city_location_id" field to the value that was provided on create.
+func (u *AddressUpsertBulk) UpdateCityLocationID() *AddressUpsertBulk {
 	return u.Update(func(s *AddressUpsert) {
-		s.UpdateCity()
-	})
-}
-
-// SetState sets the "state" field.
-func (u *AddressUpsertBulk) SetState(v string) *AddressUpsertBulk {
-	return u.Update(func(s *AddressUpsert) {
-		s.SetState(v)
-	})
-}
-
-// UpdateState sets the "state" field to the value that was provided on create.
-func (u *AddressUpsertBulk) UpdateState() *AddressUpsertBulk {
-	return u.Update(func(s *AddressUpsert) {
-		s.UpdateState()
-	})
-}
-
-// ClearState clears the value of the "state" field.
-func (u *AddressUpsertBulk) ClearState() *AddressUpsertBulk {
-	return u.Update(func(s *AddressUpsert) {
-		s.ClearState()
+		s.UpdateCityLocationID()
 	})
 }
 

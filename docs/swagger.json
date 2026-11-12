@@ -897,6 +897,53 @@
                 }
             }
         },
+        "/locations": {
+            "get": {
+                "description": "Returns the children of parent_id (or country roots) from the global geographic hierarchy.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Locations"
+                ],
+                "summary": "List locations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ISO 3166-1 alpha-2 country code",
+                        "name": "country",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Parent location UUID",
+                        "name": "parent_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.LocationListEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/onboarding/register": {
             "post": {
                 "description": "Creates the subscription, organization party/profile, TENANT role, admin party/profile, ADMIN role and credentials in one transaction.",
@@ -1857,6 +1904,52 @@
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.LocationListEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.LocationResponse"
+                    }
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.LocationResponse": {
+            "type": "object",
+            "properties": {
+                "country_code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "default_name": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "iso_code": {
+                    "type": "string"
+                },
+                "location_type": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "string"
+                },
+                "path": {
                     "type": "string"
                 },
                 "updated_at": {
