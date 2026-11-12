@@ -21,17 +21,31 @@ type fakeRBACRepo struct {
 	roleMenuOptions     map[string]*domain.RoleMenuOption
 	userRoleAssignments map[string]*domain.UserRoleAssignment
 	createErr           error
+
+	// Permission resolver simulation
+	userCredentials       map[uuid.UUID]uuid.UUID        // user_id -> party_id
+	employees             map[uuid.UUID]*domain.Employee // party_id -> employee
+	positionPermissions   map[uuid.UUID][]string         // job_id -> codes
+	departmentPermissions map[uuid.UUID][]string         // department_id -> codes
+	rolePermissions       map[string][]string            // tenant_id:user_id:app_client_id -> codes (pre-filtered granted)
+	overridePermissions   map[uuid.UUID][]string         // party_id -> codes
 }
 
 func newFakeRBACRepo() *fakeRBACRepo {
 	return &fakeRBACRepo{
-		functions:           make(map[string]*domain.SystemFunction),
-		templates:           make(map[uuid.UUID]*domain.MenuTemplate),
-		menuCategories:      make(map[uuid.UUID]*domain.MenuCategory),
-		menuOptions:         make(map[uuid.UUID]*domain.MenuOption),
-		roles:               make(map[uuid.UUID]*domain.TenantRole),
-		roleMenuOptions:     make(map[string]*domain.RoleMenuOption),
-		userRoleAssignments: make(map[string]*domain.UserRoleAssignment),
+		functions:             make(map[string]*domain.SystemFunction),
+		templates:             make(map[uuid.UUID]*domain.MenuTemplate),
+		menuCategories:        make(map[uuid.UUID]*domain.MenuCategory),
+		menuOptions:           make(map[uuid.UUID]*domain.MenuOption),
+		roles:                 make(map[uuid.UUID]*domain.TenantRole),
+		roleMenuOptions:       make(map[string]*domain.RoleMenuOption),
+		userRoleAssignments:   make(map[string]*domain.UserRoleAssignment),
+		userCredentials:       make(map[uuid.UUID]uuid.UUID),
+		employees:             make(map[uuid.UUID]*domain.Employee),
+		positionPermissions:   make(map[uuid.UUID][]string),
+		departmentPermissions: make(map[uuid.UUID][]string),
+		rolePermissions:       make(map[string][]string),
+		overridePermissions:   make(map[uuid.UUID][]string),
 	}
 }
 
@@ -196,8 +210,34 @@ func (r *fakeRBACRepo) ListUserRoleAssignments(ctx context.Context, tenantID, us
 	return out, nil
 }
 
-func (r *fakeRBACRepo) ResolvePermissionUniverse(ctx context.Context, tenantID, userCredentialsID uuid.UUID) (*domain.PermissionUniverse, error) {
-	return &domain.PermissionUniverse{}, nil
+func (r *fakeRBACRepo) ResolvePermissionUniverse(ctx context.Context, tenantID, userCredentialsID, appClientID uuid.UUID) (*domain.PermissionUniverse, error) {
+	codes := make(map[string]struct{})
+
+	partyID, isEmployee := r.userCredentials[userCredentialsID]
+	if isEmployee {
+		if emp, ok := r.employees[partyID]; ok {
+			for _, code := range r.positionPermissions[emp.JobID] {
+				codes[code] = struct{}{}
+			}
+			for _, code := range r.departmentPermissions[emp.DepartmentID] {
+				codes[code] = struct{}{}
+			}
+			for _, code := range r.overridePermissions[partyID] {
+				codes[code] = struct{}{}
+			}
+		}
+	}
+
+	key := tenantID.String() + ":" + userCredentialsID.String() + ":" + appClientID.String()
+	for _, code := range r.rolePermissions[key] {
+		codes[code] = struct{}{}
+	}
+
+	result := make([]string, 0, len(codes))
+	for code := range codes {
+		result = append(result, code)
+	}
+	return &domain.PermissionUniverse{Functions: result}, nil
 }
 
 func (r *fakeRBACRepo) GetMenuTree(ctx context.Context, tenantID, userCredentialsID, appClientID uuid.UUID) ([]domain.MenuTreeNode, error) {
@@ -471,4 +511,72 @@ func TestValidationHelpers(t *testing.T) {
 var _ domain.RBACRepository = (*fakeRBACRepo)(nil)
 
 // Avoid unused import warnings.
-var _ = errors.New
+
+func TestResolvePermissionsUnitesAllSources(t *testing.T) {
+	service := rbacService(t)
+	tenantID := uuid.New()
+	userID := uuid.New()
+	partyID := uuid.New()
+	jobID := uuid.New()
+	departmentID := uuid.New()
+	appClientID := uuid.New()
+
+	repo := service.repo.(*fakeRBACRepo)
+	repo.userCredentials[userID] = partyID
+	repo.employees[partyID] = &domain.Employee{JobID: jobID, DepartmentID: departmentID}
+	repo.positionPermissions[jobID] = []string{"party:read"}
+	repo.departmentPermissions[departmentID] = []string{"org:read"}
+	repo.rolePermissions[tenantID.String()+":"+userID.String()+":"+appClientID.String()] = []string{"employee:read"}
+	repo.overridePermissions[partyID] = []string{"admin:write"}
+
+	universe, err := service.ResolvePermissions(context.Background(), ResolvePermissionsInput{
+		TenantID: tenantID, UserCredentialsID: userID, AppClientID: appClientID,
+	})
+
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"party:read", "org:read", "employee:read", "admin:write"}, universe.Functions)
+}
+
+func TestResolvePermissionsDeniesRevokedRole(t *testing.T) {
+	service := rbacService(t)
+	tenantID := uuid.New()
+	userID := uuid.New()
+	partyID := uuid.New()
+	appClientID := uuid.New()
+
+	repo := service.repo.(*fakeRBACRepo)
+	repo.userCredentials[userID] = partyID
+	repo.employees[partyID] = &domain.Employee{}
+	repo.rolePermissions[tenantID.String()+":"+userID.String()+":"+appClientID.String()] = []string{"employee:read"}
+
+	universe, err := service.ResolvePermissions(context.Background(), ResolvePermissionsInput{
+		TenantID: tenantID, UserCredentialsID: userID, AppClientID: appClientID,
+	})
+
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"employee:read"}, universe.Functions)
+}
+
+func TestResolvePermissionsWithoutEmployeeReturnsRoles(t *testing.T) {
+	service := rbacService(t)
+	tenantID := uuid.New()
+	userID := uuid.New()
+	appClientID := uuid.New()
+
+	repo := service.repo.(*fakeRBACRepo)
+	repo.rolePermissions[tenantID.String()+":"+userID.String()+":"+appClientID.String()] = []string{"rbac:read"}
+
+	universe, err := service.ResolvePermissions(context.Background(), ResolvePermissionsInput{
+		TenantID: tenantID, UserCredentialsID: userID, AppClientID: appClientID,
+	})
+
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"rbac:read"}, universe.Functions)
+}
+
+func TestResolvePermissionsRequiresValidInput(t *testing.T) {
+	service := rbacService(t)
+
+	_, err := service.ResolvePermissions(context.Background(), ResolvePermissionsInput{})
+	require.ErrorIs(t, err, domain.ErrInvalidPermission)
+}

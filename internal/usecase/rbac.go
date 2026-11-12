@@ -35,6 +35,8 @@ type RBACUseCase interface {
 	AssignUserRole(ctx context.Context, input AssignUserRoleInput) (*domain.UserRoleAssignment, error)
 	RevokeUserRole(ctx context.Context, tenantID, userCredentialsID, roleID uuid.UUID) error
 	ListUserRoles(ctx context.Context, tenantID, userCredentialsID uuid.UUID) ([]*domain.UserRoleAssignment, error)
+
+	ResolvePermissions(ctx context.Context, input ResolvePermissionsInput) (*domain.PermissionUniverse, error)
 }
 
 // RBACService implements RBACUseCase.
@@ -100,6 +102,12 @@ type AssignUserRoleInput struct {
 	UserCredentialsID uuid.UUID
 	TenantRoleID      uuid.UUID
 	IsGranted         bool
+}
+
+type ResolvePermissionsInput struct {
+	TenantID          uuid.UUID
+	UserCredentialsID uuid.UUID
+	AppClientID       uuid.UUID
 }
 
 // ----------------------------------------------------------------------------
@@ -356,6 +364,15 @@ func (s *RBACService) RevokeUserRole(ctx context.Context, tenantID, userCredenti
 func (s *RBACService) ListUserRoles(ctx context.Context, tenantID, userCredentialsID uuid.UUID) ([]*domain.UserRoleAssignment, error) {
 	return readWithinTransaction(ctx, s.tx, func(ctx context.Context) ([]*domain.UserRoleAssignment, error) {
 		return s.repo.ListUserRoleAssignments(ctx, tenantID, userCredentialsID)
+	})
+}
+
+func (s *RBACService) ResolvePermissions(ctx context.Context, input ResolvePermissionsInput) (*domain.PermissionUniverse, error) {
+	if input.TenantID == uuid.Nil || input.UserCredentialsID == uuid.Nil || input.AppClientID == uuid.Nil {
+		return nil, validationError("invalid_permission_input", "tenant_id, user_id and app_client_id are required", domain.ErrInvalidPermission)
+	}
+	return readWithinTransaction(ctx, s.tx, func(ctx context.Context) (*domain.PermissionUniverse, error) {
+		return s.repo.ResolvePermissionUniverse(ctx, input.TenantID, input.UserCredentialsID, input.AppClientID)
 	})
 }
 

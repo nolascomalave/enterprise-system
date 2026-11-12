@@ -812,6 +812,18 @@ definitions:
       updated_at:
         type: string
     type: object
+  enterprise-system_internal_delivery_http_dto.PermissionUniverseEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PermissionUniverseResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.PermissionUniverseResponse:
+    properties:
+      functions:
+        items:
+          type: string
+        type: array
+    type: object
   enterprise-system_internal_delivery_http_dto.PersonProfileResponse:
     properties:
       birth_date:
@@ -2168,6 +2180,40 @@ paths:
       summary: Platform status
       tags:
       - Platform
+  /rbac/my-permissions:
+    get:
+      description: Returns the resolved universe of system function codes for the
+        authenticated user and app.
+      parameters:
+      - description: Client application UUID
+        in: query
+        name: app_client_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.PermissionUniverseEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List my permissions
+      tags:
+      - RBAC
   /role-types:
     get:
       description: Returns the global role type catalog localized by Accept-Language

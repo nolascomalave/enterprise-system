@@ -382,7 +382,7 @@ type RBACRepository interface {
 	ListUserRoleAssignments(ctx context.Context, tenantID, userCredentialsID uuid.UUID) ([]*UserRoleAssignment, error)
 
 	// Permission resolution (Fase 2)
-	ResolvePermissionUniverse(ctx context.Context, tenantID, userCredentialsID uuid.UUID) (*PermissionUniverse, error)
+	ResolvePermissionUniverse(ctx context.Context, tenantID, userCredentialsID, appClientID uuid.UUID) (*PermissionUniverse, error)
 
 	// Menu tree (Fase 3)
 	GetMenuTree(ctx context.Context, tenantID, userCredentialsID, appClientID uuid.UUID) ([]MenuTreeNode, error)

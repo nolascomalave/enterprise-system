@@ -5,9 +5,13 @@ import (
 	"time"
 
 	"enterprise-system/ent"
+	"enterprise-system/ent/departmentmenuoptionvalidity"
+	"enterprise-system/ent/employee"
+	"enterprise-system/ent/employeemenuoptionoverride"
 	"enterprise-system/ent/menucategory"
 	"enterprise-system/ent/menuoption"
 	"enterprise-system/ent/menutemplate"
+	"enterprise-system/ent/positionmenuoptionvalidity"
 	"enterprise-system/ent/rolemenuoption"
 	"enterprise-system/ent/systemfunction"
 	"enterprise-system/ent/tenantrole"
@@ -531,8 +535,194 @@ func (r *RBACRepository) ListUserRoleAssignments(ctx context.Context, tenantID, 
 // Permission resolution (stubs)
 // ----------------------------------------------------------------------------
 
-func (r *RBACRepository) ResolvePermissionUniverse(ctx context.Context, tenantID, userCredentialsID uuid.UUID) (*domain.PermissionUniverse, error) {
-	return &domain.PermissionUniverse{Functions: []string{}}, nil
+func (r *RBACRepository) ResolvePermissionUniverse(ctx context.Context, tenantID, userCredentialsID, appClientID uuid.UUID) (*domain.PermissionUniverse, error) {
+	var result []string
+	err := r.withClient(ctx, func(client *ent.Client) error {
+		creds, err := client.UserCredentials.Get(ctx, userCredentialsID)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return domain.ErrPermissionNotFound
+			}
+			return repoError(err)
+		}
+
+		var (
+			employeeFound bool
+			jobID         uuid.UUID
+			deptID        uuid.UUID
+		)
+		emp, err := client.Employee.Query().
+			Where(
+				employee.ID(creds.PartyID),
+				employee.TenantID(tenantID),
+			).
+			Only(ctx)
+		if err != nil && !ent.IsNotFound(err) {
+			return repoError(err)
+		}
+		if err == nil {
+			employeeFound = true
+			jobID = emp.JobID
+			deptID = emp.DepartmentID
+		}
+
+		codes := make(map[string]struct{})
+		now := time.Now().UTC()
+
+		if employeeFound && jobID != uuid.Nil {
+			validities, err := client.PositionMenuOptionValidity.Query().
+				Where(
+					positionmenuoptionvalidity.TenantID(tenantID),
+					positionmenuoptionvalidity.JobID(jobID),
+					positionmenuoptionvalidity.StartDateLTE(now),
+					positionmenuoptionvalidity.Or(
+						positionmenuoptionvalidity.EndDateIsNil(),
+						positionmenuoptionvalidity.EndDateGT(now),
+					),
+				).
+				WithPositionMenuOption(func(q *ent.PositionMenuOptionQuery) {
+					q.WithMenuOption(func(q *ent.MenuOptionQuery) {
+						q.Where(menuoption.DeletedAtIsNil()).
+							WithMenuOptionFunctions(func(q *ent.MenuOptionFunctionQuery) {
+								q.WithSystemFunction(func(q *ent.SystemFunctionQuery) {
+									q.Where(systemfunction.DeletedAtIsNil())
+								})
+							})
+					})
+				}).
+				All(ctx)
+			if err != nil {
+				return repoError(err)
+			}
+			for _, v := range validities {
+				if v.Edges.PositionMenuOption == nil || v.Edges.PositionMenuOption.Edges.MenuOption == nil {
+					continue
+				}
+				for _, fn := range v.Edges.PositionMenuOption.Edges.MenuOption.Edges.MenuOptionFunctions {
+					if fn.Edges.SystemFunction == nil {
+						continue
+					}
+					codes[fn.Edges.SystemFunction.Code] = struct{}{}
+				}
+			}
+		}
+
+		if employeeFound && deptID != uuid.Nil {
+			validities, err := client.DepartmentMenuOptionValidity.Query().
+				Where(
+					departmentmenuoptionvalidity.TenantID(tenantID),
+					departmentmenuoptionvalidity.DepartmentID(deptID),
+					departmentmenuoptionvalidity.StartDateLTE(now),
+					departmentmenuoptionvalidity.Or(
+						departmentmenuoptionvalidity.EndDateIsNil(),
+						departmentmenuoptionvalidity.EndDateGT(now),
+					),
+				).
+				WithDepartmentMenuOption(func(q *ent.DepartmentMenuOptionQuery) {
+					q.WithMenuOption(func(q *ent.MenuOptionQuery) {
+						q.Where(menuoption.DeletedAtIsNil()).
+							WithMenuOptionFunctions(func(q *ent.MenuOptionFunctionQuery) {
+								q.WithSystemFunction(func(q *ent.SystemFunctionQuery) {
+									q.Where(systemfunction.DeletedAtIsNil())
+								})
+							})
+					})
+				}).
+				All(ctx)
+			if err != nil {
+				return repoError(err)
+			}
+			for _, v := range validities {
+				if v.Edges.DepartmentMenuOption == nil || v.Edges.DepartmentMenuOption.Edges.MenuOption == nil {
+					continue
+				}
+				for _, fn := range v.Edges.DepartmentMenuOption.Edges.MenuOption.Edges.MenuOptionFunctions {
+					if fn.Edges.SystemFunction == nil {
+						continue
+					}
+					codes[fn.Edges.SystemFunction.Code] = struct{}{}
+				}
+			}
+		}
+
+		assignments, err := client.UserRoleAssignment.Query().
+			Where(
+				userroleassignment.TenantID(tenantID),
+				userroleassignment.UserCredentialsID(userCredentialsID),
+				userroleassignment.IsGranted(true),
+			).
+			WithTenantRole(func(q *ent.TenantRoleQuery) {
+				q.Where(
+					tenantrole.DeletedAtIsNil(),
+					tenantrole.Or(
+						tenantrole.ClientApplicationID(appClientID),
+						tenantrole.ClientApplicationIDIsNil(),
+					),
+				).
+					WithRoleMenuOptions(func(q *ent.RoleMenuOptionQuery) {
+						q.WithMenuOption(func(q *ent.MenuOptionQuery) {
+							q.Where(menuoption.DeletedAtIsNil()).
+								WithMenuOptionFunctions(func(q *ent.MenuOptionFunctionQuery) {
+									q.WithSystemFunction(func(q *ent.SystemFunctionQuery) {
+										q.Where(systemfunction.DeletedAtIsNil())
+									})
+								})
+						})
+					})
+			}).
+			All(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+		for _, a := range assignments {
+			if a.Edges.TenantRole == nil {
+				continue
+			}
+			for _, rmo := range a.Edges.TenantRole.Edges.RoleMenuOptions {
+				if rmo.Edges.MenuOption == nil {
+					continue
+				}
+				for _, fn := range rmo.Edges.MenuOption.Edges.MenuOptionFunctions {
+					if fn.Edges.SystemFunction == nil {
+						continue
+					}
+					codes[fn.Edges.SystemFunction.Code] = struct{}{}
+				}
+			}
+		}
+
+		if employeeFound {
+			overrides, err := client.EmployeeMenuOptionOverride.Query().
+				Where(
+					employeemenuoptionoverride.TenantID(tenantID),
+					employeemenuoptionoverride.EmployeePartyID(creds.PartyID),
+					employeemenuoptionoverride.IsGranted(true),
+				).
+				WithSystemFunction(func(q *ent.SystemFunctionQuery) {
+					q.Where(systemfunction.DeletedAtIsNil())
+				}).
+				All(ctx)
+			if err != nil {
+				return repoError(err)
+			}
+			for _, o := range overrides {
+				if o.Edges.SystemFunction == nil {
+					continue
+				}
+				codes[o.Edges.SystemFunction.Code] = struct{}{}
+			}
+		}
+
+		result = make([]string, 0, len(codes))
+		for code := range codes {
+			result = append(result, code)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &domain.PermissionUniverse{Functions: result}, nil
 }
 
 func (r *RBACRepository) GetMenuTree(ctx context.Context, tenantID, userCredentialsID, appClientID uuid.UUID) ([]domain.MenuTreeNode, error) {
