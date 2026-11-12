@@ -41,6 +41,8 @@ const (
 	EdgeParty = "party"
 	// EdgePartyContactMechanism holds the string denoting the party_contact_mechanism edge name in mutations.
 	EdgePartyContactMechanism = "party_contact_mechanism"
+	// EdgeUserRoleAssignments holds the string denoting the user_role_assignments edge name in mutations.
+	EdgeUserRoleAssignments = "user_role_assignments"
 	// Table holds the table name of the usercredentials in the database.
 	Table = "user_credentials"
 	// TenantTable is the table that holds the tenant relation/edge.
@@ -64,6 +66,13 @@ const (
 	PartyContactMechanismInverseTable = "party_contact_mechanisms"
 	// PartyContactMechanismColumn is the table column denoting the party_contact_mechanism relation/edge.
 	PartyContactMechanismColumn = "party_contact_mechanism_id"
+	// UserRoleAssignmentsTable is the table that holds the user_role_assignments relation/edge.
+	UserRoleAssignmentsTable = "user_role_assignments"
+	// UserRoleAssignmentsInverseTable is the table name for the UserRoleAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "userroleassignment" package.
+	UserRoleAssignmentsInverseTable = "user_role_assignments"
+	// UserRoleAssignmentsColumn is the table column denoting the user_role_assignments relation/edge.
+	UserRoleAssignmentsColumn = "user_credentials_id"
 )
 
 // Columns holds all SQL columns for usercredentials fields.
@@ -181,6 +190,20 @@ func ByPartyContactMechanismField(field string, opts ...sql.OrderTermOption) Ord
 		sqlgraph.OrderByNeighborTerms(s, newPartyContactMechanismStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByUserRoleAssignmentsCount orders the results by user_role_assignments count.
+func ByUserRoleAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUserRoleAssignmentsStep(), opts...)
+	}
+}
+
+// ByUserRoleAssignments orders the results by user_role_assignments terms.
+func ByUserRoleAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserRoleAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -200,5 +223,12 @@ func newPartyContactMechanismStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartyContactMechanismInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, true, PartyContactMechanismTable, PartyContactMechanismColumn),
+	)
+}
+func newUserRoleAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserRoleAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UserRoleAssignmentsTable, UserRoleAssignmentsColumn),
 	)
 }

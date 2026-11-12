@@ -58,6 +58,8 @@ const (
 	EdgeAddressValidities = "address_validities"
 	// EdgeTranslations holds the string denoting the translations edge name in mutations.
 	EdgeTranslations = "translations"
+	// EdgeDepartmentMenuOptions holds the string denoting the department_menu_options edge name in mutations.
+	EdgeDepartmentMenuOptions = "department_menu_options"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the department in the database.
@@ -140,6 +142,13 @@ const (
 	TranslationsInverseTable = "department_translations"
 	// TranslationsColumn is the table column denoting the translations relation/edge.
 	TranslationsColumn = "department_id"
+	// DepartmentMenuOptionsTable is the table that holds the department_menu_options relation/edge.
+	DepartmentMenuOptionsTable = "department_menu_options"
+	// DepartmentMenuOptionsInverseTable is the table name for the DepartmentMenuOption entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentmenuoption" package.
+	DepartmentMenuOptionsInverseTable = "department_menu_options"
+	// DepartmentMenuOptionsColumn is the table column denoting the department_menu_options relation/edge.
+	DepartmentMenuOptionsColumn = "department_id"
 )
 
 // Columns holds all SQL columns for department fields.
@@ -408,6 +417,20 @@ func ByTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByDepartmentMenuOptionsCount orders the results by department_menu_options count.
+func ByDepartmentMenuOptionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentMenuOptionsStep(), opts...)
+	}
+}
+
+// ByDepartmentMenuOptions orders the results by department_menu_options terms.
+func ByDepartmentMenuOptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentMenuOptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -490,5 +513,12 @@ func newTranslationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TranslationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, TranslationsTable, TranslationsColumn),
+	)
+}
+func newDepartmentMenuOptionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentMenuOptionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentMenuOptionsTable, DepartmentMenuOptionsColumn),
 	)
 }

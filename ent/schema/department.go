@@ -93,6 +93,8 @@ func (Department) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("translations", DepartmentTranslation.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("department_menu_options", DepartmentMenuOption.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

@@ -529,6 +529,35 @@ func HasPartyContactMechanismWith(preds ...predicate.PartyContactMechanism) pred
 	})
 }
 
+// HasUserRoleAssignments applies the HasEdge predicate on the "user_role_assignments" edge.
+func HasUserRoleAssignments() predicate.UserCredentials {
+	return predicate.UserCredentials(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserRoleAssignmentsTable, UserRoleAssignmentsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.UserRoleAssignment
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserRoleAssignmentsWith applies the HasEdge predicate on the "user_role_assignments" edge with a given conditions (other predicates).
+func HasUserRoleAssignmentsWith(preds ...predicate.UserRoleAssignment) predicate.UserCredentials {
+	return predicate.UserCredentials(func(s *sql.Selector) {
+		step := newUserRoleAssignmentsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.UserRoleAssignment
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.UserCredentials) predicate.UserCredentials {
 	return predicate.UserCredentials(sql.AndPredicates(predicates...))

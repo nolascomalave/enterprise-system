@@ -101,9 +101,33 @@ type SubscriptionEdges struct {
 	ClientApplications []*ClientApplication `json:"client_applications,omitempty"`
 	// DepartmentTranslations holds the value of the department_translations edge.
 	DepartmentTranslations []*DepartmentTranslation `json:"department_translations,omitempty"`
+	// MenuCategories holds the value of the menu_categories edge.
+	MenuCategories []*MenuCategory `json:"menu_categories,omitempty"`
+	// MenuOptions holds the value of the menu_options edge.
+	MenuOptions []*MenuOption `json:"menu_options,omitempty"`
+	// MenuOptionFunctions holds the value of the menu_option_functions edge.
+	MenuOptionFunctions []*MenuOptionFunction `json:"menu_option_functions,omitempty"`
+	// MenuOptionCategories holds the value of the menu_option_categories edge.
+	MenuOptionCategories []*MenuOptionCategory `json:"menu_option_categories,omitempty"`
+	// TenantRoles holds the value of the tenant_roles edge.
+	TenantRoles []*TenantRole `json:"tenant_roles,omitempty"`
+	// RoleMenuOptions holds the value of the role_menu_options edge.
+	RoleMenuOptions []*RoleMenuOption `json:"role_menu_options,omitempty"`
+	// UserRoleAssignments holds the value of the user_role_assignments edge.
+	UserRoleAssignments []*UserRoleAssignment `json:"user_role_assignments,omitempty"`
+	// DepartmentMenuOptions holds the value of the department_menu_options edge.
+	DepartmentMenuOptions []*DepartmentMenuOption `json:"department_menu_options,omitempty"`
+	// DepartmentMenuOptionValidities holds the value of the department_menu_option_validities edge.
+	DepartmentMenuOptionValidities []*DepartmentMenuOptionValidity `json:"department_menu_option_validities,omitempty"`
+	// PositionMenuOptions holds the value of the position_menu_options edge.
+	PositionMenuOptions []*PositionMenuOption `json:"position_menu_options,omitempty"`
+	// PositionMenuOptionValidities holds the value of the position_menu_option_validities edge.
+	PositionMenuOptionValidities []*PositionMenuOptionValidity `json:"position_menu_option_validities,omitempty"`
+	// EmployeeMenuOptionOverrides holds the value of the employee_menu_option_overrides edge.
+	EmployeeMenuOptionOverrides []*EmployeeMenuOptionOverride `json:"employee_menu_option_overrides,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [31]bool
+	loadedTypes [43]bool
 }
 
 // PartiesOrErr returns the Parties value or an error if the edge
@@ -385,6 +409,114 @@ func (e SubscriptionEdges) DepartmentTranslationsOrErr() ([]*DepartmentTranslati
 	return nil, &NotLoadedError{edge: "department_translations"}
 }
 
+// MenuCategoriesOrErr returns the MenuCategories value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) MenuCategoriesOrErr() ([]*MenuCategory, error) {
+	if e.loadedTypes[31] {
+		return e.MenuCategories, nil
+	}
+	return nil, &NotLoadedError{edge: "menu_categories"}
+}
+
+// MenuOptionsOrErr returns the MenuOptions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) MenuOptionsOrErr() ([]*MenuOption, error) {
+	if e.loadedTypes[32] {
+		return e.MenuOptions, nil
+	}
+	return nil, &NotLoadedError{edge: "menu_options"}
+}
+
+// MenuOptionFunctionsOrErr returns the MenuOptionFunctions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) MenuOptionFunctionsOrErr() ([]*MenuOptionFunction, error) {
+	if e.loadedTypes[33] {
+		return e.MenuOptionFunctions, nil
+	}
+	return nil, &NotLoadedError{edge: "menu_option_functions"}
+}
+
+// MenuOptionCategoriesOrErr returns the MenuOptionCategories value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) MenuOptionCategoriesOrErr() ([]*MenuOptionCategory, error) {
+	if e.loadedTypes[34] {
+		return e.MenuOptionCategories, nil
+	}
+	return nil, &NotLoadedError{edge: "menu_option_categories"}
+}
+
+// TenantRolesOrErr returns the TenantRoles value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) TenantRolesOrErr() ([]*TenantRole, error) {
+	if e.loadedTypes[35] {
+		return e.TenantRoles, nil
+	}
+	return nil, &NotLoadedError{edge: "tenant_roles"}
+}
+
+// RoleMenuOptionsOrErr returns the RoleMenuOptions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) RoleMenuOptionsOrErr() ([]*RoleMenuOption, error) {
+	if e.loadedTypes[36] {
+		return e.RoleMenuOptions, nil
+	}
+	return nil, &NotLoadedError{edge: "role_menu_options"}
+}
+
+// UserRoleAssignmentsOrErr returns the UserRoleAssignments value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) UserRoleAssignmentsOrErr() ([]*UserRoleAssignment, error) {
+	if e.loadedTypes[37] {
+		return e.UserRoleAssignments, nil
+	}
+	return nil, &NotLoadedError{edge: "user_role_assignments"}
+}
+
+// DepartmentMenuOptionsOrErr returns the DepartmentMenuOptions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) DepartmentMenuOptionsOrErr() ([]*DepartmentMenuOption, error) {
+	if e.loadedTypes[38] {
+		return e.DepartmentMenuOptions, nil
+	}
+	return nil, &NotLoadedError{edge: "department_menu_options"}
+}
+
+// DepartmentMenuOptionValiditiesOrErr returns the DepartmentMenuOptionValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) DepartmentMenuOptionValiditiesOrErr() ([]*DepartmentMenuOptionValidity, error) {
+	if e.loadedTypes[39] {
+		return e.DepartmentMenuOptionValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "department_menu_option_validities"}
+}
+
+// PositionMenuOptionsOrErr returns the PositionMenuOptions value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) PositionMenuOptionsOrErr() ([]*PositionMenuOption, error) {
+	if e.loadedTypes[40] {
+		return e.PositionMenuOptions, nil
+	}
+	return nil, &NotLoadedError{edge: "position_menu_options"}
+}
+
+// PositionMenuOptionValiditiesOrErr returns the PositionMenuOptionValidities value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) PositionMenuOptionValiditiesOrErr() ([]*PositionMenuOptionValidity, error) {
+	if e.loadedTypes[41] {
+		return e.PositionMenuOptionValidities, nil
+	}
+	return nil, &NotLoadedError{edge: "position_menu_option_validities"}
+}
+
+// EmployeeMenuOptionOverridesOrErr returns the EmployeeMenuOptionOverrides value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) EmployeeMenuOptionOverridesOrErr() ([]*EmployeeMenuOptionOverride, error) {
+	if e.loadedTypes[42] {
+		return e.EmployeeMenuOptionOverrides, nil
+	}
+	return nil, &NotLoadedError{edge: "employee_menu_option_overrides"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Subscription) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -620,6 +752,66 @@ func (_m *Subscription) QueryClientApplications() *ClientApplicationQuery {
 // QueryDepartmentTranslations queries the "department_translations" edge of the Subscription entity.
 func (_m *Subscription) QueryDepartmentTranslations() *DepartmentTranslationQuery {
 	return NewSubscriptionClient(_m.config).QueryDepartmentTranslations(_m)
+}
+
+// QueryMenuCategories queries the "menu_categories" edge of the Subscription entity.
+func (_m *Subscription) QueryMenuCategories() *MenuCategoryQuery {
+	return NewSubscriptionClient(_m.config).QueryMenuCategories(_m)
+}
+
+// QueryMenuOptions queries the "menu_options" edge of the Subscription entity.
+func (_m *Subscription) QueryMenuOptions() *MenuOptionQuery {
+	return NewSubscriptionClient(_m.config).QueryMenuOptions(_m)
+}
+
+// QueryMenuOptionFunctions queries the "menu_option_functions" edge of the Subscription entity.
+func (_m *Subscription) QueryMenuOptionFunctions() *MenuOptionFunctionQuery {
+	return NewSubscriptionClient(_m.config).QueryMenuOptionFunctions(_m)
+}
+
+// QueryMenuOptionCategories queries the "menu_option_categories" edge of the Subscription entity.
+func (_m *Subscription) QueryMenuOptionCategories() *MenuOptionCategoryQuery {
+	return NewSubscriptionClient(_m.config).QueryMenuOptionCategories(_m)
+}
+
+// QueryTenantRoles queries the "tenant_roles" edge of the Subscription entity.
+func (_m *Subscription) QueryTenantRoles() *TenantRoleQuery {
+	return NewSubscriptionClient(_m.config).QueryTenantRoles(_m)
+}
+
+// QueryRoleMenuOptions queries the "role_menu_options" edge of the Subscription entity.
+func (_m *Subscription) QueryRoleMenuOptions() *RoleMenuOptionQuery {
+	return NewSubscriptionClient(_m.config).QueryRoleMenuOptions(_m)
+}
+
+// QueryUserRoleAssignments queries the "user_role_assignments" edge of the Subscription entity.
+func (_m *Subscription) QueryUserRoleAssignments() *UserRoleAssignmentQuery {
+	return NewSubscriptionClient(_m.config).QueryUserRoleAssignments(_m)
+}
+
+// QueryDepartmentMenuOptions queries the "department_menu_options" edge of the Subscription entity.
+func (_m *Subscription) QueryDepartmentMenuOptions() *DepartmentMenuOptionQuery {
+	return NewSubscriptionClient(_m.config).QueryDepartmentMenuOptions(_m)
+}
+
+// QueryDepartmentMenuOptionValidities queries the "department_menu_option_validities" edge of the Subscription entity.
+func (_m *Subscription) QueryDepartmentMenuOptionValidities() *DepartmentMenuOptionValidityQuery {
+	return NewSubscriptionClient(_m.config).QueryDepartmentMenuOptionValidities(_m)
+}
+
+// QueryPositionMenuOptions queries the "position_menu_options" edge of the Subscription entity.
+func (_m *Subscription) QueryPositionMenuOptions() *PositionMenuOptionQuery {
+	return NewSubscriptionClient(_m.config).QueryPositionMenuOptions(_m)
+}
+
+// QueryPositionMenuOptionValidities queries the "position_menu_option_validities" edge of the Subscription entity.
+func (_m *Subscription) QueryPositionMenuOptionValidities() *PositionMenuOptionValidityQuery {
+	return NewSubscriptionClient(_m.config).QueryPositionMenuOptionValidities(_m)
+}
+
+// QueryEmployeeMenuOptionOverrides queries the "employee_menu_option_overrides" edge of the Subscription entity.
+func (_m *Subscription) QueryEmployeeMenuOptionOverrides() *EmployeeMenuOptionOverrideQuery {
+	return NewSubscriptionClient(_m.config).QueryEmployeeMenuOptionOverrides(_m)
 }
 
 // Update returns a builder for updating this Subscription.

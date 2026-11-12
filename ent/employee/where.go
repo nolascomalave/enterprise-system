@@ -650,6 +650,35 @@ func HasAssignmentsWith(preds ...predicate.EmployeeAssignment) predicate.Employe
 	})
 }
 
+// HasEmployeeMenuOptionOverrides applies the HasEdge predicate on the "employee_menu_option_overrides" edge.
+func HasEmployeeMenuOptionOverrides() predicate.Employee {
+	return predicate.Employee(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EmployeeMenuOptionOverridesTable, EmployeeMenuOptionOverridesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.EmployeeMenuOptionOverride
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEmployeeMenuOptionOverridesWith applies the HasEdge predicate on the "employee_menu_option_overrides" edge with a given conditions (other predicates).
+func HasEmployeeMenuOptionOverridesWith(preds ...predicate.EmployeeMenuOptionOverride) predicate.Employee {
+	return predicate.Employee(func(s *sql.Selector) {
+		step := newEmployeeMenuOptionOverridesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.EmployeeMenuOptionOverride
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Employee) predicate.Employee {
 	return predicate.Employee(sql.AndPredicates(predicates...))

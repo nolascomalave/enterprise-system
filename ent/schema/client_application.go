@@ -72,6 +72,8 @@ func (ClientApplication) Edges() []ent.Edge {
 			Ref("client_applications").
 			Field("tenant_id").
 			Unique(),
+		edge.To("tenant_roles", TenantRole.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

@@ -15,9 +15,12 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmentmenuoption"
+	"enterprise-system/ent/departmentmenuoptionvalidity"
 	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/employeemenuoptionoverride"
 	"enterprise-system/ent/identitydocumenttype"
 	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/job"
@@ -25,6 +28,12 @@ import (
 	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
+	"enterprise-system/ent/menucategory"
+	"enterprise-system/ent/menuoption"
+	"enterprise-system/ent/menuoptioncategory"
+	"enterprise-system/ent/menuoptionfunction"
+	"enterprise-system/ent/menutemplate"
+	"enterprise-system/ent/menutemplatefunction"
 	"enterprise-system/ent/nametype"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
@@ -39,12 +48,18 @@ import (
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
+	"enterprise-system/ent/positionmenuoption"
+	"enterprise-system/ent/positionmenuoptionvalidity"
+	"enterprise-system/ent/rolemenuoption"
 	"enterprise-system/ent/roletype"
 	"enterprise-system/ent/roletypetranslation"
 	"enterprise-system/ent/schema"
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/systemfunction"
+	"enterprise-system/ent/tenantrole"
 	"enterprise-system/ent/usercredentials"
+	"enterprise-system/ent/userroleassignment"
 	"time"
 
 	"github.com/google/uuid"
@@ -332,6 +347,38 @@ func init() {
 	departmentgroupassignmentDescID := departmentgroupassignmentFields[0].Descriptor()
 	// departmentgroupassignment.DefaultID holds the default value on creation for the id field.
 	departmentgroupassignment.DefaultID = departmentgroupassignmentDescID.Default.(func() uuid.UUID)
+	departmentmenuoptionFields := schema.DepartmentMenuOption{}.Fields()
+	_ = departmentmenuoptionFields
+	// departmentmenuoptionDescCreatedAt is the schema descriptor for created_at field.
+	departmentmenuoptionDescCreatedAt := departmentmenuoptionFields[4].Descriptor()
+	// departmentmenuoption.DefaultCreatedAt holds the default value on creation for the created_at field.
+	departmentmenuoption.DefaultCreatedAt = departmentmenuoptionDescCreatedAt.Default.(func() time.Time)
+	// departmentmenuoptionDescUpdatedAt is the schema descriptor for updated_at field.
+	departmentmenuoptionDescUpdatedAt := departmentmenuoptionFields[5].Descriptor()
+	// departmentmenuoption.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	departmentmenuoption.DefaultUpdatedAt = departmentmenuoptionDescUpdatedAt.Default.(func() time.Time)
+	// departmentmenuoption.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	departmentmenuoption.UpdateDefaultUpdatedAt = departmentmenuoptionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// departmentmenuoptionDescID is the schema descriptor for id field.
+	departmentmenuoptionDescID := departmentmenuoptionFields[0].Descriptor()
+	// departmentmenuoption.DefaultID holds the default value on creation for the id field.
+	departmentmenuoption.DefaultID = departmentmenuoptionDescID.Default.(func() uuid.UUID)
+	departmentmenuoptionvalidityFields := schema.DepartmentMenuOptionValidity{}.Fields()
+	_ = departmentmenuoptionvalidityFields
+	// departmentmenuoptionvalidityDescCreatedAt is the schema descriptor for created_at field.
+	departmentmenuoptionvalidityDescCreatedAt := departmentmenuoptionvalidityFields[7].Descriptor()
+	// departmentmenuoptionvalidity.DefaultCreatedAt holds the default value on creation for the created_at field.
+	departmentmenuoptionvalidity.DefaultCreatedAt = departmentmenuoptionvalidityDescCreatedAt.Default.(func() time.Time)
+	// departmentmenuoptionvalidityDescUpdatedAt is the schema descriptor for updated_at field.
+	departmentmenuoptionvalidityDescUpdatedAt := departmentmenuoptionvalidityFields[8].Descriptor()
+	// departmentmenuoptionvalidity.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	departmentmenuoptionvalidity.DefaultUpdatedAt = departmentmenuoptionvalidityDescUpdatedAt.Default.(func() time.Time)
+	// departmentmenuoptionvalidity.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	departmentmenuoptionvalidity.UpdateDefaultUpdatedAt = departmentmenuoptionvalidityDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// departmentmenuoptionvalidityDescID is the schema descriptor for id field.
+	departmentmenuoptionvalidityDescID := departmentmenuoptionvalidityFields[0].Descriptor()
+	// departmentmenuoptionvalidity.DefaultID holds the default value on creation for the id field.
+	departmentmenuoptionvalidity.DefaultID = departmentmenuoptionvalidityDescID.Default.(func() uuid.UUID)
 	departmenttranslationFields := schema.DepartmentTranslation{}.Fields()
 	_ = departmenttranslationFields
 	// departmenttranslationDescLocaleCode is the schema descriptor for locale_code field.
@@ -388,6 +435,26 @@ func init() {
 	employeeassignmentDescID := employeeassignmentFields[0].Descriptor()
 	// employeeassignment.DefaultID holds the default value on creation for the id field.
 	employeeassignment.DefaultID = employeeassignmentDescID.Default.(func() uuid.UUID)
+	employeemenuoptionoverrideFields := schema.EmployeeMenuOptionOverride{}.Fields()
+	_ = employeemenuoptionoverrideFields
+	// employeemenuoptionoverrideDescIsGranted is the schema descriptor for is_granted field.
+	employeemenuoptionoverrideDescIsGranted := employeemenuoptionoverrideFields[4].Descriptor()
+	// employeemenuoptionoverride.DefaultIsGranted holds the default value on creation for the is_granted field.
+	employeemenuoptionoverride.DefaultIsGranted = employeemenuoptionoverrideDescIsGranted.Default.(bool)
+	// employeemenuoptionoverrideDescCreatedAt is the schema descriptor for created_at field.
+	employeemenuoptionoverrideDescCreatedAt := employeemenuoptionoverrideFields[5].Descriptor()
+	// employeemenuoptionoverride.DefaultCreatedAt holds the default value on creation for the created_at field.
+	employeemenuoptionoverride.DefaultCreatedAt = employeemenuoptionoverrideDescCreatedAt.Default.(func() time.Time)
+	// employeemenuoptionoverrideDescUpdatedAt is the schema descriptor for updated_at field.
+	employeemenuoptionoverrideDescUpdatedAt := employeemenuoptionoverrideFields[6].Descriptor()
+	// employeemenuoptionoverride.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	employeemenuoptionoverride.DefaultUpdatedAt = employeemenuoptionoverrideDescUpdatedAt.Default.(func() time.Time)
+	// employeemenuoptionoverride.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	employeemenuoptionoverride.UpdateDefaultUpdatedAt = employeemenuoptionoverrideDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// employeemenuoptionoverrideDescID is the schema descriptor for id field.
+	employeemenuoptionoverrideDescID := employeemenuoptionoverrideFields[0].Descriptor()
+	// employeemenuoptionoverride.DefaultID holds the default value on creation for the id field.
+	employeemenuoptionoverride.DefaultID = employeemenuoptionoverrideDescID.Default.(func() uuid.UUID)
 	identitydocumenttypeFields := schema.IdentityDocumentType{}.Fields()
 	_ = identitydocumenttypeFields
 	// identitydocumenttypeDescCode is the schema descriptor for code field.
@@ -570,6 +637,128 @@ func init() {
 	locationtranslationDescID := locationtranslationFields[0].Descriptor()
 	// locationtranslation.DefaultID holds the default value on creation for the id field.
 	locationtranslation.DefaultID = locationtranslationDescID.Default.(func() uuid.UUID)
+	menucategoryFields := schema.MenuCategory{}.Fields()
+	_ = menucategoryFields
+	// menucategoryDescCode is the schema descriptor for code field.
+	menucategoryDescCode := menucategoryFields[3].Descriptor()
+	// menucategory.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	menucategory.CodeValidator = menucategoryDescCode.Validators[0].(func(string) error)
+	// menucategoryDescName is the schema descriptor for name field.
+	menucategoryDescName := menucategoryFields[4].Descriptor()
+	// menucategory.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	menucategory.NameValidator = menucategoryDescName.Validators[0].(func(string) error)
+	// menucategoryDescSortOrder is the schema descriptor for sort_order field.
+	menucategoryDescSortOrder := menucategoryFields[5].Descriptor()
+	// menucategory.DefaultSortOrder holds the default value on creation for the sort_order field.
+	menucategory.DefaultSortOrder = menucategoryDescSortOrder.Default.(int)
+	// menucategory.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
+	menucategory.SortOrderValidator = menucategoryDescSortOrder.Validators[0].(func(int) error)
+	// menucategoryDescCreatedAt is the schema descriptor for created_at field.
+	menucategoryDescCreatedAt := menucategoryFields[6].Descriptor()
+	// menucategory.DefaultCreatedAt holds the default value on creation for the created_at field.
+	menucategory.DefaultCreatedAt = menucategoryDescCreatedAt.Default.(func() time.Time)
+	// menucategoryDescUpdatedAt is the schema descriptor for updated_at field.
+	menucategoryDescUpdatedAt := menucategoryFields[7].Descriptor()
+	// menucategory.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	menucategory.DefaultUpdatedAt = menucategoryDescUpdatedAt.Default.(func() time.Time)
+	// menucategory.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	menucategory.UpdateDefaultUpdatedAt = menucategoryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// menucategoryDescID is the schema descriptor for id field.
+	menucategoryDescID := menucategoryFields[0].Descriptor()
+	// menucategory.DefaultID holds the default value on creation for the id field.
+	menucategory.DefaultID = menucategoryDescID.Default.(func() uuid.UUID)
+	menuoptionFields := schema.MenuOption{}.Fields()
+	_ = menuoptionFields
+	// menuoptionDescCode is the schema descriptor for code field.
+	menuoptionDescCode := menuoptionFields[3].Descriptor()
+	// menuoption.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	menuoption.CodeValidator = menuoptionDescCode.Validators[0].(func(string) error)
+	// menuoptionDescName is the schema descriptor for name field.
+	menuoptionDescName := menuoptionFields[4].Descriptor()
+	// menuoption.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	menuoption.NameValidator = menuoptionDescName.Validators[0].(func(string) error)
+	// menuoptionDescCreatedAt is the schema descriptor for created_at field.
+	menuoptionDescCreatedAt := menuoptionFields[7].Descriptor()
+	// menuoption.DefaultCreatedAt holds the default value on creation for the created_at field.
+	menuoption.DefaultCreatedAt = menuoptionDescCreatedAt.Default.(func() time.Time)
+	// menuoptionDescUpdatedAt is the schema descriptor for updated_at field.
+	menuoptionDescUpdatedAt := menuoptionFields[8].Descriptor()
+	// menuoption.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	menuoption.DefaultUpdatedAt = menuoptionDescUpdatedAt.Default.(func() time.Time)
+	// menuoption.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	menuoption.UpdateDefaultUpdatedAt = menuoptionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// menuoptionDescID is the schema descriptor for id field.
+	menuoptionDescID := menuoptionFields[0].Descriptor()
+	// menuoption.DefaultID holds the default value on creation for the id field.
+	menuoption.DefaultID = menuoptionDescID.Default.(func() uuid.UUID)
+	menuoptioncategoryFields := schema.MenuOptionCategory{}.Fields()
+	_ = menuoptioncategoryFields
+	// menuoptioncategoryDescSortOrder is the schema descriptor for sort_order field.
+	menuoptioncategoryDescSortOrder := menuoptioncategoryFields[4].Descriptor()
+	// menuoptioncategory.DefaultSortOrder holds the default value on creation for the sort_order field.
+	menuoptioncategory.DefaultSortOrder = menuoptioncategoryDescSortOrder.Default.(int)
+	// menuoptioncategory.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
+	menuoptioncategory.SortOrderValidator = menuoptioncategoryDescSortOrder.Validators[0].(func(int) error)
+	// menuoptioncategoryDescCreatedAt is the schema descriptor for created_at field.
+	menuoptioncategoryDescCreatedAt := menuoptioncategoryFields[5].Descriptor()
+	// menuoptioncategory.DefaultCreatedAt holds the default value on creation for the created_at field.
+	menuoptioncategory.DefaultCreatedAt = menuoptioncategoryDescCreatedAt.Default.(func() time.Time)
+	// menuoptioncategoryDescID is the schema descriptor for id field.
+	menuoptioncategoryDescID := menuoptioncategoryFields[0].Descriptor()
+	// menuoptioncategory.DefaultID holds the default value on creation for the id field.
+	menuoptioncategory.DefaultID = menuoptioncategoryDescID.Default.(func() uuid.UUID)
+	menuoptionfunctionFields := schema.MenuOptionFunction{}.Fields()
+	_ = menuoptionfunctionFields
+	// menuoptionfunctionDescIsRequired is the schema descriptor for is_required field.
+	menuoptionfunctionDescIsRequired := menuoptionfunctionFields[4].Descriptor()
+	// menuoptionfunction.DefaultIsRequired holds the default value on creation for the is_required field.
+	menuoptionfunction.DefaultIsRequired = menuoptionfunctionDescIsRequired.Default.(bool)
+	// menuoptionfunctionDescCreatedAt is the schema descriptor for created_at field.
+	menuoptionfunctionDescCreatedAt := menuoptionfunctionFields[5].Descriptor()
+	// menuoptionfunction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	menuoptionfunction.DefaultCreatedAt = menuoptionfunctionDescCreatedAt.Default.(func() time.Time)
+	// menuoptionfunctionDescID is the schema descriptor for id field.
+	menuoptionfunctionDescID := menuoptionfunctionFields[0].Descriptor()
+	// menuoptionfunction.DefaultID holds the default value on creation for the id field.
+	menuoptionfunction.DefaultID = menuoptionfunctionDescID.Default.(func() uuid.UUID)
+	menutemplateFields := schema.MenuTemplate{}.Fields()
+	_ = menutemplateFields
+	// menutemplateDescCode is the schema descriptor for code field.
+	menutemplateDescCode := menutemplateFields[1].Descriptor()
+	// menutemplate.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	menutemplate.CodeValidator = menutemplateDescCode.Validators[0].(func(string) error)
+	// menutemplateDescName is the schema descriptor for name field.
+	menutemplateDescName := menutemplateFields[2].Descriptor()
+	// menutemplate.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	menutemplate.NameValidator = menutemplateDescName.Validators[0].(func(string) error)
+	// menutemplateDescCreatedAt is the schema descriptor for created_at field.
+	menutemplateDescCreatedAt := menutemplateFields[5].Descriptor()
+	// menutemplate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	menutemplate.DefaultCreatedAt = menutemplateDescCreatedAt.Default.(func() time.Time)
+	// menutemplateDescUpdatedAt is the schema descriptor for updated_at field.
+	menutemplateDescUpdatedAt := menutemplateFields[6].Descriptor()
+	// menutemplate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	menutemplate.DefaultUpdatedAt = menutemplateDescUpdatedAt.Default.(func() time.Time)
+	// menutemplate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	menutemplate.UpdateDefaultUpdatedAt = menutemplateDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// menutemplateDescID is the schema descriptor for id field.
+	menutemplateDescID := menutemplateFields[0].Descriptor()
+	// menutemplate.DefaultID holds the default value on creation for the id field.
+	menutemplate.DefaultID = menutemplateDescID.Default.(func() uuid.UUID)
+	menutemplatefunctionFields := schema.MenuTemplateFunction{}.Fields()
+	_ = menutemplatefunctionFields
+	// menutemplatefunctionDescIsRequired is the schema descriptor for is_required field.
+	menutemplatefunctionDescIsRequired := menutemplatefunctionFields[3].Descriptor()
+	// menutemplatefunction.DefaultIsRequired holds the default value on creation for the is_required field.
+	menutemplatefunction.DefaultIsRequired = menutemplatefunctionDescIsRequired.Default.(bool)
+	// menutemplatefunctionDescCreatedAt is the schema descriptor for created_at field.
+	menutemplatefunctionDescCreatedAt := menutemplatefunctionFields[4].Descriptor()
+	// menutemplatefunction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	menutemplatefunction.DefaultCreatedAt = menutemplatefunctionDescCreatedAt.Default.(func() time.Time)
+	// menutemplatefunctionDescID is the schema descriptor for id field.
+	menutemplatefunctionDescID := menutemplatefunctionFields[0].Descriptor()
+	// menutemplatefunction.DefaultID holds the default value on creation for the id field.
+	menutemplatefunction.DefaultID = menutemplatefunctionDescID.Default.(func() uuid.UUID)
 	nametypeFields := schema.NameType{}.Fields()
 	_ = nametypeFields
 	// nametypeDescCode is the schema descriptor for code field.
@@ -888,6 +1077,48 @@ func init() {
 	personprofileDescID := personprofileFields[0].Descriptor()
 	// personprofile.DefaultID holds the default value on creation for the id field.
 	personprofile.DefaultID = personprofileDescID.Default.(func() uuid.UUID)
+	positionmenuoptionFields := schema.PositionMenuOption{}.Fields()
+	_ = positionmenuoptionFields
+	// positionmenuoptionDescCreatedAt is the schema descriptor for created_at field.
+	positionmenuoptionDescCreatedAt := positionmenuoptionFields[4].Descriptor()
+	// positionmenuoption.DefaultCreatedAt holds the default value on creation for the created_at field.
+	positionmenuoption.DefaultCreatedAt = positionmenuoptionDescCreatedAt.Default.(func() time.Time)
+	// positionmenuoptionDescUpdatedAt is the schema descriptor for updated_at field.
+	positionmenuoptionDescUpdatedAt := positionmenuoptionFields[5].Descriptor()
+	// positionmenuoption.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	positionmenuoption.DefaultUpdatedAt = positionmenuoptionDescUpdatedAt.Default.(func() time.Time)
+	// positionmenuoption.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	positionmenuoption.UpdateDefaultUpdatedAt = positionmenuoptionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// positionmenuoptionDescID is the schema descriptor for id field.
+	positionmenuoptionDescID := positionmenuoptionFields[0].Descriptor()
+	// positionmenuoption.DefaultID holds the default value on creation for the id field.
+	positionmenuoption.DefaultID = positionmenuoptionDescID.Default.(func() uuid.UUID)
+	positionmenuoptionvalidityFields := schema.PositionMenuOptionValidity{}.Fields()
+	_ = positionmenuoptionvalidityFields
+	// positionmenuoptionvalidityDescCreatedAt is the schema descriptor for created_at field.
+	positionmenuoptionvalidityDescCreatedAt := positionmenuoptionvalidityFields[7].Descriptor()
+	// positionmenuoptionvalidity.DefaultCreatedAt holds the default value on creation for the created_at field.
+	positionmenuoptionvalidity.DefaultCreatedAt = positionmenuoptionvalidityDescCreatedAt.Default.(func() time.Time)
+	// positionmenuoptionvalidityDescUpdatedAt is the schema descriptor for updated_at field.
+	positionmenuoptionvalidityDescUpdatedAt := positionmenuoptionvalidityFields[8].Descriptor()
+	// positionmenuoptionvalidity.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	positionmenuoptionvalidity.DefaultUpdatedAt = positionmenuoptionvalidityDescUpdatedAt.Default.(func() time.Time)
+	// positionmenuoptionvalidity.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	positionmenuoptionvalidity.UpdateDefaultUpdatedAt = positionmenuoptionvalidityDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// positionmenuoptionvalidityDescID is the schema descriptor for id field.
+	positionmenuoptionvalidityDescID := positionmenuoptionvalidityFields[0].Descriptor()
+	// positionmenuoptionvalidity.DefaultID holds the default value on creation for the id field.
+	positionmenuoptionvalidity.DefaultID = positionmenuoptionvalidityDescID.Default.(func() uuid.UUID)
+	rolemenuoptionFields := schema.RoleMenuOption{}.Fields()
+	_ = rolemenuoptionFields
+	// rolemenuoptionDescCreatedAt is the schema descriptor for created_at field.
+	rolemenuoptionDescCreatedAt := rolemenuoptionFields[4].Descriptor()
+	// rolemenuoption.DefaultCreatedAt holds the default value on creation for the created_at field.
+	rolemenuoption.DefaultCreatedAt = rolemenuoptionDescCreatedAt.Default.(func() time.Time)
+	// rolemenuoptionDescID is the schema descriptor for id field.
+	rolemenuoptionDescID := rolemenuoptionFields[0].Descriptor()
+	// rolemenuoption.DefaultID holds the default value on creation for the id field.
+	rolemenuoption.DefaultID = rolemenuoptionDescID.Default.(func() uuid.UUID)
 	roletypeFields := schema.RoleType{}.Fields()
 	_ = roletypeFields
 	// roletypeDescCode is the schema descriptor for code field.
@@ -980,6 +1211,50 @@ func init() {
 	subscriptionDescID := subscriptionFields[0].Descriptor()
 	// subscription.DefaultID holds the default value on creation for the id field.
 	subscription.DefaultID = subscriptionDescID.Default.(func() uuid.UUID)
+	systemfunctionFields := schema.SystemFunction{}.Fields()
+	_ = systemfunctionFields
+	// systemfunctionDescCode is the schema descriptor for code field.
+	systemfunctionDescCode := systemfunctionFields[1].Descriptor()
+	// systemfunction.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	systemfunction.CodeValidator = systemfunctionDescCode.Validators[0].(func(string) error)
+	// systemfunctionDescName is the schema descriptor for name field.
+	systemfunctionDescName := systemfunctionFields[2].Descriptor()
+	// systemfunction.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	systemfunction.NameValidator = systemfunctionDescName.Validators[0].(func(string) error)
+	// systemfunctionDescCreatedAt is the schema descriptor for created_at field.
+	systemfunctionDescCreatedAt := systemfunctionFields[5].Descriptor()
+	// systemfunction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	systemfunction.DefaultCreatedAt = systemfunctionDescCreatedAt.Default.(func() time.Time)
+	// systemfunctionDescUpdatedAt is the schema descriptor for updated_at field.
+	systemfunctionDescUpdatedAt := systemfunctionFields[6].Descriptor()
+	// systemfunction.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	systemfunction.DefaultUpdatedAt = systemfunctionDescUpdatedAt.Default.(func() time.Time)
+	// systemfunction.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	systemfunction.UpdateDefaultUpdatedAt = systemfunctionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// systemfunctionDescID is the schema descriptor for id field.
+	systemfunctionDescID := systemfunctionFields[0].Descriptor()
+	// systemfunction.DefaultID holds the default value on creation for the id field.
+	systemfunction.DefaultID = systemfunctionDescID.Default.(func() uuid.UUID)
+	tenantroleFields := schema.TenantRole{}.Fields()
+	_ = tenantroleFields
+	// tenantroleDescName is the schema descriptor for name field.
+	tenantroleDescName := tenantroleFields[3].Descriptor()
+	// tenantrole.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	tenantrole.NameValidator = tenantroleDescName.Validators[0].(func(string) error)
+	// tenantroleDescCreatedAt is the schema descriptor for created_at field.
+	tenantroleDescCreatedAt := tenantroleFields[5].Descriptor()
+	// tenantrole.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tenantrole.DefaultCreatedAt = tenantroleDescCreatedAt.Default.(func() time.Time)
+	// tenantroleDescUpdatedAt is the schema descriptor for updated_at field.
+	tenantroleDescUpdatedAt := tenantroleFields[6].Descriptor()
+	// tenantrole.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tenantrole.DefaultUpdatedAt = tenantroleDescUpdatedAt.Default.(func() time.Time)
+	// tenantrole.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tenantrole.UpdateDefaultUpdatedAt = tenantroleDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tenantroleDescID is the schema descriptor for id field.
+	tenantroleDescID := tenantroleFields[0].Descriptor()
+	// tenantrole.DefaultID holds the default value on creation for the id field.
+	tenantrole.DefaultID = tenantroleDescID.Default.(func() uuid.UUID)
 	usercredentialsFields := schema.UserCredentials{}.Fields()
 	_ = usercredentialsFields
 	// usercredentialsDescPasswordHash is the schema descriptor for password_hash field.
@@ -1008,4 +1283,28 @@ func init() {
 	usercredentialsDescID := usercredentialsFields[0].Descriptor()
 	// usercredentials.DefaultID holds the default value on creation for the id field.
 	usercredentials.DefaultID = usercredentialsDescID.Default.(func() uuid.UUID)
+	userroleassignmentFields := schema.UserRoleAssignment{}.Fields()
+	_ = userroleassignmentFields
+	// userroleassignmentDescIsGranted is the schema descriptor for is_granted field.
+	userroleassignmentDescIsGranted := userroleassignmentFields[4].Descriptor()
+	// userroleassignment.DefaultIsGranted holds the default value on creation for the is_granted field.
+	userroleassignment.DefaultIsGranted = userroleassignmentDescIsGranted.Default.(bool)
+	// userroleassignmentDescAssignedAt is the schema descriptor for assigned_at field.
+	userroleassignmentDescAssignedAt := userroleassignmentFields[5].Descriptor()
+	// userroleassignment.DefaultAssignedAt holds the default value on creation for the assigned_at field.
+	userroleassignment.DefaultAssignedAt = userroleassignmentDescAssignedAt.Default.(func() time.Time)
+	// userroleassignmentDescCreatedAt is the schema descriptor for created_at field.
+	userroleassignmentDescCreatedAt := userroleassignmentFields[6].Descriptor()
+	// userroleassignment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	userroleassignment.DefaultCreatedAt = userroleassignmentDescCreatedAt.Default.(func() time.Time)
+	// userroleassignmentDescUpdatedAt is the schema descriptor for updated_at field.
+	userroleassignmentDescUpdatedAt := userroleassignmentFields[7].Descriptor()
+	// userroleassignment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	userroleassignment.DefaultUpdatedAt = userroleassignmentDescUpdatedAt.Default.(func() time.Time)
+	// userroleassignment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	userroleassignment.UpdateDefaultUpdatedAt = userroleassignmentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// userroleassignmentDescID is the schema descriptor for id field.
+	userroleassignmentDescID := userroleassignmentFields[0].Descriptor()
+	// userroleassignment.DefaultID holds the default value on creation for the id field.
+	userroleassignment.DefaultID = userroleassignmentDescID.Default.(func() uuid.UUID)
 }

@@ -11,6 +11,7 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmentmenuoption"
 	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -46,6 +47,7 @@ type DepartmentQuery struct {
 	withAddresses                  *DepartmentAddressQuery
 	withAddressValidities          *DepartmentAddressValidityQuery
 	withTranslations               *DepartmentTranslationQuery
+	withDepartmentMenuOptions      *DepartmentMenuOptionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -382,6 +384,31 @@ func (_q *DepartmentQuery) QueryTranslations() *DepartmentTranslationQuery {
 	return query
 }
 
+// QueryDepartmentMenuOptions chains the current query on the "department_menu_options" edge.
+func (_q *DepartmentQuery) QueryDepartmentMenuOptions() *DepartmentMenuOptionQuery {
+	query := (&DepartmentMenuOptionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, selector),
+			sqlgraph.To(departmentmenuoption.Table, departmentmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.DepartmentMenuOptionsTable, department.DepartmentMenuOptionsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentMenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Department entity from the query.
 // Returns a *NotFoundError when no Department was found.
 func (_q *DepartmentQuery) First(ctx context.Context) (*Department, error) {
@@ -586,6 +613,7 @@ func (_q *DepartmentQuery) Clone() *DepartmentQuery {
 		withAddresses:                  _q.withAddresses.Clone(),
 		withAddressValidities:          _q.withAddressValidities.Clone(),
 		withTranslations:               _q.withTranslations.Clone(),
+		withDepartmentMenuOptions:      _q.withDepartmentMenuOptions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -724,6 +752,17 @@ func (_q *DepartmentQuery) WithTranslations(opts ...func(*DepartmentTranslationQ
 	return _q
 }
 
+// WithDepartmentMenuOptions tells the query-builder to eager-load the nodes that are connected to
+// the "department_menu_options" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *DepartmentQuery) WithDepartmentMenuOptions(opts ...func(*DepartmentMenuOptionQuery)) *DepartmentQuery {
+	query := (&DepartmentMenuOptionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentMenuOptions = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -802,7 +841,7 @@ func (_q *DepartmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 	var (
 		nodes       = []*Department{}
 		_spec       = _q.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [13]bool{
 			_q.withTenant != nil,
 			_q.withChildren != nil,
 			_q.withParent != nil,
@@ -815,6 +854,7 @@ func (_q *DepartmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 			_q.withAddresses != nil,
 			_q.withAddressValidities != nil,
 			_q.withTranslations != nil,
+			_q.withDepartmentMenuOptions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -923,6 +963,15 @@ func (_q *DepartmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 		if err := _q.loadTranslations(ctx, query, nodes,
 			func(n *Department) { n.Edges.Translations = []*DepartmentTranslation{} },
 			func(n *Department, e *DepartmentTranslation) { n.Edges.Translations = append(n.Edges.Translations, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDepartmentMenuOptions; query != nil {
+		if err := _q.loadDepartmentMenuOptions(ctx, query, nodes,
+			func(n *Department) { n.Edges.DepartmentMenuOptions = []*DepartmentMenuOption{} },
+			func(n *Department, e *DepartmentMenuOption) {
+				n.Edges.DepartmentMenuOptions = append(n.Edges.DepartmentMenuOptions, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1280,6 +1329,36 @@ func (_q *DepartmentQuery) loadTranslations(ctx context.Context, query *Departme
 	}
 	query.Where(predicate.DepartmentTranslation(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(department.TranslationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DepartmentID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "department_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *DepartmentQuery) loadDepartmentMenuOptions(ctx context.Context, query *DepartmentMenuOptionQuery, nodes []*Department, init func(*Department), assign func(*Department, *DepartmentMenuOption)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Department)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentmenuoption.FieldDepartmentID)
+	}
+	query.Where(predicate.DepartmentMenuOption(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(department.DepartmentMenuOptionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

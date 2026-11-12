@@ -23,9 +23,12 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmentmenuoption"
+	"enterprise-system/ent/departmentmenuoptionvalidity"
 	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/employeemenuoptionoverride"
 	"enterprise-system/ent/identitydocumenttype"
 	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/job"
@@ -33,6 +36,12 @@ import (
 	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
+	"enterprise-system/ent/menucategory"
+	"enterprise-system/ent/menuoption"
+	"enterprise-system/ent/menuoptioncategory"
+	"enterprise-system/ent/menuoptionfunction"
+	"enterprise-system/ent/menutemplate"
+	"enterprise-system/ent/menutemplatefunction"
 	"enterprise-system/ent/nametype"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
@@ -47,11 +56,17 @@ import (
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
+	"enterprise-system/ent/positionmenuoption"
+	"enterprise-system/ent/positionmenuoptionvalidity"
+	"enterprise-system/ent/rolemenuoption"
 	"enterprise-system/ent/roletype"
 	"enterprise-system/ent/roletypetranslation"
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/systemfunction"
+	"enterprise-system/ent/tenantrole"
 	"enterprise-system/ent/usercredentials"
+	"enterprise-system/ent/userroleassignment"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -92,12 +107,18 @@ type Client struct {
 	DepartmentContactMechanismValidity *DepartmentContactMechanismValidityClient
 	// DepartmentGroupAssignment is the client for interacting with the DepartmentGroupAssignment builders.
 	DepartmentGroupAssignment *DepartmentGroupAssignmentClient
+	// DepartmentMenuOption is the client for interacting with the DepartmentMenuOption builders.
+	DepartmentMenuOption *DepartmentMenuOptionClient
+	// DepartmentMenuOptionValidity is the client for interacting with the DepartmentMenuOptionValidity builders.
+	DepartmentMenuOptionValidity *DepartmentMenuOptionValidityClient
 	// DepartmentTranslation is the client for interacting with the DepartmentTranslation builders.
 	DepartmentTranslation *DepartmentTranslationClient
 	// Employee is the client for interacting with the Employee builders.
 	Employee *EmployeeClient
 	// EmployeeAssignment is the client for interacting with the EmployeeAssignment builders.
 	EmployeeAssignment *EmployeeAssignmentClient
+	// EmployeeMenuOptionOverride is the client for interacting with the EmployeeMenuOptionOverride builders.
+	EmployeeMenuOptionOverride *EmployeeMenuOptionOverrideClient
 	// IdentityDocumentType is the client for interacting with the IdentityDocumentType builders.
 	IdentityDocumentType *IdentityDocumentTypeClient
 	// IdentityDocumentTypeTranslation is the client for interacting with the IdentityDocumentTypeTranslation builders.
@@ -112,6 +133,18 @@ type Client struct {
 	Location *LocationClient
 	// LocationTranslation is the client for interacting with the LocationTranslation builders.
 	LocationTranslation *LocationTranslationClient
+	// MenuCategory is the client for interacting with the MenuCategory builders.
+	MenuCategory *MenuCategoryClient
+	// MenuOption is the client for interacting with the MenuOption builders.
+	MenuOption *MenuOptionClient
+	// MenuOptionCategory is the client for interacting with the MenuOptionCategory builders.
+	MenuOptionCategory *MenuOptionCategoryClient
+	// MenuOptionFunction is the client for interacting with the MenuOptionFunction builders.
+	MenuOptionFunction *MenuOptionFunctionClient
+	// MenuTemplate is the client for interacting with the MenuTemplate builders.
+	MenuTemplate *MenuTemplateClient
+	// MenuTemplateFunction is the client for interacting with the MenuTemplateFunction builders.
+	MenuTemplateFunction *MenuTemplateFunctionClient
 	// NameType is the client for interacting with the NameType builders.
 	NameType *NameTypeClient
 	// OrganizationProfile is the client for interacting with the OrganizationProfile builders.
@@ -140,6 +173,12 @@ type Client struct {
 	PasswordResetToken *PasswordResetTokenClient
 	// PersonProfile is the client for interacting with the PersonProfile builders.
 	PersonProfile *PersonProfileClient
+	// PositionMenuOption is the client for interacting with the PositionMenuOption builders.
+	PositionMenuOption *PositionMenuOptionClient
+	// PositionMenuOptionValidity is the client for interacting with the PositionMenuOptionValidity builders.
+	PositionMenuOptionValidity *PositionMenuOptionValidityClient
+	// RoleMenuOption is the client for interacting with the RoleMenuOption builders.
+	RoleMenuOption *RoleMenuOptionClient
 	// RoleType is the client for interacting with the RoleType builders.
 	RoleType *RoleTypeClient
 	// RoleTypeTranslation is the client for interacting with the RoleTypeTranslation builders.
@@ -148,8 +187,14 @@ type Client struct {
 	Session *SessionClient
 	// Subscription is the client for interacting with the Subscription builders.
 	Subscription *SubscriptionClient
+	// SystemFunction is the client for interacting with the SystemFunction builders.
+	SystemFunction *SystemFunctionClient
+	// TenantRole is the client for interacting with the TenantRole builders.
+	TenantRole *TenantRoleClient
 	// UserCredentials is the client for interacting with the UserCredentials builders.
 	UserCredentials *UserCredentialsClient
+	// UserRoleAssignment is the client for interacting with the UserRoleAssignment builders.
+	UserRoleAssignment *UserRoleAssignmentClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -173,9 +218,12 @@ func (c *Client) init() {
 	c.DepartmentContactMechanism = NewDepartmentContactMechanismClient(c.config)
 	c.DepartmentContactMechanismValidity = NewDepartmentContactMechanismValidityClient(c.config)
 	c.DepartmentGroupAssignment = NewDepartmentGroupAssignmentClient(c.config)
+	c.DepartmentMenuOption = NewDepartmentMenuOptionClient(c.config)
+	c.DepartmentMenuOptionValidity = NewDepartmentMenuOptionValidityClient(c.config)
 	c.DepartmentTranslation = NewDepartmentTranslationClient(c.config)
 	c.Employee = NewEmployeeClient(c.config)
 	c.EmployeeAssignment = NewEmployeeAssignmentClient(c.config)
+	c.EmployeeMenuOptionOverride = NewEmployeeMenuOptionOverrideClient(c.config)
 	c.IdentityDocumentType = NewIdentityDocumentTypeClient(c.config)
 	c.IdentityDocumentTypeTranslation = NewIdentityDocumentTypeTranslationClient(c.config)
 	c.Job = NewJobClient(c.config)
@@ -183,6 +231,12 @@ func (c *Client) init() {
 	c.Locale = NewLocaleClient(c.config)
 	c.Location = NewLocationClient(c.config)
 	c.LocationTranslation = NewLocationTranslationClient(c.config)
+	c.MenuCategory = NewMenuCategoryClient(c.config)
+	c.MenuOption = NewMenuOptionClient(c.config)
+	c.MenuOptionCategory = NewMenuOptionCategoryClient(c.config)
+	c.MenuOptionFunction = NewMenuOptionFunctionClient(c.config)
+	c.MenuTemplate = NewMenuTemplateClient(c.config)
+	c.MenuTemplateFunction = NewMenuTemplateFunctionClient(c.config)
 	c.NameType = NewNameTypeClient(c.config)
 	c.OrganizationProfile = NewOrganizationProfileClient(c.config)
 	c.Party = NewPartyClient(c.config)
@@ -197,11 +251,17 @@ func (c *Client) init() {
 	c.PartyRole = NewPartyRoleClient(c.config)
 	c.PasswordResetToken = NewPasswordResetTokenClient(c.config)
 	c.PersonProfile = NewPersonProfileClient(c.config)
+	c.PositionMenuOption = NewPositionMenuOptionClient(c.config)
+	c.PositionMenuOptionValidity = NewPositionMenuOptionValidityClient(c.config)
+	c.RoleMenuOption = NewRoleMenuOptionClient(c.config)
 	c.RoleType = NewRoleTypeClient(c.config)
 	c.RoleTypeTranslation = NewRoleTypeTranslationClient(c.config)
 	c.Session = NewSessionClient(c.config)
 	c.Subscription = NewSubscriptionClient(c.config)
+	c.SystemFunction = NewSystemFunctionClient(c.config)
+	c.TenantRole = NewTenantRoleClient(c.config)
 	c.UserCredentials = NewUserCredentialsClient(c.config)
+	c.UserRoleAssignment = NewUserRoleAssignmentClient(c.config)
 }
 
 type (
@@ -309,9 +369,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		DepartmentContactMechanism:         NewDepartmentContactMechanismClient(cfg),
 		DepartmentContactMechanismValidity: NewDepartmentContactMechanismValidityClient(cfg),
 		DepartmentGroupAssignment:          NewDepartmentGroupAssignmentClient(cfg),
+		DepartmentMenuOption:               NewDepartmentMenuOptionClient(cfg),
+		DepartmentMenuOptionValidity:       NewDepartmentMenuOptionValidityClient(cfg),
 		DepartmentTranslation:              NewDepartmentTranslationClient(cfg),
 		Employee:                           NewEmployeeClient(cfg),
 		EmployeeAssignment:                 NewEmployeeAssignmentClient(cfg),
+		EmployeeMenuOptionOverride:         NewEmployeeMenuOptionOverrideClient(cfg),
 		IdentityDocumentType:               NewIdentityDocumentTypeClient(cfg),
 		IdentityDocumentTypeTranslation:    NewIdentityDocumentTypeTranslationClient(cfg),
 		Job:                                NewJobClient(cfg),
@@ -319,6 +382,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Locale:                             NewLocaleClient(cfg),
 		Location:                           NewLocationClient(cfg),
 		LocationTranslation:                NewLocationTranslationClient(cfg),
+		MenuCategory:                       NewMenuCategoryClient(cfg),
+		MenuOption:                         NewMenuOptionClient(cfg),
+		MenuOptionCategory:                 NewMenuOptionCategoryClient(cfg),
+		MenuOptionFunction:                 NewMenuOptionFunctionClient(cfg),
+		MenuTemplate:                       NewMenuTemplateClient(cfg),
+		MenuTemplateFunction:               NewMenuTemplateFunctionClient(cfg),
 		NameType:                           NewNameTypeClient(cfg),
 		OrganizationProfile:                NewOrganizationProfileClient(cfg),
 		Party:                              NewPartyClient(cfg),
@@ -333,11 +402,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PartyRole:                          NewPartyRoleClient(cfg),
 		PasswordResetToken:                 NewPasswordResetTokenClient(cfg),
 		PersonProfile:                      NewPersonProfileClient(cfg),
+		PositionMenuOption:                 NewPositionMenuOptionClient(cfg),
+		PositionMenuOptionValidity:         NewPositionMenuOptionValidityClient(cfg),
+		RoleMenuOption:                     NewRoleMenuOptionClient(cfg),
 		RoleType:                           NewRoleTypeClient(cfg),
 		RoleTypeTranslation:                NewRoleTypeTranslationClient(cfg),
 		Session:                            NewSessionClient(cfg),
 		Subscription:                       NewSubscriptionClient(cfg),
+		SystemFunction:                     NewSystemFunctionClient(cfg),
+		TenantRole:                         NewTenantRoleClient(cfg),
 		UserCredentials:                    NewUserCredentialsClient(cfg),
+		UserRoleAssignment:                 NewUserRoleAssignmentClient(cfg),
 	}, nil
 }
 
@@ -369,9 +444,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		DepartmentContactMechanism:         NewDepartmentContactMechanismClient(cfg),
 		DepartmentContactMechanismValidity: NewDepartmentContactMechanismValidityClient(cfg),
 		DepartmentGroupAssignment:          NewDepartmentGroupAssignmentClient(cfg),
+		DepartmentMenuOption:               NewDepartmentMenuOptionClient(cfg),
+		DepartmentMenuOptionValidity:       NewDepartmentMenuOptionValidityClient(cfg),
 		DepartmentTranslation:              NewDepartmentTranslationClient(cfg),
 		Employee:                           NewEmployeeClient(cfg),
 		EmployeeAssignment:                 NewEmployeeAssignmentClient(cfg),
+		EmployeeMenuOptionOverride:         NewEmployeeMenuOptionOverrideClient(cfg),
 		IdentityDocumentType:               NewIdentityDocumentTypeClient(cfg),
 		IdentityDocumentTypeTranslation:    NewIdentityDocumentTypeTranslationClient(cfg),
 		Job:                                NewJobClient(cfg),
@@ -379,6 +457,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Locale:                             NewLocaleClient(cfg),
 		Location:                           NewLocationClient(cfg),
 		LocationTranslation:                NewLocationTranslationClient(cfg),
+		MenuCategory:                       NewMenuCategoryClient(cfg),
+		MenuOption:                         NewMenuOptionClient(cfg),
+		MenuOptionCategory:                 NewMenuOptionCategoryClient(cfg),
+		MenuOptionFunction:                 NewMenuOptionFunctionClient(cfg),
+		MenuTemplate:                       NewMenuTemplateClient(cfg),
+		MenuTemplateFunction:               NewMenuTemplateFunctionClient(cfg),
 		NameType:                           NewNameTypeClient(cfg),
 		OrganizationProfile:                NewOrganizationProfileClient(cfg),
 		Party:                              NewPartyClient(cfg),
@@ -393,11 +477,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PartyRole:                          NewPartyRoleClient(cfg),
 		PasswordResetToken:                 NewPasswordResetTokenClient(cfg),
 		PersonProfile:                      NewPersonProfileClient(cfg),
+		PositionMenuOption:                 NewPositionMenuOptionClient(cfg),
+		PositionMenuOptionValidity:         NewPositionMenuOptionValidityClient(cfg),
+		RoleMenuOption:                     NewRoleMenuOptionClient(cfg),
 		RoleType:                           NewRoleTypeClient(cfg),
 		RoleTypeTranslation:                NewRoleTypeTranslationClient(cfg),
 		Session:                            NewSessionClient(cfg),
 		Subscription:                       NewSubscriptionClient(cfg),
+		SystemFunction:                     NewSystemFunctionClient(cfg),
+		TenantRole:                         NewTenantRoleClient(cfg),
 		UserCredentials:                    NewUserCredentialsClient(cfg),
+		UserRoleAssignment:                 NewUserRoleAssignmentClient(cfg),
 	}, nil
 }
 
@@ -431,14 +521,19 @@ func (c *Client) Use(hooks ...Hook) {
 		c.ContactMechanism, c.CorporateGroup, c.Department, c.DepartmentAddress,
 		c.DepartmentAddressValidity, c.DepartmentContactMechanism,
 		c.DepartmentContactMechanismValidity, c.DepartmentGroupAssignment,
+		c.DepartmentMenuOption, c.DepartmentMenuOptionValidity,
 		c.DepartmentTranslation, c.Employee, c.EmployeeAssignment,
-		c.IdentityDocumentType, c.IdentityDocumentTypeTranslation, c.Job, c.JobFamily,
-		c.Locale, c.Location, c.LocationTranslation, c.NameType, c.OrganizationProfile,
-		c.Party, c.PartyContactMechanism, c.PartyContactMechanismValidity,
-		c.PartyIdentityDocument, c.PartyIdentityDocumentValidity, c.PartyMergeLog,
-		c.PartyName, c.PartyNameValidity, c.PartyNationality, c.PartyRole,
-		c.PasswordResetToken, c.PersonProfile, c.RoleType, c.RoleTypeTranslation,
-		c.Session, c.Subscription, c.UserCredentials,
+		c.EmployeeMenuOptionOverride, c.IdentityDocumentType,
+		c.IdentityDocumentTypeTranslation, c.Job, c.JobFamily, c.Locale, c.Location,
+		c.LocationTranslation, c.MenuCategory, c.MenuOption, c.MenuOptionCategory,
+		c.MenuOptionFunction, c.MenuTemplate, c.MenuTemplateFunction, c.NameType,
+		c.OrganizationProfile, c.Party, c.PartyContactMechanism,
+		c.PartyContactMechanismValidity, c.PartyIdentityDocument,
+		c.PartyIdentityDocumentValidity, c.PartyMergeLog, c.PartyName,
+		c.PartyNameValidity, c.PartyNationality, c.PartyRole, c.PasswordResetToken,
+		c.PersonProfile, c.PositionMenuOption, c.PositionMenuOptionValidity,
+		c.RoleMenuOption, c.RoleType, c.RoleTypeTranslation, c.Session, c.Subscription,
+		c.SystemFunction, c.TenantRole, c.UserCredentials, c.UserRoleAssignment,
 	} {
 		n.Use(hooks...)
 	}
@@ -452,14 +547,19 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.ContactMechanism, c.CorporateGroup, c.Department, c.DepartmentAddress,
 		c.DepartmentAddressValidity, c.DepartmentContactMechanism,
 		c.DepartmentContactMechanismValidity, c.DepartmentGroupAssignment,
+		c.DepartmentMenuOption, c.DepartmentMenuOptionValidity,
 		c.DepartmentTranslation, c.Employee, c.EmployeeAssignment,
-		c.IdentityDocumentType, c.IdentityDocumentTypeTranslation, c.Job, c.JobFamily,
-		c.Locale, c.Location, c.LocationTranslation, c.NameType, c.OrganizationProfile,
-		c.Party, c.PartyContactMechanism, c.PartyContactMechanismValidity,
-		c.PartyIdentityDocument, c.PartyIdentityDocumentValidity, c.PartyMergeLog,
-		c.PartyName, c.PartyNameValidity, c.PartyNationality, c.PartyRole,
-		c.PasswordResetToken, c.PersonProfile, c.RoleType, c.RoleTypeTranslation,
-		c.Session, c.Subscription, c.UserCredentials,
+		c.EmployeeMenuOptionOverride, c.IdentityDocumentType,
+		c.IdentityDocumentTypeTranslation, c.Job, c.JobFamily, c.Locale, c.Location,
+		c.LocationTranslation, c.MenuCategory, c.MenuOption, c.MenuOptionCategory,
+		c.MenuOptionFunction, c.MenuTemplate, c.MenuTemplateFunction, c.NameType,
+		c.OrganizationProfile, c.Party, c.PartyContactMechanism,
+		c.PartyContactMechanismValidity, c.PartyIdentityDocument,
+		c.PartyIdentityDocumentValidity, c.PartyMergeLog, c.PartyName,
+		c.PartyNameValidity, c.PartyNationality, c.PartyRole, c.PasswordResetToken,
+		c.PersonProfile, c.PositionMenuOption, c.PositionMenuOptionValidity,
+		c.RoleMenuOption, c.RoleType, c.RoleTypeTranslation, c.Session, c.Subscription,
+		c.SystemFunction, c.TenantRole, c.UserCredentials, c.UserRoleAssignment,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -492,12 +592,18 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.DepartmentContactMechanismValidity.mutate(ctx, m)
 	case *DepartmentGroupAssignmentMutation:
 		return c.DepartmentGroupAssignment.mutate(ctx, m)
+	case *DepartmentMenuOptionMutation:
+		return c.DepartmentMenuOption.mutate(ctx, m)
+	case *DepartmentMenuOptionValidityMutation:
+		return c.DepartmentMenuOptionValidity.mutate(ctx, m)
 	case *DepartmentTranslationMutation:
 		return c.DepartmentTranslation.mutate(ctx, m)
 	case *EmployeeMutation:
 		return c.Employee.mutate(ctx, m)
 	case *EmployeeAssignmentMutation:
 		return c.EmployeeAssignment.mutate(ctx, m)
+	case *EmployeeMenuOptionOverrideMutation:
+		return c.EmployeeMenuOptionOverride.mutate(ctx, m)
 	case *IdentityDocumentTypeMutation:
 		return c.IdentityDocumentType.mutate(ctx, m)
 	case *IdentityDocumentTypeTranslationMutation:
@@ -512,6 +618,18 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Location.mutate(ctx, m)
 	case *LocationTranslationMutation:
 		return c.LocationTranslation.mutate(ctx, m)
+	case *MenuCategoryMutation:
+		return c.MenuCategory.mutate(ctx, m)
+	case *MenuOptionMutation:
+		return c.MenuOption.mutate(ctx, m)
+	case *MenuOptionCategoryMutation:
+		return c.MenuOptionCategory.mutate(ctx, m)
+	case *MenuOptionFunctionMutation:
+		return c.MenuOptionFunction.mutate(ctx, m)
+	case *MenuTemplateMutation:
+		return c.MenuTemplate.mutate(ctx, m)
+	case *MenuTemplateFunctionMutation:
+		return c.MenuTemplateFunction.mutate(ctx, m)
 	case *NameTypeMutation:
 		return c.NameType.mutate(ctx, m)
 	case *OrganizationProfileMutation:
@@ -540,6 +658,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PasswordResetToken.mutate(ctx, m)
 	case *PersonProfileMutation:
 		return c.PersonProfile.mutate(ctx, m)
+	case *PositionMenuOptionMutation:
+		return c.PositionMenuOption.mutate(ctx, m)
+	case *PositionMenuOptionValidityMutation:
+		return c.PositionMenuOptionValidity.mutate(ctx, m)
+	case *RoleMenuOptionMutation:
+		return c.RoleMenuOption.mutate(ctx, m)
 	case *RoleTypeMutation:
 		return c.RoleType.mutate(ctx, m)
 	case *RoleTypeTranslationMutation:
@@ -548,8 +672,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Session.mutate(ctx, m)
 	case *SubscriptionMutation:
 		return c.Subscription.mutate(ctx, m)
+	case *SystemFunctionMutation:
+		return c.SystemFunction.mutate(ctx, m)
+	case *TenantRoleMutation:
+		return c.TenantRole.mutate(ctx, m)
 	case *UserCredentialsMutation:
 		return c.UserCredentials.mutate(ctx, m)
+	case *UserRoleAssignmentMutation:
+		return c.UserRoleAssignment.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -1227,6 +1357,25 @@ func (c *ClientApplicationClient) QueryTenant(_m *ClientApplication) *Subscripti
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.Subscription
 		step.Edge.Schema = schemaConfig.ClientApplication
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTenantRoles queries the tenant_roles edge of a ClientApplication.
+func (c *ClientApplicationClient) QueryTenantRoles(_m *ClientApplication) *TenantRoleQuery {
+	query := (&TenantRoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clientapplication.Table, clientapplication.FieldID, id),
+			sqlgraph.To(tenantrole.Table, tenantrole.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clientapplication.TenantRolesTable, clientapplication.TenantRolesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.TenantRole
+		step.Edge.Schema = schemaConfig.TenantRole
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -1930,6 +2079,25 @@ func (c *DepartmentClient) QueryTranslations(_m *Department) *DepartmentTranslat
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.DepartmentTranslation
 		step.Edge.Schema = schemaConfig.DepartmentTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentMenuOptions queries the department_menu_options edge of a Department.
+func (c *DepartmentClient) QueryDepartmentMenuOptions(_m *Department) *DepartmentMenuOptionQuery {
+	query := (&DepartmentMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, id),
+			sqlgraph.To(departmentmenuoption.Table, departmentmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.DepartmentMenuOptionsTable, department.DepartmentMenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentMenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -2949,6 +3117,386 @@ func (c *DepartmentGroupAssignmentClient) mutate(ctx context.Context, m *Departm
 	}
 }
 
+// DepartmentMenuOptionClient is a client for the DepartmentMenuOption schema.
+type DepartmentMenuOptionClient struct {
+	config
+}
+
+// NewDepartmentMenuOptionClient returns a client for the DepartmentMenuOption from the given config.
+func NewDepartmentMenuOptionClient(c config) *DepartmentMenuOptionClient {
+	return &DepartmentMenuOptionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `departmentmenuoption.Hooks(f(g(h())))`.
+func (c *DepartmentMenuOptionClient) Use(hooks ...Hook) {
+	c.hooks.DepartmentMenuOption = append(c.hooks.DepartmentMenuOption, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `departmentmenuoption.Intercept(f(g(h())))`.
+func (c *DepartmentMenuOptionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepartmentMenuOption = append(c.inters.DepartmentMenuOption, interceptors...)
+}
+
+// Create returns a builder for creating a DepartmentMenuOption entity.
+func (c *DepartmentMenuOptionClient) Create() *DepartmentMenuOptionCreate {
+	mutation := newDepartmentMenuOptionMutation(c.config, OpCreate)
+	return &DepartmentMenuOptionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepartmentMenuOption entities.
+func (c *DepartmentMenuOptionClient) CreateBulk(builders ...*DepartmentMenuOptionCreate) *DepartmentMenuOptionCreateBulk {
+	return &DepartmentMenuOptionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepartmentMenuOptionClient) MapCreateBulk(slice any, setFunc func(*DepartmentMenuOptionCreate, int)) *DepartmentMenuOptionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepartmentMenuOptionCreateBulk{err: fmt.Errorf("calling to DepartmentMenuOptionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepartmentMenuOptionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepartmentMenuOptionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepartmentMenuOption.
+func (c *DepartmentMenuOptionClient) Update() *DepartmentMenuOptionUpdate {
+	mutation := newDepartmentMenuOptionMutation(c.config, OpUpdate)
+	return &DepartmentMenuOptionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepartmentMenuOptionClient) UpdateOne(_m *DepartmentMenuOption) *DepartmentMenuOptionUpdateOne {
+	mutation := newDepartmentMenuOptionMutation(c.config, OpUpdateOne, withDepartmentMenuOption(_m))
+	return &DepartmentMenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepartmentMenuOptionClient) UpdateOneID(id uuid.UUID) *DepartmentMenuOptionUpdateOne {
+	mutation := newDepartmentMenuOptionMutation(c.config, OpUpdateOne, withDepartmentMenuOptionID(id))
+	return &DepartmentMenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepartmentMenuOption.
+func (c *DepartmentMenuOptionClient) Delete() *DepartmentMenuOptionDelete {
+	mutation := newDepartmentMenuOptionMutation(c.config, OpDelete)
+	return &DepartmentMenuOptionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepartmentMenuOptionClient) DeleteOne(_m *DepartmentMenuOption) *DepartmentMenuOptionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepartmentMenuOptionClient) DeleteOneID(id uuid.UUID) *DepartmentMenuOptionDeleteOne {
+	builder := c.Delete().Where(departmentmenuoption.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepartmentMenuOptionDeleteOne{builder}
+}
+
+// Query returns a query builder for DepartmentMenuOption.
+func (c *DepartmentMenuOptionClient) Query() *DepartmentMenuOptionQuery {
+	return &DepartmentMenuOptionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepartmentMenuOption},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepartmentMenuOption entity by its id.
+func (c *DepartmentMenuOptionClient) Get(ctx context.Context, id uuid.UUID) (*DepartmentMenuOption, error) {
+	return c.Query().Where(departmentmenuoption.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepartmentMenuOptionClient) GetX(ctx context.Context, id uuid.UUID) *DepartmentMenuOption {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a DepartmentMenuOption.
+func (c *DepartmentMenuOptionClient) QueryTenant(_m *DepartmentMenuOption) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentmenuoption.Table, departmentmenuoption.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentmenuoption.TenantTable, departmentmenuoption.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartment queries the department edge of a DepartmentMenuOption.
+func (c *DepartmentMenuOptionClient) QueryDepartment(_m *DepartmentMenuOption) *DepartmentQuery {
+	query := (&DepartmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentmenuoption.Table, departmentmenuoption.FieldID, id),
+			sqlgraph.To(department.Table, department.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentmenuoption.DepartmentTable, departmentmenuoption.DepartmentColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Department
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOption queries the menu_option edge of a DepartmentMenuOption.
+func (c *DepartmentMenuOptionClient) QueryMenuOption(_m *DepartmentMenuOption) *MenuOptionQuery {
+	query := (&MenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentmenuoption.Table, departmentmenuoption.FieldID, id),
+			sqlgraph.To(menuoption.Table, menuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentmenuoption.MenuOptionTable, departmentmenuoption.MenuOptionColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryValidities queries the validities edge of a DepartmentMenuOption.
+func (c *DepartmentMenuOptionClient) QueryValidities(_m *DepartmentMenuOption) *DepartmentMenuOptionValidityQuery {
+	query := (&DepartmentMenuOptionValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentmenuoption.Table, departmentmenuoption.FieldID, id),
+			sqlgraph.To(departmentmenuoptionvalidity.Table, departmentmenuoptionvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, departmentmenuoption.ValiditiesTable, departmentmenuoption.ValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentMenuOptionValidity
+		step.Edge.Schema = schemaConfig.DepartmentMenuOptionValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DepartmentMenuOptionClient) Hooks() []Hook {
+	return c.hooks.DepartmentMenuOption
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepartmentMenuOptionClient) Interceptors() []Interceptor {
+	return c.inters.DepartmentMenuOption
+}
+
+func (c *DepartmentMenuOptionClient) mutate(ctx context.Context, m *DepartmentMenuOptionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepartmentMenuOptionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepartmentMenuOptionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepartmentMenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepartmentMenuOptionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepartmentMenuOption mutation op: %q", m.Op())
+	}
+}
+
+// DepartmentMenuOptionValidityClient is a client for the DepartmentMenuOptionValidity schema.
+type DepartmentMenuOptionValidityClient struct {
+	config
+}
+
+// NewDepartmentMenuOptionValidityClient returns a client for the DepartmentMenuOptionValidity from the given config.
+func NewDepartmentMenuOptionValidityClient(c config) *DepartmentMenuOptionValidityClient {
+	return &DepartmentMenuOptionValidityClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `departmentmenuoptionvalidity.Hooks(f(g(h())))`.
+func (c *DepartmentMenuOptionValidityClient) Use(hooks ...Hook) {
+	c.hooks.DepartmentMenuOptionValidity = append(c.hooks.DepartmentMenuOptionValidity, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `departmentmenuoptionvalidity.Intercept(f(g(h())))`.
+func (c *DepartmentMenuOptionValidityClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DepartmentMenuOptionValidity = append(c.inters.DepartmentMenuOptionValidity, interceptors...)
+}
+
+// Create returns a builder for creating a DepartmentMenuOptionValidity entity.
+func (c *DepartmentMenuOptionValidityClient) Create() *DepartmentMenuOptionValidityCreate {
+	mutation := newDepartmentMenuOptionValidityMutation(c.config, OpCreate)
+	return &DepartmentMenuOptionValidityCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DepartmentMenuOptionValidity entities.
+func (c *DepartmentMenuOptionValidityClient) CreateBulk(builders ...*DepartmentMenuOptionValidityCreate) *DepartmentMenuOptionValidityCreateBulk {
+	return &DepartmentMenuOptionValidityCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *DepartmentMenuOptionValidityClient) MapCreateBulk(slice any, setFunc func(*DepartmentMenuOptionValidityCreate, int)) *DepartmentMenuOptionValidityCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &DepartmentMenuOptionValidityCreateBulk{err: fmt.Errorf("calling to DepartmentMenuOptionValidityClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*DepartmentMenuOptionValidityCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &DepartmentMenuOptionValidityCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DepartmentMenuOptionValidity.
+func (c *DepartmentMenuOptionValidityClient) Update() *DepartmentMenuOptionValidityUpdate {
+	mutation := newDepartmentMenuOptionValidityMutation(c.config, OpUpdate)
+	return &DepartmentMenuOptionValidityUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DepartmentMenuOptionValidityClient) UpdateOne(_m *DepartmentMenuOptionValidity) *DepartmentMenuOptionValidityUpdateOne {
+	mutation := newDepartmentMenuOptionValidityMutation(c.config, OpUpdateOne, withDepartmentMenuOptionValidity(_m))
+	return &DepartmentMenuOptionValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DepartmentMenuOptionValidityClient) UpdateOneID(id uuid.UUID) *DepartmentMenuOptionValidityUpdateOne {
+	mutation := newDepartmentMenuOptionValidityMutation(c.config, OpUpdateOne, withDepartmentMenuOptionValidityID(id))
+	return &DepartmentMenuOptionValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DepartmentMenuOptionValidity.
+func (c *DepartmentMenuOptionValidityClient) Delete() *DepartmentMenuOptionValidityDelete {
+	mutation := newDepartmentMenuOptionValidityMutation(c.config, OpDelete)
+	return &DepartmentMenuOptionValidityDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DepartmentMenuOptionValidityClient) DeleteOne(_m *DepartmentMenuOptionValidity) *DepartmentMenuOptionValidityDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DepartmentMenuOptionValidityClient) DeleteOneID(id uuid.UUID) *DepartmentMenuOptionValidityDeleteOne {
+	builder := c.Delete().Where(departmentmenuoptionvalidity.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DepartmentMenuOptionValidityDeleteOne{builder}
+}
+
+// Query returns a query builder for DepartmentMenuOptionValidity.
+func (c *DepartmentMenuOptionValidityClient) Query() *DepartmentMenuOptionValidityQuery {
+	return &DepartmentMenuOptionValidityQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDepartmentMenuOptionValidity},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a DepartmentMenuOptionValidity entity by its id.
+func (c *DepartmentMenuOptionValidityClient) Get(ctx context.Context, id uuid.UUID) (*DepartmentMenuOptionValidity, error) {
+	return c.Query().Where(departmentmenuoptionvalidity.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DepartmentMenuOptionValidityClient) GetX(ctx context.Context, id uuid.UUID) *DepartmentMenuOptionValidity {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a DepartmentMenuOptionValidity.
+func (c *DepartmentMenuOptionValidityClient) QueryTenant(_m *DepartmentMenuOptionValidity) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentmenuoptionvalidity.Table, departmentmenuoptionvalidity.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentmenuoptionvalidity.TenantTable, departmentmenuoptionvalidity.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.DepartmentMenuOptionValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentMenuOption queries the department_menu_option edge of a DepartmentMenuOptionValidity.
+func (c *DepartmentMenuOptionValidityClient) QueryDepartmentMenuOption(_m *DepartmentMenuOptionValidity) *DepartmentMenuOptionQuery {
+	query := (&DepartmentMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(departmentmenuoptionvalidity.Table, departmentmenuoptionvalidity.FieldID, id),
+			sqlgraph.To(departmentmenuoption.Table, departmentmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, departmentmenuoptionvalidity.DepartmentMenuOptionTable, departmentmenuoptionvalidity.DepartmentMenuOptionColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentMenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOptionValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *DepartmentMenuOptionValidityClient) Hooks() []Hook {
+	return c.hooks.DepartmentMenuOptionValidity
+}
+
+// Interceptors returns the client interceptors.
+func (c *DepartmentMenuOptionValidityClient) Interceptors() []Interceptor {
+	return c.inters.DepartmentMenuOptionValidity
+}
+
+func (c *DepartmentMenuOptionValidityClient) mutate(ctx context.Context, m *DepartmentMenuOptionValidityMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DepartmentMenuOptionValidityCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DepartmentMenuOptionValidityUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DepartmentMenuOptionValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DepartmentMenuOptionValidityDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DepartmentMenuOptionValidity mutation op: %q", m.Op())
+	}
+}
+
 // DepartmentTranslationClient is a client for the DepartmentTranslation schema.
 type DepartmentTranslationClient struct {
 	config
@@ -3380,6 +3928,25 @@ func (c *EmployeeClient) QueryAssignments(_m *Employee) *EmployeeAssignmentQuery
 	return query
 }
 
+// QueryEmployeeMenuOptionOverrides queries the employee_menu_option_overrides edge of a Employee.
+func (c *EmployeeClient) QueryEmployeeMenuOptionOverrides(_m *Employee) *EmployeeMenuOptionOverrideQuery {
+	query := (&EmployeeMenuOptionOverrideClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(employee.Table, employee.FieldID, id),
+			sqlgraph.To(employeemenuoptionoverride.Table, employeemenuoptionoverride.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, employee.EmployeeMenuOptionOverridesTable, employee.EmployeeMenuOptionOverridesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.EmployeeMenuOptionOverride
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *EmployeeClient) Hooks() []Hook {
 	return c.hooks.Employee
@@ -3611,6 +4178,196 @@ func (c *EmployeeAssignmentClient) mutate(ctx context.Context, m *EmployeeAssign
 		return (&EmployeeAssignmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown EmployeeAssignment mutation op: %q", m.Op())
+	}
+}
+
+// EmployeeMenuOptionOverrideClient is a client for the EmployeeMenuOptionOverride schema.
+type EmployeeMenuOptionOverrideClient struct {
+	config
+}
+
+// NewEmployeeMenuOptionOverrideClient returns a client for the EmployeeMenuOptionOverride from the given config.
+func NewEmployeeMenuOptionOverrideClient(c config) *EmployeeMenuOptionOverrideClient {
+	return &EmployeeMenuOptionOverrideClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `employeemenuoptionoverride.Hooks(f(g(h())))`.
+func (c *EmployeeMenuOptionOverrideClient) Use(hooks ...Hook) {
+	c.hooks.EmployeeMenuOptionOverride = append(c.hooks.EmployeeMenuOptionOverride, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `employeemenuoptionoverride.Intercept(f(g(h())))`.
+func (c *EmployeeMenuOptionOverrideClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EmployeeMenuOptionOverride = append(c.inters.EmployeeMenuOptionOverride, interceptors...)
+}
+
+// Create returns a builder for creating a EmployeeMenuOptionOverride entity.
+func (c *EmployeeMenuOptionOverrideClient) Create() *EmployeeMenuOptionOverrideCreate {
+	mutation := newEmployeeMenuOptionOverrideMutation(c.config, OpCreate)
+	return &EmployeeMenuOptionOverrideCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EmployeeMenuOptionOverride entities.
+func (c *EmployeeMenuOptionOverrideClient) CreateBulk(builders ...*EmployeeMenuOptionOverrideCreate) *EmployeeMenuOptionOverrideCreateBulk {
+	return &EmployeeMenuOptionOverrideCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EmployeeMenuOptionOverrideClient) MapCreateBulk(slice any, setFunc func(*EmployeeMenuOptionOverrideCreate, int)) *EmployeeMenuOptionOverrideCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EmployeeMenuOptionOverrideCreateBulk{err: fmt.Errorf("calling to EmployeeMenuOptionOverrideClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EmployeeMenuOptionOverrideCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EmployeeMenuOptionOverrideCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EmployeeMenuOptionOverride.
+func (c *EmployeeMenuOptionOverrideClient) Update() *EmployeeMenuOptionOverrideUpdate {
+	mutation := newEmployeeMenuOptionOverrideMutation(c.config, OpUpdate)
+	return &EmployeeMenuOptionOverrideUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EmployeeMenuOptionOverrideClient) UpdateOne(_m *EmployeeMenuOptionOverride) *EmployeeMenuOptionOverrideUpdateOne {
+	mutation := newEmployeeMenuOptionOverrideMutation(c.config, OpUpdateOne, withEmployeeMenuOptionOverride(_m))
+	return &EmployeeMenuOptionOverrideUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EmployeeMenuOptionOverrideClient) UpdateOneID(id uuid.UUID) *EmployeeMenuOptionOverrideUpdateOne {
+	mutation := newEmployeeMenuOptionOverrideMutation(c.config, OpUpdateOne, withEmployeeMenuOptionOverrideID(id))
+	return &EmployeeMenuOptionOverrideUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EmployeeMenuOptionOverride.
+func (c *EmployeeMenuOptionOverrideClient) Delete() *EmployeeMenuOptionOverrideDelete {
+	mutation := newEmployeeMenuOptionOverrideMutation(c.config, OpDelete)
+	return &EmployeeMenuOptionOverrideDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EmployeeMenuOptionOverrideClient) DeleteOne(_m *EmployeeMenuOptionOverride) *EmployeeMenuOptionOverrideDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EmployeeMenuOptionOverrideClient) DeleteOneID(id uuid.UUID) *EmployeeMenuOptionOverrideDeleteOne {
+	builder := c.Delete().Where(employeemenuoptionoverride.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EmployeeMenuOptionOverrideDeleteOne{builder}
+}
+
+// Query returns a query builder for EmployeeMenuOptionOverride.
+func (c *EmployeeMenuOptionOverrideClient) Query() *EmployeeMenuOptionOverrideQuery {
+	return &EmployeeMenuOptionOverrideQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEmployeeMenuOptionOverride},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EmployeeMenuOptionOverride entity by its id.
+func (c *EmployeeMenuOptionOverrideClient) Get(ctx context.Context, id uuid.UUID) (*EmployeeMenuOptionOverride, error) {
+	return c.Query().Where(employeemenuoptionoverride.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EmployeeMenuOptionOverrideClient) GetX(ctx context.Context, id uuid.UUID) *EmployeeMenuOptionOverride {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a EmployeeMenuOptionOverride.
+func (c *EmployeeMenuOptionOverrideClient) QueryTenant(_m *EmployeeMenuOptionOverride) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(employeemenuoptionoverride.Table, employeemenuoptionoverride.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, employeemenuoptionoverride.TenantTable, employeemenuoptionoverride.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEmployee queries the employee edge of a EmployeeMenuOptionOverride.
+func (c *EmployeeMenuOptionOverrideClient) QueryEmployee(_m *EmployeeMenuOptionOverride) *EmployeeQuery {
+	query := (&EmployeeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(employeemenuoptionoverride.Table, employeemenuoptionoverride.FieldID, id),
+			sqlgraph.To(employee.Table, employee.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, employeemenuoptionoverride.EmployeeTable, employeemenuoptionoverride.EmployeeColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Employee
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySystemFunction queries the system_function edge of a EmployeeMenuOptionOverride.
+func (c *EmployeeMenuOptionOverrideClient) QuerySystemFunction(_m *EmployeeMenuOptionOverride) *SystemFunctionQuery {
+	query := (&SystemFunctionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(employeemenuoptionoverride.Table, employeemenuoptionoverride.FieldID, id),
+			sqlgraph.To(systemfunction.Table, systemfunction.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, employeemenuoptionoverride.SystemFunctionTable, employeemenuoptionoverride.SystemFunctionColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.SystemFunction
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EmployeeMenuOptionOverrideClient) Hooks() []Hook {
+	return c.hooks.EmployeeMenuOptionOverride
+}
+
+// Interceptors returns the client interceptors.
+func (c *EmployeeMenuOptionOverrideClient) Interceptors() []Interceptor {
+	return c.inters.EmployeeMenuOptionOverride
+}
+
+func (c *EmployeeMenuOptionOverrideClient) mutate(ctx context.Context, m *EmployeeMenuOptionOverrideMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EmployeeMenuOptionOverrideCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EmployeeMenuOptionOverrideUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EmployeeMenuOptionOverrideUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EmployeeMenuOptionOverrideDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EmployeeMenuOptionOverride mutation op: %q", m.Op())
 	}
 }
 
@@ -4134,6 +4891,25 @@ func (c *JobClient) QueryAssignments(_m *Job) *EmployeeAssignmentQuery {
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.EmployeeAssignment
 		step.Edge.Schema = schemaConfig.EmployeeAssignment
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPositionMenuOptions queries the position_menu_options edge of a Job.
+func (c *JobClient) QueryPositionMenuOptions(_m *Job) *PositionMenuOptionQuery {
+	query := (&PositionMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(job.Table, job.FieldID, id),
+			sqlgraph.To(positionmenuoption.Table, positionmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, job.PositionMenuOptionsTable, job.PositionMenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.PositionMenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOption
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -4960,6 +5736,1203 @@ func (c *LocationTranslationClient) mutate(ctx context.Context, m *LocationTrans
 		return (&LocationTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown LocationTranslation mutation op: %q", m.Op())
+	}
+}
+
+// MenuCategoryClient is a client for the MenuCategory schema.
+type MenuCategoryClient struct {
+	config
+}
+
+// NewMenuCategoryClient returns a client for the MenuCategory from the given config.
+func NewMenuCategoryClient(c config) *MenuCategoryClient {
+	return &MenuCategoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `menucategory.Hooks(f(g(h())))`.
+func (c *MenuCategoryClient) Use(hooks ...Hook) {
+	c.hooks.MenuCategory = append(c.hooks.MenuCategory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `menucategory.Intercept(f(g(h())))`.
+func (c *MenuCategoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MenuCategory = append(c.inters.MenuCategory, interceptors...)
+}
+
+// Create returns a builder for creating a MenuCategory entity.
+func (c *MenuCategoryClient) Create() *MenuCategoryCreate {
+	mutation := newMenuCategoryMutation(c.config, OpCreate)
+	return &MenuCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MenuCategory entities.
+func (c *MenuCategoryClient) CreateBulk(builders ...*MenuCategoryCreate) *MenuCategoryCreateBulk {
+	return &MenuCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MenuCategoryClient) MapCreateBulk(slice any, setFunc func(*MenuCategoryCreate, int)) *MenuCategoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MenuCategoryCreateBulk{err: fmt.Errorf("calling to MenuCategoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MenuCategoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MenuCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MenuCategory.
+func (c *MenuCategoryClient) Update() *MenuCategoryUpdate {
+	mutation := newMenuCategoryMutation(c.config, OpUpdate)
+	return &MenuCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MenuCategoryClient) UpdateOne(_m *MenuCategory) *MenuCategoryUpdateOne {
+	mutation := newMenuCategoryMutation(c.config, OpUpdateOne, withMenuCategory(_m))
+	return &MenuCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MenuCategoryClient) UpdateOneID(id uuid.UUID) *MenuCategoryUpdateOne {
+	mutation := newMenuCategoryMutation(c.config, OpUpdateOne, withMenuCategoryID(id))
+	return &MenuCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MenuCategory.
+func (c *MenuCategoryClient) Delete() *MenuCategoryDelete {
+	mutation := newMenuCategoryMutation(c.config, OpDelete)
+	return &MenuCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MenuCategoryClient) DeleteOne(_m *MenuCategory) *MenuCategoryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MenuCategoryClient) DeleteOneID(id uuid.UUID) *MenuCategoryDeleteOne {
+	builder := c.Delete().Where(menucategory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MenuCategoryDeleteOne{builder}
+}
+
+// Query returns a query builder for MenuCategory.
+func (c *MenuCategoryClient) Query() *MenuCategoryQuery {
+	return &MenuCategoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMenuCategory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MenuCategory entity by its id.
+func (c *MenuCategoryClient) Get(ctx context.Context, id uuid.UUID) (*MenuCategory, error) {
+	return c.Query().Where(menucategory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MenuCategoryClient) GetX(ctx context.Context, id uuid.UUID) *MenuCategory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a MenuCategory.
+func (c *MenuCategoryClient) QueryTenant(_m *MenuCategory) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menucategory.Table, menucategory.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menucategory.TenantTable, menucategory.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.MenuCategory
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryParent queries the parent edge of a MenuCategory.
+func (c *MenuCategoryClient) QueryParent(_m *MenuCategory) *MenuCategoryQuery {
+	query := (&MenuCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menucategory.Table, menucategory.FieldID, id),
+			sqlgraph.To(menucategory.Table, menucategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menucategory.ParentTable, menucategory.ParentColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuCategory
+		step.Edge.Schema = schemaConfig.MenuCategory
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChildren queries the children edge of a MenuCategory.
+func (c *MenuCategoryClient) QueryChildren(_m *MenuCategory) *MenuCategoryQuery {
+	query := (&MenuCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menucategory.Table, menucategory.FieldID, id),
+			sqlgraph.To(menucategory.Table, menucategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, menucategory.ChildrenTable, menucategory.ChildrenColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuCategory
+		step.Edge.Schema = schemaConfig.MenuCategory
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOptionCategories queries the menu_option_categories edge of a MenuCategory.
+func (c *MenuCategoryClient) QueryMenuOptionCategories(_m *MenuCategory) *MenuOptionCategoryQuery {
+	query := (&MenuOptionCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menucategory.Table, menucategory.FieldID, id),
+			sqlgraph.To(menuoptioncategory.Table, menuoptioncategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, menucategory.MenuOptionCategoriesTable, menucategory.MenuOptionCategoriesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOptionCategory
+		step.Edge.Schema = schemaConfig.MenuOptionCategory
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MenuCategoryClient) Hooks() []Hook {
+	return c.hooks.MenuCategory
+}
+
+// Interceptors returns the client interceptors.
+func (c *MenuCategoryClient) Interceptors() []Interceptor {
+	return c.inters.MenuCategory
+}
+
+func (c *MenuCategoryClient) mutate(ctx context.Context, m *MenuCategoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MenuCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MenuCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MenuCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MenuCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MenuCategory mutation op: %q", m.Op())
+	}
+}
+
+// MenuOptionClient is a client for the MenuOption schema.
+type MenuOptionClient struct {
+	config
+}
+
+// NewMenuOptionClient returns a client for the MenuOption from the given config.
+func NewMenuOptionClient(c config) *MenuOptionClient {
+	return &MenuOptionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `menuoption.Hooks(f(g(h())))`.
+func (c *MenuOptionClient) Use(hooks ...Hook) {
+	c.hooks.MenuOption = append(c.hooks.MenuOption, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `menuoption.Intercept(f(g(h())))`.
+func (c *MenuOptionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MenuOption = append(c.inters.MenuOption, interceptors...)
+}
+
+// Create returns a builder for creating a MenuOption entity.
+func (c *MenuOptionClient) Create() *MenuOptionCreate {
+	mutation := newMenuOptionMutation(c.config, OpCreate)
+	return &MenuOptionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MenuOption entities.
+func (c *MenuOptionClient) CreateBulk(builders ...*MenuOptionCreate) *MenuOptionCreateBulk {
+	return &MenuOptionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MenuOptionClient) MapCreateBulk(slice any, setFunc func(*MenuOptionCreate, int)) *MenuOptionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MenuOptionCreateBulk{err: fmt.Errorf("calling to MenuOptionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MenuOptionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MenuOptionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MenuOption.
+func (c *MenuOptionClient) Update() *MenuOptionUpdate {
+	mutation := newMenuOptionMutation(c.config, OpUpdate)
+	return &MenuOptionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MenuOptionClient) UpdateOne(_m *MenuOption) *MenuOptionUpdateOne {
+	mutation := newMenuOptionMutation(c.config, OpUpdateOne, withMenuOption(_m))
+	return &MenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MenuOptionClient) UpdateOneID(id uuid.UUID) *MenuOptionUpdateOne {
+	mutation := newMenuOptionMutation(c.config, OpUpdateOne, withMenuOptionID(id))
+	return &MenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MenuOption.
+func (c *MenuOptionClient) Delete() *MenuOptionDelete {
+	mutation := newMenuOptionMutation(c.config, OpDelete)
+	return &MenuOptionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MenuOptionClient) DeleteOne(_m *MenuOption) *MenuOptionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MenuOptionClient) DeleteOneID(id uuid.UUID) *MenuOptionDeleteOne {
+	builder := c.Delete().Where(menuoption.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MenuOptionDeleteOne{builder}
+}
+
+// Query returns a query builder for MenuOption.
+func (c *MenuOptionClient) Query() *MenuOptionQuery {
+	return &MenuOptionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMenuOption},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MenuOption entity by its id.
+func (c *MenuOptionClient) Get(ctx context.Context, id uuid.UUID) (*MenuOption, error) {
+	return c.Query().Where(menuoption.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MenuOptionClient) GetX(ctx context.Context, id uuid.UUID) *MenuOption {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a MenuOption.
+func (c *MenuOptionClient) QueryTenant(_m *MenuOption) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoption.Table, menuoption.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menuoption.TenantTable, menuoption.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.MenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTemplate queries the template edge of a MenuOption.
+func (c *MenuOptionClient) QueryTemplate(_m *MenuOption) *MenuTemplateQuery {
+	query := (&MenuTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoption.Table, menuoption.FieldID, id),
+			sqlgraph.To(menutemplate.Table, menutemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menuoption.TemplateTable, menuoption.TemplateColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuTemplate
+		step.Edge.Schema = schemaConfig.MenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOptionFunctions queries the menu_option_functions edge of a MenuOption.
+func (c *MenuOptionClient) QueryMenuOptionFunctions(_m *MenuOption) *MenuOptionFunctionQuery {
+	query := (&MenuOptionFunctionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoption.Table, menuoption.FieldID, id),
+			sqlgraph.To(menuoptionfunction.Table, menuoptionfunction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, menuoption.MenuOptionFunctionsTable, menuoption.MenuOptionFunctionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOptionFunction
+		step.Edge.Schema = schemaConfig.MenuOptionFunction
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOptionCategories queries the menu_option_categories edge of a MenuOption.
+func (c *MenuOptionClient) QueryMenuOptionCategories(_m *MenuOption) *MenuOptionCategoryQuery {
+	query := (&MenuOptionCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoption.Table, menuoption.FieldID, id),
+			sqlgraph.To(menuoptioncategory.Table, menuoptioncategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, menuoption.MenuOptionCategoriesTable, menuoption.MenuOptionCategoriesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOptionCategory
+		step.Edge.Schema = schemaConfig.MenuOptionCategory
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoleMenuOptions queries the role_menu_options edge of a MenuOption.
+func (c *MenuOptionClient) QueryRoleMenuOptions(_m *MenuOption) *RoleMenuOptionQuery {
+	query := (&RoleMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoption.Table, menuoption.FieldID, id),
+			sqlgraph.To(rolemenuoption.Table, rolemenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, menuoption.RoleMenuOptionsTable, menuoption.RoleMenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.RoleMenuOption
+		step.Edge.Schema = schemaConfig.RoleMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentMenuOptions queries the department_menu_options edge of a MenuOption.
+func (c *MenuOptionClient) QueryDepartmentMenuOptions(_m *MenuOption) *DepartmentMenuOptionQuery {
+	query := (&DepartmentMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoption.Table, menuoption.FieldID, id),
+			sqlgraph.To(departmentmenuoption.Table, departmentmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, menuoption.DepartmentMenuOptionsTable, menuoption.DepartmentMenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentMenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPositionMenuOptions queries the position_menu_options edge of a MenuOption.
+func (c *MenuOptionClient) QueryPositionMenuOptions(_m *MenuOption) *PositionMenuOptionQuery {
+	query := (&PositionMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoption.Table, menuoption.FieldID, id),
+			sqlgraph.To(positionmenuoption.Table, positionmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, menuoption.PositionMenuOptionsTable, menuoption.PositionMenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.PositionMenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MenuOptionClient) Hooks() []Hook {
+	return c.hooks.MenuOption
+}
+
+// Interceptors returns the client interceptors.
+func (c *MenuOptionClient) Interceptors() []Interceptor {
+	return c.inters.MenuOption
+}
+
+func (c *MenuOptionClient) mutate(ctx context.Context, m *MenuOptionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MenuOptionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MenuOptionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MenuOptionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MenuOption mutation op: %q", m.Op())
+	}
+}
+
+// MenuOptionCategoryClient is a client for the MenuOptionCategory schema.
+type MenuOptionCategoryClient struct {
+	config
+}
+
+// NewMenuOptionCategoryClient returns a client for the MenuOptionCategory from the given config.
+func NewMenuOptionCategoryClient(c config) *MenuOptionCategoryClient {
+	return &MenuOptionCategoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `menuoptioncategory.Hooks(f(g(h())))`.
+func (c *MenuOptionCategoryClient) Use(hooks ...Hook) {
+	c.hooks.MenuOptionCategory = append(c.hooks.MenuOptionCategory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `menuoptioncategory.Intercept(f(g(h())))`.
+func (c *MenuOptionCategoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MenuOptionCategory = append(c.inters.MenuOptionCategory, interceptors...)
+}
+
+// Create returns a builder for creating a MenuOptionCategory entity.
+func (c *MenuOptionCategoryClient) Create() *MenuOptionCategoryCreate {
+	mutation := newMenuOptionCategoryMutation(c.config, OpCreate)
+	return &MenuOptionCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MenuOptionCategory entities.
+func (c *MenuOptionCategoryClient) CreateBulk(builders ...*MenuOptionCategoryCreate) *MenuOptionCategoryCreateBulk {
+	return &MenuOptionCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MenuOptionCategoryClient) MapCreateBulk(slice any, setFunc func(*MenuOptionCategoryCreate, int)) *MenuOptionCategoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MenuOptionCategoryCreateBulk{err: fmt.Errorf("calling to MenuOptionCategoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MenuOptionCategoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MenuOptionCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MenuOptionCategory.
+func (c *MenuOptionCategoryClient) Update() *MenuOptionCategoryUpdate {
+	mutation := newMenuOptionCategoryMutation(c.config, OpUpdate)
+	return &MenuOptionCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MenuOptionCategoryClient) UpdateOne(_m *MenuOptionCategory) *MenuOptionCategoryUpdateOne {
+	mutation := newMenuOptionCategoryMutation(c.config, OpUpdateOne, withMenuOptionCategory(_m))
+	return &MenuOptionCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MenuOptionCategoryClient) UpdateOneID(id uuid.UUID) *MenuOptionCategoryUpdateOne {
+	mutation := newMenuOptionCategoryMutation(c.config, OpUpdateOne, withMenuOptionCategoryID(id))
+	return &MenuOptionCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MenuOptionCategory.
+func (c *MenuOptionCategoryClient) Delete() *MenuOptionCategoryDelete {
+	mutation := newMenuOptionCategoryMutation(c.config, OpDelete)
+	return &MenuOptionCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MenuOptionCategoryClient) DeleteOne(_m *MenuOptionCategory) *MenuOptionCategoryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MenuOptionCategoryClient) DeleteOneID(id uuid.UUID) *MenuOptionCategoryDeleteOne {
+	builder := c.Delete().Where(menuoptioncategory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MenuOptionCategoryDeleteOne{builder}
+}
+
+// Query returns a query builder for MenuOptionCategory.
+func (c *MenuOptionCategoryClient) Query() *MenuOptionCategoryQuery {
+	return &MenuOptionCategoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMenuOptionCategory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MenuOptionCategory entity by its id.
+func (c *MenuOptionCategoryClient) Get(ctx context.Context, id uuid.UUID) (*MenuOptionCategory, error) {
+	return c.Query().Where(menuoptioncategory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MenuOptionCategoryClient) GetX(ctx context.Context, id uuid.UUID) *MenuOptionCategory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a MenuOptionCategory.
+func (c *MenuOptionCategoryClient) QueryTenant(_m *MenuOptionCategory) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoptioncategory.Table, menuoptioncategory.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menuoptioncategory.TenantTable, menuoptioncategory.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.MenuOptionCategory
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuCategory queries the menu_category edge of a MenuOptionCategory.
+func (c *MenuOptionCategoryClient) QueryMenuCategory(_m *MenuOptionCategory) *MenuCategoryQuery {
+	query := (&MenuCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoptioncategory.Table, menuoptioncategory.FieldID, id),
+			sqlgraph.To(menucategory.Table, menucategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menuoptioncategory.MenuCategoryTable, menuoptioncategory.MenuCategoryColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuCategory
+		step.Edge.Schema = schemaConfig.MenuOptionCategory
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOption queries the menu_option edge of a MenuOptionCategory.
+func (c *MenuOptionCategoryClient) QueryMenuOption(_m *MenuOptionCategory) *MenuOptionQuery {
+	query := (&MenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoptioncategory.Table, menuoptioncategory.FieldID, id),
+			sqlgraph.To(menuoption.Table, menuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menuoptioncategory.MenuOptionTable, menuoptioncategory.MenuOptionColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOption
+		step.Edge.Schema = schemaConfig.MenuOptionCategory
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MenuOptionCategoryClient) Hooks() []Hook {
+	return c.hooks.MenuOptionCategory
+}
+
+// Interceptors returns the client interceptors.
+func (c *MenuOptionCategoryClient) Interceptors() []Interceptor {
+	return c.inters.MenuOptionCategory
+}
+
+func (c *MenuOptionCategoryClient) mutate(ctx context.Context, m *MenuOptionCategoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MenuOptionCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MenuOptionCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MenuOptionCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MenuOptionCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MenuOptionCategory mutation op: %q", m.Op())
+	}
+}
+
+// MenuOptionFunctionClient is a client for the MenuOptionFunction schema.
+type MenuOptionFunctionClient struct {
+	config
+}
+
+// NewMenuOptionFunctionClient returns a client for the MenuOptionFunction from the given config.
+func NewMenuOptionFunctionClient(c config) *MenuOptionFunctionClient {
+	return &MenuOptionFunctionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `menuoptionfunction.Hooks(f(g(h())))`.
+func (c *MenuOptionFunctionClient) Use(hooks ...Hook) {
+	c.hooks.MenuOptionFunction = append(c.hooks.MenuOptionFunction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `menuoptionfunction.Intercept(f(g(h())))`.
+func (c *MenuOptionFunctionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MenuOptionFunction = append(c.inters.MenuOptionFunction, interceptors...)
+}
+
+// Create returns a builder for creating a MenuOptionFunction entity.
+func (c *MenuOptionFunctionClient) Create() *MenuOptionFunctionCreate {
+	mutation := newMenuOptionFunctionMutation(c.config, OpCreate)
+	return &MenuOptionFunctionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MenuOptionFunction entities.
+func (c *MenuOptionFunctionClient) CreateBulk(builders ...*MenuOptionFunctionCreate) *MenuOptionFunctionCreateBulk {
+	return &MenuOptionFunctionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MenuOptionFunctionClient) MapCreateBulk(slice any, setFunc func(*MenuOptionFunctionCreate, int)) *MenuOptionFunctionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MenuOptionFunctionCreateBulk{err: fmt.Errorf("calling to MenuOptionFunctionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MenuOptionFunctionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MenuOptionFunctionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MenuOptionFunction.
+func (c *MenuOptionFunctionClient) Update() *MenuOptionFunctionUpdate {
+	mutation := newMenuOptionFunctionMutation(c.config, OpUpdate)
+	return &MenuOptionFunctionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MenuOptionFunctionClient) UpdateOne(_m *MenuOptionFunction) *MenuOptionFunctionUpdateOne {
+	mutation := newMenuOptionFunctionMutation(c.config, OpUpdateOne, withMenuOptionFunction(_m))
+	return &MenuOptionFunctionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MenuOptionFunctionClient) UpdateOneID(id uuid.UUID) *MenuOptionFunctionUpdateOne {
+	mutation := newMenuOptionFunctionMutation(c.config, OpUpdateOne, withMenuOptionFunctionID(id))
+	return &MenuOptionFunctionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MenuOptionFunction.
+func (c *MenuOptionFunctionClient) Delete() *MenuOptionFunctionDelete {
+	mutation := newMenuOptionFunctionMutation(c.config, OpDelete)
+	return &MenuOptionFunctionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MenuOptionFunctionClient) DeleteOne(_m *MenuOptionFunction) *MenuOptionFunctionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MenuOptionFunctionClient) DeleteOneID(id uuid.UUID) *MenuOptionFunctionDeleteOne {
+	builder := c.Delete().Where(menuoptionfunction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MenuOptionFunctionDeleteOne{builder}
+}
+
+// Query returns a query builder for MenuOptionFunction.
+func (c *MenuOptionFunctionClient) Query() *MenuOptionFunctionQuery {
+	return &MenuOptionFunctionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMenuOptionFunction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MenuOptionFunction entity by its id.
+func (c *MenuOptionFunctionClient) Get(ctx context.Context, id uuid.UUID) (*MenuOptionFunction, error) {
+	return c.Query().Where(menuoptionfunction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MenuOptionFunctionClient) GetX(ctx context.Context, id uuid.UUID) *MenuOptionFunction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a MenuOptionFunction.
+func (c *MenuOptionFunctionClient) QueryTenant(_m *MenuOptionFunction) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoptionfunction.Table, menuoptionfunction.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menuoptionfunction.TenantTable, menuoptionfunction.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.MenuOptionFunction
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOption queries the menu_option edge of a MenuOptionFunction.
+func (c *MenuOptionFunctionClient) QueryMenuOption(_m *MenuOptionFunction) *MenuOptionQuery {
+	query := (&MenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoptionfunction.Table, menuoptionfunction.FieldID, id),
+			sqlgraph.To(menuoption.Table, menuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menuoptionfunction.MenuOptionTable, menuoptionfunction.MenuOptionColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOption
+		step.Edge.Schema = schemaConfig.MenuOptionFunction
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySystemFunction queries the system_function edge of a MenuOptionFunction.
+func (c *MenuOptionFunctionClient) QuerySystemFunction(_m *MenuOptionFunction) *SystemFunctionQuery {
+	query := (&SystemFunctionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menuoptionfunction.Table, menuoptionfunction.FieldID, id),
+			sqlgraph.To(systemfunction.Table, systemfunction.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menuoptionfunction.SystemFunctionTable, menuoptionfunction.SystemFunctionColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.SystemFunction
+		step.Edge.Schema = schemaConfig.MenuOptionFunction
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MenuOptionFunctionClient) Hooks() []Hook {
+	return c.hooks.MenuOptionFunction
+}
+
+// Interceptors returns the client interceptors.
+func (c *MenuOptionFunctionClient) Interceptors() []Interceptor {
+	return c.inters.MenuOptionFunction
+}
+
+func (c *MenuOptionFunctionClient) mutate(ctx context.Context, m *MenuOptionFunctionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MenuOptionFunctionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MenuOptionFunctionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MenuOptionFunctionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MenuOptionFunctionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MenuOptionFunction mutation op: %q", m.Op())
+	}
+}
+
+// MenuTemplateClient is a client for the MenuTemplate schema.
+type MenuTemplateClient struct {
+	config
+}
+
+// NewMenuTemplateClient returns a client for the MenuTemplate from the given config.
+func NewMenuTemplateClient(c config) *MenuTemplateClient {
+	return &MenuTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `menutemplate.Hooks(f(g(h())))`.
+func (c *MenuTemplateClient) Use(hooks ...Hook) {
+	c.hooks.MenuTemplate = append(c.hooks.MenuTemplate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `menutemplate.Intercept(f(g(h())))`.
+func (c *MenuTemplateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MenuTemplate = append(c.inters.MenuTemplate, interceptors...)
+}
+
+// Create returns a builder for creating a MenuTemplate entity.
+func (c *MenuTemplateClient) Create() *MenuTemplateCreate {
+	mutation := newMenuTemplateMutation(c.config, OpCreate)
+	return &MenuTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MenuTemplate entities.
+func (c *MenuTemplateClient) CreateBulk(builders ...*MenuTemplateCreate) *MenuTemplateCreateBulk {
+	return &MenuTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MenuTemplateClient) MapCreateBulk(slice any, setFunc func(*MenuTemplateCreate, int)) *MenuTemplateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MenuTemplateCreateBulk{err: fmt.Errorf("calling to MenuTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MenuTemplateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MenuTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MenuTemplate.
+func (c *MenuTemplateClient) Update() *MenuTemplateUpdate {
+	mutation := newMenuTemplateMutation(c.config, OpUpdate)
+	return &MenuTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MenuTemplateClient) UpdateOne(_m *MenuTemplate) *MenuTemplateUpdateOne {
+	mutation := newMenuTemplateMutation(c.config, OpUpdateOne, withMenuTemplate(_m))
+	return &MenuTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MenuTemplateClient) UpdateOneID(id uuid.UUID) *MenuTemplateUpdateOne {
+	mutation := newMenuTemplateMutation(c.config, OpUpdateOne, withMenuTemplateID(id))
+	return &MenuTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MenuTemplate.
+func (c *MenuTemplateClient) Delete() *MenuTemplateDelete {
+	mutation := newMenuTemplateMutation(c.config, OpDelete)
+	return &MenuTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MenuTemplateClient) DeleteOne(_m *MenuTemplate) *MenuTemplateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MenuTemplateClient) DeleteOneID(id uuid.UUID) *MenuTemplateDeleteOne {
+	builder := c.Delete().Where(menutemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MenuTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for MenuTemplate.
+func (c *MenuTemplateClient) Query() *MenuTemplateQuery {
+	return &MenuTemplateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMenuTemplate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MenuTemplate entity by its id.
+func (c *MenuTemplateClient) Get(ctx context.Context, id uuid.UUID) (*MenuTemplate, error) {
+	return c.Query().Where(menutemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MenuTemplateClient) GetX(ctx context.Context, id uuid.UUID) *MenuTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMenuTemplateFunctions queries the menu_template_functions edge of a MenuTemplate.
+func (c *MenuTemplateClient) QueryMenuTemplateFunctions(_m *MenuTemplate) *MenuTemplateFunctionQuery {
+	query := (&MenuTemplateFunctionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menutemplate.Table, menutemplate.FieldID, id),
+			sqlgraph.To(menutemplatefunction.Table, menutemplatefunction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, menutemplate.MenuTemplateFunctionsTable, menutemplate.MenuTemplateFunctionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuTemplateFunction
+		step.Edge.Schema = schemaConfig.MenuTemplateFunction
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOptions queries the menu_options edge of a MenuTemplate.
+func (c *MenuTemplateClient) QueryMenuOptions(_m *MenuTemplate) *MenuOptionQuery {
+	query := (&MenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menutemplate.Table, menutemplate.FieldID, id),
+			sqlgraph.To(menuoption.Table, menuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, menutemplate.MenuOptionsTable, menutemplate.MenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOption
+		step.Edge.Schema = schemaConfig.MenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MenuTemplateClient) Hooks() []Hook {
+	return c.hooks.MenuTemplate
+}
+
+// Interceptors returns the client interceptors.
+func (c *MenuTemplateClient) Interceptors() []Interceptor {
+	return c.inters.MenuTemplate
+}
+
+func (c *MenuTemplateClient) mutate(ctx context.Context, m *MenuTemplateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MenuTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MenuTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MenuTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MenuTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MenuTemplate mutation op: %q", m.Op())
+	}
+}
+
+// MenuTemplateFunctionClient is a client for the MenuTemplateFunction schema.
+type MenuTemplateFunctionClient struct {
+	config
+}
+
+// NewMenuTemplateFunctionClient returns a client for the MenuTemplateFunction from the given config.
+func NewMenuTemplateFunctionClient(c config) *MenuTemplateFunctionClient {
+	return &MenuTemplateFunctionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `menutemplatefunction.Hooks(f(g(h())))`.
+func (c *MenuTemplateFunctionClient) Use(hooks ...Hook) {
+	c.hooks.MenuTemplateFunction = append(c.hooks.MenuTemplateFunction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `menutemplatefunction.Intercept(f(g(h())))`.
+func (c *MenuTemplateFunctionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.MenuTemplateFunction = append(c.inters.MenuTemplateFunction, interceptors...)
+}
+
+// Create returns a builder for creating a MenuTemplateFunction entity.
+func (c *MenuTemplateFunctionClient) Create() *MenuTemplateFunctionCreate {
+	mutation := newMenuTemplateFunctionMutation(c.config, OpCreate)
+	return &MenuTemplateFunctionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of MenuTemplateFunction entities.
+func (c *MenuTemplateFunctionClient) CreateBulk(builders ...*MenuTemplateFunctionCreate) *MenuTemplateFunctionCreateBulk {
+	return &MenuTemplateFunctionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *MenuTemplateFunctionClient) MapCreateBulk(slice any, setFunc func(*MenuTemplateFunctionCreate, int)) *MenuTemplateFunctionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &MenuTemplateFunctionCreateBulk{err: fmt.Errorf("calling to MenuTemplateFunctionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*MenuTemplateFunctionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &MenuTemplateFunctionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for MenuTemplateFunction.
+func (c *MenuTemplateFunctionClient) Update() *MenuTemplateFunctionUpdate {
+	mutation := newMenuTemplateFunctionMutation(c.config, OpUpdate)
+	return &MenuTemplateFunctionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *MenuTemplateFunctionClient) UpdateOne(_m *MenuTemplateFunction) *MenuTemplateFunctionUpdateOne {
+	mutation := newMenuTemplateFunctionMutation(c.config, OpUpdateOne, withMenuTemplateFunction(_m))
+	return &MenuTemplateFunctionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *MenuTemplateFunctionClient) UpdateOneID(id uuid.UUID) *MenuTemplateFunctionUpdateOne {
+	mutation := newMenuTemplateFunctionMutation(c.config, OpUpdateOne, withMenuTemplateFunctionID(id))
+	return &MenuTemplateFunctionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for MenuTemplateFunction.
+func (c *MenuTemplateFunctionClient) Delete() *MenuTemplateFunctionDelete {
+	mutation := newMenuTemplateFunctionMutation(c.config, OpDelete)
+	return &MenuTemplateFunctionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *MenuTemplateFunctionClient) DeleteOne(_m *MenuTemplateFunction) *MenuTemplateFunctionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *MenuTemplateFunctionClient) DeleteOneID(id uuid.UUID) *MenuTemplateFunctionDeleteOne {
+	builder := c.Delete().Where(menutemplatefunction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &MenuTemplateFunctionDeleteOne{builder}
+}
+
+// Query returns a query builder for MenuTemplateFunction.
+func (c *MenuTemplateFunctionClient) Query() *MenuTemplateFunctionQuery {
+	return &MenuTemplateFunctionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeMenuTemplateFunction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a MenuTemplateFunction entity by its id.
+func (c *MenuTemplateFunctionClient) Get(ctx context.Context, id uuid.UUID) (*MenuTemplateFunction, error) {
+	return c.Query().Where(menutemplatefunction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *MenuTemplateFunctionClient) GetX(ctx context.Context, id uuid.UUID) *MenuTemplateFunction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTemplate queries the template edge of a MenuTemplateFunction.
+func (c *MenuTemplateFunctionClient) QueryTemplate(_m *MenuTemplateFunction) *MenuTemplateQuery {
+	query := (&MenuTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menutemplatefunction.Table, menutemplatefunction.FieldID, id),
+			sqlgraph.To(menutemplate.Table, menutemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menutemplatefunction.TemplateTable, menutemplatefunction.TemplateColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuTemplate
+		step.Edge.Schema = schemaConfig.MenuTemplateFunction
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySystemFunction queries the system_function edge of a MenuTemplateFunction.
+func (c *MenuTemplateFunctionClient) QuerySystemFunction(_m *MenuTemplateFunction) *SystemFunctionQuery {
+	query := (&SystemFunctionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(menutemplatefunction.Table, menutemplatefunction.FieldID, id),
+			sqlgraph.To(systemfunction.Table, systemfunction.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, menutemplatefunction.SystemFunctionTable, menutemplatefunction.SystemFunctionColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.SystemFunction
+		step.Edge.Schema = schemaConfig.MenuTemplateFunction
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *MenuTemplateFunctionClient) Hooks() []Hook {
+	return c.hooks.MenuTemplateFunction
+}
+
+// Interceptors returns the client interceptors.
+func (c *MenuTemplateFunctionClient) Interceptors() []Interceptor {
+	return c.inters.MenuTemplateFunction
+}
+
+func (c *MenuTemplateFunctionClient) mutate(ctx context.Context, m *MenuTemplateFunctionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&MenuTemplateFunctionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&MenuTemplateFunctionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&MenuTemplateFunctionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&MenuTemplateFunctionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown MenuTemplateFunction mutation op: %q", m.Op())
 	}
 }
 
@@ -7984,6 +9957,576 @@ func (c *PersonProfileClient) mutate(ctx context.Context, m *PersonProfileMutati
 	}
 }
 
+// PositionMenuOptionClient is a client for the PositionMenuOption schema.
+type PositionMenuOptionClient struct {
+	config
+}
+
+// NewPositionMenuOptionClient returns a client for the PositionMenuOption from the given config.
+func NewPositionMenuOptionClient(c config) *PositionMenuOptionClient {
+	return &PositionMenuOptionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `positionmenuoption.Hooks(f(g(h())))`.
+func (c *PositionMenuOptionClient) Use(hooks ...Hook) {
+	c.hooks.PositionMenuOption = append(c.hooks.PositionMenuOption, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `positionmenuoption.Intercept(f(g(h())))`.
+func (c *PositionMenuOptionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PositionMenuOption = append(c.inters.PositionMenuOption, interceptors...)
+}
+
+// Create returns a builder for creating a PositionMenuOption entity.
+func (c *PositionMenuOptionClient) Create() *PositionMenuOptionCreate {
+	mutation := newPositionMenuOptionMutation(c.config, OpCreate)
+	return &PositionMenuOptionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PositionMenuOption entities.
+func (c *PositionMenuOptionClient) CreateBulk(builders ...*PositionMenuOptionCreate) *PositionMenuOptionCreateBulk {
+	return &PositionMenuOptionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PositionMenuOptionClient) MapCreateBulk(slice any, setFunc func(*PositionMenuOptionCreate, int)) *PositionMenuOptionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PositionMenuOptionCreateBulk{err: fmt.Errorf("calling to PositionMenuOptionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PositionMenuOptionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PositionMenuOptionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PositionMenuOption.
+func (c *PositionMenuOptionClient) Update() *PositionMenuOptionUpdate {
+	mutation := newPositionMenuOptionMutation(c.config, OpUpdate)
+	return &PositionMenuOptionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PositionMenuOptionClient) UpdateOne(_m *PositionMenuOption) *PositionMenuOptionUpdateOne {
+	mutation := newPositionMenuOptionMutation(c.config, OpUpdateOne, withPositionMenuOption(_m))
+	return &PositionMenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PositionMenuOptionClient) UpdateOneID(id uuid.UUID) *PositionMenuOptionUpdateOne {
+	mutation := newPositionMenuOptionMutation(c.config, OpUpdateOne, withPositionMenuOptionID(id))
+	return &PositionMenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PositionMenuOption.
+func (c *PositionMenuOptionClient) Delete() *PositionMenuOptionDelete {
+	mutation := newPositionMenuOptionMutation(c.config, OpDelete)
+	return &PositionMenuOptionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PositionMenuOptionClient) DeleteOne(_m *PositionMenuOption) *PositionMenuOptionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PositionMenuOptionClient) DeleteOneID(id uuid.UUID) *PositionMenuOptionDeleteOne {
+	builder := c.Delete().Where(positionmenuoption.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PositionMenuOptionDeleteOne{builder}
+}
+
+// Query returns a query builder for PositionMenuOption.
+func (c *PositionMenuOptionClient) Query() *PositionMenuOptionQuery {
+	return &PositionMenuOptionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePositionMenuOption},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PositionMenuOption entity by its id.
+func (c *PositionMenuOptionClient) Get(ctx context.Context, id uuid.UUID) (*PositionMenuOption, error) {
+	return c.Query().Where(positionmenuoption.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PositionMenuOptionClient) GetX(ctx context.Context, id uuid.UUID) *PositionMenuOption {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a PositionMenuOption.
+func (c *PositionMenuOptionClient) QueryTenant(_m *PositionMenuOption) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(positionmenuoption.Table, positionmenuoption.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, positionmenuoption.TenantTable, positionmenuoption.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.PositionMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryJob queries the job edge of a PositionMenuOption.
+func (c *PositionMenuOptionClient) QueryJob(_m *PositionMenuOption) *JobQuery {
+	query := (&JobClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(positionmenuoption.Table, positionmenuoption.FieldID, id),
+			sqlgraph.To(job.Table, job.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, positionmenuoption.JobTable, positionmenuoption.JobColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Job
+		step.Edge.Schema = schemaConfig.PositionMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOption queries the menu_option edge of a PositionMenuOption.
+func (c *PositionMenuOptionClient) QueryMenuOption(_m *PositionMenuOption) *MenuOptionQuery {
+	query := (&MenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(positionmenuoption.Table, positionmenuoption.FieldID, id),
+			sqlgraph.To(menuoption.Table, menuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, positionmenuoption.MenuOptionTable, positionmenuoption.MenuOptionColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryValidities queries the validities edge of a PositionMenuOption.
+func (c *PositionMenuOptionClient) QueryValidities(_m *PositionMenuOption) *PositionMenuOptionValidityQuery {
+	query := (&PositionMenuOptionValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(positionmenuoption.Table, positionmenuoption.FieldID, id),
+			sqlgraph.To(positionmenuoptionvalidity.Table, positionmenuoptionvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, positionmenuoption.ValiditiesTable, positionmenuoption.ValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.PositionMenuOptionValidity
+		step.Edge.Schema = schemaConfig.PositionMenuOptionValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PositionMenuOptionClient) Hooks() []Hook {
+	return c.hooks.PositionMenuOption
+}
+
+// Interceptors returns the client interceptors.
+func (c *PositionMenuOptionClient) Interceptors() []Interceptor {
+	return c.inters.PositionMenuOption
+}
+
+func (c *PositionMenuOptionClient) mutate(ctx context.Context, m *PositionMenuOptionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PositionMenuOptionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PositionMenuOptionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PositionMenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PositionMenuOptionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PositionMenuOption mutation op: %q", m.Op())
+	}
+}
+
+// PositionMenuOptionValidityClient is a client for the PositionMenuOptionValidity schema.
+type PositionMenuOptionValidityClient struct {
+	config
+}
+
+// NewPositionMenuOptionValidityClient returns a client for the PositionMenuOptionValidity from the given config.
+func NewPositionMenuOptionValidityClient(c config) *PositionMenuOptionValidityClient {
+	return &PositionMenuOptionValidityClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `positionmenuoptionvalidity.Hooks(f(g(h())))`.
+func (c *PositionMenuOptionValidityClient) Use(hooks ...Hook) {
+	c.hooks.PositionMenuOptionValidity = append(c.hooks.PositionMenuOptionValidity, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `positionmenuoptionvalidity.Intercept(f(g(h())))`.
+func (c *PositionMenuOptionValidityClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PositionMenuOptionValidity = append(c.inters.PositionMenuOptionValidity, interceptors...)
+}
+
+// Create returns a builder for creating a PositionMenuOptionValidity entity.
+func (c *PositionMenuOptionValidityClient) Create() *PositionMenuOptionValidityCreate {
+	mutation := newPositionMenuOptionValidityMutation(c.config, OpCreate)
+	return &PositionMenuOptionValidityCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PositionMenuOptionValidity entities.
+func (c *PositionMenuOptionValidityClient) CreateBulk(builders ...*PositionMenuOptionValidityCreate) *PositionMenuOptionValidityCreateBulk {
+	return &PositionMenuOptionValidityCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PositionMenuOptionValidityClient) MapCreateBulk(slice any, setFunc func(*PositionMenuOptionValidityCreate, int)) *PositionMenuOptionValidityCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PositionMenuOptionValidityCreateBulk{err: fmt.Errorf("calling to PositionMenuOptionValidityClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PositionMenuOptionValidityCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PositionMenuOptionValidityCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PositionMenuOptionValidity.
+func (c *PositionMenuOptionValidityClient) Update() *PositionMenuOptionValidityUpdate {
+	mutation := newPositionMenuOptionValidityMutation(c.config, OpUpdate)
+	return &PositionMenuOptionValidityUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PositionMenuOptionValidityClient) UpdateOne(_m *PositionMenuOptionValidity) *PositionMenuOptionValidityUpdateOne {
+	mutation := newPositionMenuOptionValidityMutation(c.config, OpUpdateOne, withPositionMenuOptionValidity(_m))
+	return &PositionMenuOptionValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PositionMenuOptionValidityClient) UpdateOneID(id uuid.UUID) *PositionMenuOptionValidityUpdateOne {
+	mutation := newPositionMenuOptionValidityMutation(c.config, OpUpdateOne, withPositionMenuOptionValidityID(id))
+	return &PositionMenuOptionValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PositionMenuOptionValidity.
+func (c *PositionMenuOptionValidityClient) Delete() *PositionMenuOptionValidityDelete {
+	mutation := newPositionMenuOptionValidityMutation(c.config, OpDelete)
+	return &PositionMenuOptionValidityDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PositionMenuOptionValidityClient) DeleteOne(_m *PositionMenuOptionValidity) *PositionMenuOptionValidityDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PositionMenuOptionValidityClient) DeleteOneID(id uuid.UUID) *PositionMenuOptionValidityDeleteOne {
+	builder := c.Delete().Where(positionmenuoptionvalidity.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PositionMenuOptionValidityDeleteOne{builder}
+}
+
+// Query returns a query builder for PositionMenuOptionValidity.
+func (c *PositionMenuOptionValidityClient) Query() *PositionMenuOptionValidityQuery {
+	return &PositionMenuOptionValidityQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePositionMenuOptionValidity},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PositionMenuOptionValidity entity by its id.
+func (c *PositionMenuOptionValidityClient) Get(ctx context.Context, id uuid.UUID) (*PositionMenuOptionValidity, error) {
+	return c.Query().Where(positionmenuoptionvalidity.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PositionMenuOptionValidityClient) GetX(ctx context.Context, id uuid.UUID) *PositionMenuOptionValidity {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a PositionMenuOptionValidity.
+func (c *PositionMenuOptionValidityClient) QueryTenant(_m *PositionMenuOptionValidity) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(positionmenuoptionvalidity.Table, positionmenuoptionvalidity.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, positionmenuoptionvalidity.TenantTable, positionmenuoptionvalidity.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.PositionMenuOptionValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPositionMenuOption queries the position_menu_option edge of a PositionMenuOptionValidity.
+func (c *PositionMenuOptionValidityClient) QueryPositionMenuOption(_m *PositionMenuOptionValidity) *PositionMenuOptionQuery {
+	query := (&PositionMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(positionmenuoptionvalidity.Table, positionmenuoptionvalidity.FieldID, id),
+			sqlgraph.To(positionmenuoption.Table, positionmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, positionmenuoptionvalidity.PositionMenuOptionTable, positionmenuoptionvalidity.PositionMenuOptionColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.PositionMenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOptionValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PositionMenuOptionValidityClient) Hooks() []Hook {
+	return c.hooks.PositionMenuOptionValidity
+}
+
+// Interceptors returns the client interceptors.
+func (c *PositionMenuOptionValidityClient) Interceptors() []Interceptor {
+	return c.inters.PositionMenuOptionValidity
+}
+
+func (c *PositionMenuOptionValidityClient) mutate(ctx context.Context, m *PositionMenuOptionValidityMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PositionMenuOptionValidityCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PositionMenuOptionValidityUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PositionMenuOptionValidityUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PositionMenuOptionValidityDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PositionMenuOptionValidity mutation op: %q", m.Op())
+	}
+}
+
+// RoleMenuOptionClient is a client for the RoleMenuOption schema.
+type RoleMenuOptionClient struct {
+	config
+}
+
+// NewRoleMenuOptionClient returns a client for the RoleMenuOption from the given config.
+func NewRoleMenuOptionClient(c config) *RoleMenuOptionClient {
+	return &RoleMenuOptionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `rolemenuoption.Hooks(f(g(h())))`.
+func (c *RoleMenuOptionClient) Use(hooks ...Hook) {
+	c.hooks.RoleMenuOption = append(c.hooks.RoleMenuOption, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `rolemenuoption.Intercept(f(g(h())))`.
+func (c *RoleMenuOptionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RoleMenuOption = append(c.inters.RoleMenuOption, interceptors...)
+}
+
+// Create returns a builder for creating a RoleMenuOption entity.
+func (c *RoleMenuOptionClient) Create() *RoleMenuOptionCreate {
+	mutation := newRoleMenuOptionMutation(c.config, OpCreate)
+	return &RoleMenuOptionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RoleMenuOption entities.
+func (c *RoleMenuOptionClient) CreateBulk(builders ...*RoleMenuOptionCreate) *RoleMenuOptionCreateBulk {
+	return &RoleMenuOptionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RoleMenuOptionClient) MapCreateBulk(slice any, setFunc func(*RoleMenuOptionCreate, int)) *RoleMenuOptionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RoleMenuOptionCreateBulk{err: fmt.Errorf("calling to RoleMenuOptionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RoleMenuOptionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RoleMenuOptionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RoleMenuOption.
+func (c *RoleMenuOptionClient) Update() *RoleMenuOptionUpdate {
+	mutation := newRoleMenuOptionMutation(c.config, OpUpdate)
+	return &RoleMenuOptionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RoleMenuOptionClient) UpdateOne(_m *RoleMenuOption) *RoleMenuOptionUpdateOne {
+	mutation := newRoleMenuOptionMutation(c.config, OpUpdateOne, withRoleMenuOption(_m))
+	return &RoleMenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RoleMenuOptionClient) UpdateOneID(id uuid.UUID) *RoleMenuOptionUpdateOne {
+	mutation := newRoleMenuOptionMutation(c.config, OpUpdateOne, withRoleMenuOptionID(id))
+	return &RoleMenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RoleMenuOption.
+func (c *RoleMenuOptionClient) Delete() *RoleMenuOptionDelete {
+	mutation := newRoleMenuOptionMutation(c.config, OpDelete)
+	return &RoleMenuOptionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RoleMenuOptionClient) DeleteOne(_m *RoleMenuOption) *RoleMenuOptionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RoleMenuOptionClient) DeleteOneID(id uuid.UUID) *RoleMenuOptionDeleteOne {
+	builder := c.Delete().Where(rolemenuoption.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RoleMenuOptionDeleteOne{builder}
+}
+
+// Query returns a query builder for RoleMenuOption.
+func (c *RoleMenuOptionClient) Query() *RoleMenuOptionQuery {
+	return &RoleMenuOptionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRoleMenuOption},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RoleMenuOption entity by its id.
+func (c *RoleMenuOptionClient) Get(ctx context.Context, id uuid.UUID) (*RoleMenuOption, error) {
+	return c.Query().Where(rolemenuoption.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RoleMenuOptionClient) GetX(ctx context.Context, id uuid.UUID) *RoleMenuOption {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a RoleMenuOption.
+func (c *RoleMenuOptionClient) QueryTenant(_m *RoleMenuOption) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rolemenuoption.Table, rolemenuoption.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, rolemenuoption.TenantTable, rolemenuoption.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.RoleMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTenantRole queries the tenant_role edge of a RoleMenuOption.
+func (c *RoleMenuOptionClient) QueryTenantRole(_m *RoleMenuOption) *TenantRoleQuery {
+	query := (&TenantRoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rolemenuoption.Table, rolemenuoption.FieldID, id),
+			sqlgraph.To(tenantrole.Table, tenantrole.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, rolemenuoption.TenantRoleTable, rolemenuoption.TenantRoleColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.TenantRole
+		step.Edge.Schema = schemaConfig.RoleMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOption queries the menu_option edge of a RoleMenuOption.
+func (c *RoleMenuOptionClient) QueryMenuOption(_m *RoleMenuOption) *MenuOptionQuery {
+	query := (&MenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rolemenuoption.Table, rolemenuoption.FieldID, id),
+			sqlgraph.To(menuoption.Table, menuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, rolemenuoption.MenuOptionTable, rolemenuoption.MenuOptionColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOption
+		step.Edge.Schema = schemaConfig.RoleMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RoleMenuOptionClient) Hooks() []Hook {
+	return c.hooks.RoleMenuOption
+}
+
+// Interceptors returns the client interceptors.
+func (c *RoleMenuOptionClient) Interceptors() []Interceptor {
+	return c.inters.RoleMenuOption
+}
+
+func (c *RoleMenuOptionClient) mutate(ctx context.Context, m *RoleMenuOptionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RoleMenuOptionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RoleMenuOptionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RoleMenuOptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RoleMenuOptionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown RoleMenuOption mutation op: %q", m.Op())
+	}
+}
+
 // RoleTypeClient is a client for the RoleType schema.
 type RoleTypeClient struct {
 	config
@@ -9194,6 +11737,234 @@ func (c *SubscriptionClient) QueryDepartmentTranslations(_m *Subscription) *Depa
 	return query
 }
 
+// QueryMenuCategories queries the menu_categories edge of a Subscription.
+func (c *SubscriptionClient) QueryMenuCategories(_m *Subscription) *MenuCategoryQuery {
+	query := (&MenuCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(menucategory.Table, menucategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.MenuCategoriesTable, subscription.MenuCategoriesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuCategory
+		step.Edge.Schema = schemaConfig.MenuCategory
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOptions queries the menu_options edge of a Subscription.
+func (c *SubscriptionClient) QueryMenuOptions(_m *Subscription) *MenuOptionQuery {
+	query := (&MenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(menuoption.Table, menuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.MenuOptionsTable, subscription.MenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOption
+		step.Edge.Schema = schemaConfig.MenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOptionFunctions queries the menu_option_functions edge of a Subscription.
+func (c *SubscriptionClient) QueryMenuOptionFunctions(_m *Subscription) *MenuOptionFunctionQuery {
+	query := (&MenuOptionFunctionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(menuoptionfunction.Table, menuoptionfunction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.MenuOptionFunctionsTable, subscription.MenuOptionFunctionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOptionFunction
+		step.Edge.Schema = schemaConfig.MenuOptionFunction
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOptionCategories queries the menu_option_categories edge of a Subscription.
+func (c *SubscriptionClient) QueryMenuOptionCategories(_m *Subscription) *MenuOptionCategoryQuery {
+	query := (&MenuOptionCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(menuoptioncategory.Table, menuoptioncategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.MenuOptionCategoriesTable, subscription.MenuOptionCategoriesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOptionCategory
+		step.Edge.Schema = schemaConfig.MenuOptionCategory
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTenantRoles queries the tenant_roles edge of a Subscription.
+func (c *SubscriptionClient) QueryTenantRoles(_m *Subscription) *TenantRoleQuery {
+	query := (&TenantRoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(tenantrole.Table, tenantrole.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.TenantRolesTable, subscription.TenantRolesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.TenantRole
+		step.Edge.Schema = schemaConfig.TenantRole
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoleMenuOptions queries the role_menu_options edge of a Subscription.
+func (c *SubscriptionClient) QueryRoleMenuOptions(_m *Subscription) *RoleMenuOptionQuery {
+	query := (&RoleMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(rolemenuoption.Table, rolemenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.RoleMenuOptionsTable, subscription.RoleMenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.RoleMenuOption
+		step.Edge.Schema = schemaConfig.RoleMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserRoleAssignments queries the user_role_assignments edge of a Subscription.
+func (c *SubscriptionClient) QueryUserRoleAssignments(_m *Subscription) *UserRoleAssignmentQuery {
+	query := (&UserRoleAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(userroleassignment.Table, userroleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.UserRoleAssignmentsTable, subscription.UserRoleAssignmentsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.UserRoleAssignment
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentMenuOptions queries the department_menu_options edge of a Subscription.
+func (c *SubscriptionClient) QueryDepartmentMenuOptions(_m *Subscription) *DepartmentMenuOptionQuery {
+	query := (&DepartmentMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(departmentmenuoption.Table, departmentmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentMenuOptionsTable, subscription.DepartmentMenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentMenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDepartmentMenuOptionValidities queries the department_menu_option_validities edge of a Subscription.
+func (c *SubscriptionClient) QueryDepartmentMenuOptionValidities(_m *Subscription) *DepartmentMenuOptionValidityQuery {
+	query := (&DepartmentMenuOptionValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(departmentmenuoptionvalidity.Table, departmentmenuoptionvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentMenuOptionValiditiesTable, subscription.DepartmentMenuOptionValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentMenuOptionValidity
+		step.Edge.Schema = schemaConfig.DepartmentMenuOptionValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPositionMenuOptions queries the position_menu_options edge of a Subscription.
+func (c *SubscriptionClient) QueryPositionMenuOptions(_m *Subscription) *PositionMenuOptionQuery {
+	query := (&PositionMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(positionmenuoption.Table, positionmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PositionMenuOptionsTable, subscription.PositionMenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.PositionMenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPositionMenuOptionValidities queries the position_menu_option_validities edge of a Subscription.
+func (c *SubscriptionClient) QueryPositionMenuOptionValidities(_m *Subscription) *PositionMenuOptionValidityQuery {
+	query := (&PositionMenuOptionValidityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(positionmenuoptionvalidity.Table, positionmenuoptionvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PositionMenuOptionValiditiesTable, subscription.PositionMenuOptionValiditiesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.PositionMenuOptionValidity
+		step.Edge.Schema = schemaConfig.PositionMenuOptionValidity
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEmployeeMenuOptionOverrides queries the employee_menu_option_overrides edge of a Subscription.
+func (c *SubscriptionClient) QueryEmployeeMenuOptionOverrides(_m *Subscription) *EmployeeMenuOptionOverrideQuery {
+	query := (&EmployeeMenuOptionOverrideClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(employeemenuoptionoverride.Table, employeemenuoptionoverride.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.EmployeeMenuOptionOverridesTable, subscription.EmployeeMenuOptionOverridesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.EmployeeMenuOptionOverride
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *SubscriptionClient) Hooks() []Hook {
 	return c.hooks.Subscription
@@ -9216,6 +11987,405 @@ func (c *SubscriptionClient) mutate(ctx context.Context, m *SubscriptionMutation
 		return (&SubscriptionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Subscription mutation op: %q", m.Op())
+	}
+}
+
+// SystemFunctionClient is a client for the SystemFunction schema.
+type SystemFunctionClient struct {
+	config
+}
+
+// NewSystemFunctionClient returns a client for the SystemFunction from the given config.
+func NewSystemFunctionClient(c config) *SystemFunctionClient {
+	return &SystemFunctionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `systemfunction.Hooks(f(g(h())))`.
+func (c *SystemFunctionClient) Use(hooks ...Hook) {
+	c.hooks.SystemFunction = append(c.hooks.SystemFunction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `systemfunction.Intercept(f(g(h())))`.
+func (c *SystemFunctionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.SystemFunction = append(c.inters.SystemFunction, interceptors...)
+}
+
+// Create returns a builder for creating a SystemFunction entity.
+func (c *SystemFunctionClient) Create() *SystemFunctionCreate {
+	mutation := newSystemFunctionMutation(c.config, OpCreate)
+	return &SystemFunctionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of SystemFunction entities.
+func (c *SystemFunctionClient) CreateBulk(builders ...*SystemFunctionCreate) *SystemFunctionCreateBulk {
+	return &SystemFunctionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *SystemFunctionClient) MapCreateBulk(slice any, setFunc func(*SystemFunctionCreate, int)) *SystemFunctionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &SystemFunctionCreateBulk{err: fmt.Errorf("calling to SystemFunctionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*SystemFunctionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &SystemFunctionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for SystemFunction.
+func (c *SystemFunctionClient) Update() *SystemFunctionUpdate {
+	mutation := newSystemFunctionMutation(c.config, OpUpdate)
+	return &SystemFunctionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *SystemFunctionClient) UpdateOne(_m *SystemFunction) *SystemFunctionUpdateOne {
+	mutation := newSystemFunctionMutation(c.config, OpUpdateOne, withSystemFunction(_m))
+	return &SystemFunctionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *SystemFunctionClient) UpdateOneID(id uuid.UUID) *SystemFunctionUpdateOne {
+	mutation := newSystemFunctionMutation(c.config, OpUpdateOne, withSystemFunctionID(id))
+	return &SystemFunctionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for SystemFunction.
+func (c *SystemFunctionClient) Delete() *SystemFunctionDelete {
+	mutation := newSystemFunctionMutation(c.config, OpDelete)
+	return &SystemFunctionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *SystemFunctionClient) DeleteOne(_m *SystemFunction) *SystemFunctionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *SystemFunctionClient) DeleteOneID(id uuid.UUID) *SystemFunctionDeleteOne {
+	builder := c.Delete().Where(systemfunction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &SystemFunctionDeleteOne{builder}
+}
+
+// Query returns a query builder for SystemFunction.
+func (c *SystemFunctionClient) Query() *SystemFunctionQuery {
+	return &SystemFunctionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeSystemFunction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a SystemFunction entity by its id.
+func (c *SystemFunctionClient) Get(ctx context.Context, id uuid.UUID) (*SystemFunction, error) {
+	return c.Query().Where(systemfunction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *SystemFunctionClient) GetX(ctx context.Context, id uuid.UUID) *SystemFunction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryMenuTemplateFunctions queries the menu_template_functions edge of a SystemFunction.
+func (c *SystemFunctionClient) QueryMenuTemplateFunctions(_m *SystemFunction) *MenuTemplateFunctionQuery {
+	query := (&MenuTemplateFunctionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(systemfunction.Table, systemfunction.FieldID, id),
+			sqlgraph.To(menutemplatefunction.Table, menutemplatefunction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, systemfunction.MenuTemplateFunctionsTable, systemfunction.MenuTemplateFunctionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuTemplateFunction
+		step.Edge.Schema = schemaConfig.MenuTemplateFunction
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryMenuOptionFunctions queries the menu_option_functions edge of a SystemFunction.
+func (c *SystemFunctionClient) QueryMenuOptionFunctions(_m *SystemFunction) *MenuOptionFunctionQuery {
+	query := (&MenuOptionFunctionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(systemfunction.Table, systemfunction.FieldID, id),
+			sqlgraph.To(menuoptionfunction.Table, menuoptionfunction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, systemfunction.MenuOptionFunctionsTable, systemfunction.MenuOptionFunctionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.MenuOptionFunction
+		step.Edge.Schema = schemaConfig.MenuOptionFunction
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEmployeeMenuOptionOverrides queries the employee_menu_option_overrides edge of a SystemFunction.
+func (c *SystemFunctionClient) QueryEmployeeMenuOptionOverrides(_m *SystemFunction) *EmployeeMenuOptionOverrideQuery {
+	query := (&EmployeeMenuOptionOverrideClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(systemfunction.Table, systemfunction.FieldID, id),
+			sqlgraph.To(employeemenuoptionoverride.Table, employeemenuoptionoverride.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, systemfunction.EmployeeMenuOptionOverridesTable, systemfunction.EmployeeMenuOptionOverridesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.EmployeeMenuOptionOverride
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *SystemFunctionClient) Hooks() []Hook {
+	return c.hooks.SystemFunction
+}
+
+// Interceptors returns the client interceptors.
+func (c *SystemFunctionClient) Interceptors() []Interceptor {
+	return c.inters.SystemFunction
+}
+
+func (c *SystemFunctionClient) mutate(ctx context.Context, m *SystemFunctionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&SystemFunctionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&SystemFunctionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&SystemFunctionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&SystemFunctionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown SystemFunction mutation op: %q", m.Op())
+	}
+}
+
+// TenantRoleClient is a client for the TenantRole schema.
+type TenantRoleClient struct {
+	config
+}
+
+// NewTenantRoleClient returns a client for the TenantRole from the given config.
+func NewTenantRoleClient(c config) *TenantRoleClient {
+	return &TenantRoleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tenantrole.Hooks(f(g(h())))`.
+func (c *TenantRoleClient) Use(hooks ...Hook) {
+	c.hooks.TenantRole = append(c.hooks.TenantRole, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tenantrole.Intercept(f(g(h())))`.
+func (c *TenantRoleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TenantRole = append(c.inters.TenantRole, interceptors...)
+}
+
+// Create returns a builder for creating a TenantRole entity.
+func (c *TenantRoleClient) Create() *TenantRoleCreate {
+	mutation := newTenantRoleMutation(c.config, OpCreate)
+	return &TenantRoleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TenantRole entities.
+func (c *TenantRoleClient) CreateBulk(builders ...*TenantRoleCreate) *TenantRoleCreateBulk {
+	return &TenantRoleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TenantRoleClient) MapCreateBulk(slice any, setFunc func(*TenantRoleCreate, int)) *TenantRoleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TenantRoleCreateBulk{err: fmt.Errorf("calling to TenantRoleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TenantRoleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TenantRoleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TenantRole.
+func (c *TenantRoleClient) Update() *TenantRoleUpdate {
+	mutation := newTenantRoleMutation(c.config, OpUpdate)
+	return &TenantRoleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TenantRoleClient) UpdateOne(_m *TenantRole) *TenantRoleUpdateOne {
+	mutation := newTenantRoleMutation(c.config, OpUpdateOne, withTenantRole(_m))
+	return &TenantRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TenantRoleClient) UpdateOneID(id uuid.UUID) *TenantRoleUpdateOne {
+	mutation := newTenantRoleMutation(c.config, OpUpdateOne, withTenantRoleID(id))
+	return &TenantRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TenantRole.
+func (c *TenantRoleClient) Delete() *TenantRoleDelete {
+	mutation := newTenantRoleMutation(c.config, OpDelete)
+	return &TenantRoleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TenantRoleClient) DeleteOne(_m *TenantRole) *TenantRoleDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TenantRoleClient) DeleteOneID(id uuid.UUID) *TenantRoleDeleteOne {
+	builder := c.Delete().Where(tenantrole.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TenantRoleDeleteOne{builder}
+}
+
+// Query returns a query builder for TenantRole.
+func (c *TenantRoleClient) Query() *TenantRoleQuery {
+	return &TenantRoleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTenantRole},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TenantRole entity by its id.
+func (c *TenantRoleClient) Get(ctx context.Context, id uuid.UUID) (*TenantRole, error) {
+	return c.Query().Where(tenantrole.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TenantRoleClient) GetX(ctx context.Context, id uuid.UUID) *TenantRole {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a TenantRole.
+func (c *TenantRoleClient) QueryTenant(_m *TenantRole) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenantrole.Table, tenantrole.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tenantrole.TenantTable, tenantrole.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.TenantRole
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryClientApplication queries the client_application edge of a TenantRole.
+func (c *TenantRoleClient) QueryClientApplication(_m *TenantRole) *ClientApplicationQuery {
+	query := (&ClientApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenantrole.Table, tenantrole.FieldID, id),
+			sqlgraph.To(clientapplication.Table, clientapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tenantrole.ClientApplicationTable, tenantrole.ClientApplicationColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.ClientApplication
+		step.Edge.Schema = schemaConfig.TenantRole
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRoleMenuOptions queries the role_menu_options edge of a TenantRole.
+func (c *TenantRoleClient) QueryRoleMenuOptions(_m *TenantRole) *RoleMenuOptionQuery {
+	query := (&RoleMenuOptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenantrole.Table, tenantrole.FieldID, id),
+			sqlgraph.To(rolemenuoption.Table, rolemenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, tenantrole.RoleMenuOptionsTable, tenantrole.RoleMenuOptionsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.RoleMenuOption
+		step.Edge.Schema = schemaConfig.RoleMenuOption
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserRoleAssignments queries the user_role_assignments edge of a TenantRole.
+func (c *TenantRoleClient) QueryUserRoleAssignments(_m *TenantRole) *UserRoleAssignmentQuery {
+	query := (&UserRoleAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenantrole.Table, tenantrole.FieldID, id),
+			sqlgraph.To(userroleassignment.Table, userroleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, tenantrole.UserRoleAssignmentsTable, tenantrole.UserRoleAssignmentsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.UserRoleAssignment
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TenantRoleClient) Hooks() []Hook {
+	return c.hooks.TenantRole
+}
+
+// Interceptors returns the client interceptors.
+func (c *TenantRoleClient) Interceptors() []Interceptor {
+	return c.inters.TenantRole
+}
+
+func (c *TenantRoleClient) mutate(ctx context.Context, m *TenantRoleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TenantRoleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TenantRoleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TenantRoleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TenantRoleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TenantRole mutation op: %q", m.Op())
 	}
 }
 
@@ -9384,6 +12554,25 @@ func (c *UserCredentialsClient) QueryPartyContactMechanism(_m *UserCredentials) 
 	return query
 }
 
+// QueryUserRoleAssignments queries the user_role_assignments edge of a UserCredentials.
+func (c *UserCredentialsClient) QueryUserRoleAssignments(_m *UserCredentials) *UserRoleAssignmentQuery {
+	query := (&UserRoleAssignmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usercredentials.Table, usercredentials.FieldID, id),
+			sqlgraph.To(userroleassignment.Table, userroleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, usercredentials.UserRoleAssignmentsTable, usercredentials.UserRoleAssignmentsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.UserRoleAssignment
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserCredentialsClient) Hooks() []Hook {
 	return c.hooks.UserCredentials
@@ -9409,31 +12598,233 @@ func (c *UserCredentialsClient) mutate(ctx context.Context, m *UserCredentialsMu
 	}
 }
 
+// UserRoleAssignmentClient is a client for the UserRoleAssignment schema.
+type UserRoleAssignmentClient struct {
+	config
+}
+
+// NewUserRoleAssignmentClient returns a client for the UserRoleAssignment from the given config.
+func NewUserRoleAssignmentClient(c config) *UserRoleAssignmentClient {
+	return &UserRoleAssignmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `userroleassignment.Hooks(f(g(h())))`.
+func (c *UserRoleAssignmentClient) Use(hooks ...Hook) {
+	c.hooks.UserRoleAssignment = append(c.hooks.UserRoleAssignment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userroleassignment.Intercept(f(g(h())))`.
+func (c *UserRoleAssignmentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserRoleAssignment = append(c.inters.UserRoleAssignment, interceptors...)
+}
+
+// Create returns a builder for creating a UserRoleAssignment entity.
+func (c *UserRoleAssignmentClient) Create() *UserRoleAssignmentCreate {
+	mutation := newUserRoleAssignmentMutation(c.config, OpCreate)
+	return &UserRoleAssignmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserRoleAssignment entities.
+func (c *UserRoleAssignmentClient) CreateBulk(builders ...*UserRoleAssignmentCreate) *UserRoleAssignmentCreateBulk {
+	return &UserRoleAssignmentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserRoleAssignmentClient) MapCreateBulk(slice any, setFunc func(*UserRoleAssignmentCreate, int)) *UserRoleAssignmentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserRoleAssignmentCreateBulk{err: fmt.Errorf("calling to UserRoleAssignmentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserRoleAssignmentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserRoleAssignmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserRoleAssignment.
+func (c *UserRoleAssignmentClient) Update() *UserRoleAssignmentUpdate {
+	mutation := newUserRoleAssignmentMutation(c.config, OpUpdate)
+	return &UserRoleAssignmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserRoleAssignmentClient) UpdateOne(_m *UserRoleAssignment) *UserRoleAssignmentUpdateOne {
+	mutation := newUserRoleAssignmentMutation(c.config, OpUpdateOne, withUserRoleAssignment(_m))
+	return &UserRoleAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserRoleAssignmentClient) UpdateOneID(id uuid.UUID) *UserRoleAssignmentUpdateOne {
+	mutation := newUserRoleAssignmentMutation(c.config, OpUpdateOne, withUserRoleAssignmentID(id))
+	return &UserRoleAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserRoleAssignment.
+func (c *UserRoleAssignmentClient) Delete() *UserRoleAssignmentDelete {
+	mutation := newUserRoleAssignmentMutation(c.config, OpDelete)
+	return &UserRoleAssignmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserRoleAssignmentClient) DeleteOne(_m *UserRoleAssignment) *UserRoleAssignmentDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserRoleAssignmentClient) DeleteOneID(id uuid.UUID) *UserRoleAssignmentDeleteOne {
+	builder := c.Delete().Where(userroleassignment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserRoleAssignmentDeleteOne{builder}
+}
+
+// Query returns a query builder for UserRoleAssignment.
+func (c *UserRoleAssignmentClient) Query() *UserRoleAssignmentQuery {
+	return &UserRoleAssignmentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserRoleAssignment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserRoleAssignment entity by its id.
+func (c *UserRoleAssignmentClient) Get(ctx context.Context, id uuid.UUID) (*UserRoleAssignment, error) {
+	return c.Query().Where(userroleassignment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserRoleAssignmentClient) GetX(ctx context.Context, id uuid.UUID) *UserRoleAssignment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a UserRoleAssignment.
+func (c *UserRoleAssignmentClient) QueryTenant(_m *UserRoleAssignment) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userroleassignment.Table, userroleassignment.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userroleassignment.TenantTable, userroleassignment.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserCredentials queries the user_credentials edge of a UserRoleAssignment.
+func (c *UserRoleAssignmentClient) QueryUserCredentials(_m *UserRoleAssignment) *UserCredentialsQuery {
+	query := (&UserCredentialsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userroleassignment.Table, userroleassignment.FieldID, id),
+			sqlgraph.To(usercredentials.Table, usercredentials.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userroleassignment.UserCredentialsTable, userroleassignment.UserCredentialsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.UserCredentials
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTenantRole queries the tenant_role edge of a UserRoleAssignment.
+func (c *UserRoleAssignmentClient) QueryTenantRole(_m *UserRoleAssignment) *TenantRoleQuery {
+	query := (&TenantRoleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userroleassignment.Table, userroleassignment.FieldID, id),
+			sqlgraph.To(tenantrole.Table, tenantrole.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userroleassignment.TenantRoleTable, userroleassignment.TenantRoleColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.TenantRole
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserRoleAssignmentClient) Hooks() []Hook {
+	return c.hooks.UserRoleAssignment
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserRoleAssignmentClient) Interceptors() []Interceptor {
+	return c.inters.UserRoleAssignment
+}
+
+func (c *UserRoleAssignmentClient) mutate(ctx context.Context, m *UserRoleAssignmentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserRoleAssignmentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserRoleAssignmentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserRoleAssignmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserRoleAssignmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserRoleAssignment mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
 		Address, AddressValidity, AttachedDocument, ClientApplication, ContactMechanism,
 		CorporateGroup, Department, DepartmentAddress, DepartmentAddressValidity,
 		DepartmentContactMechanism, DepartmentContactMechanismValidity,
-		DepartmentGroupAssignment, DepartmentTranslation, Employee, EmployeeAssignment,
-		IdentityDocumentType, IdentityDocumentTypeTranslation, Job, JobFamily, Locale,
-		Location, LocationTranslation, NameType, OrganizationProfile, Party,
-		PartyContactMechanism, PartyContactMechanismValidity, PartyIdentityDocument,
+		DepartmentGroupAssignment, DepartmentMenuOption, DepartmentMenuOptionValidity,
+		DepartmentTranslation, Employee, EmployeeAssignment,
+		EmployeeMenuOptionOverride, IdentityDocumentType,
+		IdentityDocumentTypeTranslation, Job, JobFamily, Locale, Location,
+		LocationTranslation, MenuCategory, MenuOption, MenuOptionCategory,
+		MenuOptionFunction, MenuTemplate, MenuTemplateFunction, NameType,
+		OrganizationProfile, Party, PartyContactMechanism,
+		PartyContactMechanismValidity, PartyIdentityDocument,
 		PartyIdentityDocumentValidity, PartyMergeLog, PartyName, PartyNameValidity,
-		PartyNationality, PartyRole, PasswordResetToken, PersonProfile, RoleType,
-		RoleTypeTranslation, Session, Subscription, UserCredentials []ent.Hook
+		PartyNationality, PartyRole, PasswordResetToken, PersonProfile,
+		PositionMenuOption, PositionMenuOptionValidity, RoleMenuOption, RoleType,
+		RoleTypeTranslation, Session, Subscription, SystemFunction, TenantRole,
+		UserCredentials, UserRoleAssignment []ent.Hook
 	}
 	inters struct {
 		Address, AddressValidity, AttachedDocument, ClientApplication, ContactMechanism,
 		CorporateGroup, Department, DepartmentAddress, DepartmentAddressValidity,
 		DepartmentContactMechanism, DepartmentContactMechanismValidity,
-		DepartmentGroupAssignment, DepartmentTranslation, Employee, EmployeeAssignment,
-		IdentityDocumentType, IdentityDocumentTypeTranslation, Job, JobFamily, Locale,
-		Location, LocationTranslation, NameType, OrganizationProfile, Party,
-		PartyContactMechanism, PartyContactMechanismValidity, PartyIdentityDocument,
+		DepartmentGroupAssignment, DepartmentMenuOption, DepartmentMenuOptionValidity,
+		DepartmentTranslation, Employee, EmployeeAssignment,
+		EmployeeMenuOptionOverride, IdentityDocumentType,
+		IdentityDocumentTypeTranslation, Job, JobFamily, Locale, Location,
+		LocationTranslation, MenuCategory, MenuOption, MenuOptionCategory,
+		MenuOptionFunction, MenuTemplate, MenuTemplateFunction, NameType,
+		OrganizationProfile, Party, PartyContactMechanism,
+		PartyContactMechanismValidity, PartyIdentityDocument,
 		PartyIdentityDocumentValidity, PartyMergeLog, PartyName, PartyNameValidity,
-		PartyNationality, PartyRole, PasswordResetToken, PersonProfile, RoleType,
-		RoleTypeTranslation, Session, Subscription, UserCredentials []ent.Interceptor
+		PartyNationality, PartyRole, PasswordResetToken, PersonProfile,
+		PositionMenuOption, PositionMenuOptionValidity, RoleMenuOption, RoleType,
+		RoleTypeTranslation, Session, Subscription, SystemFunction, TenantRole,
+		UserCredentials, UserRoleAssignment []ent.Interceptor
 	}
 )
 
@@ -9452,9 +12843,12 @@ var (
 		DepartmentContactMechanism:         tableSchemas[1],
 		DepartmentContactMechanismValidity: tableSchemas[1],
 		DepartmentGroupAssignment:          tableSchemas[1],
+		DepartmentMenuOption:               tableSchemas[1],
+		DepartmentMenuOptionValidity:       tableSchemas[1],
 		DepartmentTranslation:              tableSchemas[1],
 		Employee:                           tableSchemas[1],
 		EmployeeAssignment:                 tableSchemas[1],
+		EmployeeMenuOptionOverride:         tableSchemas[1],
 		IdentityDocumentType:               tableSchemas[0],
 		IdentityDocumentTypeTranslation:    tableSchemas[0],
 		Job:                                tableSchemas[1],
@@ -9462,6 +12856,12 @@ var (
 		Locale:                             tableSchemas[0],
 		Location:                           tableSchemas[0],
 		LocationTranslation:                tableSchemas[0],
+		MenuCategory:                       tableSchemas[1],
+		MenuOption:                         tableSchemas[1],
+		MenuOptionCategory:                 tableSchemas[1],
+		MenuOptionFunction:                 tableSchemas[1],
+		MenuTemplate:                       tableSchemas[0],
+		MenuTemplateFunction:               tableSchemas[0],
 		NameType:                           tableSchemas[0],
 		OrganizationProfile:                tableSchemas[1],
 		Party:                              tableSchemas[1],
@@ -9476,11 +12876,17 @@ var (
 		PartyRole:                          tableSchemas[1],
 		PasswordResetToken:                 tableSchemas[1],
 		PersonProfile:                      tableSchemas[1],
+		PositionMenuOption:                 tableSchemas[1],
+		PositionMenuOptionValidity:         tableSchemas[1],
+		RoleMenuOption:                     tableSchemas[1],
 		RoleType:                           tableSchemas[0],
 		RoleTypeTranslation:                tableSchemas[0],
 		Session:                            tableSchemas[1],
 		Subscription:                       tableSchemas[0],
+		SystemFunction:                     tableSchemas[0],
+		TenantRole:                         tableSchemas[1],
 		UserCredentials:                    tableSchemas[1],
+		UserRoleAssignment:                 tableSchemas[1],
 	}
 	tableSchemas = [...]string{"global", "tenants"}
 )

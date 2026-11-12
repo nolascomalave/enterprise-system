@@ -64,9 +64,11 @@ type EmployeeEdges struct {
 	ManagedDepartments []*Department `json:"managed_departments,omitempty"`
 	// Assignments holds the value of the assignments edge.
 	Assignments []*EmployeeAssignment `json:"assignments,omitempty"`
+	// EmployeeMenuOptionOverrides holds the value of the employee_menu_option_overrides edge.
+	EmployeeMenuOptionOverrides []*EmployeeMenuOptionOverride `json:"employee_menu_option_overrides,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [7]bool
+	loadedTypes [8]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -138,6 +140,15 @@ func (e EmployeeEdges) AssignmentsOrErr() ([]*EmployeeAssignment, error) {
 		return e.Assignments, nil
 	}
 	return nil, &NotLoadedError{edge: "assignments"}
+}
+
+// EmployeeMenuOptionOverridesOrErr returns the EmployeeMenuOptionOverrides value or an error if the edge
+// was not loaded in eager-loading.
+func (e EmployeeEdges) EmployeeMenuOptionOverridesOrErr() ([]*EmployeeMenuOptionOverride, error) {
+	if e.loadedTypes[7] {
+		return e.EmployeeMenuOptionOverrides, nil
+	}
+	return nil, &NotLoadedError{edge: "employee_menu_option_overrides"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -282,6 +293,11 @@ func (_m *Employee) QueryManagedDepartments() *DepartmentQuery {
 // QueryAssignments queries the "assignments" edge of the Employee entity.
 func (_m *Employee) QueryAssignments() *EmployeeAssignmentQuery {
 	return NewEmployeeClient(_m.config).QueryAssignments(_m)
+}
+
+// QueryEmployeeMenuOptionOverrides queries the "employee_menu_option_overrides" edge of the Employee entity.
+func (_m *Employee) QueryEmployeeMenuOptionOverrides() *EmployeeMenuOptionOverrideQuery {
+	return NewEmployeeClient(_m.config).QueryEmployeeMenuOptionOverrides(_m)
 }
 
 // Update returns a builder for updating this Employee.

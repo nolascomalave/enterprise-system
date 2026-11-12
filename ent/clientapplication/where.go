@@ -531,6 +531,35 @@ func HasTenantWith(preds ...predicate.Subscription) predicate.ClientApplication 
 	})
 }
 
+// HasTenantRoles applies the HasEdge predicate on the "tenant_roles" edge.
+func HasTenantRoles() predicate.ClientApplication {
+	return predicate.ClientApplication(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TenantRolesTable, TenantRolesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.TenantRole
+		step.Edge.Schema = schemaConfig.TenantRole
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTenantRolesWith applies the HasEdge predicate on the "tenant_roles" edge with a given conditions (other predicates).
+func HasTenantRolesWith(preds ...predicate.TenantRole) predicate.ClientApplication {
+	return predicate.ClientApplication(func(s *sql.Selector) {
+		step := newTenantRolesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.TenantRole
+		step.Edge.Schema = schemaConfig.TenantRole
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ClientApplication) predicate.ClientApplication {
 	return predicate.ClientApplication(sql.AndPredicates(predicates...))

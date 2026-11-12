@@ -40,6 +40,8 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// EdgeTenant holds the string denoting the tenant edge name in mutations.
 	EdgeTenant = "tenant"
+	// EdgeTenantRoles holds the string denoting the tenant_roles edge name in mutations.
+	EdgeTenantRoles = "tenant_roles"
 	// Table holds the table name of the clientapplication in the database.
 	Table = "client_applications"
 	// TenantTable is the table that holds the tenant relation/edge.
@@ -49,6 +51,13 @@ const (
 	TenantInverseTable = "subscriptions"
 	// TenantColumn is the table column denoting the tenant relation/edge.
 	TenantColumn = "tenant_id"
+	// TenantRolesTable is the table that holds the tenant_roles relation/edge.
+	TenantRolesTable = "tenant_roles"
+	// TenantRolesInverseTable is the table name for the TenantRole entity.
+	// It exists in this package in order to avoid circular dependency with the "tenantrole" package.
+	TenantRolesInverseTable = "tenant_roles"
+	// TenantRolesColumn is the table column denoting the tenant_roles relation/edge.
+	TenantRolesColumn = "client_application_id"
 )
 
 // Columns holds all SQL columns for clientapplication fields.
@@ -212,10 +221,31 @@ func ByTenantField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTenantStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByTenantRolesCount orders the results by tenant_roles count.
+func ByTenantRolesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTenantRolesStep(), opts...)
+	}
+}
+
+// ByTenantRoles orders the results by tenant_roles terms.
+func ByTenantRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTenantRolesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TenantInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, TenantTable, TenantColumn),
+	)
+}
+func newTenantRolesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TenantRolesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TenantRolesTable, TenantRolesColumn),
 	)
 }

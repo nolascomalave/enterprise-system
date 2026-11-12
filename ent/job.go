@@ -57,9 +57,11 @@ type JobEdges struct {
 	Employees []*Employee `json:"employees,omitempty"`
 	// Assignments holds the value of the assignments edge.
 	Assignments []*EmployeeAssignment `json:"assignments,omitempty"`
+	// PositionMenuOptions holds the value of the position_menu_options edge.
+	PositionMenuOptions []*PositionMenuOption `json:"position_menu_options,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -100,6 +102,15 @@ func (e JobEdges) AssignmentsOrErr() ([]*EmployeeAssignment, error) {
 		return e.Assignments, nil
 	}
 	return nil, &NotLoadedError{edge: "assignments"}
+}
+
+// PositionMenuOptionsOrErr returns the PositionMenuOptions value or an error if the edge
+// was not loaded in eager-loading.
+func (e JobEdges) PositionMenuOptionsOrErr() ([]*PositionMenuOption, error) {
+	if e.loadedTypes[4] {
+		return e.PositionMenuOptions, nil
+	}
+	return nil, &NotLoadedError{edge: "position_menu_options"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -228,6 +239,11 @@ func (_m *Job) QueryEmployees() *EmployeeQuery {
 // QueryAssignments queries the "assignments" edge of the Job entity.
 func (_m *Job) QueryAssignments() *EmployeeAssignmentQuery {
 	return NewJobClient(_m.config).QueryAssignments(_m)
+}
+
+// QueryPositionMenuOptions queries the "position_menu_options" edge of the Job entity.
+func (_m *Job) QueryPositionMenuOptions() *PositionMenuOptionQuery {
+	return NewJobClient(_m.config).QueryPositionMenuOptions(_m)
 }
 
 // Update returns a builder for updating this Job.

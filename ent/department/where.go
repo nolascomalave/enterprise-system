@@ -805,6 +805,35 @@ func HasTranslationsWith(preds ...predicate.DepartmentTranslation) predicate.Dep
 	})
 }
 
+// HasDepartmentMenuOptions applies the HasEdge predicate on the "department_menu_options" edge.
+func HasDepartmentMenuOptions() predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentMenuOptionsTable, DepartmentMenuOptionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentMenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentMenuOptionsWith applies the HasEdge predicate on the "department_menu_options" edge with a given conditions (other predicates).
+func HasDepartmentMenuOptionsWith(preds ...predicate.DepartmentMenuOption) predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := newDepartmentMenuOptionsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentMenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Department) predicate.Department {
 	return predicate.Department(sql.AndPredicates(predicates...))

@@ -9,6 +9,7 @@ import (
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/positionmenuoption"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/internal/domain"
@@ -201,6 +202,21 @@ func (_u *JobUpdate) AddAssignments(v ...*EmployeeAssignment) *JobUpdate {
 	return _u.AddAssignmentIDs(ids...)
 }
 
+// AddPositionMenuOptionIDs adds the "position_menu_options" edge to the PositionMenuOption entity by IDs.
+func (_u *JobUpdate) AddPositionMenuOptionIDs(ids ...uuid.UUID) *JobUpdate {
+	_u.mutation.AddPositionMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddPositionMenuOptions adds the "position_menu_options" edges to the PositionMenuOption entity.
+func (_u *JobUpdate) AddPositionMenuOptions(v ...*PositionMenuOption) *JobUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPositionMenuOptionIDs(ids...)
+}
+
 // Mutation returns the JobMutation object of the builder.
 func (_u *JobUpdate) Mutation() *JobMutation {
 	return _u.mutation
@@ -258,6 +274,27 @@ func (_u *JobUpdate) RemoveAssignments(v ...*EmployeeAssignment) *JobUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAssignmentIDs(ids...)
+}
+
+// ClearPositionMenuOptions clears all "position_menu_options" edges to the PositionMenuOption entity.
+func (_u *JobUpdate) ClearPositionMenuOptions() *JobUpdate {
+	_u.mutation.ClearPositionMenuOptions()
+	return _u
+}
+
+// RemovePositionMenuOptionIDs removes the "position_menu_options" edge to PositionMenuOption entities by IDs.
+func (_u *JobUpdate) RemovePositionMenuOptionIDs(ids ...uuid.UUID) *JobUpdate {
+	_u.mutation.RemovePositionMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemovePositionMenuOptions removes "position_menu_options" edges to PositionMenuOption entities.
+func (_u *JobUpdate) RemovePositionMenuOptions(v ...*PositionMenuOption) *JobUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePositionMenuOptionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -520,6 +557,54 @@ func (_u *JobUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.PositionMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   job.PositionMenuOptionsTable,
+			Columns: []string{job.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPositionMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.PositionMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   job.PositionMenuOptionsTable,
+			Columns: []string{job.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PositionMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   job.PositionMenuOptionsTable,
+			Columns: []string{job.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Job
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -708,6 +793,21 @@ func (_u *JobUpdateOne) AddAssignments(v ...*EmployeeAssignment) *JobUpdateOne {
 	return _u.AddAssignmentIDs(ids...)
 }
 
+// AddPositionMenuOptionIDs adds the "position_menu_options" edge to the PositionMenuOption entity by IDs.
+func (_u *JobUpdateOne) AddPositionMenuOptionIDs(ids ...uuid.UUID) *JobUpdateOne {
+	_u.mutation.AddPositionMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddPositionMenuOptions adds the "position_menu_options" edges to the PositionMenuOption entity.
+func (_u *JobUpdateOne) AddPositionMenuOptions(v ...*PositionMenuOption) *JobUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPositionMenuOptionIDs(ids...)
+}
+
 // Mutation returns the JobMutation object of the builder.
 func (_u *JobUpdateOne) Mutation() *JobMutation {
 	return _u.mutation
@@ -765,6 +865,27 @@ func (_u *JobUpdateOne) RemoveAssignments(v ...*EmployeeAssignment) *JobUpdateOn
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAssignmentIDs(ids...)
+}
+
+// ClearPositionMenuOptions clears all "position_menu_options" edges to the PositionMenuOption entity.
+func (_u *JobUpdateOne) ClearPositionMenuOptions() *JobUpdateOne {
+	_u.mutation.ClearPositionMenuOptions()
+	return _u
+}
+
+// RemovePositionMenuOptionIDs removes the "position_menu_options" edge to PositionMenuOption entities by IDs.
+func (_u *JobUpdateOne) RemovePositionMenuOptionIDs(ids ...uuid.UUID) *JobUpdateOne {
+	_u.mutation.RemovePositionMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemovePositionMenuOptions removes "position_menu_options" edges to PositionMenuOption entities.
+func (_u *JobUpdateOne) RemovePositionMenuOptions(v ...*PositionMenuOption) *JobUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePositionMenuOptionIDs(ids...)
 }
 
 // Where appends a list predicates to the JobUpdate builder.
@@ -1052,6 +1173,54 @@ func (_u *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 			},
 		}
 		edge.Schema = _u.schemaConfig.EmployeeAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PositionMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   job.PositionMenuOptionsTable,
+			Columns: []string{job.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPositionMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.PositionMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   job.PositionMenuOptionsTable,
+			Columns: []string{job.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PositionMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   job.PositionMenuOptionsTable,
+			Columns: []string{job.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

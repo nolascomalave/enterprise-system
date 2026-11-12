@@ -10,6 +10,7 @@ import (
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
+	"enterprise-system/ent/userroleassignment"
 	"errors"
 	"fmt"
 	"time"
@@ -177,6 +178,21 @@ func (_u *UserCredentialsUpdate) SetPartyContactMechanism(v *PartyContactMechani
 	return _u.SetPartyContactMechanismID(v.ID)
 }
 
+// AddUserRoleAssignmentIDs adds the "user_role_assignments" edge to the UserRoleAssignment entity by IDs.
+func (_u *UserCredentialsUpdate) AddUserRoleAssignmentIDs(ids ...uuid.UUID) *UserCredentialsUpdate {
+	_u.mutation.AddUserRoleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddUserRoleAssignments adds the "user_role_assignments" edges to the UserRoleAssignment entity.
+func (_u *UserCredentialsUpdate) AddUserRoleAssignments(v ...*UserRoleAssignment) *UserCredentialsUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserRoleAssignmentIDs(ids...)
+}
+
 // Mutation returns the UserCredentialsMutation object of the builder.
 func (_u *UserCredentialsUpdate) Mutation() *UserCredentialsMutation {
 	return _u.mutation
@@ -198,6 +214,27 @@ func (_u *UserCredentialsUpdate) ClearParty() *UserCredentialsUpdate {
 func (_u *UserCredentialsUpdate) ClearPartyContactMechanism() *UserCredentialsUpdate {
 	_u.mutation.ClearPartyContactMechanism()
 	return _u
+}
+
+// ClearUserRoleAssignments clears all "user_role_assignments" edges to the UserRoleAssignment entity.
+func (_u *UserCredentialsUpdate) ClearUserRoleAssignments() *UserCredentialsUpdate {
+	_u.mutation.ClearUserRoleAssignments()
+	return _u
+}
+
+// RemoveUserRoleAssignmentIDs removes the "user_role_assignments" edge to UserRoleAssignment entities by IDs.
+func (_u *UserCredentialsUpdate) RemoveUserRoleAssignmentIDs(ids ...uuid.UUID) *UserCredentialsUpdate {
+	_u.mutation.RemoveUserRoleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveUserRoleAssignments removes "user_role_assignments" edges to UserRoleAssignment entities.
+func (_u *UserCredentialsUpdate) RemoveUserRoleAssignments(v ...*UserRoleAssignment) *UserCredentialsUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserRoleAssignmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -389,6 +426,54 @@ func (_u *UserCredentialsUpdate) sqlSave(ctx context.Context) (_node int, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.UserRoleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.UserRoleAssignmentsTable,
+			Columns: []string{usercredentials.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUserRoleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.UserRoleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.UserRoleAssignmentsTable,
+			Columns: []string{usercredentials.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserRoleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.UserRoleAssignmentsTable,
+			Columns: []string{usercredentials.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.UserCredentials
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -554,6 +639,21 @@ func (_u *UserCredentialsUpdateOne) SetPartyContactMechanism(v *PartyContactMech
 	return _u.SetPartyContactMechanismID(v.ID)
 }
 
+// AddUserRoleAssignmentIDs adds the "user_role_assignments" edge to the UserRoleAssignment entity by IDs.
+func (_u *UserCredentialsUpdateOne) AddUserRoleAssignmentIDs(ids ...uuid.UUID) *UserCredentialsUpdateOne {
+	_u.mutation.AddUserRoleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddUserRoleAssignments adds the "user_role_assignments" edges to the UserRoleAssignment entity.
+func (_u *UserCredentialsUpdateOne) AddUserRoleAssignments(v ...*UserRoleAssignment) *UserCredentialsUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserRoleAssignmentIDs(ids...)
+}
+
 // Mutation returns the UserCredentialsMutation object of the builder.
 func (_u *UserCredentialsUpdateOne) Mutation() *UserCredentialsMutation {
 	return _u.mutation
@@ -575,6 +675,27 @@ func (_u *UserCredentialsUpdateOne) ClearParty() *UserCredentialsUpdateOne {
 func (_u *UserCredentialsUpdateOne) ClearPartyContactMechanism() *UserCredentialsUpdateOne {
 	_u.mutation.ClearPartyContactMechanism()
 	return _u
+}
+
+// ClearUserRoleAssignments clears all "user_role_assignments" edges to the UserRoleAssignment entity.
+func (_u *UserCredentialsUpdateOne) ClearUserRoleAssignments() *UserCredentialsUpdateOne {
+	_u.mutation.ClearUserRoleAssignments()
+	return _u
+}
+
+// RemoveUserRoleAssignmentIDs removes the "user_role_assignments" edge to UserRoleAssignment entities by IDs.
+func (_u *UserCredentialsUpdateOne) RemoveUserRoleAssignmentIDs(ids ...uuid.UUID) *UserCredentialsUpdateOne {
+	_u.mutation.RemoveUserRoleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveUserRoleAssignments removes "user_role_assignments" edges to UserRoleAssignment entities.
+func (_u *UserCredentialsUpdateOne) RemoveUserRoleAssignments(v ...*UserRoleAssignment) *UserCredentialsUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserRoleAssignmentIDs(ids...)
 }
 
 // Where appends a list predicates to the UserCredentialsUpdate builder.
@@ -791,6 +912,54 @@ func (_u *UserCredentialsUpdateOne) sqlSave(ctx context.Context) (_node *UserCre
 			},
 		}
 		edge.Schema = _u.schemaConfig.UserCredentials
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UserRoleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.UserRoleAssignmentsTable,
+			Columns: []string{usercredentials.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUserRoleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.UserRoleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.UserRoleAssignmentsTable,
+			Columns: []string{usercredentials.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserRoleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.UserRoleAssignmentsTable,
+			Columns: []string{usercredentials.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

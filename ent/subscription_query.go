@@ -16,12 +16,19 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmentmenuoption"
+	"enterprise-system/ent/departmentmenuoptionvalidity"
 	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/employeemenuoptionoverride"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/menucategory"
+	"enterprise-system/ent/menuoption"
+	"enterprise-system/ent/menuoptioncategory"
+	"enterprise-system/ent/menuoptionfunction"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
@@ -35,10 +42,15 @@ import (
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
+	"enterprise-system/ent/positionmenuoption"
+	"enterprise-system/ent/positionmenuoptionvalidity"
 	"enterprise-system/ent/predicate"
+	"enterprise-system/ent/rolemenuoption"
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/tenantrole"
 	"enterprise-system/ent/usercredentials"
+	"enterprise-system/ent/userroleassignment"
 	"fmt"
 	"math"
 
@@ -87,6 +99,18 @@ type SubscriptionQuery struct {
 	withDepartmentAddressValidities          *DepartmentAddressValidityQuery
 	withClientApplications                   *ClientApplicationQuery
 	withDepartmentTranslations               *DepartmentTranslationQuery
+	withMenuCategories                       *MenuCategoryQuery
+	withMenuOptions                          *MenuOptionQuery
+	withMenuOptionFunctions                  *MenuOptionFunctionQuery
+	withMenuOptionCategories                 *MenuOptionCategoryQuery
+	withTenantRoles                          *TenantRoleQuery
+	withRoleMenuOptions                      *RoleMenuOptionQuery
+	withUserRoleAssignments                  *UserRoleAssignmentQuery
+	withDepartmentMenuOptions                *DepartmentMenuOptionQuery
+	withDepartmentMenuOptionValidities       *DepartmentMenuOptionValidityQuery
+	withPositionMenuOptions                  *PositionMenuOptionQuery
+	withPositionMenuOptionValidities         *PositionMenuOptionValidityQuery
+	withEmployeeMenuOptionOverrides          *EmployeeMenuOptionOverrideQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -898,6 +922,306 @@ func (_q *SubscriptionQuery) QueryDepartmentTranslations() *DepartmentTranslatio
 	return query
 }
 
+// QueryMenuCategories chains the current query on the "menu_categories" edge.
+func (_q *SubscriptionQuery) QueryMenuCategories() *MenuCategoryQuery {
+	query := (&MenuCategoryClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(menucategory.Table, menucategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.MenuCategoriesTable, subscription.MenuCategoriesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.MenuCategory
+		step.Edge.Schema = schemaConfig.MenuCategory
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMenuOptions chains the current query on the "menu_options" edge.
+func (_q *SubscriptionQuery) QueryMenuOptions() *MenuOptionQuery {
+	query := (&MenuOptionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(menuoption.Table, menuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.MenuOptionsTable, subscription.MenuOptionsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.MenuOption
+		step.Edge.Schema = schemaConfig.MenuOption
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMenuOptionFunctions chains the current query on the "menu_option_functions" edge.
+func (_q *SubscriptionQuery) QueryMenuOptionFunctions() *MenuOptionFunctionQuery {
+	query := (&MenuOptionFunctionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(menuoptionfunction.Table, menuoptionfunction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.MenuOptionFunctionsTable, subscription.MenuOptionFunctionsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.MenuOptionFunction
+		step.Edge.Schema = schemaConfig.MenuOptionFunction
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryMenuOptionCategories chains the current query on the "menu_option_categories" edge.
+func (_q *SubscriptionQuery) QueryMenuOptionCategories() *MenuOptionCategoryQuery {
+	query := (&MenuOptionCategoryClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(menuoptioncategory.Table, menuoptioncategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.MenuOptionCategoriesTable, subscription.MenuOptionCategoriesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.MenuOptionCategory
+		step.Edge.Schema = schemaConfig.MenuOptionCategory
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTenantRoles chains the current query on the "tenant_roles" edge.
+func (_q *SubscriptionQuery) QueryTenantRoles() *TenantRoleQuery {
+	query := (&TenantRoleClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(tenantrole.Table, tenantrole.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.TenantRolesTable, subscription.TenantRolesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.TenantRole
+		step.Edge.Schema = schemaConfig.TenantRole
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRoleMenuOptions chains the current query on the "role_menu_options" edge.
+func (_q *SubscriptionQuery) QueryRoleMenuOptions() *RoleMenuOptionQuery {
+	query := (&RoleMenuOptionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(rolemenuoption.Table, rolemenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.RoleMenuOptionsTable, subscription.RoleMenuOptionsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.RoleMenuOption
+		step.Edge.Schema = schemaConfig.RoleMenuOption
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserRoleAssignments chains the current query on the "user_role_assignments" edge.
+func (_q *SubscriptionQuery) QueryUserRoleAssignments() *UserRoleAssignmentQuery {
+	query := (&UserRoleAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(userroleassignment.Table, userroleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.UserRoleAssignmentsTable, subscription.UserRoleAssignmentsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.UserRoleAssignment
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartmentMenuOptions chains the current query on the "department_menu_options" edge.
+func (_q *SubscriptionQuery) QueryDepartmentMenuOptions() *DepartmentMenuOptionQuery {
+	query := (&DepartmentMenuOptionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(departmentmenuoption.Table, departmentmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentMenuOptionsTable, subscription.DepartmentMenuOptionsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentMenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartmentMenuOptionValidities chains the current query on the "department_menu_option_validities" edge.
+func (_q *SubscriptionQuery) QueryDepartmentMenuOptionValidities() *DepartmentMenuOptionValidityQuery {
+	query := (&DepartmentMenuOptionValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(departmentmenuoptionvalidity.Table, departmentmenuoptionvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.DepartmentMenuOptionValiditiesTable, subscription.DepartmentMenuOptionValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentMenuOptionValidity
+		step.Edge.Schema = schemaConfig.DepartmentMenuOptionValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPositionMenuOptions chains the current query on the "position_menu_options" edge.
+func (_q *SubscriptionQuery) QueryPositionMenuOptions() *PositionMenuOptionQuery {
+	query := (&PositionMenuOptionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(positionmenuoption.Table, positionmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PositionMenuOptionsTable, subscription.PositionMenuOptionsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PositionMenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOption
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPositionMenuOptionValidities chains the current query on the "position_menu_option_validities" edge.
+func (_q *SubscriptionQuery) QueryPositionMenuOptionValidities() *PositionMenuOptionValidityQuery {
+	query := (&PositionMenuOptionValidityClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(positionmenuoptionvalidity.Table, positionmenuoptionvalidity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.PositionMenuOptionValiditiesTable, subscription.PositionMenuOptionValiditiesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PositionMenuOptionValidity
+		step.Edge.Schema = schemaConfig.PositionMenuOptionValidity
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEmployeeMenuOptionOverrides chains the current query on the "employee_menu_option_overrides" edge.
+func (_q *SubscriptionQuery) QueryEmployeeMenuOptionOverrides() *EmployeeMenuOptionOverrideQuery {
+	query := (&EmployeeMenuOptionOverrideClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(employeemenuoptionoverride.Table, employeemenuoptionoverride.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.EmployeeMenuOptionOverridesTable, subscription.EmployeeMenuOptionOverridesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.EmployeeMenuOptionOverride
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Subscription entity from the query.
 // Returns a *NotFoundError when no Subscription was found.
 func (_q *SubscriptionQuery) First(ctx context.Context) (*Subscription, error) {
@@ -1121,6 +1445,18 @@ func (_q *SubscriptionQuery) Clone() *SubscriptionQuery {
 		withDepartmentAddressValidities:          _q.withDepartmentAddressValidities.Clone(),
 		withClientApplications:                   _q.withClientApplications.Clone(),
 		withDepartmentTranslations:               _q.withDepartmentTranslations.Clone(),
+		withMenuCategories:                       _q.withMenuCategories.Clone(),
+		withMenuOptions:                          _q.withMenuOptions.Clone(),
+		withMenuOptionFunctions:                  _q.withMenuOptionFunctions.Clone(),
+		withMenuOptionCategories:                 _q.withMenuOptionCategories.Clone(),
+		withTenantRoles:                          _q.withTenantRoles.Clone(),
+		withRoleMenuOptions:                      _q.withRoleMenuOptions.Clone(),
+		withUserRoleAssignments:                  _q.withUserRoleAssignments.Clone(),
+		withDepartmentMenuOptions:                _q.withDepartmentMenuOptions.Clone(),
+		withDepartmentMenuOptionValidities:       _q.withDepartmentMenuOptionValidities.Clone(),
+		withPositionMenuOptions:                  _q.withPositionMenuOptions.Clone(),
+		withPositionMenuOptionValidities:         _q.withPositionMenuOptionValidities.Clone(),
+		withEmployeeMenuOptionOverrides:          _q.withEmployeeMenuOptionOverrides.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -1468,6 +1804,138 @@ func (_q *SubscriptionQuery) WithDepartmentTranslations(opts ...func(*Department
 	return _q
 }
 
+// WithMenuCategories tells the query-builder to eager-load the nodes that are connected to
+// the "menu_categories" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithMenuCategories(opts ...func(*MenuCategoryQuery)) *SubscriptionQuery {
+	query := (&MenuCategoryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withMenuCategories = query
+	return _q
+}
+
+// WithMenuOptions tells the query-builder to eager-load the nodes that are connected to
+// the "menu_options" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithMenuOptions(opts ...func(*MenuOptionQuery)) *SubscriptionQuery {
+	query := (&MenuOptionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withMenuOptions = query
+	return _q
+}
+
+// WithMenuOptionFunctions tells the query-builder to eager-load the nodes that are connected to
+// the "menu_option_functions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithMenuOptionFunctions(opts ...func(*MenuOptionFunctionQuery)) *SubscriptionQuery {
+	query := (&MenuOptionFunctionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withMenuOptionFunctions = query
+	return _q
+}
+
+// WithMenuOptionCategories tells the query-builder to eager-load the nodes that are connected to
+// the "menu_option_categories" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithMenuOptionCategories(opts ...func(*MenuOptionCategoryQuery)) *SubscriptionQuery {
+	query := (&MenuOptionCategoryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withMenuOptionCategories = query
+	return _q
+}
+
+// WithTenantRoles tells the query-builder to eager-load the nodes that are connected to
+// the "tenant_roles" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithTenantRoles(opts ...func(*TenantRoleQuery)) *SubscriptionQuery {
+	query := (&TenantRoleClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTenantRoles = query
+	return _q
+}
+
+// WithRoleMenuOptions tells the query-builder to eager-load the nodes that are connected to
+// the "role_menu_options" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithRoleMenuOptions(opts ...func(*RoleMenuOptionQuery)) *SubscriptionQuery {
+	query := (&RoleMenuOptionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRoleMenuOptions = query
+	return _q
+}
+
+// WithUserRoleAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "user_role_assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithUserRoleAssignments(opts ...func(*UserRoleAssignmentQuery)) *SubscriptionQuery {
+	query := (&UserRoleAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUserRoleAssignments = query
+	return _q
+}
+
+// WithDepartmentMenuOptions tells the query-builder to eager-load the nodes that are connected to
+// the "department_menu_options" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithDepartmentMenuOptions(opts ...func(*DepartmentMenuOptionQuery)) *SubscriptionQuery {
+	query := (&DepartmentMenuOptionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentMenuOptions = query
+	return _q
+}
+
+// WithDepartmentMenuOptionValidities tells the query-builder to eager-load the nodes that are connected to
+// the "department_menu_option_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithDepartmentMenuOptionValidities(opts ...func(*DepartmentMenuOptionValidityQuery)) *SubscriptionQuery {
+	query := (&DepartmentMenuOptionValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentMenuOptionValidities = query
+	return _q
+}
+
+// WithPositionMenuOptions tells the query-builder to eager-load the nodes that are connected to
+// the "position_menu_options" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithPositionMenuOptions(opts ...func(*PositionMenuOptionQuery)) *SubscriptionQuery {
+	query := (&PositionMenuOptionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPositionMenuOptions = query
+	return _q
+}
+
+// WithPositionMenuOptionValidities tells the query-builder to eager-load the nodes that are connected to
+// the "position_menu_option_validities" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithPositionMenuOptionValidities(opts ...func(*PositionMenuOptionValidityQuery)) *SubscriptionQuery {
+	query := (&PositionMenuOptionValidityClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPositionMenuOptionValidities = query
+	return _q
+}
+
+// WithEmployeeMenuOptionOverrides tells the query-builder to eager-load the nodes that are connected to
+// the "employee_menu_option_overrides" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithEmployeeMenuOptionOverrides(opts ...func(*EmployeeMenuOptionOverrideQuery)) *SubscriptionQuery {
+	query := (&EmployeeMenuOptionOverrideClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEmployeeMenuOptionOverrides = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -1546,7 +2014,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Subscription{}
 		_spec       = _q.querySpec()
-		loadedTypes = [31]bool{
+		loadedTypes = [43]bool{
 			_q.withParties != nil,
 			_q.withPersonProfiles != nil,
 			_q.withOrganizationProfiles != nil,
@@ -1578,6 +2046,18 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withDepartmentAddressValidities != nil,
 			_q.withClientApplications != nil,
 			_q.withDepartmentTranslations != nil,
+			_q.withMenuCategories != nil,
+			_q.withMenuOptions != nil,
+			_q.withMenuOptionFunctions != nil,
+			_q.withMenuOptionCategories != nil,
+			_q.withTenantRoles != nil,
+			_q.withRoleMenuOptions != nil,
+			_q.withUserRoleAssignments != nil,
+			_q.withDepartmentMenuOptions != nil,
+			_q.withDepartmentMenuOptionValidities != nil,
+			_q.withPositionMenuOptions != nil,
+			_q.withPositionMenuOptionValidities != nil,
+			_q.withEmployeeMenuOptionOverrides != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -1853,6 +2333,106 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Subscription) { n.Edges.DepartmentTranslations = []*DepartmentTranslation{} },
 			func(n *Subscription, e *DepartmentTranslation) {
 				n.Edges.DepartmentTranslations = append(n.Edges.DepartmentTranslations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withMenuCategories; query != nil {
+		if err := _q.loadMenuCategories(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.MenuCategories = []*MenuCategory{} },
+			func(n *Subscription, e *MenuCategory) { n.Edges.MenuCategories = append(n.Edges.MenuCategories, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withMenuOptions; query != nil {
+		if err := _q.loadMenuOptions(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.MenuOptions = []*MenuOption{} },
+			func(n *Subscription, e *MenuOption) { n.Edges.MenuOptions = append(n.Edges.MenuOptions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withMenuOptionFunctions; query != nil {
+		if err := _q.loadMenuOptionFunctions(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.MenuOptionFunctions = []*MenuOptionFunction{} },
+			func(n *Subscription, e *MenuOptionFunction) {
+				n.Edges.MenuOptionFunctions = append(n.Edges.MenuOptionFunctions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withMenuOptionCategories; query != nil {
+		if err := _q.loadMenuOptionCategories(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.MenuOptionCategories = []*MenuOptionCategory{} },
+			func(n *Subscription, e *MenuOptionCategory) {
+				n.Edges.MenuOptionCategories = append(n.Edges.MenuOptionCategories, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTenantRoles; query != nil {
+		if err := _q.loadTenantRoles(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.TenantRoles = []*TenantRole{} },
+			func(n *Subscription, e *TenantRole) { n.Edges.TenantRoles = append(n.Edges.TenantRoles, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRoleMenuOptions; query != nil {
+		if err := _q.loadRoleMenuOptions(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.RoleMenuOptions = []*RoleMenuOption{} },
+			func(n *Subscription, e *RoleMenuOption) { n.Edges.RoleMenuOptions = append(n.Edges.RoleMenuOptions, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUserRoleAssignments; query != nil {
+		if err := _q.loadUserRoleAssignments(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.UserRoleAssignments = []*UserRoleAssignment{} },
+			func(n *Subscription, e *UserRoleAssignment) {
+				n.Edges.UserRoleAssignments = append(n.Edges.UserRoleAssignments, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDepartmentMenuOptions; query != nil {
+		if err := _q.loadDepartmentMenuOptions(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.DepartmentMenuOptions = []*DepartmentMenuOption{} },
+			func(n *Subscription, e *DepartmentMenuOption) {
+				n.Edges.DepartmentMenuOptions = append(n.Edges.DepartmentMenuOptions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDepartmentMenuOptionValidities; query != nil {
+		if err := _q.loadDepartmentMenuOptionValidities(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.DepartmentMenuOptionValidities = []*DepartmentMenuOptionValidity{} },
+			func(n *Subscription, e *DepartmentMenuOptionValidity) {
+				n.Edges.DepartmentMenuOptionValidities = append(n.Edges.DepartmentMenuOptionValidities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPositionMenuOptions; query != nil {
+		if err := _q.loadPositionMenuOptions(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.PositionMenuOptions = []*PositionMenuOption{} },
+			func(n *Subscription, e *PositionMenuOption) {
+				n.Edges.PositionMenuOptions = append(n.Edges.PositionMenuOptions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPositionMenuOptionValidities; query != nil {
+		if err := _q.loadPositionMenuOptionValidities(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.PositionMenuOptionValidities = []*PositionMenuOptionValidity{} },
+			func(n *Subscription, e *PositionMenuOptionValidity) {
+				n.Edges.PositionMenuOptionValidities = append(n.Edges.PositionMenuOptionValidities, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEmployeeMenuOptionOverrides; query != nil {
+		if err := _q.loadEmployeeMenuOptionOverrides(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.EmployeeMenuOptionOverrides = []*EmployeeMenuOptionOverride{} },
+			func(n *Subscription, e *EmployeeMenuOptionOverride) {
+				n.Edges.EmployeeMenuOptionOverrides = append(n.Edges.EmployeeMenuOptionOverrides, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -2781,6 +3361,366 @@ func (_q *SubscriptionQuery) loadDepartmentTranslations(ctx context.Context, que
 	}
 	query.Where(predicate.DepartmentTranslation(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(subscription.DepartmentTranslationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadMenuCategories(ctx context.Context, query *MenuCategoryQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *MenuCategory)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(menucategory.FieldTenantID)
+	}
+	query.Where(predicate.MenuCategory(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.MenuCategoriesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadMenuOptions(ctx context.Context, query *MenuOptionQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *MenuOption)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(menuoption.FieldTenantID)
+	}
+	query.Where(predicate.MenuOption(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.MenuOptionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadMenuOptionFunctions(ctx context.Context, query *MenuOptionFunctionQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *MenuOptionFunction)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(menuoptionfunction.FieldTenantID)
+	}
+	query.Where(predicate.MenuOptionFunction(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.MenuOptionFunctionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadMenuOptionCategories(ctx context.Context, query *MenuOptionCategoryQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *MenuOptionCategory)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(menuoptioncategory.FieldTenantID)
+	}
+	query.Where(predicate.MenuOptionCategory(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.MenuOptionCategoriesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadTenantRoles(ctx context.Context, query *TenantRoleQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *TenantRole)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(tenantrole.FieldTenantID)
+	}
+	query.Where(predicate.TenantRole(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.TenantRolesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadRoleMenuOptions(ctx context.Context, query *RoleMenuOptionQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *RoleMenuOption)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(rolemenuoption.FieldTenantID)
+	}
+	query.Where(predicate.RoleMenuOption(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.RoleMenuOptionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadUserRoleAssignments(ctx context.Context, query *UserRoleAssignmentQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *UserRoleAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userroleassignment.FieldTenantID)
+	}
+	query.Where(predicate.UserRoleAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.UserRoleAssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadDepartmentMenuOptions(ctx context.Context, query *DepartmentMenuOptionQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *DepartmentMenuOption)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentmenuoption.FieldTenantID)
+	}
+	query.Where(predicate.DepartmentMenuOption(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.DepartmentMenuOptionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadDepartmentMenuOptionValidities(ctx context.Context, query *DepartmentMenuOptionValidityQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *DepartmentMenuOptionValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmentmenuoptionvalidity.FieldTenantID)
+	}
+	query.Where(predicate.DepartmentMenuOptionValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.DepartmentMenuOptionValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadPositionMenuOptions(ctx context.Context, query *PositionMenuOptionQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *PositionMenuOption)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(positionmenuoption.FieldTenantID)
+	}
+	query.Where(predicate.PositionMenuOption(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.PositionMenuOptionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadPositionMenuOptionValidities(ctx context.Context, query *PositionMenuOptionValidityQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *PositionMenuOptionValidity)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(positionmenuoptionvalidity.FieldTenantID)
+	}
+	query.Where(predicate.PositionMenuOptionValidity(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.PositionMenuOptionValiditiesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadEmployeeMenuOptionOverrides(ctx context.Context, query *EmployeeMenuOptionOverrideQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *EmployeeMenuOptionOverride)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(employeemenuoptionoverride.FieldTenantID)
+	}
+	query.Where(predicate.EmployeeMenuOptionOverride(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.EmployeeMenuOptionOverridesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

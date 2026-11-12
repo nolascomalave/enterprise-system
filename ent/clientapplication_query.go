@@ -4,10 +4,12 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"enterprise-system/ent/clientapplication"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/tenantrole"
 	"fmt"
 	"math"
 
@@ -21,11 +23,12 @@ import (
 // ClientApplicationQuery is the builder for querying ClientApplication entities.
 type ClientApplicationQuery struct {
 	config
-	ctx        *QueryContext
-	order      []clientapplication.OrderOption
-	inters     []Interceptor
-	predicates []predicate.ClientApplication
-	withTenant *SubscriptionQuery
+	ctx             *QueryContext
+	order           []clientapplication.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.ClientApplication
+	withTenant      *SubscriptionQuery
+	withTenantRoles *TenantRoleQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -81,6 +84,31 @@ func (_q *ClientApplicationQuery) QueryTenant() *SubscriptionQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.Subscription
 		step.Edge.Schema = schemaConfig.ClientApplication
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTenantRoles chains the current query on the "tenant_roles" edge.
+func (_q *ClientApplicationQuery) QueryTenantRoles() *TenantRoleQuery {
+	query := (&TenantRoleClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clientapplication.Table, clientapplication.FieldID, selector),
+			sqlgraph.To(tenantrole.Table, tenantrole.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clientapplication.TenantRolesTable, clientapplication.TenantRolesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.TenantRole
+		step.Edge.Schema = schemaConfig.TenantRole
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -274,12 +302,13 @@ func (_q *ClientApplicationQuery) Clone() *ClientApplicationQuery {
 		return nil
 	}
 	return &ClientApplicationQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]clientapplication.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.ClientApplication{}, _q.predicates...),
-		withTenant: _q.withTenant.Clone(),
+		config:          _q.config,
+		ctx:             _q.ctx.Clone(),
+		order:           append([]clientapplication.OrderOption{}, _q.order...),
+		inters:          append([]Interceptor{}, _q.inters...),
+		predicates:      append([]predicate.ClientApplication{}, _q.predicates...),
+		withTenant:      _q.withTenant.Clone(),
+		withTenantRoles: _q.withTenantRoles.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -294,6 +323,17 @@ func (_q *ClientApplicationQuery) WithTenant(opts ...func(*SubscriptionQuery)) *
 		opt(query)
 	}
 	_q.withTenant = query
+	return _q
+}
+
+// WithTenantRoles tells the query-builder to eager-load the nodes that are connected to
+// the "tenant_roles" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ClientApplicationQuery) WithTenantRoles(opts ...func(*TenantRoleQuery)) *ClientApplicationQuery {
+	query := (&TenantRoleClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTenantRoles = query
 	return _q
 }
 
@@ -375,8 +415,9 @@ func (_q *ClientApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*ClientApplication{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withTenant != nil,
+			_q.withTenantRoles != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -402,6 +443,13 @@ func (_q *ClientApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	if query := _q.withTenant; query != nil {
 		if err := _q.loadTenant(ctx, query, nodes, nil,
 			func(n *ClientApplication, e *Subscription) { n.Edges.Tenant = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTenantRoles; query != nil {
+		if err := _q.loadTenantRoles(ctx, query, nodes,
+			func(n *ClientApplication) { n.Edges.TenantRoles = []*TenantRole{} },
+			func(n *ClientApplication, e *TenantRole) { n.Edges.TenantRoles = append(n.Edges.TenantRoles, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -437,6 +485,39 @@ func (_q *ClientApplicationQuery) loadTenant(ctx context.Context, query *Subscri
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *ClientApplicationQuery) loadTenantRoles(ctx context.Context, query *TenantRoleQuery, nodes []*ClientApplication, init func(*ClientApplication), assign func(*ClientApplication, *TenantRole)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*ClientApplication)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(tenantrole.FieldClientApplicationID)
+	}
+	query.Where(predicate.TenantRole(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(clientapplication.TenantRolesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ClientApplicationID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "client_application_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "client_application_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

@@ -4,12 +4,14 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
+	"enterprise-system/ent/userroleassignment"
 	"fmt"
 	"math"
 
@@ -30,6 +32,7 @@ type UserCredentialsQuery struct {
 	withTenant                *SubscriptionQuery
 	withParty                 *PartyQuery
 	withPartyContactMechanism *PartyContactMechanismQuery
+	withUserRoleAssignments   *UserRoleAssignmentQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -135,6 +138,31 @@ func (_q *UserCredentialsQuery) QueryPartyContactMechanism() *PartyContactMechan
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.PartyContactMechanism
 		step.Edge.Schema = schemaConfig.UserCredentials
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserRoleAssignments chains the current query on the "user_role_assignments" edge.
+func (_q *UserCredentialsQuery) QueryUserRoleAssignments() *UserRoleAssignmentQuery {
+	query := (&UserRoleAssignmentClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usercredentials.Table, usercredentials.FieldID, selector),
+			sqlgraph.To(userroleassignment.Table, userroleassignment.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, usercredentials.UserRoleAssignmentsTable, usercredentials.UserRoleAssignmentsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.UserRoleAssignment
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -336,6 +364,7 @@ func (_q *UserCredentialsQuery) Clone() *UserCredentialsQuery {
 		withTenant:                _q.withTenant.Clone(),
 		withParty:                 _q.withParty.Clone(),
 		withPartyContactMechanism: _q.withPartyContactMechanism.Clone(),
+		withUserRoleAssignments:   _q.withUserRoleAssignments.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -372,6 +401,17 @@ func (_q *UserCredentialsQuery) WithPartyContactMechanism(opts ...func(*PartyCon
 		opt(query)
 	}
 	_q.withPartyContactMechanism = query
+	return _q
+}
+
+// WithUserRoleAssignments tells the query-builder to eager-load the nodes that are connected to
+// the "user_role_assignments" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserCredentialsQuery) WithUserRoleAssignments(opts ...func(*UserRoleAssignmentQuery)) *UserCredentialsQuery {
+	query := (&UserRoleAssignmentClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUserRoleAssignments = query
 	return _q
 }
 
@@ -453,10 +493,11 @@ func (_q *UserCredentialsQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*UserCredentials{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withTenant != nil,
 			_q.withParty != nil,
 			_q.withPartyContactMechanism != nil,
+			_q.withUserRoleAssignments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -494,6 +535,15 @@ func (_q *UserCredentialsQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if query := _q.withPartyContactMechanism; query != nil {
 		if err := _q.loadPartyContactMechanism(ctx, query, nodes, nil,
 			func(n *UserCredentials, e *PartyContactMechanism) { n.Edges.PartyContactMechanism = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUserRoleAssignments; query != nil {
+		if err := _q.loadUserRoleAssignments(ctx, query, nodes,
+			func(n *UserCredentials) { n.Edges.UserRoleAssignments = []*UserRoleAssignment{} },
+			func(n *UserCredentials, e *UserRoleAssignment) {
+				n.Edges.UserRoleAssignments = append(n.Edges.UserRoleAssignments, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -584,6 +634,36 @@ func (_q *UserCredentialsQuery) loadPartyContactMechanism(ctx context.Context, q
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (_q *UserCredentialsQuery) loadUserRoleAssignments(ctx context.Context, query *UserRoleAssignmentQuery, nodes []*UserCredentials, init func(*UserCredentials), assign func(*UserCredentials, *UserRoleAssignment)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*UserCredentials)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userroleassignment.FieldUserCredentialsID)
+	}
+	query.Where(predicate.UserRoleAssignment(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(usercredentials.UserRoleAssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserCredentialsID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_credentials_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/employeemenuoptionoverride"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/subscription"
 	"errors"
@@ -211,6 +212,21 @@ func (_c *EmployeeCreate) AddAssignments(v ...*EmployeeAssignment) *EmployeeCrea
 		ids[i] = v[i].ID
 	}
 	return _c.AddAssignmentIDs(ids...)
+}
+
+// AddEmployeeMenuOptionOverrideIDs adds the "employee_menu_option_overrides" edge to the EmployeeMenuOptionOverride entity by IDs.
+func (_c *EmployeeCreate) AddEmployeeMenuOptionOverrideIDs(ids ...uuid.UUID) *EmployeeCreate {
+	_c.mutation.AddEmployeeMenuOptionOverrideIDs(ids...)
+	return _c
+}
+
+// AddEmployeeMenuOptionOverrides adds the "employee_menu_option_overrides" edges to the EmployeeMenuOptionOverride entity.
+func (_c *EmployeeCreate) AddEmployeeMenuOptionOverrides(v ...*EmployeeMenuOptionOverride) *EmployeeCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddEmployeeMenuOptionOverrideIDs(ids...)
 }
 
 // Mutation returns the EmployeeMutation object of the builder.
@@ -480,6 +496,23 @@ func (_c *EmployeeCreate) createSpec() (*Employee, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.EmployeeAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.EmployeeMenuOptionOverridesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   employee.EmployeeMenuOptionOverridesTable,
+			Columns: []string{employee.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.EmployeeMenuOptionOverride
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
