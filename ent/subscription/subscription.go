@@ -88,6 +88,8 @@ const (
 	EdgeDepartmentAddressValidities = "department_address_validities"
 	// EdgeClientApplications holds the string denoting the client_applications edge name in mutations.
 	EdgeClientApplications = "client_applications"
+	// EdgeDepartmentTranslations holds the string denoting the department_translations edge name in mutations.
+	EdgeDepartmentTranslations = "department_translations"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the subscription in the database.
@@ -302,6 +304,13 @@ const (
 	ClientApplicationsInverseTable = "client_applications"
 	// ClientApplicationsColumn is the table column denoting the client_applications relation/edge.
 	ClientApplicationsColumn = "tenant_id"
+	// DepartmentTranslationsTable is the table that holds the department_translations relation/edge.
+	DepartmentTranslationsTable = "department_translations"
+	// DepartmentTranslationsInverseTable is the table name for the DepartmentTranslation entity.
+	// It exists in this package in order to avoid circular dependency with the "departmenttranslation" package.
+	DepartmentTranslationsInverseTable = "department_translations"
+	// DepartmentTranslationsColumn is the table column denoting the department_translations relation/edge.
+	DepartmentTranslationsColumn = "tenant_id"
 )
 
 // Columns holds all SQL columns for subscription fields.
@@ -824,6 +833,20 @@ func ByClientApplications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 		sqlgraph.OrderByNeighborTerms(s, newClientApplicationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByDepartmentTranslationsCount orders the results by department_translations count.
+func ByDepartmentTranslationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentTranslationsStep(), opts...)
+	}
+}
+
+// ByDepartmentTranslations orders the results by department_translations terms.
+func ByDepartmentTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPartiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1032,5 +1055,12 @@ func newClientApplicationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ClientApplicationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ClientApplicationsTable, ClientApplicationsColumn),
+	)
+}
+func newDepartmentTranslationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentTranslationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentTranslationsTable, DepartmentTranslationsColumn),
 	)
 }

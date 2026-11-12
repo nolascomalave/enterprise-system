@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/identitydocumenttype"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/partyidentitydocument"
 	"errors"
 	"fmt"
@@ -28,12 +29,6 @@ type IdentityDocumentTypeCreate struct {
 // SetCode sets the "code" field.
 func (_c *IdentityDocumentTypeCreate) SetCode(v string) *IdentityDocumentTypeCreate {
 	_c.mutation.SetCode(v)
-	return _c
-}
-
-// SetName sets the "name" field.
-func (_c *IdentityDocumentTypeCreate) SetName(v string) *IdentityDocumentTypeCreate {
-	_c.mutation.SetName(v)
 	return _c
 }
 
@@ -108,6 +103,21 @@ func (_c *IdentityDocumentTypeCreate) AddDocuments(v ...*PartyIdentityDocument) 
 	return _c.AddDocumentIDs(ids...)
 }
 
+// AddTranslationIDs adds the "translations" edge to the IdentityDocumentTypeTranslation entity by IDs.
+func (_c *IdentityDocumentTypeCreate) AddTranslationIDs(ids ...uuid.UUID) *IdentityDocumentTypeCreate {
+	_c.mutation.AddTranslationIDs(ids...)
+	return _c
+}
+
+// AddTranslations adds the "translations" edges to the IdentityDocumentTypeTranslation entity.
+func (_c *IdentityDocumentTypeCreate) AddTranslations(v ...*IdentityDocumentTypeTranslation) *IdentityDocumentTypeCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the IdentityDocumentTypeMutation object of the builder.
 func (_c *IdentityDocumentTypeCreate) Mutation() *IdentityDocumentTypeMutation {
 	return _c.mutation
@@ -171,14 +181,6 @@ func (_c *IdentityDocumentTypeCreate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "IdentityDocumentType.code": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "IdentityDocumentType.name"`)}
-	}
-	if v, ok := _c.mutation.Name(); ok {
-		if err := identitydocumenttype.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "IdentityDocumentType.name": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Scope(); !ok {
 		return &ValidationError{Name: "scope", err: errors.New(`ent: missing required field "IdentityDocumentType.scope"`)}
 	}
@@ -228,10 +230,6 @@ func (_c *IdentityDocumentTypeCreate) createSpec() (*IdentityDocumentType, *sqlg
 		_spec.SetField(identitydocumenttype.FieldCode, field.TypeString, value)
 		_node.Code = value
 	}
-	if value, ok := _c.mutation.Name(); ok {
-		_spec.SetField(identitydocumenttype.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
 	if value, ok := _c.mutation.Scope(); ok {
 		_spec.SetField(identitydocumenttype.FieldScope, field.TypeEnum, value)
 		_node.Scope = value
@@ -256,6 +254,23 @@ func (_c *IdentityDocumentTypeCreate) createSpec() (*IdentityDocumentType, *sqlg
 			},
 		}
 		edge.Schema = _c.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   identitydocumenttype.TranslationsTable,
+			Columns: []string{identitydocumenttype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.IdentityDocumentTypeTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -322,18 +337,6 @@ func (u *IdentityDocumentTypeUpsert) SetCode(v string) *IdentityDocumentTypeUpse
 // UpdateCode sets the "code" field to the value that was provided on create.
 func (u *IdentityDocumentTypeUpsert) UpdateCode() *IdentityDocumentTypeUpsert {
 	u.SetExcluded(identitydocumenttype.FieldCode)
-	return u
-}
-
-// SetName sets the "name" field.
-func (u *IdentityDocumentTypeUpsert) SetName(v string) *IdentityDocumentTypeUpsert {
-	u.Set(identitydocumenttype.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *IdentityDocumentTypeUpsert) UpdateName() *IdentityDocumentTypeUpsert {
-	u.SetExcluded(identitydocumenttype.FieldName)
 	return u
 }
 
@@ -423,20 +426,6 @@ func (u *IdentityDocumentTypeUpsertOne) SetCode(v string) *IdentityDocumentTypeU
 func (u *IdentityDocumentTypeUpsertOne) UpdateCode() *IdentityDocumentTypeUpsertOne {
 	return u.Update(func(s *IdentityDocumentTypeUpsert) {
 		s.UpdateCode()
-	})
-}
-
-// SetName sets the "name" field.
-func (u *IdentityDocumentTypeUpsertOne) SetName(v string) *IdentityDocumentTypeUpsertOne {
-	return u.Update(func(s *IdentityDocumentTypeUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *IdentityDocumentTypeUpsertOne) UpdateName() *IdentityDocumentTypeUpsertOne {
-	return u.Update(func(s *IdentityDocumentTypeUpsert) {
-		s.UpdateName()
 	})
 }
 
@@ -697,20 +686,6 @@ func (u *IdentityDocumentTypeUpsertBulk) SetCode(v string) *IdentityDocumentType
 func (u *IdentityDocumentTypeUpsertBulk) UpdateCode() *IdentityDocumentTypeUpsertBulk {
 	return u.Update(func(s *IdentityDocumentTypeUpsert) {
 		s.UpdateCode()
-	})
-}
-
-// SetName sets the "name" field.
-func (u *IdentityDocumentTypeUpsertBulk) SetName(v string) *IdentityDocumentTypeUpsertBulk {
-	return u.Update(func(s *IdentityDocumentTypeUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *IdentityDocumentTypeUpsertBulk) UpdateName() *IdentityDocumentTypeUpsertBulk {
-	return u.Update(func(s *IdentityDocumentTypeUpsert) {
-		s.UpdateName()
 	})
 }
 

@@ -31,11 +31,12 @@ type OrgStructureUseCase interface {
 }
 
 type OrgHandler struct {
-	uc OrgStructureUseCase
+	uc      OrgStructureUseCase
+	catalog CatalogUseCase
 }
 
-func NewOrgHandler(uc OrgStructureUseCase) *OrgHandler {
-	return &OrgHandler{uc: uc}
+func NewOrgHandler(uc OrgStructureUseCase, catalog CatalogUseCase) *OrgHandler {
+	return &OrgHandler{uc: uc, catalog: catalog}
 }
 
 func (h *OrgHandler) session(c *gin.Context) (enttenant.SessionContext, bool) {
@@ -231,6 +232,15 @@ func (h *OrgHandler) CreateDepartment(c *gin.Context) {
 // @Router       /departments [get]
 func (h *OrgHandler) ListDepartments(c *gin.Context) {
 	if _, ok := h.session(c); !ok {
+		return
+	}
+	if h.catalog != nil {
+		departments, err := h.catalog.ListDepartments(c.Request.Context(), LocaleFromContext(c.Request.Context()))
+		if err != nil {
+			c.Error(err)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"data": dto.NewLocalizedDepartmentListResponse(departments)})
 		return
 	}
 	departments, err := h.uc.ListDepartments(c.Request.Context())

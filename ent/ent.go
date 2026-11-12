@@ -16,9 +16,11 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/identitydocumenttype"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
 	"enterprise-system/ent/locale"
@@ -39,6 +41,7 @@ import (
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
 	"enterprise-system/ent/roletype"
+	"enterprise-system/ent/roletypetranslation"
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
@@ -122,9 +125,11 @@ func checkColumn(t, c string) error {
 			departmentcontactmechanism.Table:         departmentcontactmechanism.ValidColumn,
 			departmentcontactmechanismvalidity.Table: departmentcontactmechanismvalidity.ValidColumn,
 			departmentgroupassignment.Table:          departmentgroupassignment.ValidColumn,
+			departmenttranslation.Table:              departmenttranslation.ValidColumn,
 			employee.Table:                           employee.ValidColumn,
 			employeeassignment.Table:                 employeeassignment.ValidColumn,
 			identitydocumenttype.Table:               identitydocumenttype.ValidColumn,
+			identitydocumenttypetranslation.Table:    identitydocumenttypetranslation.ValidColumn,
 			job.Table:                                job.ValidColumn,
 			jobfamily.Table:                          jobfamily.ValidColumn,
 			locale.Table:                             locale.ValidColumn,
@@ -145,6 +150,7 @@ func checkColumn(t, c string) error {
 			passwordresettoken.Table:                 passwordresettoken.ValidColumn,
 			personprofile.Table:                      personprofile.ValidColumn,
 			roletype.Table:                           roletype.ValidColumn,
+			roletypetranslation.Table:                roletypetranslation.ValidColumn,
 			session.Table:                            session.ValidColumn,
 			subscription.Table:                       subscription.ValidColumn,
 			usercredentials.Table:                    usercredentials.ValidColumn,

@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"enterprise-system/ent/identitydocumenttype"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/partyidentitydocument"
 	"enterprise-system/ent/predicate"
@@ -45,20 +46,6 @@ func (_u *IdentityDocumentTypeUpdate) SetNillableCode(v *string) *IdentityDocume
 	return _u
 }
 
-// SetName sets the "name" field.
-func (_u *IdentityDocumentTypeUpdate) SetName(v string) *IdentityDocumentTypeUpdate {
-	_u.mutation.SetName(v)
-	return _u
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (_u *IdentityDocumentTypeUpdate) SetNillableName(v *string) *IdentityDocumentTypeUpdate {
-	if v != nil {
-		_u.SetName(*v)
-	}
-	return _u
-}
-
 // SetScope sets the "scope" field.
 func (_u *IdentityDocumentTypeUpdate) SetScope(v identitydocumenttype.Scope) *IdentityDocumentTypeUpdate {
 	_u.mutation.SetScope(v)
@@ -94,6 +81,21 @@ func (_u *IdentityDocumentTypeUpdate) AddDocuments(v ...*PartyIdentityDocument) 
 	return _u.AddDocumentIDs(ids...)
 }
 
+// AddTranslationIDs adds the "translations" edge to the IdentityDocumentTypeTranslation entity by IDs.
+func (_u *IdentityDocumentTypeUpdate) AddTranslationIDs(ids ...uuid.UUID) *IdentityDocumentTypeUpdate {
+	_u.mutation.AddTranslationIDs(ids...)
+	return _u
+}
+
+// AddTranslations adds the "translations" edges to the IdentityDocumentTypeTranslation entity.
+func (_u *IdentityDocumentTypeUpdate) AddTranslations(v ...*IdentityDocumentTypeTranslation) *IdentityDocumentTypeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the IdentityDocumentTypeMutation object of the builder.
 func (_u *IdentityDocumentTypeUpdate) Mutation() *IdentityDocumentTypeMutation {
 	return _u.mutation
@@ -118,6 +120,27 @@ func (_u *IdentityDocumentTypeUpdate) RemoveDocuments(v ...*PartyIdentityDocumen
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveDocumentIDs(ids...)
+}
+
+// ClearTranslations clears all "translations" edges to the IdentityDocumentTypeTranslation entity.
+func (_u *IdentityDocumentTypeUpdate) ClearTranslations() *IdentityDocumentTypeUpdate {
+	_u.mutation.ClearTranslations()
+	return _u
+}
+
+// RemoveTranslationIDs removes the "translations" edge to IdentityDocumentTypeTranslation entities by IDs.
+func (_u *IdentityDocumentTypeUpdate) RemoveTranslationIDs(ids ...uuid.UUID) *IdentityDocumentTypeUpdate {
+	_u.mutation.RemoveTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveTranslations removes "translations" edges to IdentityDocumentTypeTranslation entities.
+func (_u *IdentityDocumentTypeUpdate) RemoveTranslations(v ...*IdentityDocumentTypeTranslation) *IdentityDocumentTypeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTranslationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -163,11 +186,6 @@ func (_u *IdentityDocumentTypeUpdate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "IdentityDocumentType.code": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Name(); ok {
-		if err := identitydocumenttype.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "IdentityDocumentType.name": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Scope(); ok {
 		if err := identitydocumenttype.ScopeValidator(v); err != nil {
 			return &ValidationError{Name: "scope", err: fmt.Errorf(`ent: validator failed for field "IdentityDocumentType.scope": %w`, err)}
@@ -190,9 +208,6 @@ func (_u *IdentityDocumentTypeUpdate) sqlSave(ctx context.Context) (_node int, e
 	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(identitydocumenttype.FieldCode, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Name(); ok {
-		_spec.SetField(identitydocumenttype.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Scope(); ok {
 		_spec.SetField(identitydocumenttype.FieldScope, field.TypeEnum, value)
@@ -248,6 +263,54 @@ func (_u *IdentityDocumentTypeUpdate) sqlSave(ctx context.Context) (_node int, e
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   identitydocumenttype.TranslationsTable,
+			Columns: []string{identitydocumenttype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTranslationsIDs(); len(nodes) > 0 && !_u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   identitydocumenttype.TranslationsTable,
+			Columns: []string{identitydocumenttype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   identitydocumenttype.TranslationsTable,
+			Columns: []string{identitydocumenttype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.IdentityDocumentType
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -280,20 +343,6 @@ func (_u *IdentityDocumentTypeUpdateOne) SetCode(v string) *IdentityDocumentType
 func (_u *IdentityDocumentTypeUpdateOne) SetNillableCode(v *string) *IdentityDocumentTypeUpdateOne {
 	if v != nil {
 		_u.SetCode(*v)
-	}
-	return _u
-}
-
-// SetName sets the "name" field.
-func (_u *IdentityDocumentTypeUpdateOne) SetName(v string) *IdentityDocumentTypeUpdateOne {
-	_u.mutation.SetName(v)
-	return _u
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (_u *IdentityDocumentTypeUpdateOne) SetNillableName(v *string) *IdentityDocumentTypeUpdateOne {
-	if v != nil {
-		_u.SetName(*v)
 	}
 	return _u
 }
@@ -333,6 +382,21 @@ func (_u *IdentityDocumentTypeUpdateOne) AddDocuments(v ...*PartyIdentityDocumen
 	return _u.AddDocumentIDs(ids...)
 }
 
+// AddTranslationIDs adds the "translations" edge to the IdentityDocumentTypeTranslation entity by IDs.
+func (_u *IdentityDocumentTypeUpdateOne) AddTranslationIDs(ids ...uuid.UUID) *IdentityDocumentTypeUpdateOne {
+	_u.mutation.AddTranslationIDs(ids...)
+	return _u
+}
+
+// AddTranslations adds the "translations" edges to the IdentityDocumentTypeTranslation entity.
+func (_u *IdentityDocumentTypeUpdateOne) AddTranslations(v ...*IdentityDocumentTypeTranslation) *IdentityDocumentTypeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the IdentityDocumentTypeMutation object of the builder.
 func (_u *IdentityDocumentTypeUpdateOne) Mutation() *IdentityDocumentTypeMutation {
 	return _u.mutation
@@ -357,6 +421,27 @@ func (_u *IdentityDocumentTypeUpdateOne) RemoveDocuments(v ...*PartyIdentityDocu
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveDocumentIDs(ids...)
+}
+
+// ClearTranslations clears all "translations" edges to the IdentityDocumentTypeTranslation entity.
+func (_u *IdentityDocumentTypeUpdateOne) ClearTranslations() *IdentityDocumentTypeUpdateOne {
+	_u.mutation.ClearTranslations()
+	return _u
+}
+
+// RemoveTranslationIDs removes the "translations" edge to IdentityDocumentTypeTranslation entities by IDs.
+func (_u *IdentityDocumentTypeUpdateOne) RemoveTranslationIDs(ids ...uuid.UUID) *IdentityDocumentTypeUpdateOne {
+	_u.mutation.RemoveTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveTranslations removes "translations" edges to IdentityDocumentTypeTranslation entities.
+func (_u *IdentityDocumentTypeUpdateOne) RemoveTranslations(v ...*IdentityDocumentTypeTranslation) *IdentityDocumentTypeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTranslationIDs(ids...)
 }
 
 // Where appends a list predicates to the IdentityDocumentTypeUpdate builder.
@@ -415,11 +500,6 @@ func (_u *IdentityDocumentTypeUpdateOne) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "IdentityDocumentType.code": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Name(); ok {
-		if err := identitydocumenttype.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "IdentityDocumentType.name": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Scope(); ok {
 		if err := identitydocumenttype.ScopeValidator(v); err != nil {
 			return &ValidationError{Name: "scope", err: fmt.Errorf(`ent: validator failed for field "IdentityDocumentType.scope": %w`, err)}
@@ -459,9 +539,6 @@ func (_u *IdentityDocumentTypeUpdateOne) sqlSave(ctx context.Context) (_node *Id
 	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(identitydocumenttype.FieldCode, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Name(); ok {
-		_spec.SetField(identitydocumenttype.FieldName, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Scope(); ok {
 		_spec.SetField(identitydocumenttype.FieldScope, field.TypeEnum, value)
@@ -512,6 +589,54 @@ func (_u *IdentityDocumentTypeUpdateOne) sqlSave(ctx context.Context) (_node *Id
 			},
 		}
 		edge.Schema = _u.schemaConfig.PartyIdentityDocument
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   identitydocumenttype.TranslationsTable,
+			Columns: []string{identitydocumenttype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTranslationsIDs(); len(nodes) > 0 && !_u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   identitydocumenttype.TranslationsTable,
+			Columns: []string{identitydocumenttype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   identitydocumenttype.TranslationsTable,
+			Columns: []string{identitydocumenttype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

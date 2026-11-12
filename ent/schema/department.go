@@ -91,6 +91,8 @@ func (Department) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("address_validities", DepartmentAddressValidity.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("translations", DepartmentTranslation.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

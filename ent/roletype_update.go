@@ -8,6 +8,7 @@ import (
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/roletype"
+	"enterprise-system/ent/roletypetranslation"
 	"errors"
 	"fmt"
 	"time"
@@ -42,40 +43,6 @@ func (_u *RoleTypeUpdate) SetNillableCode(v *string) *RoleTypeUpdate {
 	if v != nil {
 		_u.SetCode(*v)
 	}
-	return _u
-}
-
-// SetName sets the "name" field.
-func (_u *RoleTypeUpdate) SetName(v string) *RoleTypeUpdate {
-	_u.mutation.SetName(v)
-	return _u
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (_u *RoleTypeUpdate) SetNillableName(v *string) *RoleTypeUpdate {
-	if v != nil {
-		_u.SetName(*v)
-	}
-	return _u
-}
-
-// SetDescription sets the "description" field.
-func (_u *RoleTypeUpdate) SetDescription(v string) *RoleTypeUpdate {
-	_u.mutation.SetDescription(v)
-	return _u
-}
-
-// SetNillableDescription sets the "description" field if the given value is not nil.
-func (_u *RoleTypeUpdate) SetNillableDescription(v *string) *RoleTypeUpdate {
-	if v != nil {
-		_u.SetDescription(*v)
-	}
-	return _u
-}
-
-// ClearDescription clears the value of the "description" field.
-func (_u *RoleTypeUpdate) ClearDescription() *RoleTypeUpdate {
-	_u.mutation.ClearDescription()
 	return _u
 }
 
@@ -134,6 +101,21 @@ func (_u *RoleTypeUpdate) AddPartyRoles(v ...*PartyRole) *RoleTypeUpdate {
 	return _u.AddPartyRoleIDs(ids...)
 }
 
+// AddTranslationIDs adds the "translations" edge to the RoleTypeTranslation entity by IDs.
+func (_u *RoleTypeUpdate) AddTranslationIDs(ids ...uuid.UUID) *RoleTypeUpdate {
+	_u.mutation.AddTranslationIDs(ids...)
+	return _u
+}
+
+// AddTranslations adds the "translations" edges to the RoleTypeTranslation entity.
+func (_u *RoleTypeUpdate) AddTranslations(v ...*RoleTypeTranslation) *RoleTypeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the RoleTypeMutation object of the builder.
 func (_u *RoleTypeUpdate) Mutation() *RoleTypeMutation {
 	return _u.mutation
@@ -158,6 +140,27 @@ func (_u *RoleTypeUpdate) RemovePartyRoles(v ...*PartyRole) *RoleTypeUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartyRoleIDs(ids...)
+}
+
+// ClearTranslations clears all "translations" edges to the RoleTypeTranslation entity.
+func (_u *RoleTypeUpdate) ClearTranslations() *RoleTypeUpdate {
+	_u.mutation.ClearTranslations()
+	return _u
+}
+
+// RemoveTranslationIDs removes the "translations" edge to RoleTypeTranslation entities by IDs.
+func (_u *RoleTypeUpdate) RemoveTranslationIDs(ids ...uuid.UUID) *RoleTypeUpdate {
+	_u.mutation.RemoveTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveTranslations removes "translations" edges to RoleTypeTranslation entities.
+func (_u *RoleTypeUpdate) RemoveTranslations(v ...*RoleTypeTranslation) *RoleTypeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTranslationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -203,11 +206,6 @@ func (_u *RoleTypeUpdate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "RoleType.code": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Name(); ok {
-		if err := roletype.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "RoleType.name": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -225,15 +223,6 @@ func (_u *RoleTypeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(roletype.FieldCode, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Name(); ok {
-		_spec.SetField(roletype.FieldName, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Description(); ok {
-		_spec.SetField(roletype.FieldDescription, field.TypeString, value)
-	}
-	if _u.mutation.DescriptionCleared() {
-		_spec.ClearField(roletype.FieldDescription, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(roletype.FieldIsSystem, field.TypeBool, value)
@@ -295,6 +284,54 @@ func (_u *RoleTypeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   roletype.TranslationsTable,
+			Columns: []string{roletype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTranslationsIDs(); len(nodes) > 0 && !_u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   roletype.TranslationsTable,
+			Columns: []string{roletype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   roletype.TranslationsTable,
+			Columns: []string{roletype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.RoleType
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -328,40 +365,6 @@ func (_u *RoleTypeUpdateOne) SetNillableCode(v *string) *RoleTypeUpdateOne {
 	if v != nil {
 		_u.SetCode(*v)
 	}
-	return _u
-}
-
-// SetName sets the "name" field.
-func (_u *RoleTypeUpdateOne) SetName(v string) *RoleTypeUpdateOne {
-	_u.mutation.SetName(v)
-	return _u
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (_u *RoleTypeUpdateOne) SetNillableName(v *string) *RoleTypeUpdateOne {
-	if v != nil {
-		_u.SetName(*v)
-	}
-	return _u
-}
-
-// SetDescription sets the "description" field.
-func (_u *RoleTypeUpdateOne) SetDescription(v string) *RoleTypeUpdateOne {
-	_u.mutation.SetDescription(v)
-	return _u
-}
-
-// SetNillableDescription sets the "description" field if the given value is not nil.
-func (_u *RoleTypeUpdateOne) SetNillableDescription(v *string) *RoleTypeUpdateOne {
-	if v != nil {
-		_u.SetDescription(*v)
-	}
-	return _u
-}
-
-// ClearDescription clears the value of the "description" field.
-func (_u *RoleTypeUpdateOne) ClearDescription() *RoleTypeUpdateOne {
-	_u.mutation.ClearDescription()
 	return _u
 }
 
@@ -420,6 +423,21 @@ func (_u *RoleTypeUpdateOne) AddPartyRoles(v ...*PartyRole) *RoleTypeUpdateOne {
 	return _u.AddPartyRoleIDs(ids...)
 }
 
+// AddTranslationIDs adds the "translations" edge to the RoleTypeTranslation entity by IDs.
+func (_u *RoleTypeUpdateOne) AddTranslationIDs(ids ...uuid.UUID) *RoleTypeUpdateOne {
+	_u.mutation.AddTranslationIDs(ids...)
+	return _u
+}
+
+// AddTranslations adds the "translations" edges to the RoleTypeTranslation entity.
+func (_u *RoleTypeUpdateOne) AddTranslations(v ...*RoleTypeTranslation) *RoleTypeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the RoleTypeMutation object of the builder.
 func (_u *RoleTypeUpdateOne) Mutation() *RoleTypeMutation {
 	return _u.mutation
@@ -444,6 +462,27 @@ func (_u *RoleTypeUpdateOne) RemovePartyRoles(v ...*PartyRole) *RoleTypeUpdateOn
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePartyRoleIDs(ids...)
+}
+
+// ClearTranslations clears all "translations" edges to the RoleTypeTranslation entity.
+func (_u *RoleTypeUpdateOne) ClearTranslations() *RoleTypeUpdateOne {
+	_u.mutation.ClearTranslations()
+	return _u
+}
+
+// RemoveTranslationIDs removes the "translations" edge to RoleTypeTranslation entities by IDs.
+func (_u *RoleTypeUpdateOne) RemoveTranslationIDs(ids ...uuid.UUID) *RoleTypeUpdateOne {
+	_u.mutation.RemoveTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveTranslations removes "translations" edges to RoleTypeTranslation entities.
+func (_u *RoleTypeUpdateOne) RemoveTranslations(v ...*RoleTypeTranslation) *RoleTypeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTranslationIDs(ids...)
 }
 
 // Where appends a list predicates to the RoleTypeUpdate builder.
@@ -502,11 +541,6 @@ func (_u *RoleTypeUpdateOne) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "RoleType.code": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Name(); ok {
-		if err := roletype.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "RoleType.name": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -541,15 +575,6 @@ func (_u *RoleTypeUpdateOne) sqlSave(ctx context.Context) (_node *RoleType, err 
 	}
 	if value, ok := _u.mutation.Code(); ok {
 		_spec.SetField(roletype.FieldCode, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Name(); ok {
-		_spec.SetField(roletype.FieldName, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Description(); ok {
-		_spec.SetField(roletype.FieldDescription, field.TypeString, value)
-	}
-	if _u.mutation.DescriptionCleared() {
-		_spec.ClearField(roletype.FieldDescription, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsSystem(); ok {
 		_spec.SetField(roletype.FieldIsSystem, field.TypeBool, value)
@@ -606,6 +631,54 @@ func (_u *RoleTypeUpdateOne) sqlSave(ctx context.Context) (_node *RoleType, err 
 			},
 		}
 		edge.Schema = _u.schemaConfig.PartyRole
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   roletype.TranslationsTable,
+			Columns: []string{roletype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTranslationsIDs(); len(nodes) > 0 && !_u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   roletype.TranslationsTable,
+			Columns: []string{roletype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   roletype.TranslationsTable,
+			Columns: []string{roletype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

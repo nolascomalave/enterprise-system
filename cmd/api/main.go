@@ -89,7 +89,8 @@ func main() {
 		repository.NewTenantProvisioningStore(client),
 		binder, time.Now,
 	)
-	orgService := usecase.NewOrgStructure(repository.NewOrgStructureRepository(client), txManager, time.Now)
+	orgRepo := repository.NewOrgStructureRepository(client)
+	orgService := usecase.NewOrgStructure(orgRepo, txManager, time.Now)
 	mergeService := usecase.NewMergeParties(txManager, repository.NewPartyMergeRepository(client), time.Now, nil)
 
 	storageDir := strings.TrimSpace(os.Getenv("DOCUMENT_STORAGE_DIR"))
@@ -112,8 +113,12 @@ func main() {
 	locationService := usecase.NewLocationService(
 		locationRepo, txManager, time.Now,
 	)
+	identityRepo := repository.NewIdentityRepository(client)
 	identityService := usecase.NewIdentityService(
-		repository.NewIdentityRepository(client), locationRepo, txManager, time.Now,
+		identityRepo, locationRepo, txManager, time.Now,
+	)
+	catalogService := usecase.NewCatalogService(
+		identityRepo, repository.NewRoleTypeRepository(client), orgRepo, locationRepo, txManager,
 	)
 	departmentMDMService := usecase.NewDepartmentMDMService(
 		repository.NewDepartmentMDMRepository(client), txManager, time.Now,
@@ -140,6 +145,7 @@ func main() {
 		IdentityUseCase:      identityService,
 		DepartmentMDMUseCase: departmentMDMService,
 		OAuthUseCase:         clientApplicationService,
+		CatalogUseCase:       catalogService,
 		TokenManager:         tokenManager,
 		CookieSecure:         os.Getenv("COOKIE_SECURE") != "false",
 		RefreshTTL:           30 * 24 * time.Hour,

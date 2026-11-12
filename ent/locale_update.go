@@ -4,10 +4,13 @@ package ent
 
 import (
 	"context"
+	"enterprise-system/ent/departmenttranslation"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/locale"
 	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/predicate"
+	"enterprise-system/ent/roletypetranslation"
 	"errors"
 	"fmt"
 	"time"
@@ -80,6 +83,51 @@ func (_u *LocaleUpdate) AddLocationTranslations(v ...*LocationTranslation) *Loca
 	return _u.AddLocationTranslationIDs(ids...)
 }
 
+// AddIdentityDocumentTypeTranslationIDs adds the "identity_document_type_translations" edge to the IdentityDocumentTypeTranslation entity by IDs.
+func (_u *LocaleUpdate) AddIdentityDocumentTypeTranslationIDs(ids ...uuid.UUID) *LocaleUpdate {
+	_u.mutation.AddIdentityDocumentTypeTranslationIDs(ids...)
+	return _u
+}
+
+// AddIdentityDocumentTypeTranslations adds the "identity_document_type_translations" edges to the IdentityDocumentTypeTranslation entity.
+func (_u *LocaleUpdate) AddIdentityDocumentTypeTranslations(v ...*IdentityDocumentTypeTranslation) *LocaleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddIdentityDocumentTypeTranslationIDs(ids...)
+}
+
+// AddRoleTypeTranslationIDs adds the "role_type_translations" edge to the RoleTypeTranslation entity by IDs.
+func (_u *LocaleUpdate) AddRoleTypeTranslationIDs(ids ...uuid.UUID) *LocaleUpdate {
+	_u.mutation.AddRoleTypeTranslationIDs(ids...)
+	return _u
+}
+
+// AddRoleTypeTranslations adds the "role_type_translations" edges to the RoleTypeTranslation entity.
+func (_u *LocaleUpdate) AddRoleTypeTranslations(v ...*RoleTypeTranslation) *LocaleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRoleTypeTranslationIDs(ids...)
+}
+
+// AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by IDs.
+func (_u *LocaleUpdate) AddDepartmentTranslationIDs(ids ...uuid.UUID) *LocaleUpdate {
+	_u.mutation.AddDepartmentTranslationIDs(ids...)
+	return _u
+}
+
+// AddDepartmentTranslations adds the "department_translations" edges to the DepartmentTranslation entity.
+func (_u *LocaleUpdate) AddDepartmentTranslations(v ...*DepartmentTranslation) *LocaleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentTranslationIDs(ids...)
+}
+
 // Mutation returns the LocaleMutation object of the builder.
 func (_u *LocaleUpdate) Mutation() *LocaleMutation {
 	return _u.mutation
@@ -104,6 +152,69 @@ func (_u *LocaleUpdate) RemoveLocationTranslations(v ...*LocationTranslation) *L
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveLocationTranslationIDs(ids...)
+}
+
+// ClearIdentityDocumentTypeTranslations clears all "identity_document_type_translations" edges to the IdentityDocumentTypeTranslation entity.
+func (_u *LocaleUpdate) ClearIdentityDocumentTypeTranslations() *LocaleUpdate {
+	_u.mutation.ClearIdentityDocumentTypeTranslations()
+	return _u
+}
+
+// RemoveIdentityDocumentTypeTranslationIDs removes the "identity_document_type_translations" edge to IdentityDocumentTypeTranslation entities by IDs.
+func (_u *LocaleUpdate) RemoveIdentityDocumentTypeTranslationIDs(ids ...uuid.UUID) *LocaleUpdate {
+	_u.mutation.RemoveIdentityDocumentTypeTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveIdentityDocumentTypeTranslations removes "identity_document_type_translations" edges to IdentityDocumentTypeTranslation entities.
+func (_u *LocaleUpdate) RemoveIdentityDocumentTypeTranslations(v ...*IdentityDocumentTypeTranslation) *LocaleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveIdentityDocumentTypeTranslationIDs(ids...)
+}
+
+// ClearRoleTypeTranslations clears all "role_type_translations" edges to the RoleTypeTranslation entity.
+func (_u *LocaleUpdate) ClearRoleTypeTranslations() *LocaleUpdate {
+	_u.mutation.ClearRoleTypeTranslations()
+	return _u
+}
+
+// RemoveRoleTypeTranslationIDs removes the "role_type_translations" edge to RoleTypeTranslation entities by IDs.
+func (_u *LocaleUpdate) RemoveRoleTypeTranslationIDs(ids ...uuid.UUID) *LocaleUpdate {
+	_u.mutation.RemoveRoleTypeTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveRoleTypeTranslations removes "role_type_translations" edges to RoleTypeTranslation entities.
+func (_u *LocaleUpdate) RemoveRoleTypeTranslations(v ...*RoleTypeTranslation) *LocaleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRoleTypeTranslationIDs(ids...)
+}
+
+// ClearDepartmentTranslations clears all "department_translations" edges to the DepartmentTranslation entity.
+func (_u *LocaleUpdate) ClearDepartmentTranslations() *LocaleUpdate {
+	_u.mutation.ClearDepartmentTranslations()
+	return _u
+}
+
+// RemoveDepartmentTranslationIDs removes the "department_translations" edge to DepartmentTranslation entities by IDs.
+func (_u *LocaleUpdate) RemoveDepartmentTranslationIDs(ids ...uuid.UUID) *LocaleUpdate {
+	_u.mutation.RemoveDepartmentTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentTranslations removes "department_translations" edges to DepartmentTranslation entities.
+func (_u *LocaleUpdate) RemoveDepartmentTranslations(v ...*DepartmentTranslation) *LocaleUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentTranslationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -221,6 +332,150 @@ func (_u *LocaleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.IdentityDocumentTypeTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.IdentityDocumentTypeTranslationsTable,
+			Columns: []string{locale.IdentityDocumentTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedIdentityDocumentTypeTranslationsIDs(); len(nodes) > 0 && !_u.mutation.IdentityDocumentTypeTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.IdentityDocumentTypeTranslationsTable,
+			Columns: []string{locale.IdentityDocumentTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.IdentityDocumentTypeTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.IdentityDocumentTypeTranslationsTable,
+			Columns: []string{locale.IdentityDocumentTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RoleTypeTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.RoleTypeTranslationsTable,
+			Columns: []string{locale.RoleTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRoleTypeTranslationsIDs(); len(nodes) > 0 && !_u.mutation.RoleTypeTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.RoleTypeTranslationsTable,
+			Columns: []string{locale.RoleTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RoleTypeTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.RoleTypeTranslationsTable,
+			Columns: []string{locale.RoleTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.DepartmentTranslationsTable,
+			Columns: []string{locale.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentTranslationsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.DepartmentTranslationsTable,
+			Columns: []string{locale.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.DepartmentTranslationsTable,
+			Columns: []string{locale.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Locale
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -292,6 +547,51 @@ func (_u *LocaleUpdateOne) AddLocationTranslations(v ...*LocationTranslation) *L
 	return _u.AddLocationTranslationIDs(ids...)
 }
 
+// AddIdentityDocumentTypeTranslationIDs adds the "identity_document_type_translations" edge to the IdentityDocumentTypeTranslation entity by IDs.
+func (_u *LocaleUpdateOne) AddIdentityDocumentTypeTranslationIDs(ids ...uuid.UUID) *LocaleUpdateOne {
+	_u.mutation.AddIdentityDocumentTypeTranslationIDs(ids...)
+	return _u
+}
+
+// AddIdentityDocumentTypeTranslations adds the "identity_document_type_translations" edges to the IdentityDocumentTypeTranslation entity.
+func (_u *LocaleUpdateOne) AddIdentityDocumentTypeTranslations(v ...*IdentityDocumentTypeTranslation) *LocaleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddIdentityDocumentTypeTranslationIDs(ids...)
+}
+
+// AddRoleTypeTranslationIDs adds the "role_type_translations" edge to the RoleTypeTranslation entity by IDs.
+func (_u *LocaleUpdateOne) AddRoleTypeTranslationIDs(ids ...uuid.UUID) *LocaleUpdateOne {
+	_u.mutation.AddRoleTypeTranslationIDs(ids...)
+	return _u
+}
+
+// AddRoleTypeTranslations adds the "role_type_translations" edges to the RoleTypeTranslation entity.
+func (_u *LocaleUpdateOne) AddRoleTypeTranslations(v ...*RoleTypeTranslation) *LocaleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRoleTypeTranslationIDs(ids...)
+}
+
+// AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by IDs.
+func (_u *LocaleUpdateOne) AddDepartmentTranslationIDs(ids ...uuid.UUID) *LocaleUpdateOne {
+	_u.mutation.AddDepartmentTranslationIDs(ids...)
+	return _u
+}
+
+// AddDepartmentTranslations adds the "department_translations" edges to the DepartmentTranslation entity.
+func (_u *LocaleUpdateOne) AddDepartmentTranslations(v ...*DepartmentTranslation) *LocaleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentTranslationIDs(ids...)
+}
+
 // Mutation returns the LocaleMutation object of the builder.
 func (_u *LocaleUpdateOne) Mutation() *LocaleMutation {
 	return _u.mutation
@@ -316,6 +616,69 @@ func (_u *LocaleUpdateOne) RemoveLocationTranslations(v ...*LocationTranslation)
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveLocationTranslationIDs(ids...)
+}
+
+// ClearIdentityDocumentTypeTranslations clears all "identity_document_type_translations" edges to the IdentityDocumentTypeTranslation entity.
+func (_u *LocaleUpdateOne) ClearIdentityDocumentTypeTranslations() *LocaleUpdateOne {
+	_u.mutation.ClearIdentityDocumentTypeTranslations()
+	return _u
+}
+
+// RemoveIdentityDocumentTypeTranslationIDs removes the "identity_document_type_translations" edge to IdentityDocumentTypeTranslation entities by IDs.
+func (_u *LocaleUpdateOne) RemoveIdentityDocumentTypeTranslationIDs(ids ...uuid.UUID) *LocaleUpdateOne {
+	_u.mutation.RemoveIdentityDocumentTypeTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveIdentityDocumentTypeTranslations removes "identity_document_type_translations" edges to IdentityDocumentTypeTranslation entities.
+func (_u *LocaleUpdateOne) RemoveIdentityDocumentTypeTranslations(v ...*IdentityDocumentTypeTranslation) *LocaleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveIdentityDocumentTypeTranslationIDs(ids...)
+}
+
+// ClearRoleTypeTranslations clears all "role_type_translations" edges to the RoleTypeTranslation entity.
+func (_u *LocaleUpdateOne) ClearRoleTypeTranslations() *LocaleUpdateOne {
+	_u.mutation.ClearRoleTypeTranslations()
+	return _u
+}
+
+// RemoveRoleTypeTranslationIDs removes the "role_type_translations" edge to RoleTypeTranslation entities by IDs.
+func (_u *LocaleUpdateOne) RemoveRoleTypeTranslationIDs(ids ...uuid.UUID) *LocaleUpdateOne {
+	_u.mutation.RemoveRoleTypeTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveRoleTypeTranslations removes "role_type_translations" edges to RoleTypeTranslation entities.
+func (_u *LocaleUpdateOne) RemoveRoleTypeTranslations(v ...*RoleTypeTranslation) *LocaleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRoleTypeTranslationIDs(ids...)
+}
+
+// ClearDepartmentTranslations clears all "department_translations" edges to the DepartmentTranslation entity.
+func (_u *LocaleUpdateOne) ClearDepartmentTranslations() *LocaleUpdateOne {
+	_u.mutation.ClearDepartmentTranslations()
+	return _u
+}
+
+// RemoveDepartmentTranslationIDs removes the "department_translations" edge to DepartmentTranslation entities by IDs.
+func (_u *LocaleUpdateOne) RemoveDepartmentTranslationIDs(ids ...uuid.UUID) *LocaleUpdateOne {
+	_u.mutation.RemoveDepartmentTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentTranslations removes "department_translations" edges to DepartmentTranslation entities.
+func (_u *LocaleUpdateOne) RemoveDepartmentTranslations(v ...*DepartmentTranslation) *LocaleUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentTranslationIDs(ids...)
 }
 
 // Where appends a list predicates to the LocaleUpdate builder.
@@ -458,6 +821,150 @@ func (_u *LocaleUpdateOne) sqlSave(ctx context.Context) (_node *Locale, err erro
 			},
 		}
 		edge.Schema = _u.schemaConfig.LocationTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.IdentityDocumentTypeTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.IdentityDocumentTypeTranslationsTable,
+			Columns: []string{locale.IdentityDocumentTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedIdentityDocumentTypeTranslationsIDs(); len(nodes) > 0 && !_u.mutation.IdentityDocumentTypeTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.IdentityDocumentTypeTranslationsTable,
+			Columns: []string{locale.IdentityDocumentTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.IdentityDocumentTypeTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.IdentityDocumentTypeTranslationsTable,
+			Columns: []string{locale.IdentityDocumentTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.IdentityDocumentTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RoleTypeTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.RoleTypeTranslationsTable,
+			Columns: []string{locale.RoleTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRoleTypeTranslationsIDs(); len(nodes) > 0 && !_u.mutation.RoleTypeTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.RoleTypeTranslationsTable,
+			Columns: []string{locale.RoleTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RoleTypeTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.RoleTypeTranslationsTable,
+			Columns: []string{locale.RoleTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.DepartmentTranslationsTable,
+			Columns: []string{locale.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentTranslationsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.DepartmentTranslationsTable,
+			Columns: []string{locale.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.DepartmentTranslationsTable,
+			Columns: []string{locale.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

@@ -10,6 +10,7 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/internal"
@@ -323,6 +324,21 @@ func (_u *DepartmentUpdate) AddAddressValidities(v ...*DepartmentAddressValidity
 	return _u.AddAddressValidityIDs(ids...)
 }
 
+// AddTranslationIDs adds the "translations" edge to the DepartmentTranslation entity by IDs.
+func (_u *DepartmentUpdate) AddTranslationIDs(ids ...uuid.UUID) *DepartmentUpdate {
+	_u.mutation.AddTranslationIDs(ids...)
+	return _u
+}
+
+// AddTranslations adds the "translations" edges to the DepartmentTranslation entity.
+func (_u *DepartmentUpdate) AddTranslations(v ...*DepartmentTranslation) *DepartmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the DepartmentMutation object of the builder.
 func (_u *DepartmentUpdate) Mutation() *DepartmentMutation {
 	return _u.mutation
@@ -512,6 +528,27 @@ func (_u *DepartmentUpdate) RemoveAddressValidities(v ...*DepartmentAddressValid
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAddressValidityIDs(ids...)
+}
+
+// ClearTranslations clears all "translations" edges to the DepartmentTranslation entity.
+func (_u *DepartmentUpdate) ClearTranslations() *DepartmentUpdate {
+	_u.mutation.ClearTranslations()
+	return _u
+}
+
+// RemoveTranslationIDs removes the "translations" edge to DepartmentTranslation entities by IDs.
+func (_u *DepartmentUpdate) RemoveTranslationIDs(ids ...uuid.UUID) *DepartmentUpdate {
+	_u.mutation.RemoveTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveTranslations removes "translations" edges to DepartmentTranslation entities.
+func (_u *DepartmentUpdate) RemoveTranslations(v ...*DepartmentTranslation) *DepartmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTranslationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1080,6 +1117,54 @@ func (_u *DepartmentUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.TranslationsTable,
+			Columns: []string{department.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTranslationsIDs(); len(nodes) > 0 && !_u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.TranslationsTable,
+			Columns: []string{department.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.TranslationsTable,
+			Columns: []string{department.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Department
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -1387,6 +1472,21 @@ func (_u *DepartmentUpdateOne) AddAddressValidities(v ...*DepartmentAddressValid
 	return _u.AddAddressValidityIDs(ids...)
 }
 
+// AddTranslationIDs adds the "translations" edge to the DepartmentTranslation entity by IDs.
+func (_u *DepartmentUpdateOne) AddTranslationIDs(ids ...uuid.UUID) *DepartmentUpdateOne {
+	_u.mutation.AddTranslationIDs(ids...)
+	return _u
+}
+
+// AddTranslations adds the "translations" edges to the DepartmentTranslation entity.
+func (_u *DepartmentUpdateOne) AddTranslations(v ...*DepartmentTranslation) *DepartmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the DepartmentMutation object of the builder.
 func (_u *DepartmentUpdateOne) Mutation() *DepartmentMutation {
 	return _u.mutation
@@ -1576,6 +1676,27 @@ func (_u *DepartmentUpdateOne) RemoveAddressValidities(v ...*DepartmentAddressVa
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAddressValidityIDs(ids...)
+}
+
+// ClearTranslations clears all "translations" edges to the DepartmentTranslation entity.
+func (_u *DepartmentUpdateOne) ClearTranslations() *DepartmentUpdateOne {
+	_u.mutation.ClearTranslations()
+	return _u
+}
+
+// RemoveTranslationIDs removes the "translations" edge to DepartmentTranslation entities by IDs.
+func (_u *DepartmentUpdateOne) RemoveTranslationIDs(ids ...uuid.UUID) *DepartmentUpdateOne {
+	_u.mutation.RemoveTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveTranslations removes "translations" edges to DepartmentTranslation entities.
+func (_u *DepartmentUpdateOne) RemoveTranslations(v ...*DepartmentTranslation) *DepartmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTranslationIDs(ids...)
 }
 
 // Where appends a list predicates to the DepartmentUpdate builder.
@@ -2169,6 +2290,54 @@ func (_u *DepartmentUpdateOne) sqlSave(ctx context.Context) (_node *Department, 
 			},
 		}
 		edge.Schema = _u.schemaConfig.DepartmentAddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.TranslationsTable,
+			Columns: []string{department.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTranslationsIDs(); len(nodes) > 0 && !_u.mutation.TranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.TranslationsTable,
+			Columns: []string{department.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.TranslationsTable,
+			Columns: []string{department.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

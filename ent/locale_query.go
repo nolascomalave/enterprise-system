@@ -5,10 +5,13 @@ package ent
 import (
 	"context"
 	"database/sql/driver"
+	"enterprise-system/ent/departmenttranslation"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/locale"
 	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/predicate"
+	"enterprise-system/ent/roletypetranslation"
 	"fmt"
 	"math"
 
@@ -21,11 +24,14 @@ import (
 // LocaleQuery is the builder for querying Locale entities.
 type LocaleQuery struct {
 	config
-	ctx                      *QueryContext
-	order                    []locale.OrderOption
-	inters                   []Interceptor
-	predicates               []predicate.Locale
-	withLocationTranslations *LocationTranslationQuery
+	ctx                                  *QueryContext
+	order                                []locale.OrderOption
+	inters                               []Interceptor
+	predicates                           []predicate.Locale
+	withLocationTranslations             *LocationTranslationQuery
+	withIdentityDocumentTypeTranslations *IdentityDocumentTypeTranslationQuery
+	withRoleTypeTranslations             *RoleTypeTranslationQuery
+	withDepartmentTranslations           *DepartmentTranslationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -81,6 +87,81 @@ func (_q *LocaleQuery) QueryLocationTranslations() *LocationTranslationQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.LocationTranslation
 		step.Edge.Schema = schemaConfig.LocationTranslation
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryIdentityDocumentTypeTranslations chains the current query on the "identity_document_type_translations" edge.
+func (_q *LocaleQuery) QueryIdentityDocumentTypeTranslations() *IdentityDocumentTypeTranslationQuery {
+	query := (&IdentityDocumentTypeTranslationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locale.Table, locale.FieldID, selector),
+			sqlgraph.To(identitydocumenttypetranslation.Table, identitydocumenttypetranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, locale.IdentityDocumentTypeTranslationsTable, locale.IdentityDocumentTypeTranslationsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		step.Edge.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRoleTypeTranslations chains the current query on the "role_type_translations" edge.
+func (_q *LocaleQuery) QueryRoleTypeTranslations() *RoleTypeTranslationQuery {
+	query := (&RoleTypeTranslationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locale.Table, locale.FieldID, selector),
+			sqlgraph.To(roletypetranslation.Table, roletypetranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, locale.RoleTypeTranslationsTable, locale.RoleTypeTranslationsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.RoleTypeTranslation
+		step.Edge.Schema = schemaConfig.RoleTypeTranslation
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartmentTranslations chains the current query on the "department_translations" edge.
+func (_q *LocaleQuery) QueryDepartmentTranslations() *DepartmentTranslationQuery {
+	query := (&DepartmentTranslationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locale.Table, locale.FieldID, selector),
+			sqlgraph.To(departmenttranslation.Table, departmenttranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, locale.DepartmentTranslationsTable, locale.DepartmentTranslationsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.DepartmentTranslation
+		step.Edge.Schema = schemaConfig.DepartmentTranslation
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -274,12 +355,15 @@ func (_q *LocaleQuery) Clone() *LocaleQuery {
 		return nil
 	}
 	return &LocaleQuery{
-		config:                   _q.config,
-		ctx:                      _q.ctx.Clone(),
-		order:                    append([]locale.OrderOption{}, _q.order...),
-		inters:                   append([]Interceptor{}, _q.inters...),
-		predicates:               append([]predicate.Locale{}, _q.predicates...),
-		withLocationTranslations: _q.withLocationTranslations.Clone(),
+		config:                               _q.config,
+		ctx:                                  _q.ctx.Clone(),
+		order:                                append([]locale.OrderOption{}, _q.order...),
+		inters:                               append([]Interceptor{}, _q.inters...),
+		predicates:                           append([]predicate.Locale{}, _q.predicates...),
+		withLocationTranslations:             _q.withLocationTranslations.Clone(),
+		withIdentityDocumentTypeTranslations: _q.withIdentityDocumentTypeTranslations.Clone(),
+		withRoleTypeTranslations:             _q.withRoleTypeTranslations.Clone(),
+		withDepartmentTranslations:           _q.withDepartmentTranslations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -294,6 +378,39 @@ func (_q *LocaleQuery) WithLocationTranslations(opts ...func(*LocationTranslatio
 		opt(query)
 	}
 	_q.withLocationTranslations = query
+	return _q
+}
+
+// WithIdentityDocumentTypeTranslations tells the query-builder to eager-load the nodes that are connected to
+// the "identity_document_type_translations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *LocaleQuery) WithIdentityDocumentTypeTranslations(opts ...func(*IdentityDocumentTypeTranslationQuery)) *LocaleQuery {
+	query := (&IdentityDocumentTypeTranslationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withIdentityDocumentTypeTranslations = query
+	return _q
+}
+
+// WithRoleTypeTranslations tells the query-builder to eager-load the nodes that are connected to
+// the "role_type_translations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *LocaleQuery) WithRoleTypeTranslations(opts ...func(*RoleTypeTranslationQuery)) *LocaleQuery {
+	query := (&RoleTypeTranslationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRoleTypeTranslations = query
+	return _q
+}
+
+// WithDepartmentTranslations tells the query-builder to eager-load the nodes that are connected to
+// the "department_translations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *LocaleQuery) WithDepartmentTranslations(opts ...func(*DepartmentTranslationQuery)) *LocaleQuery {
+	query := (&DepartmentTranslationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withDepartmentTranslations = query
 	return _q
 }
 
@@ -375,8 +492,11 @@ func (_q *LocaleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Local
 	var (
 		nodes       = []*Locale{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [4]bool{
 			_q.withLocationTranslations != nil,
+			_q.withIdentityDocumentTypeTranslations != nil,
+			_q.withRoleTypeTranslations != nil,
+			_q.withDepartmentTranslations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -404,6 +524,33 @@ func (_q *LocaleQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Local
 			func(n *Locale) { n.Edges.LocationTranslations = []*LocationTranslation{} },
 			func(n *Locale, e *LocationTranslation) {
 				n.Edges.LocationTranslations = append(n.Edges.LocationTranslations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withIdentityDocumentTypeTranslations; query != nil {
+		if err := _q.loadIdentityDocumentTypeTranslations(ctx, query, nodes,
+			func(n *Locale) { n.Edges.IdentityDocumentTypeTranslations = []*IdentityDocumentTypeTranslation{} },
+			func(n *Locale, e *IdentityDocumentTypeTranslation) {
+				n.Edges.IdentityDocumentTypeTranslations = append(n.Edges.IdentityDocumentTypeTranslations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRoleTypeTranslations; query != nil {
+		if err := _q.loadRoleTypeTranslations(ctx, query, nodes,
+			func(n *Locale) { n.Edges.RoleTypeTranslations = []*RoleTypeTranslation{} },
+			func(n *Locale, e *RoleTypeTranslation) {
+				n.Edges.RoleTypeTranslations = append(n.Edges.RoleTypeTranslations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withDepartmentTranslations; query != nil {
+		if err := _q.loadDepartmentTranslations(ctx, query, nodes,
+			func(n *Locale) { n.Edges.DepartmentTranslations = []*DepartmentTranslation{} },
+			func(n *Locale, e *DepartmentTranslation) {
+				n.Edges.DepartmentTranslations = append(n.Edges.DepartmentTranslations, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -436,6 +583,96 @@ func (_q *LocaleQuery) loadLocationTranslations(ctx context.Context, query *Loca
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "language_code" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *LocaleQuery) loadIdentityDocumentTypeTranslations(ctx context.Context, query *IdentityDocumentTypeTranslationQuery, nodes []*Locale, init func(*Locale), assign func(*Locale, *IdentityDocumentTypeTranslation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Locale)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(identitydocumenttypetranslation.FieldLocaleCode)
+	}
+	query.Where(predicate.IdentityDocumentTypeTranslation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(locale.IdentityDocumentTypeTranslationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.LocaleCode
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "locale_code" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *LocaleQuery) loadRoleTypeTranslations(ctx context.Context, query *RoleTypeTranslationQuery, nodes []*Locale, init func(*Locale), assign func(*Locale, *RoleTypeTranslation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Locale)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(roletypetranslation.FieldLocaleCode)
+	}
+	query.Where(predicate.RoleTypeTranslation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(locale.RoleTypeTranslationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.LocaleCode
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "locale_code" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *LocaleQuery) loadDepartmentTranslations(ctx context.Context, query *DepartmentTranslationQuery, nodes []*Locale, init func(*Locale), assign func(*Locale, *DepartmentTranslation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Locale)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(departmenttranslation.FieldLocaleCode)
+	}
+	query.Where(predicate.DepartmentTranslation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(locale.DepartmentTranslationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.LocaleCode
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "locale_code" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

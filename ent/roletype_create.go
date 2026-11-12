@@ -6,6 +6,7 @@ import (
 	"context"
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/roletype"
+	"enterprise-system/ent/roletypetranslation"
 	"errors"
 	"fmt"
 	"time"
@@ -28,26 +29,6 @@ type RoleTypeCreate struct {
 // SetCode sets the "code" field.
 func (_c *RoleTypeCreate) SetCode(v string) *RoleTypeCreate {
 	_c.mutation.SetCode(v)
-	return _c
-}
-
-// SetName sets the "name" field.
-func (_c *RoleTypeCreate) SetName(v string) *RoleTypeCreate {
-	_c.mutation.SetName(v)
-	return _c
-}
-
-// SetDescription sets the "description" field.
-func (_c *RoleTypeCreate) SetDescription(v string) *RoleTypeCreate {
-	_c.mutation.SetDescription(v)
-	return _c
-}
-
-// SetNillableDescription sets the "description" field if the given value is not nil.
-func (_c *RoleTypeCreate) SetNillableDescription(v *string) *RoleTypeCreate {
-	if v != nil {
-		_c.SetDescription(*v)
-	}
 	return _c
 }
 
@@ -136,6 +117,21 @@ func (_c *RoleTypeCreate) AddPartyRoles(v ...*PartyRole) *RoleTypeCreate {
 	return _c.AddPartyRoleIDs(ids...)
 }
 
+// AddTranslationIDs adds the "translations" edge to the RoleTypeTranslation entity by IDs.
+func (_c *RoleTypeCreate) AddTranslationIDs(ids ...uuid.UUID) *RoleTypeCreate {
+	_c.mutation.AddTranslationIDs(ids...)
+	return _c
+}
+
+// AddTranslations adds the "translations" edges to the RoleTypeTranslation entity.
+func (_c *RoleTypeCreate) AddTranslations(v ...*RoleTypeTranslation) *RoleTypeCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTranslationIDs(ids...)
+}
+
 // Mutation returns the RoleTypeMutation object of the builder.
 func (_c *RoleTypeCreate) Mutation() *RoleTypeMutation {
 	return _c.mutation
@@ -199,14 +195,6 @@ func (_c *RoleTypeCreate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "RoleType.code": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "RoleType.name"`)}
-	}
-	if v, ok := _c.mutation.Name(); ok {
-		if err := roletype.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "RoleType.name": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.IsSystem(); !ok {
 		return &ValidationError{Name: "is_system", err: errors.New(`ent: missing required field "RoleType.is_system"`)}
 	}
@@ -251,14 +239,6 @@ func (_c *RoleTypeCreate) createSpec() (*RoleType, *sqlgraph.CreateSpec) {
 		_spec.SetField(roletype.FieldCode, field.TypeString, value)
 		_node.Code = value
 	}
-	if value, ok := _c.mutation.Name(); ok {
-		_spec.SetField(roletype.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
-	if value, ok := _c.mutation.Description(); ok {
-		_spec.SetField(roletype.FieldDescription, field.TypeString, value)
-		_node.Description = value
-	}
 	if value, ok := _c.mutation.IsSystem(); ok {
 		_spec.SetField(roletype.FieldIsSystem, field.TypeBool, value)
 		_node.IsSystem = value
@@ -287,6 +267,23 @@ func (_c *RoleTypeCreate) createSpec() (*RoleType, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.PartyRole
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   roletype.TranslationsTable,
+			Columns: []string{roletype.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.RoleTypeTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -353,36 +350,6 @@ func (u *RoleTypeUpsert) SetCode(v string) *RoleTypeUpsert {
 // UpdateCode sets the "code" field to the value that was provided on create.
 func (u *RoleTypeUpsert) UpdateCode() *RoleTypeUpsert {
 	u.SetExcluded(roletype.FieldCode)
-	return u
-}
-
-// SetName sets the "name" field.
-func (u *RoleTypeUpsert) SetName(v string) *RoleTypeUpsert {
-	u.Set(roletype.FieldName, v)
-	return u
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *RoleTypeUpsert) UpdateName() *RoleTypeUpsert {
-	u.SetExcluded(roletype.FieldName)
-	return u
-}
-
-// SetDescription sets the "description" field.
-func (u *RoleTypeUpsert) SetDescription(v string) *RoleTypeUpsert {
-	u.Set(roletype.FieldDescription, v)
-	return u
-}
-
-// UpdateDescription sets the "description" field to the value that was provided on create.
-func (u *RoleTypeUpsert) UpdateDescription() *RoleTypeUpsert {
-	u.SetExcluded(roletype.FieldDescription)
-	return u
-}
-
-// ClearDescription clears the value of the "description" field.
-func (u *RoleTypeUpsert) ClearDescription() *RoleTypeUpsert {
-	u.SetNull(roletype.FieldDescription)
 	return u
 }
 
@@ -490,41 +457,6 @@ func (u *RoleTypeUpsertOne) SetCode(v string) *RoleTypeUpsertOne {
 func (u *RoleTypeUpsertOne) UpdateCode() *RoleTypeUpsertOne {
 	return u.Update(func(s *RoleTypeUpsert) {
 		s.UpdateCode()
-	})
-}
-
-// SetName sets the "name" field.
-func (u *RoleTypeUpsertOne) SetName(v string) *RoleTypeUpsertOne {
-	return u.Update(func(s *RoleTypeUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *RoleTypeUpsertOne) UpdateName() *RoleTypeUpsertOne {
-	return u.Update(func(s *RoleTypeUpsert) {
-		s.UpdateName()
-	})
-}
-
-// SetDescription sets the "description" field.
-func (u *RoleTypeUpsertOne) SetDescription(v string) *RoleTypeUpsertOne {
-	return u.Update(func(s *RoleTypeUpsert) {
-		s.SetDescription(v)
-	})
-}
-
-// UpdateDescription sets the "description" field to the value that was provided on create.
-func (u *RoleTypeUpsertOne) UpdateDescription() *RoleTypeUpsertOne {
-	return u.Update(func(s *RoleTypeUpsert) {
-		s.UpdateDescription()
-	})
-}
-
-// ClearDescription clears the value of the "description" field.
-func (u *RoleTypeUpsertOne) ClearDescription() *RoleTypeUpsertOne {
-	return u.Update(func(s *RoleTypeUpsert) {
-		s.ClearDescription()
 	})
 }
 
@@ -806,41 +738,6 @@ func (u *RoleTypeUpsertBulk) SetCode(v string) *RoleTypeUpsertBulk {
 func (u *RoleTypeUpsertBulk) UpdateCode() *RoleTypeUpsertBulk {
 	return u.Update(func(s *RoleTypeUpsert) {
 		s.UpdateCode()
-	})
-}
-
-// SetName sets the "name" field.
-func (u *RoleTypeUpsertBulk) SetName(v string) *RoleTypeUpsertBulk {
-	return u.Update(func(s *RoleTypeUpsert) {
-		s.SetName(v)
-	})
-}
-
-// UpdateName sets the "name" field to the value that was provided on create.
-func (u *RoleTypeUpsertBulk) UpdateName() *RoleTypeUpsertBulk {
-	return u.Update(func(s *RoleTypeUpsert) {
-		s.UpdateName()
-	})
-}
-
-// SetDescription sets the "description" field.
-func (u *RoleTypeUpsertBulk) SetDescription(v string) *RoleTypeUpsertBulk {
-	return u.Update(func(s *RoleTypeUpsert) {
-		s.SetDescription(v)
-	})
-}
-
-// UpdateDescription sets the "description" field to the value that was provided on create.
-func (u *RoleTypeUpsertBulk) UpdateDescription() *RoleTypeUpsertBulk {
-	return u.Update(func(s *RoleTypeUpsert) {
-		s.UpdateDescription()
-	})
-}
-
-// ClearDescription clears the value of the "description" field.
-func (u *RoleTypeUpsertBulk) ClearDescription() *RoleTypeUpsertBulk {
-	return u.Update(func(s *RoleTypeUpsert) {
-		s.ClearDescription()
 	})
 }
 

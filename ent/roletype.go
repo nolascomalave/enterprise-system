@@ -21,10 +21,6 @@ type RoleType struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Stable code, e.g. OWNER or TENANT_ADMIN
 	Code string `json:"code,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// Description holds the value of the "description" field.
-	Description string `json:"description,omitempty"`
 	// System roles cannot be deleted by tenants
 	IsSystem bool `json:"is_system,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -43,9 +39,11 @@ type RoleType struct {
 type RoleTypeEdges struct {
 	// PartyRoles holds the value of the party_roles edge.
 	PartyRoles []*PartyRole `json:"party_roles,omitempty"`
+	// Translations holds the value of the translations edge.
+	Translations []*RoleTypeTranslation `json:"translations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // PartyRolesOrErr returns the PartyRoles value or an error if the edge
@@ -57,6 +55,15 @@ func (e RoleTypeEdges) PartyRolesOrErr() ([]*PartyRole, error) {
 	return nil, &NotLoadedError{edge: "party_roles"}
 }
 
+// TranslationsOrErr returns the Translations value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoleTypeEdges) TranslationsOrErr() ([]*RoleTypeTranslation, error) {
+	if e.loadedTypes[1] {
+		return e.Translations, nil
+	}
+	return nil, &NotLoadedError{edge: "translations"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*RoleType) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -64,7 +71,7 @@ func (*RoleType) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case roletype.FieldIsSystem:
 			values[i] = new(sql.NullBool)
-		case roletype.FieldCode, roletype.FieldName, roletype.FieldDescription:
+		case roletype.FieldCode:
 			values[i] = new(sql.NullString)
 		case roletype.FieldCreatedAt, roletype.FieldUpdatedAt, roletype.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -96,18 +103,6 @@ func (_m *RoleType) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
 				_m.Code = value.String
-			}
-		case roletype.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				_m.Name = value.String
-			}
-		case roletype.FieldDescription:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field description", values[i])
-			} else if value.Valid {
-				_m.Description = value.String
 			}
 		case roletype.FieldIsSystem:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -152,6 +147,11 @@ func (_m *RoleType) QueryPartyRoles() *PartyRoleQuery {
 	return NewRoleTypeClient(_m.config).QueryPartyRoles(_m)
 }
 
+// QueryTranslations queries the "translations" edge of the RoleType entity.
+func (_m *RoleType) QueryTranslations() *RoleTypeTranslationQuery {
+	return NewRoleTypeClient(_m.config).QueryTranslations(_m)
+}
+
 // Update returns a builder for updating this RoleType.
 // Note that you need to call RoleType.Unwrap() before calling this method if this RoleType
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -177,12 +177,6 @@ func (_m *RoleType) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("code=")
 	builder.WriteString(_m.Code)
-	builder.WriteString(", ")
-	builder.WriteString("name=")
-	builder.WriteString(_m.Name)
-	builder.WriteString(", ")
-	builder.WriteString("description=")
-	builder.WriteString(_m.Description)
 	builder.WriteString(", ")
 	builder.WriteString("is_system=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsSystem))

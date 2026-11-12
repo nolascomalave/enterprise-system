@@ -119,6 +119,13 @@ definitions:
       token_type:
         type: string
     type: object
+  enterprise-system_internal_delivery_http_dto.CatalogListEnvelope:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.LocalizedCatalogEntryResponse'
+        type: array
+    type: object
   enterprise-system_internal_delivery_http_dto.ChangePasswordRequest:
     properties:
       current_password:
@@ -534,6 +541,19 @@ definitions:
       title:
         type: string
       updated_at:
+        type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.LocalizedCatalogEntryResponse:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      locale:
+        type: string
+      name:
         type: string
     type: object
   enterprise-system_internal_delivery_http_dto.LocationListEnvelope:
@@ -1487,6 +1507,29 @@ paths:
       summary: Health check
       tags:
       - Health
+  /identity-document-types:
+    get:
+      description: Returns the global catalog localized by Accept-Language with fallback
+        to the default locale and then to the code.
+      parameters:
+      - description: Locale BCP 47 (es, en, pt-BR)
+        in: header
+        name: Accept-Language
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CatalogListEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      summary: List identity document types
+      tags:
+      - Catalogs
   /jobs:
     get:
       description: Lists ACTIVE jobs for the authenticated tenant.
@@ -2039,6 +2082,29 @@ paths:
       summary: Merge a party into a Golden Record
       tags:
       - Parties
+  /role-types:
+    get:
+      description: Returns the global role type catalog localized by Accept-Language
+        with fallback to the default locale and then to the code.
+      parameters:
+      - description: Locale BCP 47 (es, en, pt-BR)
+        in: header
+        name: Accept-Language
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CatalogListEnvelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      summary: List role types
+      tags:
+      - Catalogs
 schemes:
 - http
 - https

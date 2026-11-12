@@ -4,8 +4,11 @@ package ent
 
 import (
 	"context"
+	"enterprise-system/ent/departmenttranslation"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/locale"
 	"enterprise-system/ent/locationtranslation"
+	"enterprise-system/ent/roletypetranslation"
 	"errors"
 	"fmt"
 	"time"
@@ -92,6 +95,51 @@ func (_c *LocaleCreate) AddLocationTranslations(v ...*LocationTranslation) *Loca
 		ids[i] = v[i].ID
 	}
 	return _c.AddLocationTranslationIDs(ids...)
+}
+
+// AddIdentityDocumentTypeTranslationIDs adds the "identity_document_type_translations" edge to the IdentityDocumentTypeTranslation entity by IDs.
+func (_c *LocaleCreate) AddIdentityDocumentTypeTranslationIDs(ids ...uuid.UUID) *LocaleCreate {
+	_c.mutation.AddIdentityDocumentTypeTranslationIDs(ids...)
+	return _c
+}
+
+// AddIdentityDocumentTypeTranslations adds the "identity_document_type_translations" edges to the IdentityDocumentTypeTranslation entity.
+func (_c *LocaleCreate) AddIdentityDocumentTypeTranslations(v ...*IdentityDocumentTypeTranslation) *LocaleCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddIdentityDocumentTypeTranslationIDs(ids...)
+}
+
+// AddRoleTypeTranslationIDs adds the "role_type_translations" edge to the RoleTypeTranslation entity by IDs.
+func (_c *LocaleCreate) AddRoleTypeTranslationIDs(ids ...uuid.UUID) *LocaleCreate {
+	_c.mutation.AddRoleTypeTranslationIDs(ids...)
+	return _c
+}
+
+// AddRoleTypeTranslations adds the "role_type_translations" edges to the RoleTypeTranslation entity.
+func (_c *LocaleCreate) AddRoleTypeTranslations(v ...*RoleTypeTranslation) *LocaleCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRoleTypeTranslationIDs(ids...)
+}
+
+// AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by IDs.
+func (_c *LocaleCreate) AddDepartmentTranslationIDs(ids ...uuid.UUID) *LocaleCreate {
+	_c.mutation.AddDepartmentTranslationIDs(ids...)
+	return _c
+}
+
+// AddDepartmentTranslations adds the "department_translations" edges to the DepartmentTranslation entity.
+func (_c *LocaleCreate) AddDepartmentTranslations(v ...*DepartmentTranslation) *LocaleCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDepartmentTranslationIDs(ids...)
 }
 
 // Mutation returns the LocaleMutation object of the builder.
@@ -226,6 +274,57 @@ func (_c *LocaleCreate) createSpec() (*Locale, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.LocationTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.IdentityDocumentTypeTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.IdentityDocumentTypeTranslationsTable,
+			Columns: []string{locale.IdentityDocumentTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(identitydocumenttypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.IdentityDocumentTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RoleTypeTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.RoleTypeTranslationsTable,
+			Columns: []string{locale.RoleTypeTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(roletypetranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.RoleTypeTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DepartmentTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   locale.DepartmentTranslationsTable,
+			Columns: []string{locale.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

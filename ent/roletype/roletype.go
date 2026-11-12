@@ -17,10 +17,6 @@ const (
 	FieldID = "id"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
-	// FieldDescription holds the string denoting the description field in the database.
-	FieldDescription = "description"
 	// FieldIsSystem holds the string denoting the is_system field in the database.
 	FieldIsSystem = "is_system"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -31,6 +27,8 @@ const (
 	FieldDeletedAt = "deleted_at"
 	// EdgePartyRoles holds the string denoting the party_roles edge name in mutations.
 	EdgePartyRoles = "party_roles"
+	// EdgeTranslations holds the string denoting the translations edge name in mutations.
+	EdgeTranslations = "translations"
 	// Table holds the table name of the roletype in the database.
 	Table = "role_types"
 	// PartyRolesTable is the table that holds the party_roles relation/edge.
@@ -40,14 +38,19 @@ const (
 	PartyRolesInverseTable = "party_roles"
 	// PartyRolesColumn is the table column denoting the party_roles relation/edge.
 	PartyRolesColumn = "role_type_id"
+	// TranslationsTable is the table that holds the translations relation/edge.
+	TranslationsTable = "role_type_translations"
+	// TranslationsInverseTable is the table name for the RoleTypeTranslation entity.
+	// It exists in this package in order to avoid circular dependency with the "roletypetranslation" package.
+	TranslationsInverseTable = "role_type_translations"
+	// TranslationsColumn is the table column denoting the translations relation/edge.
+	TranslationsColumn = "role_type_id"
 )
 
 // Columns holds all SQL columns for roletype fields.
 var Columns = []string{
 	FieldID,
 	FieldCode,
-	FieldName,
-	FieldDescription,
 	FieldIsSystem,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -67,8 +70,6 @@ func ValidColumn(column string) bool {
 var (
 	// CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	CodeValidator func(string) error
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
 	// DefaultIsSystem holds the default value on creation for the "is_system" field.
 	DefaultIsSystem bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -92,16 +93,6 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByCode orders the results by the code field.
 func ByCode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCode, opts...).ToFunc()
-}
-
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
-}
-
-// ByDescription orders the results by the description field.
-func ByDescription(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDescription, opts...).ToFunc()
 }
 
 // ByIsSystem orders the results by the is_system field.
@@ -137,10 +128,31 @@ func ByPartyRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newPartyRolesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByTranslationsCount orders the results by translations count.
+func ByTranslationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTranslationsStep(), opts...)
+	}
+}
+
+// ByTranslations orders the results by translations terms.
+func ByTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPartyRolesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PartyRolesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PartyRolesTable, PartyRolesColumn),
+	)
+}
+func newTranslationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TranslationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TranslationsTable, TranslationsColumn),
 	)
 }

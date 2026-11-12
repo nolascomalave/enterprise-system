@@ -9,6 +9,7 @@ import (
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/roletype"
+	"enterprise-system/ent/roletypetranslation"
 	"fmt"
 	"math"
 
@@ -22,11 +23,12 @@ import (
 // RoleTypeQuery is the builder for querying RoleType entities.
 type RoleTypeQuery struct {
 	config
-	ctx            *QueryContext
-	order          []roletype.OrderOption
-	inters         []Interceptor
-	predicates     []predicate.RoleType
-	withPartyRoles *PartyRoleQuery
+	ctx              *QueryContext
+	order            []roletype.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.RoleType
+	withPartyRoles   *PartyRoleQuery
+	withTranslations *RoleTypeTranslationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -82,6 +84,31 @@ func (_q *RoleTypeQuery) QueryPartyRoles() *PartyRoleQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.PartyRole
 		step.Edge.Schema = schemaConfig.PartyRole
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTranslations chains the current query on the "translations" edge.
+func (_q *RoleTypeQuery) QueryTranslations() *RoleTypeTranslationQuery {
+	query := (&RoleTypeTranslationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(roletype.Table, roletype.FieldID, selector),
+			sqlgraph.To(roletypetranslation.Table, roletypetranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, roletype.TranslationsTable, roletype.TranslationsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.RoleTypeTranslation
+		step.Edge.Schema = schemaConfig.RoleTypeTranslation
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -275,12 +302,13 @@ func (_q *RoleTypeQuery) Clone() *RoleTypeQuery {
 		return nil
 	}
 	return &RoleTypeQuery{
-		config:         _q.config,
-		ctx:            _q.ctx.Clone(),
-		order:          append([]roletype.OrderOption{}, _q.order...),
-		inters:         append([]Interceptor{}, _q.inters...),
-		predicates:     append([]predicate.RoleType{}, _q.predicates...),
-		withPartyRoles: _q.withPartyRoles.Clone(),
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]roletype.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.RoleType{}, _q.predicates...),
+		withPartyRoles:   _q.withPartyRoles.Clone(),
+		withTranslations: _q.withTranslations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -295,6 +323,17 @@ func (_q *RoleTypeQuery) WithPartyRoles(opts ...func(*PartyRoleQuery)) *RoleType
 		opt(query)
 	}
 	_q.withPartyRoles = query
+	return _q
+}
+
+// WithTranslations tells the query-builder to eager-load the nodes that are connected to
+// the "translations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *RoleTypeQuery) WithTranslations(opts ...func(*RoleTypeTranslationQuery)) *RoleTypeQuery {
+	query := (&RoleTypeTranslationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTranslations = query
 	return _q
 }
 
@@ -376,8 +415,9 @@ func (_q *RoleTypeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Rol
 	var (
 		nodes       = []*RoleType{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withPartyRoles != nil,
+			_q.withTranslations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -407,6 +447,13 @@ func (_q *RoleTypeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Rol
 			return nil, err
 		}
 	}
+	if query := _q.withTranslations; query != nil {
+		if err := _q.loadTranslations(ctx, query, nodes,
+			func(n *RoleType) { n.Edges.Translations = []*RoleTypeTranslation{} },
+			func(n *RoleType, e *RoleTypeTranslation) { n.Edges.Translations = append(n.Edges.Translations, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -425,6 +472,36 @@ func (_q *RoleTypeQuery) loadPartyRoles(ctx context.Context, query *PartyRoleQue
 	}
 	query.Where(predicate.PartyRole(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(roletype.PartyRolesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.RoleTypeID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "role_type_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *RoleTypeQuery) loadTranslations(ctx context.Context, query *RoleTypeTranslationQuery, nodes []*RoleType, init func(*RoleType), assign func(*RoleType, *RoleTypeTranslation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*RoleType)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(roletypetranslation.FieldRoleTypeID)
+	}
+	query.Where(predicate.RoleTypeTranslation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(roletype.TranslationsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

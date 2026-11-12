@@ -24,6 +24,7 @@ type OrgStructureRepository interface {
 	GetDepartment(ctx context.Context, id uuid.UUID) (*Department, error)
 	ListDepartments(ctx context.Context) ([]*Department, error)
 	UpdateDepartment(ctx context.Context, department *Department) error
+	GetDepartmentTranslation(ctx context.Context, departmentID uuid.UUID, locale string) (string, error)
 
 	CreateCorporateGroup(ctx context.Context, group *CorporateGroup) error
 	GetCorporateGroup(ctx context.Context, id uuid.UUID) (*CorporateGroup, error)

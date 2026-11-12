@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"enterprise-system/ent/identitydocumenttype"
+	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/partyidentitydocument"
 	"enterprise-system/ent/predicate"
@@ -22,11 +23,12 @@ import (
 // IdentityDocumentTypeQuery is the builder for querying IdentityDocumentType entities.
 type IdentityDocumentTypeQuery struct {
 	config
-	ctx           *QueryContext
-	order         []identitydocumenttype.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.IdentityDocumentType
-	withDocuments *PartyIdentityDocumentQuery
+	ctx              *QueryContext
+	order            []identitydocumenttype.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.IdentityDocumentType
+	withDocuments    *PartyIdentityDocumentQuery
+	withTranslations *IdentityDocumentTypeTranslationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -82,6 +84,31 @@ func (_q *IdentityDocumentTypeQuery) QueryDocuments() *PartyIdentityDocumentQuer
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.PartyIdentityDocument
 		step.Edge.Schema = schemaConfig.PartyIdentityDocument
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTranslations chains the current query on the "translations" edge.
+func (_q *IdentityDocumentTypeQuery) QueryTranslations() *IdentityDocumentTypeTranslationQuery {
+	query := (&IdentityDocumentTypeTranslationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(identitydocumenttype.Table, identitydocumenttype.FieldID, selector),
+			sqlgraph.To(identitydocumenttypetranslation.Table, identitydocumenttypetranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, identitydocumenttype.TranslationsTable, identitydocumenttype.TranslationsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.IdentityDocumentTypeTranslation
+		step.Edge.Schema = schemaConfig.IdentityDocumentTypeTranslation
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -275,12 +302,13 @@ func (_q *IdentityDocumentTypeQuery) Clone() *IdentityDocumentTypeQuery {
 		return nil
 	}
 	return &IdentityDocumentTypeQuery{
-		config:        _q.config,
-		ctx:           _q.ctx.Clone(),
-		order:         append([]identitydocumenttype.OrderOption{}, _q.order...),
-		inters:        append([]Interceptor{}, _q.inters...),
-		predicates:    append([]predicate.IdentityDocumentType{}, _q.predicates...),
-		withDocuments: _q.withDocuments.Clone(),
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]identitydocumenttype.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.IdentityDocumentType{}, _q.predicates...),
+		withDocuments:    _q.withDocuments.Clone(),
+		withTranslations: _q.withTranslations.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -295,6 +323,17 @@ func (_q *IdentityDocumentTypeQuery) WithDocuments(opts ...func(*PartyIdentityDo
 		opt(query)
 	}
 	_q.withDocuments = query
+	return _q
+}
+
+// WithTranslations tells the query-builder to eager-load the nodes that are connected to
+// the "translations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *IdentityDocumentTypeQuery) WithTranslations(opts ...func(*IdentityDocumentTypeTranslationQuery)) *IdentityDocumentTypeQuery {
+	query := (&IdentityDocumentTypeTranslationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTranslations = query
 	return _q
 }
 
@@ -376,8 +415,9 @@ func (_q *IdentityDocumentTypeQuery) sqlAll(ctx context.Context, hooks ...queryH
 	var (
 		nodes       = []*IdentityDocumentType{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withDocuments != nil,
+			_q.withTranslations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -405,6 +445,15 @@ func (_q *IdentityDocumentTypeQuery) sqlAll(ctx context.Context, hooks ...queryH
 			func(n *IdentityDocumentType) { n.Edges.Documents = []*PartyIdentityDocument{} },
 			func(n *IdentityDocumentType, e *PartyIdentityDocument) {
 				n.Edges.Documents = append(n.Edges.Documents, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withTranslations; query != nil {
+		if err := _q.loadTranslations(ctx, query, nodes,
+			func(n *IdentityDocumentType) { n.Edges.Translations = []*IdentityDocumentTypeTranslation{} },
+			func(n *IdentityDocumentType, e *IdentityDocumentTypeTranslation) {
+				n.Edges.Translations = append(n.Edges.Translations, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -437,6 +486,36 @@ func (_q *IdentityDocumentTypeQuery) loadDocuments(ctx context.Context, query *P
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "document_type_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *IdentityDocumentTypeQuery) loadTranslations(ctx context.Context, query *IdentityDocumentTypeTranslationQuery, nodes []*IdentityDocumentType, init func(*IdentityDocumentType), assign func(*IdentityDocumentType, *IdentityDocumentTypeTranslation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*IdentityDocumentType)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(identitydocumenttypetranslation.FieldIdentityDocumentTypeID)
+	}
+	query.Where(predicate.IdentityDocumentTypeTranslation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(identitydocumenttype.TranslationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.IdentityDocumentTypeID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "identity_document_type_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

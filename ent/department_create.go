@@ -10,6 +10,7 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/subscription"
@@ -309,6 +310,21 @@ func (_c *DepartmentCreate) AddAddressValidities(v ...*DepartmentAddressValidity
 		ids[i] = v[i].ID
 	}
 	return _c.AddAddressValidityIDs(ids...)
+}
+
+// AddTranslationIDs adds the "translations" edge to the DepartmentTranslation entity by IDs.
+func (_c *DepartmentCreate) AddTranslationIDs(ids ...uuid.UUID) *DepartmentCreate {
+	_c.mutation.AddTranslationIDs(ids...)
+	return _c
+}
+
+// AddTranslations adds the "translations" edges to the DepartmentTranslation entity.
+func (_c *DepartmentCreate) AddTranslations(v ...*DepartmentTranslation) *DepartmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTranslationIDs(ids...)
 }
 
 // Mutation returns the DepartmentMutation object of the builder.
@@ -642,6 +658,23 @@ func (_c *DepartmentCreate) createSpec() (*Department, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.DepartmentAddressValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.TranslationsTable,
+			Columns: []string{department.TranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

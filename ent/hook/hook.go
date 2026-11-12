@@ -152,6 +152,18 @@ func (f DepartmentGroupAssignmentFunc) Mutate(ctx context.Context, m ent.Mutatio
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepartmentGroupAssignmentMutation", m)
 }
 
+// The DepartmentTranslationFunc type is an adapter to allow the use of ordinary
+// function as DepartmentTranslation mutator.
+type DepartmentTranslationFunc func(context.Context, *ent.DepartmentTranslationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DepartmentTranslationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DepartmentTranslationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepartmentTranslationMutation", m)
+}
+
 // The EmployeeFunc type is an adapter to allow the use of ordinary
 // function as Employee mutator.
 type EmployeeFunc func(context.Context, *ent.EmployeeMutation) (ent.Value, error)
@@ -186,6 +198,18 @@ func (f IdentityDocumentTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (e
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IdentityDocumentTypeMutation", m)
+}
+
+// The IdentityDocumentTypeTranslationFunc type is an adapter to allow the use of ordinary
+// function as IdentityDocumentTypeTranslation mutator.
+type IdentityDocumentTypeTranslationFunc func(context.Context, *ent.IdentityDocumentTypeTranslationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IdentityDocumentTypeTranslationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.IdentityDocumentTypeTranslationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IdentityDocumentTypeTranslationMutation", m)
 }
 
 // The JobFunc type is an adapter to allow the use of ordinary
@@ -426,6 +450,18 @@ func (f RoleTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleTypeMutation", m)
+}
+
+// The RoleTypeTranslationFunc type is an adapter to allow the use of ordinary
+// function as RoleTypeTranslation mutator.
+type RoleTypeTranslationFunc func(context.Context, *ent.RoleTypeTranslationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RoleTypeTranslationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RoleTypeTranslationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleTypeTranslationMutation", m)
 }
 
 // The SessionFunc type is an adapter to allow the use of ordinary

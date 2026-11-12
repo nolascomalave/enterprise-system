@@ -56,6 +56,8 @@ const (
 	EdgeAddresses = "addresses"
 	// EdgeAddressValidities holds the string denoting the address_validities edge name in mutations.
 	EdgeAddressValidities = "address_validities"
+	// EdgeTranslations holds the string denoting the translations edge name in mutations.
+	EdgeTranslations = "translations"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the department in the database.
@@ -131,6 +133,13 @@ const (
 	AddressValiditiesInverseTable = "department_address_validities"
 	// AddressValiditiesColumn is the table column denoting the address_validities relation/edge.
 	AddressValiditiesColumn = "department_id"
+	// TranslationsTable is the table that holds the translations relation/edge.
+	TranslationsTable = "department_translations"
+	// TranslationsInverseTable is the table name for the DepartmentTranslation entity.
+	// It exists in this package in order to avoid circular dependency with the "departmenttranslation" package.
+	TranslationsInverseTable = "department_translations"
+	// TranslationsColumn is the table column denoting the translations relation/edge.
+	TranslationsColumn = "department_id"
 )
 
 // Columns holds all SQL columns for department fields.
@@ -385,6 +394,20 @@ func ByAddressValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption
 		sqlgraph.OrderByNeighborTerms(s, newAddressValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByTranslationsCount orders the results by translations count.
+func ByTranslationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTranslationsStep(), opts...)
+	}
+}
+
+// ByTranslations orders the results by translations terms.
+func ByTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -460,5 +483,12 @@ func newAddressValiditiesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AddressValiditiesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AddressValiditiesTable, AddressValiditiesColumn),
+	)
+}
+func newTranslationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TranslationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TranslationsTable, TranslationsColumn),
 	)
 }

@@ -5,6 +5,7 @@ import (
 
 	"enterprise-system/ent"
 	"enterprise-system/ent/department"
+	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/internal/domain"
 	"github.com/google/uuid"
@@ -248,6 +249,31 @@ func (r *OrgStructureRepository) UpdateDepartment(ctx context.Context, e *domain
 		_, err := update.Save(ctx)
 		return repoError(err)
 	})
+}
+
+func (r *OrgStructureRepository) GetDepartmentTranslation(
+	ctx context.Context,
+	departmentID uuid.UUID,
+	locale string,
+) (string, error) {
+	var result string
+	err := r.withClient(ctx, func(client *ent.Client) error {
+		row, err := client.DepartmentTranslation.Query().
+			Where(
+				departmenttranslation.DepartmentID(departmentID),
+				departmenttranslation.LocaleCodeEQ(locale),
+			).
+			Only(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+		result = row.Name
+		return nil
+	})
+	if ent.IsNotFound(err) {
+		return "", domain.ErrTranslationNotFound
+	}
+	return result, err
 }
 
 // Corporate groups ----------------------------------------------------------

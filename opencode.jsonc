@@ -3,7 +3,8 @@
   // Reglas obligatorias del proyecto (transacciones, errores, RLS, ...).
   "instructions": [
     ".opencode/rules/transaction-guardrails.md",
-    ".opencode/rules/error-handling-guardrails.md"
+    ".opencode/rules/error-handling-guardrails.md",
+    ".opencode/skills/i18n-management/SKILL.md"
   ],
   "mcp": {
     "postgres": {

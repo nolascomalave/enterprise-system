@@ -17,7 +17,6 @@ type PartyContactRepository interface {
 	ListPartyContacts(ctx context.Context, tenantID, partyID uuid.UUID) ([]*PartyContact, error)
 	UpdatePartyContactMechanism(ctx context.Context, relation *PartyContactMechanism) error
 	FindActivePartyContact(ctx context.Context, tenantID, contactMechanismID uuid.UUID, at time.Time) (*PartyContactMechanism, error)
-
 	CreateAddress(ctx context.Context, address *Address) error
 	GetAddress(ctx context.Context, id uuid.UUID) (*Address, error)
 	ListAddresses(ctx context.Context, partyID uuid.UUID) ([]*Address, error)

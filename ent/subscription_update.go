@@ -15,6 +15,7 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/internal"
@@ -576,6 +577,21 @@ func (_u *SubscriptionUpdate) AddClientApplications(v ...*ClientApplication) *Su
 		ids[i] = v[i].ID
 	}
 	return _u.AddClientApplicationIDs(ids...)
+}
+
+// AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by IDs.
+func (_u *SubscriptionUpdate) AddDepartmentTranslationIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddDepartmentTranslationIDs(ids...)
+	return _u
+}
+
+// AddDepartmentTranslations adds the "department_translations" edges to the DepartmentTranslation entity.
+func (_u *SubscriptionUpdate) AddDepartmentTranslations(v ...*DepartmentTranslation) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentTranslationIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -1211,6 +1227,27 @@ func (_u *SubscriptionUpdate) RemoveClientApplications(v ...*ClientApplication) 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveClientApplicationIDs(ids...)
+}
+
+// ClearDepartmentTranslations clears all "department_translations" edges to the DepartmentTranslation entity.
+func (_u *SubscriptionUpdate) ClearDepartmentTranslations() *SubscriptionUpdate {
+	_u.mutation.ClearDepartmentTranslations()
+	return _u
+}
+
+// RemoveDepartmentTranslationIDs removes the "department_translations" edge to DepartmentTranslation entities by IDs.
+func (_u *SubscriptionUpdate) RemoveDepartmentTranslationIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveDepartmentTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentTranslations removes "department_translations" edges to DepartmentTranslation entities.
+func (_u *SubscriptionUpdate) RemoveDepartmentTranslations(v ...*DepartmentTranslation) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentTranslationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2739,6 +2776,54 @@ func (_u *SubscriptionUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.DepartmentTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentTranslationsTable,
+			Columns: []string{subscription.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentTranslationsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentTranslationsTable,
+			Columns: []string{subscription.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentTranslationsTable,
+			Columns: []string{subscription.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Subscription
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -3277,6 +3362,21 @@ func (_u *SubscriptionUpdateOne) AddClientApplications(v ...*ClientApplication) 
 		ids[i] = v[i].ID
 	}
 	return _u.AddClientApplicationIDs(ids...)
+}
+
+// AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by IDs.
+func (_u *SubscriptionUpdateOne) AddDepartmentTranslationIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddDepartmentTranslationIDs(ids...)
+	return _u
+}
+
+// AddDepartmentTranslations adds the "department_translations" edges to the DepartmentTranslation entity.
+func (_u *SubscriptionUpdateOne) AddDepartmentTranslations(v ...*DepartmentTranslation) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentTranslationIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -3912,6 +4012,27 @@ func (_u *SubscriptionUpdateOne) RemoveClientApplications(v ...*ClientApplicatio
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveClientApplicationIDs(ids...)
+}
+
+// ClearDepartmentTranslations clears all "department_translations" edges to the DepartmentTranslation entity.
+func (_u *SubscriptionUpdateOne) ClearDepartmentTranslations() *SubscriptionUpdateOne {
+	_u.mutation.ClearDepartmentTranslations()
+	return _u
+}
+
+// RemoveDepartmentTranslationIDs removes the "department_translations" edge to DepartmentTranslation entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentTranslationIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveDepartmentTranslationIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentTranslations removes "department_translations" edges to DepartmentTranslation entities.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentTranslations(v ...*DepartmentTranslation) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentTranslationIDs(ids...)
 }
 
 // Where appends a list predicates to the SubscriptionUpdate builder.
@@ -5465,6 +5586,54 @@ func (_u *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscripti
 			},
 		}
 		edge.Schema = _u.schemaConfig.ClientApplication
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentTranslationsTable,
+			Columns: []string{subscription.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentTranslationsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentTranslationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentTranslationsTable,
+			Columns: []string{subscription.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentTranslationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentTranslationsTable,
+			Columns: []string{subscription.DepartmentTranslationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmenttranslation.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentTranslation
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

@@ -19,9 +19,11 @@ type SchemaConfig struct {
 	DepartmentContactMechanism         string // DepartmentContactMechanism table.
 	DepartmentContactMechanismValidity string // DepartmentContactMechanismValidity table.
 	DepartmentGroupAssignment          string // DepartmentGroupAssignment table.
+	DepartmentTranslation              string // DepartmentTranslation table.
 	Employee                           string // Employee table.
 	EmployeeAssignment                 string // EmployeeAssignment table.
 	IdentityDocumentType               string // IdentityDocumentType table.
+	IdentityDocumentTypeTranslation    string // IdentityDocumentTypeTranslation table.
 	Job                                string // Job table.
 	JobFamily                          string // JobFamily table.
 	Locale                             string // Locale table.
@@ -42,6 +44,7 @@ type SchemaConfig struct {
 	PasswordResetToken                 string // PasswordResetToken table.
 	PersonProfile                      string // PersonProfile table.
 	RoleType                           string // RoleType table.
+	RoleTypeTranslation                string // RoleTypeTranslation table.
 	Session                            string // Session table.
 	Subscription                       string // Subscription table.
 	UserCredentials                    string // UserCredentials table.
