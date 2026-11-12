@@ -21,6 +21,8 @@ import (
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/location"
+	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/nametype"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
@@ -72,6 +74,10 @@ type Client struct {
 	Job *JobClient
 	// JobFamily is the client for interacting with the JobFamily builders.
 	JobFamily *JobFamilyClient
+	// Location is the client for interacting with the Location builders.
+	Location *LocationClient
+	// LocationTranslation is the client for interacting with the LocationTranslation builders.
+	LocationTranslation *LocationTranslationClient
 	// NameType is the client for interacting with the NameType builders.
 	NameType *NameTypeClient
 	// OrganizationProfile is the client for interacting with the OrganizationProfile builders.
@@ -123,6 +129,8 @@ func (c *Client) init() {
 	c.EmployeeAssignment = NewEmployeeAssignmentClient(c.config)
 	c.Job = NewJobClient(c.config)
 	c.JobFamily = NewJobFamilyClient(c.config)
+	c.Location = NewLocationClient(c.config)
+	c.LocationTranslation = NewLocationTranslationClient(c.config)
 	c.NameType = NewNameTypeClient(c.config)
 	c.OrganizationProfile = NewOrganizationProfileClient(c.config)
 	c.Party = NewPartyClient(c.config)
@@ -243,6 +251,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		EmployeeAssignment:            NewEmployeeAssignmentClient(cfg),
 		Job:                           NewJobClient(cfg),
 		JobFamily:                     NewJobFamilyClient(cfg),
+		Location:                      NewLocationClient(cfg),
+		LocationTranslation:           NewLocationTranslationClient(cfg),
 		NameType:                      NewNameTypeClient(cfg),
 		OrganizationProfile:           NewOrganizationProfileClient(cfg),
 		Party:                         NewPartyClient(cfg),
@@ -287,6 +297,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		EmployeeAssignment:            NewEmployeeAssignmentClient(cfg),
 		Job:                           NewJobClient(cfg),
 		JobFamily:                     NewJobFamilyClient(cfg),
+		Location:                      NewLocationClient(cfg),
+		LocationTranslation:           NewLocationTranslationClient(cfg),
 		NameType:                      NewNameTypeClient(cfg),
 		OrganizationProfile:           NewOrganizationProfileClient(cfg),
 		Party:                         NewPartyClient(cfg),
@@ -333,10 +345,11 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Address, c.AttachedDocument, c.ContactMechanism, c.CorporateGroup,
 		c.Department, c.DepartmentGroupAssignment, c.Employee, c.EmployeeAssignment,
-		c.Job, c.JobFamily, c.NameType, c.OrganizationProfile, c.Party,
-		c.PartyContactMechanism, c.PartyContactMechanismValidity, c.PartyMergeLog,
-		c.PartyName, c.PartyNameValidity, c.PartyRole, c.PasswordResetToken,
-		c.PersonProfile, c.RoleType, c.Session, c.Subscription, c.UserCredentials,
+		c.Job, c.JobFamily, c.Location, c.LocationTranslation, c.NameType,
+		c.OrganizationProfile, c.Party, c.PartyContactMechanism,
+		c.PartyContactMechanismValidity, c.PartyMergeLog, c.PartyName,
+		c.PartyNameValidity, c.PartyRole, c.PasswordResetToken, c.PersonProfile,
+		c.RoleType, c.Session, c.Subscription, c.UserCredentials,
 	} {
 		n.Use(hooks...)
 	}
@@ -348,10 +361,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Address, c.AttachedDocument, c.ContactMechanism, c.CorporateGroup,
 		c.Department, c.DepartmentGroupAssignment, c.Employee, c.EmployeeAssignment,
-		c.Job, c.JobFamily, c.NameType, c.OrganizationProfile, c.Party,
-		c.PartyContactMechanism, c.PartyContactMechanismValidity, c.PartyMergeLog,
-		c.PartyName, c.PartyNameValidity, c.PartyRole, c.PasswordResetToken,
-		c.PersonProfile, c.RoleType, c.Session, c.Subscription, c.UserCredentials,
+		c.Job, c.JobFamily, c.Location, c.LocationTranslation, c.NameType,
+		c.OrganizationProfile, c.Party, c.PartyContactMechanism,
+		c.PartyContactMechanismValidity, c.PartyMergeLog, c.PartyName,
+		c.PartyNameValidity, c.PartyRole, c.PasswordResetToken, c.PersonProfile,
+		c.RoleType, c.Session, c.Subscription, c.UserCredentials,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -380,6 +394,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Job.mutate(ctx, m)
 	case *JobFamilyMutation:
 		return c.JobFamily.mutate(ctx, m)
+	case *LocationMutation:
+		return c.Location.mutate(ctx, m)
+	case *LocationTranslationMutation:
+		return c.LocationTranslation.mutate(ctx, m)
 	case *NameTypeMutation:
 		return c.NameType.mutate(ctx, m)
 	case *OrganizationProfileMutation:
@@ -554,6 +572,25 @@ func (c *AddressClient) QueryParty(_m *Address) *PartyQuery {
 		)
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.Party
+		step.Edge.Schema = schemaConfig.Address
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCityLocation queries the city_location edge of a Address.
+func (c *AddressClient) QueryCityLocation(_m *Address) *LocationQuery {
+	query := (&LocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(address.Table, address.FieldID, id),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, address.CityLocationTable, address.CityLocationColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Location
 		step.Edge.Schema = schemaConfig.Address
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -2369,6 +2406,367 @@ func (c *JobFamilyClient) mutate(ctx context.Context, m *JobFamilyMutation) (Val
 		return (&JobFamilyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown JobFamily mutation op: %q", m.Op())
+	}
+}
+
+// LocationClient is a client for the Location schema.
+type LocationClient struct {
+	config
+}
+
+// NewLocationClient returns a client for the Location from the given config.
+func NewLocationClient(c config) *LocationClient {
+	return &LocationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `location.Hooks(f(g(h())))`.
+func (c *LocationClient) Use(hooks ...Hook) {
+	c.hooks.Location = append(c.hooks.Location, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `location.Intercept(f(g(h())))`.
+func (c *LocationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Location = append(c.inters.Location, interceptors...)
+}
+
+// Create returns a builder for creating a Location entity.
+func (c *LocationClient) Create() *LocationCreate {
+	mutation := newLocationMutation(c.config, OpCreate)
+	return &LocationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Location entities.
+func (c *LocationClient) CreateBulk(builders ...*LocationCreate) *LocationCreateBulk {
+	return &LocationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LocationClient) MapCreateBulk(slice any, setFunc func(*LocationCreate, int)) *LocationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LocationCreateBulk{err: fmt.Errorf("calling to LocationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LocationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LocationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Location.
+func (c *LocationClient) Update() *LocationUpdate {
+	mutation := newLocationMutation(c.config, OpUpdate)
+	return &LocationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LocationClient) UpdateOne(_m *Location) *LocationUpdateOne {
+	mutation := newLocationMutation(c.config, OpUpdateOne, withLocation(_m))
+	return &LocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LocationClient) UpdateOneID(id uuid.UUID) *LocationUpdateOne {
+	mutation := newLocationMutation(c.config, OpUpdateOne, withLocationID(id))
+	return &LocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Location.
+func (c *LocationClient) Delete() *LocationDelete {
+	mutation := newLocationMutation(c.config, OpDelete)
+	return &LocationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LocationClient) DeleteOne(_m *Location) *LocationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LocationClient) DeleteOneID(id uuid.UUID) *LocationDeleteOne {
+	builder := c.Delete().Where(location.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LocationDeleteOne{builder}
+}
+
+// Query returns a query builder for Location.
+func (c *LocationClient) Query() *LocationQuery {
+	return &LocationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLocation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Location entity by its id.
+func (c *LocationClient) Get(ctx context.Context, id uuid.UUID) (*Location, error) {
+	return c.Query().Where(location.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LocationClient) GetX(ctx context.Context, id uuid.UUID) *Location {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryChildren queries the children edge of a Location.
+func (c *LocationClient) QueryChildren(_m *Location) *LocationQuery {
+	query := (&LocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, id),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.ChildrenTable, location.ChildrenColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Location
+		step.Edge.Schema = schemaConfig.Location
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryParent queries the parent edge of a Location.
+func (c *LocationClient) QueryParent(_m *Location) *LocationQuery {
+	query := (&LocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, id),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, location.ParentTable, location.ParentColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Location
+		step.Edge.Schema = schemaConfig.Location
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTranslations queries the translations edge of a Location.
+func (c *LocationClient) QueryTranslations(_m *Location) *LocationTranslationQuery {
+	query := (&LocationTranslationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, id),
+			sqlgraph.To(locationtranslation.Table, locationtranslation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.TranslationsTable, location.TranslationsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.LocationTranslation
+		step.Edge.Schema = schemaConfig.LocationTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAddresses queries the addresses edge of a Location.
+func (c *LocationClient) QueryAddresses(_m *Location) *AddressQuery {
+	query := (&AddressClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(location.Table, location.FieldID, id),
+			sqlgraph.To(address.Table, address.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, location.AddressesTable, location.AddressesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Address
+		step.Edge.Schema = schemaConfig.Address
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LocationClient) Hooks() []Hook {
+	return c.hooks.Location
+}
+
+// Interceptors returns the client interceptors.
+func (c *LocationClient) Interceptors() []Interceptor {
+	return c.inters.Location
+}
+
+func (c *LocationClient) mutate(ctx context.Context, m *LocationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LocationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LocationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LocationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Location mutation op: %q", m.Op())
+	}
+}
+
+// LocationTranslationClient is a client for the LocationTranslation schema.
+type LocationTranslationClient struct {
+	config
+}
+
+// NewLocationTranslationClient returns a client for the LocationTranslation from the given config.
+func NewLocationTranslationClient(c config) *LocationTranslationClient {
+	return &LocationTranslationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `locationtranslation.Hooks(f(g(h())))`.
+func (c *LocationTranslationClient) Use(hooks ...Hook) {
+	c.hooks.LocationTranslation = append(c.hooks.LocationTranslation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `locationtranslation.Intercept(f(g(h())))`.
+func (c *LocationTranslationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LocationTranslation = append(c.inters.LocationTranslation, interceptors...)
+}
+
+// Create returns a builder for creating a LocationTranslation entity.
+func (c *LocationTranslationClient) Create() *LocationTranslationCreate {
+	mutation := newLocationTranslationMutation(c.config, OpCreate)
+	return &LocationTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LocationTranslation entities.
+func (c *LocationTranslationClient) CreateBulk(builders ...*LocationTranslationCreate) *LocationTranslationCreateBulk {
+	return &LocationTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LocationTranslationClient) MapCreateBulk(slice any, setFunc func(*LocationTranslationCreate, int)) *LocationTranslationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LocationTranslationCreateBulk{err: fmt.Errorf("calling to LocationTranslationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LocationTranslationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LocationTranslationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LocationTranslation.
+func (c *LocationTranslationClient) Update() *LocationTranslationUpdate {
+	mutation := newLocationTranslationMutation(c.config, OpUpdate)
+	return &LocationTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LocationTranslationClient) UpdateOne(_m *LocationTranslation) *LocationTranslationUpdateOne {
+	mutation := newLocationTranslationMutation(c.config, OpUpdateOne, withLocationTranslation(_m))
+	return &LocationTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LocationTranslationClient) UpdateOneID(id uuid.UUID) *LocationTranslationUpdateOne {
+	mutation := newLocationTranslationMutation(c.config, OpUpdateOne, withLocationTranslationID(id))
+	return &LocationTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LocationTranslation.
+func (c *LocationTranslationClient) Delete() *LocationTranslationDelete {
+	mutation := newLocationTranslationMutation(c.config, OpDelete)
+	return &LocationTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LocationTranslationClient) DeleteOne(_m *LocationTranslation) *LocationTranslationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LocationTranslationClient) DeleteOneID(id uuid.UUID) *LocationTranslationDeleteOne {
+	builder := c.Delete().Where(locationtranslation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LocationTranslationDeleteOne{builder}
+}
+
+// Query returns a query builder for LocationTranslation.
+func (c *LocationTranslationClient) Query() *LocationTranslationQuery {
+	return &LocationTranslationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLocationTranslation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LocationTranslation entity by its id.
+func (c *LocationTranslationClient) Get(ctx context.Context, id uuid.UUID) (*LocationTranslation, error) {
+	return c.Query().Where(locationtranslation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LocationTranslationClient) GetX(ctx context.Context, id uuid.UUID) *LocationTranslation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLocation queries the location edge of a LocationTranslation.
+func (c *LocationTranslationClient) QueryLocation(_m *LocationTranslation) *LocationQuery {
+	query := (&LocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locationtranslation.Table, locationtranslation.FieldID, id),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, locationtranslation.LocationTable, locationtranslation.LocationColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Location
+		step.Edge.Schema = schemaConfig.LocationTranslation
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LocationTranslationClient) Hooks() []Hook {
+	return c.hooks.LocationTranslation
+}
+
+// Interceptors returns the client interceptors.
+func (c *LocationTranslationClient) Interceptors() []Interceptor {
+	return c.inters.LocationTranslation
+}
+
+func (c *LocationTranslationClient) mutate(ctx context.Context, m *LocationTranslationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LocationTranslationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LocationTranslationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LocationTranslationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LocationTranslationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LocationTranslation mutation op: %q", m.Op())
 	}
 }
 
@@ -5778,18 +6176,18 @@ type (
 	hooks struct {
 		Address, AttachedDocument, ContactMechanism, CorporateGroup, Department,
 		DepartmentGroupAssignment, Employee, EmployeeAssignment, Job, JobFamily,
-		NameType, OrganizationProfile, Party, PartyContactMechanism,
-		PartyContactMechanismValidity, PartyMergeLog, PartyName, PartyNameValidity,
-		PartyRole, PasswordResetToken, PersonProfile, RoleType, Session, Subscription,
-		UserCredentials []ent.Hook
+		Location, LocationTranslation, NameType, OrganizationProfile, Party,
+		PartyContactMechanism, PartyContactMechanismValidity, PartyMergeLog, PartyName,
+		PartyNameValidity, PartyRole, PasswordResetToken, PersonProfile, RoleType,
+		Session, Subscription, UserCredentials []ent.Hook
 	}
 	inters struct {
 		Address, AttachedDocument, ContactMechanism, CorporateGroup, Department,
 		DepartmentGroupAssignment, Employee, EmployeeAssignment, Job, JobFamily,
-		NameType, OrganizationProfile, Party, PartyContactMechanism,
-		PartyContactMechanismValidity, PartyMergeLog, PartyName, PartyNameValidity,
-		PartyRole, PasswordResetToken, PersonProfile, RoleType, Session, Subscription,
-		UserCredentials []ent.Interceptor
+		Location, LocationTranslation, NameType, OrganizationProfile, Party,
+		PartyContactMechanism, PartyContactMechanismValidity, PartyMergeLog, PartyName,
+		PartyNameValidity, PartyRole, PasswordResetToken, PersonProfile, RoleType,
+		Session, Subscription, UserCredentials []ent.Interceptor
 	}
 )
 
@@ -5806,6 +6204,8 @@ var (
 		EmployeeAssignment:            tableSchemas[1],
 		Job:                           tableSchemas[1],
 		JobFamily:                     tableSchemas[1],
+		Location:                      tableSchemas[0],
+		LocationTranslation:           tableSchemas[0],
 		NameType:                      tableSchemas[0],
 		OrganizationProfile:           tableSchemas[1],
 		Party:                         tableSchemas[1],

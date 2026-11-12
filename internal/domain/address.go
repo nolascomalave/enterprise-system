@@ -30,26 +30,27 @@ func (t AddressType) Valid() bool {
 var countryAlpha2Pattern = regexp.MustCompile(`^[A-Z]{2}$`)
 
 type Address struct {
-	ID         uuid.UUID
-	TenantID   uuid.UUID
-	PartyID    uuid.UUID
-	Type       AddressType
-	Line1      string
-	Line2      string
-	City       string
-	State      string
-	PostalCode string
-	Country    string
-	IsPrimary  bool
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	DeletedAt  *time.Time
+	ID             uuid.UUID
+	TenantID       uuid.UUID
+	PartyID        uuid.UUID
+	Type           AddressType
+	Line1          string
+	Line2          string
+	CityLocationID uuid.UUID
+	PostalCode     string
+	Country        string
+	IsPrimary      bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      *time.Time
 }
 
 func NewAddress(
 	tenantID, partyID uuid.UUID,
 	addressType AddressType,
-	line1, line2, city, state, postalCode, country string,
+	line1, line2 string,
+	cityLocationID uuid.UUID,
+	postalCode, country string,
 	isPrimary bool,
 	now time.Time,
 ) (*Address, error) {
@@ -60,19 +61,18 @@ func NewAddress(
 
 	now = now.UTC()
 	address := &Address{
-		ID:         id,
-		TenantID:   tenantID,
-		PartyID:    partyID,
-		Type:       addressType,
-		Line1:      strings.TrimSpace(line1),
-		Line2:      strings.TrimSpace(line2),
-		City:       strings.TrimSpace(city),
-		State:      strings.TrimSpace(state),
-		PostalCode: strings.TrimSpace(postalCode),
-		Country:    strings.ToUpper(strings.TrimSpace(country)),
-		IsPrimary:  isPrimary,
-		CreatedAt:  now,
-		UpdatedAt:  now,
+		ID:             id,
+		TenantID:       tenantID,
+		PartyID:        partyID,
+		Type:           addressType,
+		Line1:          strings.TrimSpace(line1),
+		Line2:          strings.TrimSpace(line2),
+		CityLocationID: cityLocationID,
+		PostalCode:     strings.TrimSpace(postalCode),
+		Country:        strings.ToUpper(strings.TrimSpace(country)),
+		IsPrimary:      isPrimary,
+		CreatedAt:      now,
+		UpdatedAt:      now,
 	}
 	if err := address.Validate(); err != nil {
 		return nil, err
@@ -99,8 +99,8 @@ func (a *Address) Validate() error {
 	if strings.TrimSpace(a.Line1) == "" {
 		return fmt.Errorf("%w: line1 is required", ErrInvalidAddress)
 	}
-	if strings.TrimSpace(a.City) == "" {
-		return fmt.Errorf("%w: city is required", ErrInvalidAddress)
+	if a.CityLocationID == uuid.Nil {
+		return fmt.Errorf("%w: city_location_id is required", ErrInvalidAddress)
 	}
 	if !countryAlpha2Pattern.MatchString(a.Country) {
 		return fmt.Errorf("%w: country must be ISO 3166-1 alpha-2", ErrInvalidAddress)
@@ -116,7 +116,9 @@ func (a *Address) Validate() error {
 
 func (a *Address) Update(
 	addressType AddressType,
-	line1, line2, city, state, postalCode, country string,
+	line1, line2 string,
+	cityLocationID uuid.UUID,
+	postalCode, country string,
 	isPrimary bool,
 	now time.Time,
 ) error {
@@ -126,8 +128,7 @@ func (a *Address) Update(
 	a.Type = addressType
 	a.Line1 = strings.TrimSpace(line1)
 	a.Line2 = strings.TrimSpace(line2)
-	a.City = strings.TrimSpace(city)
-	a.State = strings.TrimSpace(state)
+	a.CityLocationID = cityLocationID
 	a.PostalCode = strings.TrimSpace(postalCode)
 	a.Country = strings.ToUpper(strings.TrimSpace(country))
 	a.IsPrimary = isPrimary

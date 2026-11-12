@@ -20,6 +20,7 @@ type Dependencies struct {
 	MergePartiesUseCase MergePartiesUseCase
 	DocumentUseCase     DocumentUseCase
 	PartyNameUseCase    PartyNameUseCase
+	LocationUseCase     LocationUseCase
 	TokenManager        *auth.Manager
 
 	CookieSecure   bool
@@ -69,11 +70,13 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	mergeHandler := NewMergeHandler(deps.MergePartiesUseCase)
 	documentHandler := NewDocumentHandler(deps.DocumentUseCase)
 	partyNameHandler := NewPartyNameHandler(deps.PartyNameUseCase)
+	locationHandler := NewLocationHandler(deps.LocationUseCase)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := router.Group("/api/v1")
 	api.GET("/health", Health)
+	api.GET("/locations", locationHandler.List)
 
 	authRoutes := api.Group("/auth")
 	{

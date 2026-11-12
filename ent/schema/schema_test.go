@@ -262,7 +262,8 @@ func TestSearchableFieldsUseICUCollation(t *testing.T) {
 		{name: "job title", schema: Job{}, field: "title"},
 		{name: "department name", schema: Department{}, field: "name"},
 		{name: "contact value", schema: ContactMechanism{}, field: "value"},
-		{name: "address city", schema: Address{}, field: "city"},
+		{name: "location name", schema: Location{}, field: "default_name"},
+		{name: "location translation name", schema: LocationTranslation{}, field: "name"},
 	}
 
 	for _, tc := range cases {

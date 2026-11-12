@@ -128,6 +128,30 @@ func (f JobFamilyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.JobFamilyMutation", m)
 }
 
+// The LocationFunc type is an adapter to allow the use of ordinary
+// function as Location mutator.
+type LocationFunc func(context.Context, *ent.LocationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LocationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LocationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LocationMutation", m)
+}
+
+// The LocationTranslationFunc type is an adapter to allow the use of ordinary
+// function as LocationTranslation mutator.
+type LocationTranslationFunc func(context.Context, *ent.LocationTranslationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LocationTranslationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LocationTranslationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LocationTranslationMutation", m)
+}
+
 // The NameTypeFunc type is an adapter to allow the use of ordinary
 // function as NameType mutator.
 type NameTypeFunc func(context.Context, *ent.NameTypeMutation) (ent.Value, error)

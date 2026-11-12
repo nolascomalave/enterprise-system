@@ -261,8 +261,7 @@ func (r *PartyContactRepository) CreateAddress(ctx context.Context, e *domain.Ad
 			SetType(address.Type(e.Type)).
 			SetLine1(e.Line1).
 			SetLine2(e.Line2).
-			SetCity(e.City).
-			SetState(e.State).
+			SetCityLocationID(e.CityLocationID).
 			SetPostalCode(e.PostalCode).
 			SetCountry(e.Country).
 			SetIsPrimary(e.IsPrimary).
@@ -312,8 +311,7 @@ func (r *PartyContactRepository) UpdateAddress(ctx context.Context, e *domain.Ad
 			SetType(address.Type(e.Type)).
 			SetLine1(e.Line1).
 			SetLine2(e.Line2).
-			SetCity(e.City).
-			SetState(e.State).
+			SetCityLocationID(e.CityLocationID).
 			SetPostalCode(e.PostalCode).
 			SetCountry(e.Country).
 			SetIsPrimary(e.IsPrimary).
@@ -359,7 +357,7 @@ func toDomainAddress(e *ent.Address) *domain.Address {
 	return &domain.Address{
 		ID: e.ID, TenantID: e.TenantID, PartyID: e.PartyID,
 		Type: domain.AddressType(e.Type), Line1: e.Line1, Line2: e.Line2,
-		City: e.City, State: e.State, PostalCode: e.PostalCode, Country: e.Country,
+		CityLocationID: e.CityLocationID, PostalCode: e.PostalCode, Country: e.Country,
 		IsPrimary: e.IsPrimary, CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt,
 		DeletedAt: e.DeletedAt,
 	}

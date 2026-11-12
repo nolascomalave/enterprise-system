@@ -34,6 +34,10 @@ type Tx struct {
 	Job *JobClient
 	// JobFamily is the client for interacting with the JobFamily builders.
 	JobFamily *JobFamilyClient
+	// Location is the client for interacting with the Location builders.
+	Location *LocationClient
+	// LocationTranslation is the client for interacting with the LocationTranslation builders.
+	LocationTranslation *LocationTranslationClient
 	// NameType is the client for interacting with the NameType builders.
 	NameType *NameTypeClient
 	// OrganizationProfile is the client for interacting with the OrganizationProfile builders.
@@ -205,6 +209,8 @@ func (tx *Tx) init() {
 	tx.EmployeeAssignment = NewEmployeeAssignmentClient(tx.config)
 	tx.Job = NewJobClient(tx.config)
 	tx.JobFamily = NewJobFamilyClient(tx.config)
+	tx.Location = NewLocationClient(tx.config)
+	tx.LocationTranslation = NewLocationTranslationClient(tx.config)
 	tx.NameType = NewNameTypeClient(tx.config)
 	tx.OrganizationProfile = NewOrganizationProfileClient(tx.config)
 	tx.Party = NewPartyClient(tx.config)

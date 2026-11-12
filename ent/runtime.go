@@ -13,6 +13,8 @@ import (
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/location"
+	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/nametype"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
@@ -44,12 +46,8 @@ func init() {
 	addressDescLine1 := addressFields[4].Descriptor()
 	// address.Line1Validator is a validator for the "line1" field. It is called by the builders before save.
 	address.Line1Validator = addressDescLine1.Validators[0].(func(string) error)
-	// addressDescCity is the schema descriptor for city field.
-	addressDescCity := addressFields[6].Descriptor()
-	// address.CityValidator is a validator for the "city" field. It is called by the builders before save.
-	address.CityValidator = addressDescCity.Validators[0].(func(string) error)
 	// addressDescCountry is the schema descriptor for country field.
-	addressDescCountry := addressFields[9].Descriptor()
+	addressDescCountry := addressFields[8].Descriptor()
 	// address.CountryValidator is a validator for the "country" field. It is called by the builders before save.
 	address.CountryValidator = func() func(string) error {
 		validators := addressDescCountry.Validators
@@ -67,15 +65,15 @@ func init() {
 		}
 	}()
 	// addressDescIsPrimary is the schema descriptor for is_primary field.
-	addressDescIsPrimary := addressFields[10].Descriptor()
+	addressDescIsPrimary := addressFields[9].Descriptor()
 	// address.DefaultIsPrimary holds the default value on creation for the is_primary field.
 	address.DefaultIsPrimary = addressDescIsPrimary.Default.(bool)
 	// addressDescCreatedAt is the schema descriptor for created_at field.
-	addressDescCreatedAt := addressFields[11].Descriptor()
+	addressDescCreatedAt := addressFields[10].Descriptor()
 	// address.DefaultCreatedAt holds the default value on creation for the created_at field.
 	address.DefaultCreatedAt = addressDescCreatedAt.Default.(func() time.Time)
 	// addressDescUpdatedAt is the schema descriptor for updated_at field.
-	addressDescUpdatedAt := addressFields[12].Descriptor()
+	addressDescUpdatedAt := addressFields[11].Descriptor()
 	// address.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	address.DefaultUpdatedAt = addressDescUpdatedAt.Default.(func() time.Time)
 	// address.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -272,6 +270,72 @@ func init() {
 	jobfamilyDescID := jobfamilyFields[0].Descriptor()
 	// jobfamily.DefaultID holds the default value on creation for the id field.
 	jobfamily.DefaultID = jobfamilyDescID.Default.(func() uuid.UUID)
+	locationFields := schema.Location{}.Fields()
+	_ = locationFields
+	// locationDescCountryCode is the schema descriptor for country_code field.
+	locationDescCountryCode := locationFields[3].Descriptor()
+	// location.CountryCodeValidator is a validator for the "country_code" field. It is called by the builders before save.
+	location.CountryCodeValidator = func() func(string) error {
+		validators := locationDescCountryCode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(country_code string) error {
+			for _, fn := range fns {
+				if err := fn(country_code); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// locationDescDefaultName is the schema descriptor for default_name field.
+	locationDescDefaultName := locationFields[6].Descriptor()
+	// location.DefaultNameValidator is a validator for the "default_name" field. It is called by the builders before save.
+	location.DefaultNameValidator = locationDescDefaultName.Validators[0].(func(string) error)
+	// locationDescPath is the schema descriptor for path field.
+	locationDescPath := locationFields[7].Descriptor()
+	// location.PathValidator is a validator for the "path" field. It is called by the builders before save.
+	location.PathValidator = locationDescPath.Validators[0].(func(string) error)
+	// locationDescCreatedAt is the schema descriptor for created_at field.
+	locationDescCreatedAt := locationFields[8].Descriptor()
+	// location.DefaultCreatedAt holds the default value on creation for the created_at field.
+	location.DefaultCreatedAt = locationDescCreatedAt.Default.(func() time.Time)
+	// locationDescUpdatedAt is the schema descriptor for updated_at field.
+	locationDescUpdatedAt := locationFields[9].Descriptor()
+	// location.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	location.DefaultUpdatedAt = locationDescUpdatedAt.Default.(func() time.Time)
+	// location.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	location.UpdateDefaultUpdatedAt = locationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// locationDescID is the schema descriptor for id field.
+	locationDescID := locationFields[0].Descriptor()
+	// location.DefaultID holds the default value on creation for the id field.
+	location.DefaultID = locationDescID.Default.(func() uuid.UUID)
+	locationtranslationFields := schema.LocationTranslation{}.Fields()
+	_ = locationtranslationFields
+	// locationtranslationDescLanguageCode is the schema descriptor for language_code field.
+	locationtranslationDescLanguageCode := locationtranslationFields[2].Descriptor()
+	// locationtranslation.LanguageCodeValidator is a validator for the "language_code" field. It is called by the builders before save.
+	locationtranslation.LanguageCodeValidator = locationtranslationDescLanguageCode.Validators[0].(func(string) error)
+	// locationtranslationDescName is the schema descriptor for name field.
+	locationtranslationDescName := locationtranslationFields[3].Descriptor()
+	// locationtranslation.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	locationtranslation.NameValidator = locationtranslationDescName.Validators[0].(func(string) error)
+	// locationtranslationDescCreatedAt is the schema descriptor for created_at field.
+	locationtranslationDescCreatedAt := locationtranslationFields[4].Descriptor()
+	// locationtranslation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	locationtranslation.DefaultCreatedAt = locationtranslationDescCreatedAt.Default.(func() time.Time)
+	// locationtranslationDescUpdatedAt is the schema descriptor for updated_at field.
+	locationtranslationDescUpdatedAt := locationtranslationFields[5].Descriptor()
+	// locationtranslation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	locationtranslation.DefaultUpdatedAt = locationtranslationDescUpdatedAt.Default.(func() time.Time)
+	// locationtranslation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	locationtranslation.UpdateDefaultUpdatedAt = locationtranslationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// locationtranslationDescID is the schema descriptor for id field.
+	locationtranslationDescID := locationtranslationFields[0].Descriptor()
+	// locationtranslation.DefaultID holds the default value on creation for the id field.
+	locationtranslation.DefaultID = locationtranslationDescID.Default.(func() uuid.UUID)
 	nametypeFields := schema.NameType{}.Fields()
 	_ = nametypeFields
 	// nametypeDescCode is the schema descriptor for code field.

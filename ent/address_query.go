@@ -6,6 +6,7 @@ import (
 	"context"
 	"enterprise-system/ent/address"
 	"enterprise-system/ent/internal"
+	"enterprise-system/ent/location"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
@@ -22,12 +23,13 @@ import (
 // AddressQuery is the builder for querying Address entities.
 type AddressQuery struct {
 	config
-	ctx        *QueryContext
-	order      []address.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Address
-	withTenant *SubscriptionQuery
-	withParty  *PartyQuery
+	ctx              *QueryContext
+	order            []address.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Address
+	withTenant       *SubscriptionQuery
+	withParty        *PartyQuery
+	withCityLocation *LocationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -107,6 +109,31 @@ func (_q *AddressQuery) QueryParty() *PartyQuery {
 		)
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.Party
+		step.Edge.Schema = schemaConfig.Address
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCityLocation chains the current query on the "city_location" edge.
+func (_q *AddressQuery) QueryCityLocation() *LocationQuery {
+	query := (&LocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(address.Table, address.FieldID, selector),
+			sqlgraph.To(location.Table, location.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, address.CityLocationTable, address.CityLocationColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.Location
 		step.Edge.Schema = schemaConfig.Address
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -301,13 +328,14 @@ func (_q *AddressQuery) Clone() *AddressQuery {
 		return nil
 	}
 	return &AddressQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]address.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Address{}, _q.predicates...),
-		withTenant: _q.withTenant.Clone(),
-		withParty:  _q.withParty.Clone(),
+		config:           _q.config,
+		ctx:              _q.ctx.Clone(),
+		order:            append([]address.OrderOption{}, _q.order...),
+		inters:           append([]Interceptor{}, _q.inters...),
+		predicates:       append([]predicate.Address{}, _q.predicates...),
+		withTenant:       _q.withTenant.Clone(),
+		withParty:        _q.withParty.Clone(),
+		withCityLocation: _q.withCityLocation.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -333,6 +361,17 @@ func (_q *AddressQuery) WithParty(opts ...func(*PartyQuery)) *AddressQuery {
 		opt(query)
 	}
 	_q.withParty = query
+	return _q
+}
+
+// WithCityLocation tells the query-builder to eager-load the nodes that are connected to
+// the "city_location" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *AddressQuery) WithCityLocation(opts ...func(*LocationQuery)) *AddressQuery {
+	query := (&LocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCityLocation = query
 	return _q
 }
 
@@ -414,9 +453,10 @@ func (_q *AddressQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Addr
 	var (
 		nodes       = []*Address{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withTenant != nil,
 			_q.withParty != nil,
+			_q.withCityLocation != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -448,6 +488,12 @@ func (_q *AddressQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Addr
 	if query := _q.withParty; query != nil {
 		if err := _q.loadParty(ctx, query, nodes, nil,
 			func(n *Address, e *Party) { n.Edges.Party = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCityLocation; query != nil {
+		if err := _q.loadCityLocation(ctx, query, nodes, nil,
+			func(n *Address, e *Location) { n.Edges.CityLocation = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -512,6 +558,35 @@ func (_q *AddressQuery) loadParty(ctx context.Context, query *PartyQuery, nodes 
 	}
 	return nil
 }
+func (_q *AddressQuery) loadCityLocation(ctx context.Context, query *LocationQuery, nodes []*Address, init func(*Address), assign func(*Address, *Location)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Address)
+	for i := range nodes {
+		fk := nodes[i].CityLocationID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(location.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "city_location_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (_q *AddressQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
@@ -545,6 +620,9 @@ func (_q *AddressQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if _q.withParty != nil {
 			_spec.Node.AddColumnOnce(address.FieldPartyID)
+		}
+		if _q.withCityLocation != nil {
+			_spec.Node.AddColumnOnce(address.FieldCityLocationID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

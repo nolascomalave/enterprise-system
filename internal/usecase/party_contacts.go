@@ -142,33 +142,31 @@ func (s *PartyContacts) DeleteContactMechanism(ctx context.Context, tenantID, id
 }
 
 type CreateAddressInput struct {
-	TenantID   uuid.UUID
-	PartyID    uuid.UUID
-	Type       domain.AddressType
-	Line1      string
-	Line2      string
-	City       string
-	State      string
-	PostalCode string
-	Country    string
-	IsPrimary  bool
+	TenantID       uuid.UUID
+	PartyID        uuid.UUID
+	Type           domain.AddressType
+	Line1          string
+	Line2          string
+	CityLocationID uuid.UUID
+	PostalCode     string
+	Country        string
+	IsPrimary      bool
 }
 
 type UpdateAddressInput struct {
-	ID         uuid.UUID
-	Type       domain.AddressType
-	Line1      string
-	Line2      string
-	City       string
-	State      string
-	PostalCode string
-	Country    string
-	IsPrimary  bool
+	ID             uuid.UUID
+	Type           domain.AddressType
+	Line1          string
+	Line2          string
+	CityLocationID uuid.UUID
+	PostalCode     string
+	Country        string
+	IsPrimary      bool
 }
 
 func (s *PartyContacts) CreateAddress(ctx context.Context, in CreateAddressInput) (*domain.Address, error) {
 	entity, err := domain.NewAddress(in.TenantID, in.PartyID, in.Type, in.Line1, in.Line2,
-		in.City, in.State, in.PostalCode, in.Country, in.IsPrimary, s.now())
+		in.CityLocationID, in.PostalCode, in.Country, in.IsPrimary, s.now())
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +198,7 @@ func (s *PartyContacts) UpdateAddress(ctx context.Context, in UpdateAddressInput
 		if err != nil {
 			return err
 		}
-		if err := entity.Update(in.Type, in.Line1, in.Line2, in.City, in.State,
+		if err := entity.Update(in.Type, in.Line1, in.Line2, in.CityLocationID,
 			in.PostalCode, in.Country, in.IsPrimary, s.now()); err != nil {
 			return err
 		}

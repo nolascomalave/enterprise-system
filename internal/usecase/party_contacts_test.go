@@ -237,27 +237,29 @@ func TestPartyContactsAddressCRUD(t *testing.T) {
 	ctx := context.Background()
 	partyID := uuid.New()
 
+	cityID := uuid.New()
 	address, err := uc.CreateAddress(ctx, CreateAddressInput{
 		TenantID: testTenantID(), PartyID: partyID, Type: domain.AddressTypeLegal,
-		Line1: "Av. Principal", City: "Caracas", Country: "ve", IsPrimary: true,
+		Line1: "Av. Principal", CityLocationID: cityID, Country: "ve", IsPrimary: true,
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "VE", address.Country)
 
 	got, err := uc.GetAddress(ctx, address.ID)
 	require.NoError(t, err)
-	assert.Equal(t, "Caracas", got.City)
+	assert.Equal(t, cityID, got.CityLocationID)
 
 	list, err := uc.ListAddresses(ctx, partyID)
 	require.NoError(t, err)
 	assert.Len(t, list, 1)
 
+	newCityID := uuid.New()
 	updated, err := uc.UpdateAddress(ctx, UpdateAddressInput{
 		ID: address.ID, Type: domain.AddressTypeFiscal, Line1: "Calle 2",
-		City: "Valencia", Country: "VE", IsPrimary: true,
+		CityLocationID: newCityID, Country: "VE", IsPrimary: true,
 	})
 	require.NoError(t, err)
-	assert.Equal(t, "Valencia", updated.City)
+	assert.Equal(t, newCityID, updated.CityLocationID)
 
 	require.NoError(t, uc.DeleteAddress(ctx, address.ID))
 	assert.NotNil(t, updated.DeletedAt)
@@ -274,7 +276,7 @@ func TestPartyContactsValidation(t *testing.T) {
 
 	_, err = uc.CreateAddress(context.Background(), CreateAddressInput{
 		TenantID: testTenantID(), PartyID: uuid.New(), Type: domain.AddressTypeLegal,
-		Line1: "Av. Principal", City: "Caracas", Country: "USA",
+		Line1: "Av. Principal", CityLocationID: uuid.New(), Country: "USA",
 	})
 	require.ErrorIs(t, err, domain.ErrInvalidAddress)
 }

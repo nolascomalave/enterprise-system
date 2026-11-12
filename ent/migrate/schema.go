@@ -15,14 +15,13 @@ var (
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"LEGAL", "FISCAL", "POSTAL", "DELIVERY"}},
 		{Name: "line1", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
 		{Name: "line2", Type: field.TypeString, Nullable: true, Collation: "unaccent_case_insensitive"},
-		{Name: "city", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
-		{Name: "state", Type: field.TypeString, Nullable: true, Collation: "unaccent_case_insensitive"},
 		{Name: "postal_code", Type: field.TypeString, Nullable: true, Collation: "unaccent_case_insensitive"},
 		{Name: "country", Type: field.TypeString},
 		{Name: "is_primary", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "city_location_id", Type: field.TypeUUID},
 		{Name: "party_id", Type: field.TypeUUID},
 		{Name: "tenant_id", Type: field.TypeUUID},
 	}
@@ -33,14 +32,20 @@ var (
 		PrimaryKey: []*schema.Column{AddressesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "addresses_locations_addresses",
+				Columns:    []*schema.Column{AddressesColumns[10]},
+				RefColumns: []*schema.Column{LocationsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
 				Symbol:     "addresses_parties_addresses",
-				Columns:    []*schema.Column{AddressesColumns[12]},
+				Columns:    []*schema.Column{AddressesColumns[11]},
 				RefColumns: []*schema.Column{PartiesColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "addresses_subscriptions_addresses",
-				Columns:    []*schema.Column{AddressesColumns[13]},
+				Columns:    []*schema.Column{AddressesColumns[12]},
 				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -49,7 +54,7 @@ var (
 			{
 				Name:    "address_tenant_id_party_id",
 				Unique:  false,
-				Columns: []*schema.Column{AddressesColumns[13], AddressesColumns[12]},
+				Columns: []*schema.Column{AddressesColumns[12], AddressesColumns[11]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
@@ -57,15 +62,15 @@ var (
 			{
 				Name:    "address_tenant_party_type_idx",
 				Unique:  false,
-				Columns: []*schema.Column{AddressesColumns[13], AddressesColumns[12], AddressesColumns[1]},
+				Columns: []*schema.Column{AddressesColumns[12], AddressesColumns[11], AddressesColumns[1]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
 			},
 			{
-				Name:    "address_tenant_id_city",
+				Name:    "address_tenant_id_city_location_id",
 				Unique:  false,
-				Columns: []*schema.Column{AddressesColumns[13], AddressesColumns[4]},
+				Columns: []*schema.Column{AddressesColumns[12], AddressesColumns[10]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
@@ -73,7 +78,7 @@ var (
 			{
 				Name:    "address_one_primary_uq",
 				Unique:  true,
-				Columns: []*schema.Column{AddressesColumns[13], AddressesColumns[12], AddressesColumns[1]},
+				Columns: []*schema.Column{AddressesColumns[12], AddressesColumns[11], AddressesColumns[1]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "is_primary AND deleted_at IS NULL",
 				},
@@ -556,6 +561,111 @@ var (
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
+			},
+		},
+	}
+	// LocationsColumns holds the columns for the "locations" table.
+	LocationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "location_type", Type: field.TypeEnum, Enums: []string{"REGION", "SUBREGION", "STATE", "PROVINCE", "CITY", "MUNICIPALITY", "COUNTY"}},
+		{Name: "country_code", Type: field.TypeString},
+		{Name: "iso_code", Type: field.TypeString, Nullable: true},
+		{Name: "external_id", Type: field.TypeString, Nullable: true},
+		{Name: "default_name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "path", Type: field.TypeString, SchemaType: map[string]string{"postgres": "ltree"}},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "parent_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// LocationsTable holds the schema information for the "locations" table.
+	LocationsTable = &schema.Table{
+		Name:       "locations",
+		Columns:    LocationsColumns,
+		PrimaryKey: []*schema.Column{LocationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "locations_locations_children",
+				Columns:    []*schema.Column{LocationsColumns[9]},
+				RefColumns: []*schema.Column{LocationsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "location_path",
+				Unique:  true,
+				Columns: []*schema.Column{LocationsColumns[6]},
+			},
+			{
+				Name:    "location_country_code_parent_id",
+				Unique:  false,
+				Columns: []*schema.Column{LocationsColumns[2], LocationsColumns[9]},
+			},
+			{
+				Name:    "location_parent_id",
+				Unique:  false,
+				Columns: []*schema.Column{LocationsColumns[9]},
+			},
+			{
+				Name:    "location_country_code_location_type",
+				Unique:  false,
+				Columns: []*schema.Column{LocationsColumns[2], LocationsColumns[1]},
+			},
+			{
+				Name:    "location_country_code_iso_code",
+				Unique:  true,
+				Columns: []*schema.Column{LocationsColumns[2], LocationsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "iso_code IS NOT NULL",
+				},
+			},
+			{
+				Name:    "location_country_code_external_id",
+				Unique:  true,
+				Columns: []*schema.Column{LocationsColumns[2], LocationsColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "external_id IS NOT NULL",
+				},
+			},
+		},
+	}
+	// LocationTranslationsColumns holds the columns for the "location_translations" table.
+	LocationTranslationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "language_code", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "location_id", Type: field.TypeUUID},
+	}
+	// LocationTranslationsTable holds the schema information for the "location_translations" table.
+	LocationTranslationsTable = &schema.Table{
+		Name:       "location_translations",
+		Columns:    LocationTranslationsColumns,
+		PrimaryKey: []*schema.Column{LocationTranslationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "location_translations_locations_translations",
+				Columns:    []*schema.Column{LocationTranslationsColumns[5]},
+				RefColumns: []*schema.Column{LocationsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "locationtranslation_location_id_language_code",
+				Unique:  true,
+				Columns: []*schema.Column{LocationTranslationsColumns[5], LocationTranslationsColumns[1]},
+			},
+			{
+				Name:    "locationtranslation_language_code",
+				Unique:  false,
+				Columns: []*schema.Column{LocationTranslationsColumns[1]},
+			},
+			{
+				Name:    "locationtranslation_name",
+				Unique:  false,
+				Columns: []*schema.Column{LocationTranslationsColumns[2]},
 			},
 		},
 	}
@@ -1303,6 +1413,8 @@ var (
 		EmployeeAssignmentsTable,
 		JobsTable,
 		JobFamiliesTable,
+		LocationsTable,
+		LocationTranslationsTable,
 		NameTypesTable,
 		OrganizationProfilesTable,
 		PartiesTable,
@@ -1322,8 +1434,9 @@ var (
 )
 
 func init() {
-	AddressesTable.ForeignKeys[0].RefTable = PartiesTable
-	AddressesTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	AddressesTable.ForeignKeys[0].RefTable = LocationsTable
+	AddressesTable.ForeignKeys[1].RefTable = PartiesTable
+	AddressesTable.ForeignKeys[2].RefTable = SubscriptionsTable
 	AddressesTable.Annotation = &entsql.Annotation{
 		Table: "addresses",
 	}
@@ -1372,6 +1485,14 @@ func init() {
 	JobFamiliesTable.ForeignKeys[0].RefTable = SubscriptionsTable
 	JobFamiliesTable.Annotation = &entsql.Annotation{
 		Table: "job_families",
+	}
+	LocationsTable.ForeignKeys[0].RefTable = LocationsTable
+	LocationsTable.Annotation = &entsql.Annotation{
+		Table: "locations",
+	}
+	LocationTranslationsTable.ForeignKeys[0].RefTable = LocationsTable
+	LocationTranslationsTable.Annotation = &entsql.Annotation{
+		Table: "location_translations",
 	}
 	NameTypesTable.Annotation = &entsql.Annotation{
 		Table: "name_types",

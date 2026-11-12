@@ -14,6 +14,8 @@ import (
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/location"
+	"enterprise-system/ent/locationtranslation"
 	"enterprise-system/ent/nametype"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
@@ -60,6 +62,8 @@ const (
 	TypeEmployeeAssignment            = "EmployeeAssignment"
 	TypeJob                           = "Job"
 	TypeJobFamily                     = "JobFamily"
+	TypeLocation                      = "Location"
+	TypeLocationTranslation           = "LocationTranslation"
 	TypeNameType                      = "NameType"
 	TypeOrganizationProfile           = "OrganizationProfile"
 	TypeParty                         = "Party"
@@ -80,28 +84,28 @@ const (
 // AddressMutation represents an operation that mutates the Address nodes in the graph.
 type AddressMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	_type         *address.Type
-	line1         *string
-	line2         *string
-	city          *string
-	state         *string
-	postal_code   *string
-	country       *string
-	is_primary    *bool
-	created_at    *time.Time
-	updated_at    *time.Time
-	deleted_at    *time.Time
-	clearedFields map[string]struct{}
-	tenant        *uuid.UUID
-	clearedtenant bool
-	party         *uuid.UUID
-	clearedparty  bool
-	done          bool
-	oldValue      func(context.Context) (*Address, error)
-	predicates    []predicate.Address
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	_type                *address.Type
+	line1                *string
+	line2                *string
+	postal_code          *string
+	country              *string
+	is_primary           *bool
+	created_at           *time.Time
+	updated_at           *time.Time
+	deleted_at           *time.Time
+	clearedFields        map[string]struct{}
+	tenant               *uuid.UUID
+	clearedtenant        bool
+	party                *uuid.UUID
+	clearedparty         bool
+	city_location        *uuid.UUID
+	clearedcity_location bool
+	done                 bool
+	oldValue             func(context.Context) (*Address, error)
+	predicates           []predicate.Address
 }
 
 var _ ent.Mutation = (*AddressMutation)(nil)
@@ -401,89 +405,40 @@ func (m *AddressMutation) ResetLine2() {
 	delete(m.clearedFields, address.FieldLine2)
 }
 
-// SetCity sets the "city" field.
-func (m *AddressMutation) SetCity(s string) {
-	m.city = &s
+// SetCityLocationID sets the "city_location_id" field.
+func (m *AddressMutation) SetCityLocationID(u uuid.UUID) {
+	m.city_location = &u
 }
 
-// City returns the value of the "city" field in the mutation.
-func (m *AddressMutation) City() (r string, exists bool) {
-	v := m.city
+// CityLocationID returns the value of the "city_location_id" field in the mutation.
+func (m *AddressMutation) CityLocationID() (r uuid.UUID, exists bool) {
+	v := m.city_location
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCity returns the old "city" field's value of the Address entity.
+// OldCityLocationID returns the old "city_location_id" field's value of the Address entity.
 // If the Address object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AddressMutation) OldCity(ctx context.Context) (v string, err error) {
+func (m *AddressMutation) OldCityLocationID(ctx context.Context) (v uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCity is only allowed on UpdateOne operations")
+		return v, errors.New("OldCityLocationID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCity requires an ID field in the mutation")
+		return v, errors.New("OldCityLocationID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCity: %w", err)
+		return v, fmt.Errorf("querying old value for OldCityLocationID: %w", err)
 	}
-	return oldValue.City, nil
+	return oldValue.CityLocationID, nil
 }
 
-// ResetCity resets all changes to the "city" field.
-func (m *AddressMutation) ResetCity() {
-	m.city = nil
-}
-
-// SetState sets the "state" field.
-func (m *AddressMutation) SetState(s string) {
-	m.state = &s
-}
-
-// State returns the value of the "state" field in the mutation.
-func (m *AddressMutation) State() (r string, exists bool) {
-	v := m.state
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldState returns the old "state" field's value of the Address entity.
-// If the Address object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AddressMutation) OldState(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldState is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldState requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldState: %w", err)
-	}
-	return oldValue.State, nil
-}
-
-// ClearState clears the value of the "state" field.
-func (m *AddressMutation) ClearState() {
-	m.state = nil
-	m.clearedFields[address.FieldState] = struct{}{}
-}
-
-// StateCleared returns if the "state" field was cleared in this mutation.
-func (m *AddressMutation) StateCleared() bool {
-	_, ok := m.clearedFields[address.FieldState]
-	return ok
-}
-
-// ResetState resets all changes to the "state" field.
-func (m *AddressMutation) ResetState() {
-	m.state = nil
-	delete(m.clearedFields, address.FieldState)
+// ResetCityLocationID resets all changes to the "city_location_id" field.
+func (m *AddressMutation) ResetCityLocationID() {
+	m.city_location = nil
 }
 
 // SetPostalCode sets the "postal_code" field.
@@ -782,6 +737,33 @@ func (m *AddressMutation) ResetParty() {
 	m.clearedparty = false
 }
 
+// ClearCityLocation clears the "city_location" edge to the Location entity.
+func (m *AddressMutation) ClearCityLocation() {
+	m.clearedcity_location = true
+	m.clearedFields[address.FieldCityLocationID] = struct{}{}
+}
+
+// CityLocationCleared reports if the "city_location" edge to the Location entity was cleared.
+func (m *AddressMutation) CityLocationCleared() bool {
+	return m.clearedcity_location
+}
+
+// CityLocationIDs returns the "city_location" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// CityLocationID instead. It exists only for internal usage by the builders.
+func (m *AddressMutation) CityLocationIDs() (ids []uuid.UUID) {
+	if id := m.city_location; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetCityLocation resets all changes to the "city_location" edge.
+func (m *AddressMutation) ResetCityLocation() {
+	m.city_location = nil
+	m.clearedcity_location = false
+}
+
 // Where appends a list predicates to the AddressMutation builder.
 func (m *AddressMutation) Where(ps ...predicate.Address) {
 	m.predicates = append(m.predicates, ps...)
@@ -816,7 +798,7 @@ func (m *AddressMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AddressMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 12)
 	if m.tenant != nil {
 		fields = append(fields, address.FieldTenantID)
 	}
@@ -832,11 +814,8 @@ func (m *AddressMutation) Fields() []string {
 	if m.line2 != nil {
 		fields = append(fields, address.FieldLine2)
 	}
-	if m.city != nil {
-		fields = append(fields, address.FieldCity)
-	}
-	if m.state != nil {
-		fields = append(fields, address.FieldState)
+	if m.city_location != nil {
+		fields = append(fields, address.FieldCityLocationID)
 	}
 	if m.postal_code != nil {
 		fields = append(fields, address.FieldPostalCode)
@@ -874,10 +853,8 @@ func (m *AddressMutation) Field(name string) (ent.Value, bool) {
 		return m.Line1()
 	case address.FieldLine2:
 		return m.Line2()
-	case address.FieldCity:
-		return m.City()
-	case address.FieldState:
-		return m.State()
+	case address.FieldCityLocationID:
+		return m.CityLocationID()
 	case address.FieldPostalCode:
 		return m.PostalCode()
 	case address.FieldCountry:
@@ -909,10 +886,8 @@ func (m *AddressMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldLine1(ctx)
 	case address.FieldLine2:
 		return m.OldLine2(ctx)
-	case address.FieldCity:
-		return m.OldCity(ctx)
-	case address.FieldState:
-		return m.OldState(ctx)
+	case address.FieldCityLocationID:
+		return m.OldCityLocationID(ctx)
 	case address.FieldPostalCode:
 		return m.OldPostalCode(ctx)
 	case address.FieldCountry:
@@ -969,19 +944,12 @@ func (m *AddressMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLine2(v)
 		return nil
-	case address.FieldCity:
-		v, ok := value.(string)
+	case address.FieldCityLocationID:
+		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCity(v)
-		return nil
-	case address.FieldState:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetState(v)
+		m.SetCityLocationID(v)
 		return nil
 	case address.FieldPostalCode:
 		v, ok := value.(string)
@@ -1058,9 +1026,6 @@ func (m *AddressMutation) ClearedFields() []string {
 	if m.FieldCleared(address.FieldLine2) {
 		fields = append(fields, address.FieldLine2)
 	}
-	if m.FieldCleared(address.FieldState) {
-		fields = append(fields, address.FieldState)
-	}
 	if m.FieldCleared(address.FieldPostalCode) {
 		fields = append(fields, address.FieldPostalCode)
 	}
@@ -1083,9 +1048,6 @@ func (m *AddressMutation) ClearField(name string) error {
 	switch name {
 	case address.FieldLine2:
 		m.ClearLine2()
-		return nil
-	case address.FieldState:
-		m.ClearState()
 		return nil
 	case address.FieldPostalCode:
 		m.ClearPostalCode()
@@ -1116,11 +1078,8 @@ func (m *AddressMutation) ResetField(name string) error {
 	case address.FieldLine2:
 		m.ResetLine2()
 		return nil
-	case address.FieldCity:
-		m.ResetCity()
-		return nil
-	case address.FieldState:
-		m.ResetState()
+	case address.FieldCityLocationID:
+		m.ResetCityLocationID()
 		return nil
 	case address.FieldPostalCode:
 		m.ResetPostalCode()
@@ -1146,12 +1105,15 @@ func (m *AddressMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AddressMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.tenant != nil {
 		edges = append(edges, address.EdgeTenant)
 	}
 	if m.party != nil {
 		edges = append(edges, address.EdgeParty)
+	}
+	if m.city_location != nil {
+		edges = append(edges, address.EdgeCityLocation)
 	}
 	return edges
 }
@@ -1168,13 +1130,17 @@ func (m *AddressMutation) AddedIDs(name string) []ent.Value {
 		if id := m.party; id != nil {
 			return []ent.Value{*id}
 		}
+	case address.EdgeCityLocation:
+		if id := m.city_location; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AddressMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	return edges
 }
 
@@ -1186,12 +1152,15 @@ func (m *AddressMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AddressMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedtenant {
 		edges = append(edges, address.EdgeTenant)
 	}
 	if m.clearedparty {
 		edges = append(edges, address.EdgeParty)
+	}
+	if m.clearedcity_location {
+		edges = append(edges, address.EdgeCityLocation)
 	}
 	return edges
 }
@@ -1204,6 +1173,8 @@ func (m *AddressMutation) EdgeCleared(name string) bool {
 		return m.clearedtenant
 	case address.EdgeParty:
 		return m.clearedparty
+	case address.EdgeCityLocation:
+		return m.clearedcity_location
 	}
 	return false
 }
@@ -1218,6 +1189,9 @@ func (m *AddressMutation) ClearEdge(name string) error {
 	case address.EdgeParty:
 		m.ClearParty()
 		return nil
+	case address.EdgeCityLocation:
+		m.ClearCityLocation()
+		return nil
 	}
 	return fmt.Errorf("unknown Address unique edge %s", name)
 }
@@ -1231,6 +1205,9 @@ func (m *AddressMutation) ResetEdge(name string) error {
 		return nil
 	case address.EdgeParty:
 		m.ResetParty()
+		return nil
+	case address.EdgeCityLocation:
+		m.ResetCityLocation()
 		return nil
 	}
 	return fmt.Errorf("unknown Address edge %s", name)
@@ -9883,6 +9860,1737 @@ func (m *JobFamilyMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown JobFamily edge %s", name)
+}
+
+// LocationMutation represents an operation that mutates the Location nodes in the graph.
+type LocationMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	location_type       *location.LocationType
+	country_code        *string
+	iso_code            *string
+	external_id         *string
+	default_name        *string
+	_path               *string
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	children            map[uuid.UUID]struct{}
+	removedchildren     map[uuid.UUID]struct{}
+	clearedchildren     bool
+	parent              *uuid.UUID
+	clearedparent       bool
+	translations        map[uuid.UUID]struct{}
+	removedtranslations map[uuid.UUID]struct{}
+	clearedtranslations bool
+	addresses           map[uuid.UUID]struct{}
+	removedaddresses    map[uuid.UUID]struct{}
+	clearedaddresses    bool
+	done                bool
+	oldValue            func(context.Context) (*Location, error)
+	predicates          []predicate.Location
+}
+
+var _ ent.Mutation = (*LocationMutation)(nil)
+
+// locationOption allows management of the mutation configuration using functional options.
+type locationOption func(*LocationMutation)
+
+// newLocationMutation creates new mutation for the Location entity.
+func newLocationMutation(c config, op Op, opts ...locationOption) *LocationMutation {
+	m := &LocationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLocation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLocationID sets the ID field of the mutation.
+func withLocationID(id uuid.UUID) locationOption {
+	return func(m *LocationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Location
+		)
+		m.oldValue = func(ctx context.Context) (*Location, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Location.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLocation sets the old Location of the mutation.
+func withLocation(node *Location) locationOption {
+	return func(m *LocationMutation) {
+		m.oldValue = func(context.Context) (*Location, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LocationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LocationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Location entities.
+func (m *LocationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LocationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LocationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Location.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetLocationType sets the "location_type" field.
+func (m *LocationMutation) SetLocationType(lt location.LocationType) {
+	m.location_type = &lt
+}
+
+// LocationType returns the value of the "location_type" field in the mutation.
+func (m *LocationMutation) LocationType() (r location.LocationType, exists bool) {
+	v := m.location_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocationType returns the old "location_type" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldLocationType(ctx context.Context) (v location.LocationType, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocationType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocationType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocationType: %w", err)
+	}
+	return oldValue.LocationType, nil
+}
+
+// ResetLocationType resets all changes to the "location_type" field.
+func (m *LocationMutation) ResetLocationType() {
+	m.location_type = nil
+}
+
+// SetParentID sets the "parent_id" field.
+func (m *LocationMutation) SetParentID(u uuid.UUID) {
+	m.parent = &u
+}
+
+// ParentID returns the value of the "parent_id" field in the mutation.
+func (m *LocationMutation) ParentID() (r uuid.UUID, exists bool) {
+	v := m.parent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentID returns the old "parent_id" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldParentID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentID: %w", err)
+	}
+	return oldValue.ParentID, nil
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (m *LocationMutation) ClearParentID() {
+	m.parent = nil
+	m.clearedFields[location.FieldParentID] = struct{}{}
+}
+
+// ParentIDCleared returns if the "parent_id" field was cleared in this mutation.
+func (m *LocationMutation) ParentIDCleared() bool {
+	_, ok := m.clearedFields[location.FieldParentID]
+	return ok
+}
+
+// ResetParentID resets all changes to the "parent_id" field.
+func (m *LocationMutation) ResetParentID() {
+	m.parent = nil
+	delete(m.clearedFields, location.FieldParentID)
+}
+
+// SetCountryCode sets the "country_code" field.
+func (m *LocationMutation) SetCountryCode(s string) {
+	m.country_code = &s
+}
+
+// CountryCode returns the value of the "country_code" field in the mutation.
+func (m *LocationMutation) CountryCode() (r string, exists bool) {
+	v := m.country_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCountryCode returns the old "country_code" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldCountryCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCountryCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCountryCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCountryCode: %w", err)
+	}
+	return oldValue.CountryCode, nil
+}
+
+// ResetCountryCode resets all changes to the "country_code" field.
+func (m *LocationMutation) ResetCountryCode() {
+	m.country_code = nil
+}
+
+// SetIsoCode sets the "iso_code" field.
+func (m *LocationMutation) SetIsoCode(s string) {
+	m.iso_code = &s
+}
+
+// IsoCode returns the value of the "iso_code" field in the mutation.
+func (m *LocationMutation) IsoCode() (r string, exists bool) {
+	v := m.iso_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsoCode returns the old "iso_code" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldIsoCode(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsoCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsoCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsoCode: %w", err)
+	}
+	return oldValue.IsoCode, nil
+}
+
+// ClearIsoCode clears the value of the "iso_code" field.
+func (m *LocationMutation) ClearIsoCode() {
+	m.iso_code = nil
+	m.clearedFields[location.FieldIsoCode] = struct{}{}
+}
+
+// IsoCodeCleared returns if the "iso_code" field was cleared in this mutation.
+func (m *LocationMutation) IsoCodeCleared() bool {
+	_, ok := m.clearedFields[location.FieldIsoCode]
+	return ok
+}
+
+// ResetIsoCode resets all changes to the "iso_code" field.
+func (m *LocationMutation) ResetIsoCode() {
+	m.iso_code = nil
+	delete(m.clearedFields, location.FieldIsoCode)
+}
+
+// SetExternalID sets the "external_id" field.
+func (m *LocationMutation) SetExternalID(s string) {
+	m.external_id = &s
+}
+
+// ExternalID returns the value of the "external_id" field in the mutation.
+func (m *LocationMutation) ExternalID() (r string, exists bool) {
+	v := m.external_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExternalID returns the old "external_id" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldExternalID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExternalID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExternalID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExternalID: %w", err)
+	}
+	return oldValue.ExternalID, nil
+}
+
+// ClearExternalID clears the value of the "external_id" field.
+func (m *LocationMutation) ClearExternalID() {
+	m.external_id = nil
+	m.clearedFields[location.FieldExternalID] = struct{}{}
+}
+
+// ExternalIDCleared returns if the "external_id" field was cleared in this mutation.
+func (m *LocationMutation) ExternalIDCleared() bool {
+	_, ok := m.clearedFields[location.FieldExternalID]
+	return ok
+}
+
+// ResetExternalID resets all changes to the "external_id" field.
+func (m *LocationMutation) ResetExternalID() {
+	m.external_id = nil
+	delete(m.clearedFields, location.FieldExternalID)
+}
+
+// SetDefaultName sets the "default_name" field.
+func (m *LocationMutation) SetDefaultName(s string) {
+	m.default_name = &s
+}
+
+// DefaultName returns the value of the "default_name" field in the mutation.
+func (m *LocationMutation) DefaultName() (r string, exists bool) {
+	v := m.default_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultName returns the old "default_name" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldDefaultName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultName: %w", err)
+	}
+	return oldValue.DefaultName, nil
+}
+
+// ResetDefaultName resets all changes to the "default_name" field.
+func (m *LocationMutation) ResetDefaultName() {
+	m.default_name = nil
+}
+
+// SetPath sets the "path" field.
+func (m *LocationMutation) SetPath(s string) {
+	m._path = &s
+}
+
+// Path returns the value of the "path" field in the mutation.
+func (m *LocationMutation) Path() (r string, exists bool) {
+	v := m._path
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPath returns the old "path" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldPath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPath: %w", err)
+	}
+	return oldValue.Path, nil
+}
+
+// ResetPath resets all changes to the "path" field.
+func (m *LocationMutation) ResetPath() {
+	m._path = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LocationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LocationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LocationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LocationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LocationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Location entity.
+// If the Location object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LocationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// AddChildIDs adds the "children" edge to the Location entity by ids.
+func (m *LocationMutation) AddChildIDs(ids ...uuid.UUID) {
+	if m.children == nil {
+		m.children = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.children[ids[i]] = struct{}{}
+	}
+}
+
+// ClearChildren clears the "children" edge to the Location entity.
+func (m *LocationMutation) ClearChildren() {
+	m.clearedchildren = true
+}
+
+// ChildrenCleared reports if the "children" edge to the Location entity was cleared.
+func (m *LocationMutation) ChildrenCleared() bool {
+	return m.clearedchildren
+}
+
+// RemoveChildIDs removes the "children" edge to the Location entity by IDs.
+func (m *LocationMutation) RemoveChildIDs(ids ...uuid.UUID) {
+	if m.removedchildren == nil {
+		m.removedchildren = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.children, ids[i])
+		m.removedchildren[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedChildren returns the removed IDs of the "children" edge to the Location entity.
+func (m *LocationMutation) RemovedChildrenIDs() (ids []uuid.UUID) {
+	for id := range m.removedchildren {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ChildrenIDs returns the "children" edge IDs in the mutation.
+func (m *LocationMutation) ChildrenIDs() (ids []uuid.UUID) {
+	for id := range m.children {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetChildren resets all changes to the "children" edge.
+func (m *LocationMutation) ResetChildren() {
+	m.children = nil
+	m.clearedchildren = false
+	m.removedchildren = nil
+}
+
+// ClearParent clears the "parent" edge to the Location entity.
+func (m *LocationMutation) ClearParent() {
+	m.clearedparent = true
+	m.clearedFields[location.FieldParentID] = struct{}{}
+}
+
+// ParentCleared reports if the "parent" edge to the Location entity was cleared.
+func (m *LocationMutation) ParentCleared() bool {
+	return m.ParentIDCleared() || m.clearedparent
+}
+
+// ParentIDs returns the "parent" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ParentID instead. It exists only for internal usage by the builders.
+func (m *LocationMutation) ParentIDs() (ids []uuid.UUID) {
+	if id := m.parent; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParent resets all changes to the "parent" edge.
+func (m *LocationMutation) ResetParent() {
+	m.parent = nil
+	m.clearedparent = false
+}
+
+// AddTranslationIDs adds the "translations" edge to the LocationTranslation entity by ids.
+func (m *LocationMutation) AddTranslationIDs(ids ...uuid.UUID) {
+	if m.translations == nil {
+		m.translations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.translations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTranslations clears the "translations" edge to the LocationTranslation entity.
+func (m *LocationMutation) ClearTranslations() {
+	m.clearedtranslations = true
+}
+
+// TranslationsCleared reports if the "translations" edge to the LocationTranslation entity was cleared.
+func (m *LocationMutation) TranslationsCleared() bool {
+	return m.clearedtranslations
+}
+
+// RemoveTranslationIDs removes the "translations" edge to the LocationTranslation entity by IDs.
+func (m *LocationMutation) RemoveTranslationIDs(ids ...uuid.UUID) {
+	if m.removedtranslations == nil {
+		m.removedtranslations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.translations, ids[i])
+		m.removedtranslations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTranslations returns the removed IDs of the "translations" edge to the LocationTranslation entity.
+func (m *LocationMutation) RemovedTranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedtranslations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TranslationsIDs returns the "translations" edge IDs in the mutation.
+func (m *LocationMutation) TranslationsIDs() (ids []uuid.UUID) {
+	for id := range m.translations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTranslations resets all changes to the "translations" edge.
+func (m *LocationMutation) ResetTranslations() {
+	m.translations = nil
+	m.clearedtranslations = false
+	m.removedtranslations = nil
+}
+
+// AddAddressIDs adds the "addresses" edge to the Address entity by ids.
+func (m *LocationMutation) AddAddressIDs(ids ...uuid.UUID) {
+	if m.addresses == nil {
+		m.addresses = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.addresses[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAddresses clears the "addresses" edge to the Address entity.
+func (m *LocationMutation) ClearAddresses() {
+	m.clearedaddresses = true
+}
+
+// AddressesCleared reports if the "addresses" edge to the Address entity was cleared.
+func (m *LocationMutation) AddressesCleared() bool {
+	return m.clearedaddresses
+}
+
+// RemoveAddressIDs removes the "addresses" edge to the Address entity by IDs.
+func (m *LocationMutation) RemoveAddressIDs(ids ...uuid.UUID) {
+	if m.removedaddresses == nil {
+		m.removedaddresses = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.addresses, ids[i])
+		m.removedaddresses[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAddresses returns the removed IDs of the "addresses" edge to the Address entity.
+func (m *LocationMutation) RemovedAddressesIDs() (ids []uuid.UUID) {
+	for id := range m.removedaddresses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AddressesIDs returns the "addresses" edge IDs in the mutation.
+func (m *LocationMutation) AddressesIDs() (ids []uuid.UUID) {
+	for id := range m.addresses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAddresses resets all changes to the "addresses" edge.
+func (m *LocationMutation) ResetAddresses() {
+	m.addresses = nil
+	m.clearedaddresses = false
+	m.removedaddresses = nil
+}
+
+// Where appends a list predicates to the LocationMutation builder.
+func (m *LocationMutation) Where(ps ...predicate.Location) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LocationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LocationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Location, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LocationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LocationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Location).
+func (m *LocationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LocationMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.location_type != nil {
+		fields = append(fields, location.FieldLocationType)
+	}
+	if m.parent != nil {
+		fields = append(fields, location.FieldParentID)
+	}
+	if m.country_code != nil {
+		fields = append(fields, location.FieldCountryCode)
+	}
+	if m.iso_code != nil {
+		fields = append(fields, location.FieldIsoCode)
+	}
+	if m.external_id != nil {
+		fields = append(fields, location.FieldExternalID)
+	}
+	if m.default_name != nil {
+		fields = append(fields, location.FieldDefaultName)
+	}
+	if m._path != nil {
+		fields = append(fields, location.FieldPath)
+	}
+	if m.created_at != nil {
+		fields = append(fields, location.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, location.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LocationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case location.FieldLocationType:
+		return m.LocationType()
+	case location.FieldParentID:
+		return m.ParentID()
+	case location.FieldCountryCode:
+		return m.CountryCode()
+	case location.FieldIsoCode:
+		return m.IsoCode()
+	case location.FieldExternalID:
+		return m.ExternalID()
+	case location.FieldDefaultName:
+		return m.DefaultName()
+	case location.FieldPath:
+		return m.Path()
+	case location.FieldCreatedAt:
+		return m.CreatedAt()
+	case location.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LocationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case location.FieldLocationType:
+		return m.OldLocationType(ctx)
+	case location.FieldParentID:
+		return m.OldParentID(ctx)
+	case location.FieldCountryCode:
+		return m.OldCountryCode(ctx)
+	case location.FieldIsoCode:
+		return m.OldIsoCode(ctx)
+	case location.FieldExternalID:
+		return m.OldExternalID(ctx)
+	case location.FieldDefaultName:
+		return m.OldDefaultName(ctx)
+	case location.FieldPath:
+		return m.OldPath(ctx)
+	case location.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case location.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Location field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LocationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case location.FieldLocationType:
+		v, ok := value.(location.LocationType)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocationType(v)
+		return nil
+	case location.FieldParentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentID(v)
+		return nil
+	case location.FieldCountryCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCountryCode(v)
+		return nil
+	case location.FieldIsoCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsoCode(v)
+		return nil
+	case location.FieldExternalID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExternalID(v)
+		return nil
+	case location.FieldDefaultName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultName(v)
+		return nil
+	case location.FieldPath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPath(v)
+		return nil
+	case location.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case location.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Location field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LocationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LocationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LocationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Location numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LocationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(location.FieldParentID) {
+		fields = append(fields, location.FieldParentID)
+	}
+	if m.FieldCleared(location.FieldIsoCode) {
+		fields = append(fields, location.FieldIsoCode)
+	}
+	if m.FieldCleared(location.FieldExternalID) {
+		fields = append(fields, location.FieldExternalID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LocationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LocationMutation) ClearField(name string) error {
+	switch name {
+	case location.FieldParentID:
+		m.ClearParentID()
+		return nil
+	case location.FieldIsoCode:
+		m.ClearIsoCode()
+		return nil
+	case location.FieldExternalID:
+		m.ClearExternalID()
+		return nil
+	}
+	return fmt.Errorf("unknown Location nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LocationMutation) ResetField(name string) error {
+	switch name {
+	case location.FieldLocationType:
+		m.ResetLocationType()
+		return nil
+	case location.FieldParentID:
+		m.ResetParentID()
+		return nil
+	case location.FieldCountryCode:
+		m.ResetCountryCode()
+		return nil
+	case location.FieldIsoCode:
+		m.ResetIsoCode()
+		return nil
+	case location.FieldExternalID:
+		m.ResetExternalID()
+		return nil
+	case location.FieldDefaultName:
+		m.ResetDefaultName()
+		return nil
+	case location.FieldPath:
+		m.ResetPath()
+		return nil
+	case location.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case location.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Location field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LocationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.children != nil {
+		edges = append(edges, location.EdgeChildren)
+	}
+	if m.parent != nil {
+		edges = append(edges, location.EdgeParent)
+	}
+	if m.translations != nil {
+		edges = append(edges, location.EdgeTranslations)
+	}
+	if m.addresses != nil {
+		edges = append(edges, location.EdgeAddresses)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LocationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case location.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.children))
+		for id := range m.children {
+			ids = append(ids, id)
+		}
+		return ids
+	case location.EdgeParent:
+		if id := m.parent; id != nil {
+			return []ent.Value{*id}
+		}
+	case location.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.translations))
+		for id := range m.translations {
+			ids = append(ids, id)
+		}
+		return ids
+	case location.EdgeAddresses:
+		ids := make([]ent.Value, 0, len(m.addresses))
+		for id := range m.addresses {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LocationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.removedchildren != nil {
+		edges = append(edges, location.EdgeChildren)
+	}
+	if m.removedtranslations != nil {
+		edges = append(edges, location.EdgeTranslations)
+	}
+	if m.removedaddresses != nil {
+		edges = append(edges, location.EdgeAddresses)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LocationMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case location.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.removedchildren))
+		for id := range m.removedchildren {
+			ids = append(ids, id)
+		}
+		return ids
+	case location.EdgeTranslations:
+		ids := make([]ent.Value, 0, len(m.removedtranslations))
+		for id := range m.removedtranslations {
+			ids = append(ids, id)
+		}
+		return ids
+	case location.EdgeAddresses:
+		ids := make([]ent.Value, 0, len(m.removedaddresses))
+		for id := range m.removedaddresses {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LocationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 4)
+	if m.clearedchildren {
+		edges = append(edges, location.EdgeChildren)
+	}
+	if m.clearedparent {
+		edges = append(edges, location.EdgeParent)
+	}
+	if m.clearedtranslations {
+		edges = append(edges, location.EdgeTranslations)
+	}
+	if m.clearedaddresses {
+		edges = append(edges, location.EdgeAddresses)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LocationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case location.EdgeChildren:
+		return m.clearedchildren
+	case location.EdgeParent:
+		return m.clearedparent
+	case location.EdgeTranslations:
+		return m.clearedtranslations
+	case location.EdgeAddresses:
+		return m.clearedaddresses
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LocationMutation) ClearEdge(name string) error {
+	switch name {
+	case location.EdgeParent:
+		m.ClearParent()
+		return nil
+	}
+	return fmt.Errorf("unknown Location unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LocationMutation) ResetEdge(name string) error {
+	switch name {
+	case location.EdgeChildren:
+		m.ResetChildren()
+		return nil
+	case location.EdgeParent:
+		m.ResetParent()
+		return nil
+	case location.EdgeTranslations:
+		m.ResetTranslations()
+		return nil
+	case location.EdgeAddresses:
+		m.ResetAddresses()
+		return nil
+	}
+	return fmt.Errorf("unknown Location edge %s", name)
+}
+
+// LocationTranslationMutation represents an operation that mutates the LocationTranslation nodes in the graph.
+type LocationTranslationMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	language_code   *string
+	name            *string
+	created_at      *time.Time
+	updated_at      *time.Time
+	clearedFields   map[string]struct{}
+	location        *uuid.UUID
+	clearedlocation bool
+	done            bool
+	oldValue        func(context.Context) (*LocationTranslation, error)
+	predicates      []predicate.LocationTranslation
+}
+
+var _ ent.Mutation = (*LocationTranslationMutation)(nil)
+
+// locationtranslationOption allows management of the mutation configuration using functional options.
+type locationtranslationOption func(*LocationTranslationMutation)
+
+// newLocationTranslationMutation creates new mutation for the LocationTranslation entity.
+func newLocationTranslationMutation(c config, op Op, opts ...locationtranslationOption) *LocationTranslationMutation {
+	m := &LocationTranslationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLocationTranslation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLocationTranslationID sets the ID field of the mutation.
+func withLocationTranslationID(id uuid.UUID) locationtranslationOption {
+	return func(m *LocationTranslationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LocationTranslation
+		)
+		m.oldValue = func(ctx context.Context) (*LocationTranslation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LocationTranslation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLocationTranslation sets the old LocationTranslation of the mutation.
+func withLocationTranslation(node *LocationTranslation) locationtranslationOption {
+	return func(m *LocationTranslationMutation) {
+		m.oldValue = func(context.Context) (*LocationTranslation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LocationTranslationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LocationTranslationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LocationTranslation entities.
+func (m *LocationTranslationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LocationTranslationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LocationTranslationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LocationTranslation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetLocationID sets the "location_id" field.
+func (m *LocationTranslationMutation) SetLocationID(u uuid.UUID) {
+	m.location = &u
+}
+
+// LocationID returns the value of the "location_id" field in the mutation.
+func (m *LocationTranslationMutation) LocationID() (r uuid.UUID, exists bool) {
+	v := m.location
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocationID returns the old "location_id" field's value of the LocationTranslation entity.
+// If the LocationTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationTranslationMutation) OldLocationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocationID: %w", err)
+	}
+	return oldValue.LocationID, nil
+}
+
+// ResetLocationID resets all changes to the "location_id" field.
+func (m *LocationTranslationMutation) ResetLocationID() {
+	m.location = nil
+}
+
+// SetLanguageCode sets the "language_code" field.
+func (m *LocationTranslationMutation) SetLanguageCode(s string) {
+	m.language_code = &s
+}
+
+// LanguageCode returns the value of the "language_code" field in the mutation.
+func (m *LocationTranslationMutation) LanguageCode() (r string, exists bool) {
+	v := m.language_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLanguageCode returns the old "language_code" field's value of the LocationTranslation entity.
+// If the LocationTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationTranslationMutation) OldLanguageCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLanguageCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLanguageCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLanguageCode: %w", err)
+	}
+	return oldValue.LanguageCode, nil
+}
+
+// ResetLanguageCode resets all changes to the "language_code" field.
+func (m *LocationTranslationMutation) ResetLanguageCode() {
+	m.language_code = nil
+}
+
+// SetName sets the "name" field.
+func (m *LocationTranslationMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *LocationTranslationMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the LocationTranslation entity.
+// If the LocationTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationTranslationMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *LocationTranslationMutation) ResetName() {
+	m.name = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LocationTranslationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LocationTranslationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LocationTranslation entity.
+// If the LocationTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationTranslationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LocationTranslationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LocationTranslationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LocationTranslationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LocationTranslation entity.
+// If the LocationTranslation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationTranslationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LocationTranslationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// ClearLocation clears the "location" edge to the Location entity.
+func (m *LocationTranslationMutation) ClearLocation() {
+	m.clearedlocation = true
+	m.clearedFields[locationtranslation.FieldLocationID] = struct{}{}
+}
+
+// LocationCleared reports if the "location" edge to the Location entity was cleared.
+func (m *LocationTranslationMutation) LocationCleared() bool {
+	return m.clearedlocation
+}
+
+// LocationIDs returns the "location" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LocationID instead. It exists only for internal usage by the builders.
+func (m *LocationTranslationMutation) LocationIDs() (ids []uuid.UUID) {
+	if id := m.location; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocation resets all changes to the "location" edge.
+func (m *LocationTranslationMutation) ResetLocation() {
+	m.location = nil
+	m.clearedlocation = false
+}
+
+// Where appends a list predicates to the LocationTranslationMutation builder.
+func (m *LocationTranslationMutation) Where(ps ...predicate.LocationTranslation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LocationTranslationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LocationTranslationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LocationTranslation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LocationTranslationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LocationTranslationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LocationTranslation).
+func (m *LocationTranslationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LocationTranslationMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.location != nil {
+		fields = append(fields, locationtranslation.FieldLocationID)
+	}
+	if m.language_code != nil {
+		fields = append(fields, locationtranslation.FieldLanguageCode)
+	}
+	if m.name != nil {
+		fields = append(fields, locationtranslation.FieldName)
+	}
+	if m.created_at != nil {
+		fields = append(fields, locationtranslation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, locationtranslation.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LocationTranslationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case locationtranslation.FieldLocationID:
+		return m.LocationID()
+	case locationtranslation.FieldLanguageCode:
+		return m.LanguageCode()
+	case locationtranslation.FieldName:
+		return m.Name()
+	case locationtranslation.FieldCreatedAt:
+		return m.CreatedAt()
+	case locationtranslation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LocationTranslationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case locationtranslation.FieldLocationID:
+		return m.OldLocationID(ctx)
+	case locationtranslation.FieldLanguageCode:
+		return m.OldLanguageCode(ctx)
+	case locationtranslation.FieldName:
+		return m.OldName(ctx)
+	case locationtranslation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case locationtranslation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LocationTranslation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LocationTranslationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case locationtranslation.FieldLocationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocationID(v)
+		return nil
+	case locationtranslation.FieldLanguageCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLanguageCode(v)
+		return nil
+	case locationtranslation.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case locationtranslation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case locationtranslation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LocationTranslation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LocationTranslationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LocationTranslationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LocationTranslationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown LocationTranslation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LocationTranslationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LocationTranslationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LocationTranslationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LocationTranslation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LocationTranslationMutation) ResetField(name string) error {
+	switch name {
+	case locationtranslation.FieldLocationID:
+		m.ResetLocationID()
+		return nil
+	case locationtranslation.FieldLanguageCode:
+		m.ResetLanguageCode()
+		return nil
+	case locationtranslation.FieldName:
+		m.ResetName()
+		return nil
+	case locationtranslation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case locationtranslation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LocationTranslation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LocationTranslationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.location != nil {
+		edges = append(edges, locationtranslation.EdgeLocation)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LocationTranslationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case locationtranslation.EdgeLocation:
+		if id := m.location; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LocationTranslationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LocationTranslationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LocationTranslationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedlocation {
+		edges = append(edges, locationtranslation.EdgeLocation)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LocationTranslationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case locationtranslation.EdgeLocation:
+		return m.clearedlocation
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LocationTranslationMutation) ClearEdge(name string) error {
+	switch name {
+	case locationtranslation.EdgeLocation:
+		m.ClearLocation()
+		return nil
+	}
+	return fmt.Errorf("unknown LocationTranslation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LocationTranslationMutation) ResetEdge(name string) error {
+	switch name {
+	case locationtranslation.EdgeLocation:
+		m.ResetLocation()
+		return nil
+	}
+	return fmt.Errorf("unknown LocationTranslation edge %s", name)
 }
 
 // NameTypeMutation represents an operation that mutates the NameType nodes in the graph.

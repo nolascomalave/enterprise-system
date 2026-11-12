@@ -43,12 +43,7 @@ func (Address) Fields() []ent.Field {
 		field.String("line2").
 			Optional().
 			Annotations(entsql.Annotation{Collation: "unaccent_case_insensitive"}),
-		field.String("city").
-			NotEmpty().
-			Annotations(entsql.Annotation{Collation: "unaccent_case_insensitive"}),
-		field.String("state").
-			Optional().
-			Annotations(entsql.Annotation{Collation: "unaccent_case_insensitive"}),
+		field.UUID("city_location_id", uuid.UUID{}),
 		field.String("postal_code").
 			Optional().
 			Annotations(entsql.Annotation{Collation: "unaccent_case_insensitive"}),
@@ -83,6 +78,11 @@ func (Address) Edges() []ent.Edge {
 			Field("party_id").
 			Unique().
 			Required(),
+		edge.From("city_location", Location.Type).
+			Ref("addresses").
+			Field("city_location_id").
+			Unique().
+			Required(),
 	}
 }
 
@@ -93,7 +93,7 @@ func (Address) Indexes() []ent.Index {
 		index.Fields("tenant_id", "party_id", "type").
 			StorageKey("address_tenant_party_type_idx").
 			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
-		index.Fields("tenant_id", "city").
+		index.Fields("tenant_id", "city_location_id").
 			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
 		index.Fields("tenant_id", "party_id", "type").
 			StorageKey("address_one_primary_uq").
