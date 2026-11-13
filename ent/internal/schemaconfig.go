@@ -60,7 +60,10 @@ type SchemaConfig struct {
 	Session                            string // Session table.
 	Subscription                       string // Subscription table.
 	SystemFunction                     string // SystemFunction table.
+	TenantRelationship                 string // TenantRelationship table.
+	TenantRelationshipInvite           string // TenantRelationshipInvite table.
 	TenantRole                         string // TenantRole table.
+	TenantTransfer                     string // TenantTransfer table.
 	UserCredentials                    string // UserCredentials table.
 	UserRoleAssignment                 string // UserRoleAssignment table.
 }

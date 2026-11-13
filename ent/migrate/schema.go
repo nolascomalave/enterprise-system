@@ -2583,6 +2583,99 @@ var (
 			},
 		},
 	}
+	// TenantRelationshipsColumns holds the columns for the "tenant_relationships" table.
+	TenantRelationshipsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "tenant_id_holding", Type: field.TypeUUID},
+		{Name: "tenant_id_subsidiary", Type: field.TypeUUID},
+		{Name: "relationship_type", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "APPROVED", "REJECTED", "CANCELED"}, Default: "PENDING"},
+		{Name: "requested_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "approved_at", Type: field.TypeTime, Nullable: true},
+		{Name: "rejected_at", Type: field.TypeTime, Nullable: true},
+		{Name: "canceled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "ends_at", Type: field.TypeTime, Nullable: true},
+		{Name: "rejection_reason", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+	}
+	// TenantRelationshipsTable holds the schema information for the "tenant_relationships" table.
+	TenantRelationshipsTable = &schema.Table{
+		Name:       "tenant_relationships",
+		Columns:    TenantRelationshipsColumns,
+		PrimaryKey: []*schema.Column{TenantRelationshipsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "tenantrelationship_tenant_id_holding_tenant_id_subsidiary_relationship_type",
+				Unique:  true,
+				Columns: []*schema.Column{TenantRelationshipsColumns[1], TenantRelationshipsColumns[2], TenantRelationshipsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "status = 'PENDING'",
+				},
+			},
+			{
+				Name:    "tenantrelationship_tenant_id_holding_status",
+				Unique:  false,
+				Columns: []*schema.Column{TenantRelationshipsColumns[1], TenantRelationshipsColumns[4]},
+			},
+			{
+				Name:    "tenantrelationship_tenant_id_subsidiary_status",
+				Unique:  false,
+				Columns: []*schema.Column{TenantRelationshipsColumns[2], TenantRelationshipsColumns[4]},
+			},
+			{
+				Name:    "tenantrelationship_status",
+				Unique:  false,
+				Columns: []*schema.Column{TenantRelationshipsColumns[4]},
+			},
+		},
+	}
+	// TenantRelationshipInvitesColumns holds the columns for the "tenant_relationship_invites" table.
+	TenantRelationshipInvitesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "token_hash", Type: field.TypeBytes},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "consumed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "canceled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "canceled_by_tenant_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "relationship_id", Type: field.TypeUUID},
+	}
+	// TenantRelationshipInvitesTable holds the schema information for the "tenant_relationship_invites" table.
+	TenantRelationshipInvitesTable = &schema.Table{
+		Name:       "tenant_relationship_invites",
+		Columns:    TenantRelationshipInvitesColumns,
+		PrimaryKey: []*schema.Column{TenantRelationshipInvitesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tenant_relationship_invites_tenant_relationships_invites",
+				Columns:    []*schema.Column{TenantRelationshipInvitesColumns[8]},
+				RefColumns: []*schema.Column{TenantRelationshipsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "tenantrelationshipinvite_token_hash",
+				Unique:  true,
+				Columns: []*schema.Column{TenantRelationshipInvitesColumns[1]},
+			},
+			{
+				Name:    "tenantrelationshipinvite_relationship_id",
+				Unique:  false,
+				Columns: []*schema.Column{TenantRelationshipInvitesColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "canceled_at IS NOT NULL",
+				},
+			},
+			{
+				Name:    "tenantrelationshipinvite_relationship_id",
+				Unique:  false,
+				Columns: []*schema.Column{TenantRelationshipInvitesColumns[8]},
+			},
+		},
+	}
 	// TenantRolesColumns holds the columns for the "tenant_roles" table.
 	TenantRolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -2629,6 +2722,52 @@ var (
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
+			},
+		},
+	}
+	// TenantTransfersColumns holds the columns for the "tenant_transfers" table.
+	TenantTransfersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "requested_by_tenant_id", Type: field.TypeUUID},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"TRANSFER_REQUESTED", "TRANSFER_IN_PROGRESS", "TRANSFER_COMPLETED", "TRANSFER_FAILED", "TRANSFER_CANCELED"}, Default: "TRANSFER_REQUESTED"},
+		{Name: "requested_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "started_at", Type: field.TypeTime, Nullable: true},
+		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "canceled_at", Type: field.TypeTime, Nullable: true},
+		{Name: "canceled_by_tenant_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "transfer_reason", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "relationship_id", Type: field.TypeUUID},
+	}
+	// TenantTransfersTable holds the schema information for the "tenant_transfers" table.
+	TenantTransfersTable = &schema.Table{
+		Name:       "tenant_transfers",
+		Columns:    TenantTransfersColumns,
+		PrimaryKey: []*schema.Column{TenantTransfersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tenant_transfers_tenant_relationships_transfers",
+				Columns:    []*schema.Column{TenantTransfersColumns[11]},
+				RefColumns: []*schema.Column{TenantRelationshipsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "tenanttransfer_relationship_id",
+				Unique:  false,
+				Columns: []*schema.Column{TenantTransfersColumns[11]},
+			},
+			{
+				Name:    "tenanttransfer_requested_by_tenant_id",
+				Unique:  false,
+				Columns: []*schema.Column{TenantTransfersColumns[1]},
+			},
+			{
+				Name:    "tenanttransfer_status",
+				Unique:  false,
+				Columns: []*schema.Column{TenantTransfersColumns[2]},
 			},
 		},
 	}
@@ -2789,7 +2928,10 @@ var (
 		SessionsTable,
 		SubscriptionsTable,
 		SystemFunctionsTable,
+		TenantRelationshipsTable,
+		TenantRelationshipInvitesTable,
 		TenantRolesTable,
+		TenantTransfersTable,
 		UserCredentialsTable,
 		UserRoleAssignmentsTable,
 	}
@@ -3071,10 +3213,21 @@ func init() {
 	SystemFunctionsTable.Annotation = &entsql.Annotation{
 		Table: "system_functions",
 	}
+	TenantRelationshipsTable.Annotation = &entsql.Annotation{
+		Table: "tenant_relationships",
+	}
+	TenantRelationshipInvitesTable.ForeignKeys[0].RefTable = TenantRelationshipsTable
+	TenantRelationshipInvitesTable.Annotation = &entsql.Annotation{
+		Table: "tenant_relationship_invites",
+	}
 	TenantRolesTable.ForeignKeys[0].RefTable = ClientApplicationsTable
 	TenantRolesTable.ForeignKeys[1].RefTable = SubscriptionsTable
 	TenantRolesTable.Annotation = &entsql.Annotation{
 		Table: "tenant_roles",
+	}
+	TenantTransfersTable.ForeignKeys[0].RefTable = TenantRelationshipsTable
+	TenantTransfersTable.Annotation = &entsql.Annotation{
+		Table: "tenant_transfers",
 	}
 	UserCredentialsTable.ForeignKeys[0].RefTable = PartiesTable
 	UserCredentialsTable.ForeignKeys[1].RefTable = PartyContactMechanismsTable

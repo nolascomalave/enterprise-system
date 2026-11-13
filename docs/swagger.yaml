@@ -163,6 +163,13 @@ definitions:
       token_type:
         type: string
     type: object
+  enterprise-system_internal_delivery_http_dto.ConsumeInviteTokenRequest:
+    properties:
+      invite_code:
+        type: string
+    required:
+    - invite_code
+    type: object
   enterprise-system_internal_delivery_http_dto.CorporateGroupEnvelope:
     properties:
       data:
@@ -458,6 +465,18 @@ definitions:
       data:
         $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.AttachedDocumentResponse'
     type: object
+  enterprise-system_internal_delivery_http_dto.EmitInviteTokenEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.EmitInviteTokenResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.EmitInviteTokenResponse:
+    properties:
+      expires_at:
+        type: string
+      invite_code:
+        type: string
+    type: object
   enterprise-system_internal_delivery_http_dto.EmployeeEnvelope:
     properties:
       data:
@@ -528,6 +547,16 @@ definitions:
       timestamp:
         example: "2026-11-10T12:00:00Z"
         type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.InitiateRelationshipRequest:
+    properties:
+      holding_tenant_id:
+        type: string
+      relationship_type:
+        type: string
+    required:
+    - holding_tenant_id
+    - relationship_type
     type: object
   enterprise-system_internal_delivery_http_dto.JobEnvelope:
     properties:
@@ -894,6 +923,11 @@ definitions:
       tenant_id:
         type: string
     type: object
+  enterprise-system_internal_delivery_http_dto.RelationshipReasonRequest:
+    properties:
+      reason:
+        type: string
+    type: object
   enterprise-system_internal_delivery_http_dto.ResetPasswordRequest:
     properties:
       new_password:
@@ -904,6 +938,36 @@ definitions:
     required:
     - new_password
     - token
+    type: object
+  enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.TenantRelationshipResponse:
+    properties:
+      approved_at:
+        type: string
+      canceled_at:
+        type: string
+      ends_at:
+        type: string
+      id:
+        type: string
+      rejected_at:
+        type: string
+      rejection_reason:
+        type: string
+      relationship_type:
+        type: string
+      requested_at:
+        type: string
+      status:
+        type: string
+      tenant_id_holding:
+        type: string
+      tenant_id_subsidiary:
+        type: string
     type: object
   enterprise-system_internal_delivery_http_dto.UpdateJobRequest:
     properties:
@@ -2312,6 +2376,268 @@ paths:
       summary: List role types
       tags:
       - Catalogs
+  /tenant-relationships/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Subsidiary-only action. Cancels the relationship and invalidates
+        its active invites.
+      parameters:
+      - description: Client application UUID
+        in: header
+        name: X-App-Client-ID
+        required: true
+        type: string
+      - description: Relationship UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reason
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.RelationshipReasonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cancel a PENDING relationship
+      tags:
+      - Tenant Relationships
+  /tenant-relationships/{id}/emit-token:
+    post:
+      description: Holding-only action. Emits the invite token once for a PENDING
+        relationship.
+      parameters:
+      - description: Client application UUID
+        in: header
+        name: X-App-Client-ID
+        required: true
+        type: string
+      - description: Relationship UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.EmitInviteTokenEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Emit an invite token
+      tags:
+      - Tenant Relationships
+  /tenant-relationships/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: Holding-only action. Rejects the relationship and invalidates its
+        active invites.
+      parameters:
+      - description: Client application UUID
+        in: header
+        name: X-App-Client-ID
+        required: true
+        type: string
+      - description: Relationship UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Reason
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.RelationshipReasonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reject a PENDING relationship
+      tags:
+      - Tenant Relationships
+  /tenant-relationships/{id}/revoke:
+    post:
+      description: Holding-only action. Revokes the relationship.
+      parameters:
+      - description: Client application UUID
+        in: header
+        name: X-App-Client-ID
+        required: true
+        type: string
+      - description: Relationship UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Revoke an APPROVED relationship
+      tags:
+      - Tenant Relationships
+  /tenant-relationships/consume-token:
+    post:
+      consumes:
+      - application/json
+      description: Subsidiary-only action. The subsidiary is taken from the JWT; no
+        tenant_id is accepted from the body. Approves the relationship after cycle
+        validation.
+      parameters:
+      - description: Client application UUID
+        in: header
+        name: X-App-Client-ID
+        required: true
+        type: string
+      - description: Invite token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ConsumeInviteTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Consume an invite token
+      tags:
+      - Tenant Relationships
+  /tenant-relationships/initiate:
+    post:
+      consumes:
+      - application/json
+      description: The authenticated subsidiary requests affiliation to a holding.
+        The subsidiary is taken from the JWT.
+      parameters:
+      - description: Client application UUID
+        in: header
+        name: X-App-Client-ID
+        required: true
+        type: string
+      - description: Holding and relationship type
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.InitiateRelationshipRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Initiate a PENDING holding/subsidiary relationship
+      tags:
+      - Tenant Relationships
 schemes:
 - http
 - https

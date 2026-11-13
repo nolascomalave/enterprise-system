@@ -120,8 +120,14 @@ type Tx struct {
 	Subscription *SubscriptionClient
 	// SystemFunction is the client for interacting with the SystemFunction builders.
 	SystemFunction *SystemFunctionClient
+	// TenantRelationship is the client for interacting with the TenantRelationship builders.
+	TenantRelationship *TenantRelationshipClient
+	// TenantRelationshipInvite is the client for interacting with the TenantRelationshipInvite builders.
+	TenantRelationshipInvite *TenantRelationshipInviteClient
 	// TenantRole is the client for interacting with the TenantRole builders.
 	TenantRole *TenantRoleClient
+	// TenantTransfer is the client for interacting with the TenantTransfer builders.
+	TenantTransfer *TenantTransferClient
 	// UserCredentials is the client for interacting with the UserCredentials builders.
 	UserCredentials *UserCredentialsClient
 	// UserRoleAssignment is the client for interacting with the UserRoleAssignment builders.
@@ -310,7 +316,10 @@ func (tx *Tx) init() {
 	tx.Session = NewSessionClient(tx.config)
 	tx.Subscription = NewSubscriptionClient(tx.config)
 	tx.SystemFunction = NewSystemFunctionClient(tx.config)
+	tx.TenantRelationship = NewTenantRelationshipClient(tx.config)
+	tx.TenantRelationshipInvite = NewTenantRelationshipInviteClient(tx.config)
 	tx.TenantRole = NewTenantRoleClient(tx.config)
+	tx.TenantTransfer = NewTenantTransferClient(tx.config)
 	tx.UserCredentials = NewUserCredentialsClient(tx.config)
 	tx.UserRoleAssignment = NewUserRoleAssignmentClient(tx.config)
 }

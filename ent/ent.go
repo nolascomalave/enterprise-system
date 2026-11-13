@@ -57,7 +57,10 @@ import (
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/systemfunction"
+	"enterprise-system/ent/tenantrelationship"
+	"enterprise-system/ent/tenantrelationshipinvite"
 	"enterprise-system/ent/tenantrole"
+	"enterprise-system/ent/tenanttransfer"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 	"errors"
@@ -181,7 +184,10 @@ func checkColumn(t, c string) error {
 			session.Table:                            session.ValidColumn,
 			subscription.Table:                       subscription.ValidColumn,
 			systemfunction.Table:                     systemfunction.ValidColumn,
+			tenantrelationship.Table:                 tenantrelationship.ValidColumn,
+			tenantrelationshipinvite.Table:           tenantrelationshipinvite.ValidColumn,
 			tenantrole.Table:                         tenantrole.ValidColumn,
+			tenanttransfer.Table:                     tenanttransfer.ValidColumn,
 			usercredentials.Table:                    usercredentials.ValidColumn,
 			userroleassignment.Table:                 userroleassignment.ValidColumn,
 		})

@@ -644,6 +644,30 @@ func (f SystemFunctionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemFunctionMutation", m)
 }
 
+// The TenantRelationshipFunc type is an adapter to allow the use of ordinary
+// function as TenantRelationship mutator.
+type TenantRelationshipFunc func(context.Context, *ent.TenantRelationshipMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TenantRelationshipFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TenantRelationshipMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantRelationshipMutation", m)
+}
+
+// The TenantRelationshipInviteFunc type is an adapter to allow the use of ordinary
+// function as TenantRelationshipInvite mutator.
+type TenantRelationshipInviteFunc func(context.Context, *ent.TenantRelationshipInviteMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TenantRelationshipInviteFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TenantRelationshipInviteMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantRelationshipInviteMutation", m)
+}
+
 // The TenantRoleFunc type is an adapter to allow the use of ordinary
 // function as TenantRole mutator.
 type TenantRoleFunc func(context.Context, *ent.TenantRoleMutation) (ent.Value, error)
@@ -654,6 +678,18 @@ func (f TenantRoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantRoleMutation", m)
+}
+
+// The TenantTransferFunc type is an adapter to allow the use of ordinary
+// function as TenantTransfer mutator.
+type TenantTransferFunc func(context.Context, *ent.TenantTransferMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TenantTransferFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TenantTransferMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantTransferMutation", m)
 }
 
 // The UserCredentialsFunc type is an adapter to allow the use of ordinary

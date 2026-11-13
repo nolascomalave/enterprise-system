@@ -57,7 +57,10 @@ import (
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/systemfunction"
+	"enterprise-system/ent/tenantrelationship"
+	"enterprise-system/ent/tenantrelationshipinvite"
 	"enterprise-system/ent/tenantrole"
+	"enterprise-system/ent/tenanttransfer"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 	"time"
@@ -1235,6 +1238,50 @@ func init() {
 	systemfunctionDescID := systemfunctionFields[0].Descriptor()
 	// systemfunction.DefaultID holds the default value on creation for the id field.
 	systemfunction.DefaultID = systemfunctionDescID.Default.(func() uuid.UUID)
+	tenantrelationshipFields := schema.TenantRelationship{}.Fields()
+	_ = tenantrelationshipFields
+	// tenantrelationshipDescRelationshipType is the schema descriptor for relationship_type field.
+	tenantrelationshipDescRelationshipType := tenantrelationshipFields[3].Descriptor()
+	// tenantrelationship.RelationshipTypeValidator is a validator for the "relationship_type" field. It is called by the builders before save.
+	tenantrelationship.RelationshipTypeValidator = tenantrelationshipDescRelationshipType.Validators[0].(func(string) error)
+	// tenantrelationshipDescRequestedAt is the schema descriptor for requested_at field.
+	tenantrelationshipDescRequestedAt := tenantrelationshipFields[5].Descriptor()
+	// tenantrelationship.DefaultRequestedAt holds the default value on creation for the requested_at field.
+	tenantrelationship.DefaultRequestedAt = tenantrelationshipDescRequestedAt.Default.(func() time.Time)
+	// tenantrelationshipDescCreatedAt is the schema descriptor for created_at field.
+	tenantrelationshipDescCreatedAt := tenantrelationshipFields[11].Descriptor()
+	// tenantrelationship.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tenantrelationship.DefaultCreatedAt = tenantrelationshipDescCreatedAt.Default.(func() time.Time)
+	// tenantrelationshipDescUpdatedAt is the schema descriptor for updated_at field.
+	tenantrelationshipDescUpdatedAt := tenantrelationshipFields[12].Descriptor()
+	// tenantrelationship.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tenantrelationship.DefaultUpdatedAt = tenantrelationshipDescUpdatedAt.Default.(func() time.Time)
+	// tenantrelationship.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tenantrelationship.UpdateDefaultUpdatedAt = tenantrelationshipDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tenantrelationshipDescID is the schema descriptor for id field.
+	tenantrelationshipDescID := tenantrelationshipFields[0].Descriptor()
+	// tenantrelationship.DefaultID holds the default value on creation for the id field.
+	tenantrelationship.DefaultID = tenantrelationshipDescID.Default.(func() uuid.UUID)
+	tenantrelationshipinviteFields := schema.TenantRelationshipInvite{}.Fields()
+	_ = tenantrelationshipinviteFields
+	// tenantrelationshipinviteDescTokenHash is the schema descriptor for token_hash field.
+	tenantrelationshipinviteDescTokenHash := tenantrelationshipinviteFields[2].Descriptor()
+	// tenantrelationshipinvite.TokenHashValidator is a validator for the "token_hash" field. It is called by the builders before save.
+	tenantrelationshipinvite.TokenHashValidator = tenantrelationshipinviteDescTokenHash.Validators[0].(func([]byte) error)
+	// tenantrelationshipinviteDescCreatedAt is the schema descriptor for created_at field.
+	tenantrelationshipinviteDescCreatedAt := tenantrelationshipinviteFields[7].Descriptor()
+	// tenantrelationshipinvite.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tenantrelationshipinvite.DefaultCreatedAt = tenantrelationshipinviteDescCreatedAt.Default.(func() time.Time)
+	// tenantrelationshipinviteDescUpdatedAt is the schema descriptor for updated_at field.
+	tenantrelationshipinviteDescUpdatedAt := tenantrelationshipinviteFields[8].Descriptor()
+	// tenantrelationshipinvite.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tenantrelationshipinvite.DefaultUpdatedAt = tenantrelationshipinviteDescUpdatedAt.Default.(func() time.Time)
+	// tenantrelationshipinvite.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tenantrelationshipinvite.UpdateDefaultUpdatedAt = tenantrelationshipinviteDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tenantrelationshipinviteDescID is the schema descriptor for id field.
+	tenantrelationshipinviteDescID := tenantrelationshipinviteFields[0].Descriptor()
+	// tenantrelationshipinvite.DefaultID holds the default value on creation for the id field.
+	tenantrelationshipinvite.DefaultID = tenantrelationshipinviteDescID.Default.(func() uuid.UUID)
 	tenantroleFields := schema.TenantRole{}.Fields()
 	_ = tenantroleFields
 	// tenantroleDescName is the schema descriptor for name field.
@@ -1255,6 +1302,26 @@ func init() {
 	tenantroleDescID := tenantroleFields[0].Descriptor()
 	// tenantrole.DefaultID holds the default value on creation for the id field.
 	tenantrole.DefaultID = tenantroleDescID.Default.(func() uuid.UUID)
+	tenanttransferFields := schema.TenantTransfer{}.Fields()
+	_ = tenanttransferFields
+	// tenanttransferDescRequestedAt is the schema descriptor for requested_at field.
+	tenanttransferDescRequestedAt := tenanttransferFields[4].Descriptor()
+	// tenanttransfer.DefaultRequestedAt holds the default value on creation for the requested_at field.
+	tenanttransfer.DefaultRequestedAt = tenanttransferDescRequestedAt.Default.(func() time.Time)
+	// tenanttransferDescCreatedAt is the schema descriptor for created_at field.
+	tenanttransferDescCreatedAt := tenanttransferFields[10].Descriptor()
+	// tenanttransfer.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tenanttransfer.DefaultCreatedAt = tenanttransferDescCreatedAt.Default.(func() time.Time)
+	// tenanttransferDescUpdatedAt is the schema descriptor for updated_at field.
+	tenanttransferDescUpdatedAt := tenanttransferFields[11].Descriptor()
+	// tenanttransfer.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tenanttransfer.DefaultUpdatedAt = tenanttransferDescUpdatedAt.Default.(func() time.Time)
+	// tenanttransfer.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tenanttransfer.UpdateDefaultUpdatedAt = tenanttransferDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tenanttransferDescID is the schema descriptor for id field.
+	tenanttransferDescID := tenanttransferFields[0].Descriptor()
+	// tenanttransfer.DefaultID holds the default value on creation for the id field.
+	tenanttransfer.DefaultID = tenanttransferDescID.Default.(func() uuid.UUID)
 	usercredentialsFields := schema.UserCredentials{}.Fields()
 	_ = usercredentialsFields
 	// usercredentialsDescPasswordHash is the schema descriptor for password_hash field.

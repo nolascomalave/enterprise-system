@@ -60,6 +60,9 @@ func schemaCases() []schemaCase {
 		{name: "PositionMenuOption", schema: PositionMenuOption{}, table: "position_menu_options", scope: "tenants", softDelete: false, generatedID: true},
 		{name: "PositionMenuOptionValidity", schema: PositionMenuOptionValidity{}, table: "position_menu_option_validities", scope: "tenants", softDelete: false, generatedID: true},
 		{name: "EmployeeMenuOptionOverride", schema: EmployeeMenuOptionOverride{}, table: "employee_menu_option_overrides", scope: "tenants", softDelete: false, generatedID: true},
+		{name: "TenantRelationship", schema: TenantRelationship{}, table: "tenant_relationships", scope: "global", softDelete: false, generatedID: true},
+		{name: "TenantRelationshipInvite", schema: TenantRelationshipInvite{}, table: "tenant_relationship_invites", scope: "global", softDelete: false, generatedID: true},
+		{name: "TenantTransfer", schema: TenantTransfer{}, table: "tenant_transfers", scope: "global", softDelete: false, generatedID: true},
 	}
 }
 

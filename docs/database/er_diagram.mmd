@@ -1,0 +1,631 @@
+erDiagram
+    audit_change_log {
+        uuid id PK
+        uuid tenant_id
+        timestamptz changed_at PK
+    }
+    global_client_applications {
+        uuid id PK
+        uuid tenant_id FK
+        text name
+        text client_id
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        text client_type
+        text application_scope
+    }
+    global_contact_mechanisms {
+        uuid id PK
+        text type
+    }
+    global_countries {
+        text code PK
+        text name
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_identity_document_type_translations {
+        uuid id PK
+        uuid identity_document_type_id FK
+        text locale_code FK
+        text name
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_identity_document_types {
+        uuid id PK
+        text code
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_locales {
+        text code PK
+        text name
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_location_translations {
+        uuid id
+        uuid location_id PK, FK
+        text language_code PK, FK
+        text name
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_locations {
+        uuid id PK
+        uuid parent_id FK
+        text country_code FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_menu_template_functions {
+        uuid id PK
+        uuid template_id FK
+        uuid system_function_id FK
+        timestamptz created_at
+    }
+    global_menu_templates {
+        uuid id PK
+        text code
+        text name
+        text client_type
+        text application_scope
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    global_name_types {
+        uuid id PK
+        text code
+        text name
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_role_type_translations {
+        uuid id PK
+        uuid role_type_id FK
+        text locale_code FK
+        text name
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_role_types {
+        uuid id PK
+        text code
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    global_subscriptions {
+        uuid id PK
+        text name
+        text slug
+        text status
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    global_system_functions {
+        uuid id PK
+        text code
+        text name
+        text function_scope
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    global_tenant_relationship_invites {
+        uuid id PK
+        uuid relationship_id FK
+        bytea token_hash
+        timestamptz expires_at
+        timestamptz consumed_at
+        timestamptz canceled_at
+        uuid canceled_by_tenant_id FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_tenant_relationships {
+        uuid id PK
+        uuid tenant_id_holding FK
+        uuid tenant_id_subsidiary FK
+        text relationship_type
+        text status
+        timestamptz requested_at
+        timestamptz approved_at
+        timestamptz rejected_at
+        timestamptz canceled_at
+        timestamptz ends_at
+        text rejection_reason
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_tenant_transfers {
+        uuid id PK
+        uuid relationship_id FK
+        uuid requested_by_tenant_id FK
+        text status
+        timestamptz requested_at
+        timestamptz started_at
+        timestamptz completed_at
+        timestamptz canceled_at
+        uuid canceled_by_tenant_id FK
+        text transfer_reason
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_address_validities {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK
+        uuid address_id FK
+        text type
+        boolean is_primary
+        timestamptz start_date
+        timestamptz end_date
+        timestamptz created_at
+        timestamptz deleted_at
+    }
+    tenants_addresses {
+        uuid id PK
+        text type
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid party_id FK
+        uuid tenant_id FK
+        uuid city_location_id FK
+    }
+    tenants_attached_documents {
+        uuid id PK
+        uuid tenant_id FK
+        bytea document_hash PK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    tenants_corporate_groups {
+        uuid id PK
+        uuid tenant_id FK
+        text name
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    tenants_department_address_validities {
+        uuid id PK
+        uuid tenant_id FK
+        uuid department_address_id FK
+        uuid department_id FK
+        text type
+        boolean is_primary
+        timestamptz start_date
+        timestamptz end_date
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_department_addresses {
+        uuid id PK
+        uuid tenant_id FK
+        uuid department_id FK
+        uuid city_location_id FK
+        text type
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    tenants_department_contact_mechanism_validities {
+        uuid id PK
+        uuid tenant_id FK
+        uuid department_contact_mechanism_id FK
+        uuid department_id FK
+        boolean is_primary
+        timestamptz start_date
+        timestamptz end_date
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_department_contact_mechanisms {
+        uuid id PK
+        uuid tenant_id FK
+        uuid department_id FK
+        uuid contact_mechanism_id FK
+        boolean is_primary
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    tenants_department_group_assignments {
+        uuid id
+        uuid tenant_id FK
+        uuid department_id PK, FK
+        uuid corporate_group_id PK, FK
+        timestamptz created_at
+    }
+    tenants_department_menu_option_validities {
+        uuid id PK
+        uuid tenant_id FK
+        uuid department_menu_option_id FK
+        uuid department_id FK
+        uuid menu_option_id FK
+        timestamptz start_date
+        timestamptz end_date
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_department_menu_options {
+        uuid id PK
+        uuid tenant_id FK
+        uuid department_id FK
+        uuid menu_option_id FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_department_translations {
+        uuid id PK
+        uuid tenant_id FK
+        uuid department_id FK
+        text locale_code FK
+        text name
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_departments {
+        uuid id PK
+        text name
+        text code
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid parent_department_id FK
+        uuid manager_party_id FK
+        uuid tenant_id FK
+    }
+    tenants_employee_assignments {
+        uuid id PK
+        timestamptz start_date
+        timestamptz end_date
+        timestamptz created_at
+        timestamptz updated_at
+        uuid department_id FK
+        uuid employee_party_id FK
+        uuid job_id FK
+        uuid tenant_id FK
+    }
+    tenants_employee_menu_option_overrides {
+        uuid id PK
+        uuid tenant_id FK
+        uuid employee_party_id FK
+        uuid system_function_id FK
+        boolean is_granted
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_employees {
+        uuid party_id PK
+        text status
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid department_id FK
+        uuid manager_party_id FK
+        uuid job_id FK
+        uuid tenant_id FK
+    }
+    tenants_job_families {
+        uuid id PK
+        text name
+        text code
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid tenant_id FK
+    }
+    tenants_jobs {
+        uuid id PK
+        text title
+        text code
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid job_family_id FK
+        uuid tenant_id FK
+    }
+    tenants_menu_categories {
+        uuid id PK
+        uuid tenant_id FK
+        uuid parent_id FK
+        text code
+        text name
+        integer sort_order
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    tenants_menu_option_categories {
+        uuid id PK
+        uuid tenant_id FK
+        uuid menu_category_id FK
+        uuid menu_option_id FK
+        integer sort_order
+        timestamptz created_at
+    }
+    tenants_menu_option_functions {
+        uuid id PK
+        uuid tenant_id FK
+        uuid menu_option_id FK
+        uuid system_function_id FK
+        timestamptz created_at
+    }
+    tenants_menu_options {
+        uuid id PK
+        uuid tenant_id FK
+        uuid template_id FK
+        text code
+        text name
+        text icon
+        text route
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    tenants_organization_profiles {
+        uuid id PK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid party_id FK
+        uuid tenant_id FK
+    }
+    tenants_parties {
+        uuid id PK
+        text party_type
+        text display_name
+        text record_status
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid canonical_party_id FK
+        uuid tenant_id FK
+    }
+    tenants_party_contact_mechanism_validities {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_contact_mechanism_id FK
+        uuid party_id FK
+        uuid contact_mechanism_id FK
+        boolean is_primary
+        timestamptz start_date
+        timestamptz end_date
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_party_contact_mechanisms {
+        uuid id PK
+        boolean is_primary
+        timestamptz created_at
+        timestamptz updated_at
+        uuid contact_mechanism_id FK
+        uuid party_id FK
+        uuid tenant_id FK
+    }
+    tenants_party_identity_document_validities {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_identity_document_id FK
+        uuid party_id FK
+        boolean is_primary
+        timestamptz start_date
+        timestamptz end_date
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_party_identity_documents {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK
+        uuid document_type_id FK
+        text issuing_country_code FK
+        uuid issuing_jurisdiction_id FK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    tenants_party_merge_log {
+        uuid id PK
+        uuid source_party_id FK
+        uuid target_party_id FK
+        uuid tenant_id FK
+    }
+    tenants_party_name_validities {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_name_id FK
+        uuid party_id FK
+        uuid name_type_id FK
+        boolean is_primary
+        timestamptz start_date
+        timestamptz end_date
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_party_names {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK
+        uuid name_type_id FK
+        boolean is_primary
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    tenants_party_nationalities {
+        uuid id PK
+        uuid tenant_id FK
+        uuid party_id FK
+        text country_code FK
+        boolean is_primary
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_party_roles {
+        uuid id PK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid party_id FK
+        uuid role_type_id FK
+        uuid tenant_id FK
+    }
+    tenants_password_reset_tokens {
+        uuid id PK
+        bytea token_hash
+        timestamptz expires_at
+        timestamptz created_at
+        timestamptz updated_at
+        uuid party_id FK
+        uuid tenant_id FK
+    }
+    tenants_person_profiles {
+        uuid id PK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid party_id FK
+        uuid tenant_id FK
+    }
+    tenants_position_menu_option_validities {
+        uuid id PK
+        uuid tenant_id FK
+        uuid position_menu_option_id FK
+        uuid job_id FK
+        uuid menu_option_id FK
+        timestamptz start_date
+        timestamptz end_date
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_position_menu_options {
+        uuid id PK
+        uuid tenant_id FK
+        uuid job_id FK
+        uuid menu_option_id FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    tenants_role_menu_options {
+        uuid id PK
+        uuid tenant_id FK
+        uuid tenant_role_id FK
+        uuid menu_option_id FK
+        timestamptz created_at
+    }
+    tenants_sessions {
+        uuid id PK
+        bytea token_hash
+        timestamptz expires_at
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid user_id FK
+        uuid tenant_id FK
+    }
+    tenants_tenant_roles {
+        uuid id PK
+        uuid tenant_id FK
+        uuid client_application_id FK
+        text name
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+    }
+    tenants_user_credentials {
+        uuid id PK
+        timestamptz created_at
+        timestamptz updated_at
+        timestamptz deleted_at
+        uuid party_id FK
+        uuid party_contact_mechanism_id FK
+        uuid tenant_id FK
+    }
+    tenants_user_role_assignments {
+        uuid id PK
+        uuid tenant_id FK
+        uuid user_credentials_id FK
+        uuid tenant_role_id FK
+        boolean is_granted
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    global_subscriptions ||--o{ global_client_applications : "client_applications_tenant_id_fkey"
+    global_identity_document_types ||--o{ global_identity_document_type_translations : "identity_document_type_translati_identity_document_type_id_fkey"
+    global_locales ||--o{ global_identity_document_type_translations : "identity_document_type_translations_locale_code_fkey"
+    global_locales ||--o{ global_location_translations : "location_translations_locale_fk"
+    global_locations ||--o{ global_location_translations : "location_translations_location_id_fkey"
+    global_countries ||--o{ global_locations : "locations_country_code_fkey"
+    global_locations ||--o{ global_locations : "locations_parent_id_fkey"
+    global_system_functions ||--o{ global_menu_template_functions : "menu_template_functions_system_function_id_fkey"
+    global_menu_templates ||--o{ global_menu_template_functions : "menu_template_functions_template_id_fkey"
+    global_locales ||--o{ global_role_type_translations : "role_type_translations_locale_code_fkey"
+    global_role_types ||--o{ global_role_type_translations : "role_type_translations_role_type_id_fkey"
+    global_subscriptions ||--o{ global_tenant_relationship_invites : "tenant_relationship_invites_canceled_by_tenant_id_fkey"
+    global_tenant_relationships ||--o{ global_tenant_relationship_invites : "tenant_relationship_invites_relationship_id_fkey"
+    global_subscriptions ||--o{ global_tenant_relationships : "tenant_relationships_tenant_id_holding_fkey"
+    global_subscriptions ||--o{ global_tenant_relationships : "tenant_relationships_tenant_id_subsidiary_fkey"
+    global_subscriptions ||--o{ global_tenant_transfers : "tenant_transfers_canceled_by_tenant_id_fkey"
+    global_tenant_relationships ||--o{ global_tenant_transfers : "tenant_transfers_relationship_id_fkey"
+    global_subscriptions ||--o{ global_tenant_transfers : "tenant_transfers_requested_by_tenant_id_fkey"
+    tenants_addresses ||--o{ tenants_address_validities : "address_validities_address_fk"
+    tenants_parties ||--o{ tenants_addresses : "addresses_parties_addresses"
+    tenants_department_addresses ||--o{ tenants_department_address_validities : "department_address_validities_address_fk"
+    tenants_departments ||--o{ tenants_department_addresses : "department_addresses_department_fk"
+    tenants_department_contact_mechanisms ||--o{ tenants_department_contact_mechanism_validities : "department_contact_mechanism_validities_contact_fk"
+    tenants_departments ||--o{ tenants_department_contact_mechanisms : "department_contact_mechanisms_department_fk"
+    tenants_departments ||--o{ tenants_department_group_assignments : "department_group_assignments_department_fk"
+    tenants_corporate_groups ||--o{ tenants_department_group_assignments : "department_group_assignments_group_fk"
+    tenants_department_menu_options ||--o{ tenants_department_menu_option_validities : "department_menu_option_validities_parent_fk"
+    tenants_departments ||--o{ tenants_department_menu_options : "department_menu_options_department_fk"
+    tenants_menu_options ||--o{ tenants_department_menu_options : "department_menu_options_option_fk"
+    tenants_departments ||--o{ tenants_department_translations : "department_translations_department_fk"
+    tenants_departments ||--o{ tenants_departments : "departments_departments_children"
+    tenants_employees ||--o{ tenants_departments : "departments_employees_managed_departments"
+    tenants_departments ||--o{ tenants_employee_assignments : "employee_assignments_departments_assignments"
+    tenants_employees ||--o{ tenants_employee_assignments : "employee_assignments_employees_assignments"
+    tenants_jobs ||--o{ tenants_employee_assignments : "employee_assignments_jobs_assignments"
+    tenants_employees ||--o{ tenants_employee_menu_option_overrides : "employee_menu_option_overrides_employee_party_id_fkey"
+    tenants_departments ||--o{ tenants_employees : "employees_departments_employees"
+    tenants_employees ||--o{ tenants_employees : "employees_employees_direct_reports"
+    tenants_jobs ||--o{ tenants_employees : "employees_jobs_employees"
+    tenants_job_families ||--o{ tenants_jobs : "jobs_job_families_jobs"
+    tenants_menu_categories ||--o{ tenants_menu_categories : "menu_categories_parent_id_fkey"
+    tenants_menu_categories ||--o{ tenants_menu_option_categories : "menu_option_categories_category_fk"
+    tenants_menu_options ||--o{ tenants_menu_option_categories : "menu_option_categories_option_fk"
+    tenants_menu_options ||--o{ tenants_menu_option_functions : "menu_option_functions_option_fk"
+    tenants_parties ||--o{ tenants_organization_profiles : "organization_profiles_parties_organization_profile"
+    tenants_parties ||--o{ tenants_parties : "parties_parties_merged_parties"
+    tenants_party_contact_mechanisms ||--o{ tenants_party_contact_mechanism_validities : "party_contact_mechanism_validities_relation_fk"
+    tenants_parties ||--o{ tenants_party_contact_mechanisms : "party_contact_mechanisms_parties_party_contact_mechanisms"
+    tenants_party_identity_documents ||--o{ tenants_party_identity_document_validities : "party_identity_document_validities_document_fk"
+    tenants_parties ||--o{ tenants_party_identity_documents : "party_identity_documents_party_fk"
+    tenants_parties ||--o{ tenants_party_merge_log : "party_merge_log_parties_merge_sources"
+    tenants_parties ||--o{ tenants_party_merge_log : "party_merge_log_parties_merge_targets"
+    tenants_party_names ||--o{ tenants_party_name_validities : "party_name_validities_name_fk"
+    tenants_parties ||--o{ tenants_party_names : "party_names_party_fk"
+    tenants_parties ||--o{ tenants_party_nationalities : "party_nationalities_party_fk"
+    tenants_parties ||--o{ tenants_party_roles : "party_roles_parties_party_roles"
+    tenants_parties ||--o{ tenants_password_reset_tokens : "password_reset_tokens_parties_password_reset_tokens"
+    tenants_parties ||--o{ tenants_person_profiles : "person_profiles_parties_person_profile"
+    tenants_position_menu_options ||--o{ tenants_position_menu_option_validities : "position_menu_option_validities_parent_fk"
+    tenants_jobs ||--o{ tenants_position_menu_options : "position_menu_options_job_fk"
+    tenants_menu_options ||--o{ tenants_position_menu_options : "position_menu_options_option_fk"
+    tenants_menu_options ||--o{ tenants_role_menu_options : "role_menu_options_option_fk"
+    tenants_tenant_roles ||--o{ tenants_role_menu_options : "role_menu_options_role_fk"
+    tenants_parties ||--o{ tenants_sessions : "sessions_parties_sessions"
+    tenants_parties ||--o{ tenants_user_credentials : "user_credentials_parties_credentials"
+    tenants_party_contact_mechanisms ||--o{ tenants_user_credentials : "user_credentials_party_contact_mechanisms_credentials"
+    tenants_tenant_roles ||--o{ tenants_user_role_assignments : "user_role_assignments_role_fk"
+    tenants_user_credentials ||--o{ tenants_user_role_assignments : "user_role_assignments_user_fk"
