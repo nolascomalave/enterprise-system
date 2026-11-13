@@ -49,6 +49,8 @@ const (
 	EdgeManagedDepartments = "managed_departments"
 	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
 	EdgeAssignments = "assignments"
+	// EdgeEmployeeMenuOptionOverrides holds the string denoting the employee_menu_option_overrides edge name in mutations.
+	EdgeEmployeeMenuOptionOverrides = "employee_menu_option_overrides"
 	// SubscriptionFieldID holds the string denoting the ID field of the Subscription.
 	SubscriptionFieldID = "id"
 	// JobFieldID holds the string denoting the ID field of the Job.
@@ -57,6 +59,8 @@ const (
 	DepartmentFieldID = "id"
 	// EmployeeAssignmentFieldID holds the string denoting the ID field of the EmployeeAssignment.
 	EmployeeAssignmentFieldID = "id"
+	// EmployeeMenuOptionOverrideFieldID holds the string denoting the ID field of the EmployeeMenuOptionOverride.
+	EmployeeMenuOptionOverrideFieldID = "id"
 	// Table holds the table name of the employee in the database.
 	Table = "employees"
 	// TenantTable is the table that holds the tenant relation/edge.
@@ -102,6 +106,13 @@ const (
 	AssignmentsInverseTable = "employee_assignments"
 	// AssignmentsColumn is the table column denoting the assignments relation/edge.
 	AssignmentsColumn = "employee_party_id"
+	// EmployeeMenuOptionOverridesTable is the table that holds the employee_menu_option_overrides relation/edge.
+	EmployeeMenuOptionOverridesTable = "employee_menu_option_overrides"
+	// EmployeeMenuOptionOverridesInverseTable is the table name for the EmployeeMenuOptionOverride entity.
+	// It exists in this package in order to avoid circular dependency with the "employeemenuoptionoverride" package.
+	EmployeeMenuOptionOverridesInverseTable = "employee_menu_option_overrides"
+	// EmployeeMenuOptionOverridesColumn is the table column denoting the employee_menu_option_overrides relation/edge.
+	EmployeeMenuOptionOverridesColumn = "employee_party_id"
 )
 
 // Columns holds all SQL columns for employee fields.
@@ -294,6 +305,20 @@ func ByAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByEmployeeMenuOptionOverridesCount orders the results by employee_menu_option_overrides count.
+func ByEmployeeMenuOptionOverridesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEmployeeMenuOptionOverridesStep(), opts...)
+	}
+}
+
+// ByEmployeeMenuOptionOverrides orders the results by employee_menu_option_overrides terms.
+func ByEmployeeMenuOptionOverrides(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEmployeeMenuOptionOverridesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -341,5 +366,12 @@ func newAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AssignmentsInverseTable, EmployeeAssignmentFieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
+	)
+}
+func newEmployeeMenuOptionOverridesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EmployeeMenuOptionOverridesInverseTable, EmployeeMenuOptionOverrideFieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EmployeeMenuOptionOverridesTable, EmployeeMenuOptionOverridesColumn),
 	)
 }

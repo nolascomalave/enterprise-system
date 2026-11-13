@@ -8,6 +8,7 @@ import (
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/employeemenuoptionoverride"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/predicate"
@@ -25,17 +26,18 @@ import (
 // EmployeeQuery is the builder for querying Employee entities.
 type EmployeeQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []employee.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.Employee
-	withTenant             *SubscriptionQuery
-	withJob                *JobQuery
-	withDepartment         *DepartmentQuery
-	withDirectReports      *EmployeeQuery
-	withManager            *EmployeeQuery
-	withManagedDepartments *DepartmentQuery
-	withAssignments        *EmployeeAssignmentQuery
+	ctx                             *QueryContext
+	order                           []employee.OrderOption
+	inters                          []Interceptor
+	predicates                      []predicate.Employee
+	withTenant                      *SubscriptionQuery
+	withJob                         *JobQuery
+	withDepartment                  *DepartmentQuery
+	withDirectReports               *EmployeeQuery
+	withManager                     *EmployeeQuery
+	withManagedDepartments          *DepartmentQuery
+	withAssignments                 *EmployeeAssignmentQuery
+	withEmployeeMenuOptionOverrides *EmployeeMenuOptionOverrideQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -247,6 +249,31 @@ func (_q *EmployeeQuery) QueryAssignments() *EmployeeAssignmentQuery {
 	return query
 }
 
+// QueryEmployeeMenuOptionOverrides chains the current query on the "employee_menu_option_overrides" edge.
+func (_q *EmployeeQuery) QueryEmployeeMenuOptionOverrides() *EmployeeMenuOptionOverrideQuery {
+	query := (&EmployeeMenuOptionOverrideClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(employee.Table, employee.FieldID, selector),
+			sqlgraph.To(employeemenuoptionoverride.Table, employeemenuoptionoverride.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, employee.EmployeeMenuOptionOverridesTable, employee.EmployeeMenuOptionOverridesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.EmployeeMenuOptionOverride
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Employee entity from the query.
 // Returns a *NotFoundError when no Employee was found.
 func (_q *EmployeeQuery) First(ctx context.Context) (*Employee, error) {
@@ -434,18 +461,19 @@ func (_q *EmployeeQuery) Clone() *EmployeeQuery {
 		return nil
 	}
 	return &EmployeeQuery{
-		config:                 _q.config,
-		ctx:                    _q.ctx.Clone(),
-		order:                  append([]employee.OrderOption{}, _q.order...),
-		inters:                 append([]Interceptor{}, _q.inters...),
-		predicates:             append([]predicate.Employee{}, _q.predicates...),
-		withTenant:             _q.withTenant.Clone(),
-		withJob:                _q.withJob.Clone(),
-		withDepartment:         _q.withDepartment.Clone(),
-		withDirectReports:      _q.withDirectReports.Clone(),
-		withManager:            _q.withManager.Clone(),
-		withManagedDepartments: _q.withManagedDepartments.Clone(),
-		withAssignments:        _q.withAssignments.Clone(),
+		config:                          _q.config,
+		ctx:                             _q.ctx.Clone(),
+		order:                           append([]employee.OrderOption{}, _q.order...),
+		inters:                          append([]Interceptor{}, _q.inters...),
+		predicates:                      append([]predicate.Employee{}, _q.predicates...),
+		withTenant:                      _q.withTenant.Clone(),
+		withJob:                         _q.withJob.Clone(),
+		withDepartment:                  _q.withDepartment.Clone(),
+		withDirectReports:               _q.withDirectReports.Clone(),
+		withManager:                     _q.withManager.Clone(),
+		withManagedDepartments:          _q.withManagedDepartments.Clone(),
+		withAssignments:                 _q.withAssignments.Clone(),
+		withEmployeeMenuOptionOverrides: _q.withEmployeeMenuOptionOverrides.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -529,6 +557,17 @@ func (_q *EmployeeQuery) WithAssignments(opts ...func(*EmployeeAssignmentQuery))
 	return _q
 }
 
+// WithEmployeeMenuOptionOverrides tells the query-builder to eager-load the nodes that are connected to
+// the "employee_menu_option_overrides" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EmployeeQuery) WithEmployeeMenuOptionOverrides(opts ...func(*EmployeeMenuOptionOverrideQuery)) *EmployeeQuery {
+	query := (&EmployeeMenuOptionOverrideClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withEmployeeMenuOptionOverrides = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -607,7 +646,7 @@ func (_q *EmployeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Emp
 	var (
 		nodes       = []*Employee{}
 		_spec       = _q.querySpec()
-		loadedTypes = [7]bool{
+		loadedTypes = [8]bool{
 			_q.withTenant != nil,
 			_q.withJob != nil,
 			_q.withDepartment != nil,
@@ -615,6 +654,7 @@ func (_q *EmployeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Emp
 			_q.withManager != nil,
 			_q.withManagedDepartments != nil,
 			_q.withAssignments != nil,
+			_q.withEmployeeMenuOptionOverrides != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -679,6 +719,15 @@ func (_q *EmployeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Emp
 		if err := _q.loadAssignments(ctx, query, nodes,
 			func(n *Employee) { n.Edges.Assignments = []*EmployeeAssignment{} },
 			func(n *Employee, e *EmployeeAssignment) { n.Edges.Assignments = append(n.Edges.Assignments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withEmployeeMenuOptionOverrides; query != nil {
+		if err := _q.loadEmployeeMenuOptionOverrides(ctx, query, nodes,
+			func(n *Employee) { n.Edges.EmployeeMenuOptionOverrides = []*EmployeeMenuOptionOverride{} },
+			func(n *Employee, e *EmployeeMenuOptionOverride) {
+				n.Edges.EmployeeMenuOptionOverrides = append(n.Edges.EmployeeMenuOptionOverrides, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -885,6 +934,36 @@ func (_q *EmployeeQuery) loadAssignments(ctx context.Context, query *EmployeeAss
 	}
 	query.Where(predicate.EmployeeAssignment(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(employee.AssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EmployeePartyID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "employee_party_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *EmployeeQuery) loadEmployeeMenuOptionOverrides(ctx context.Context, query *EmployeeMenuOptionOverrideQuery, nodes []*Employee, init func(*Employee), assign func(*Employee, *EmployeeMenuOptionOverride)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Employee)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(employeemenuoptionoverride.FieldEmployeePartyID)
+	}
+	query.Where(predicate.EmployeeMenuOptionOverride(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(employee.EmployeeMenuOptionOverridesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

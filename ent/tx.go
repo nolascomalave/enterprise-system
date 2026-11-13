@@ -38,12 +38,18 @@ type Tx struct {
 	DepartmentContactMechanismValidity *DepartmentContactMechanismValidityClient
 	// DepartmentGroupAssignment is the client for interacting with the DepartmentGroupAssignment builders.
 	DepartmentGroupAssignment *DepartmentGroupAssignmentClient
+	// DepartmentMenuOption is the client for interacting with the DepartmentMenuOption builders.
+	DepartmentMenuOption *DepartmentMenuOptionClient
+	// DepartmentMenuOptionValidity is the client for interacting with the DepartmentMenuOptionValidity builders.
+	DepartmentMenuOptionValidity *DepartmentMenuOptionValidityClient
 	// DepartmentTranslation is the client for interacting with the DepartmentTranslation builders.
 	DepartmentTranslation *DepartmentTranslationClient
 	// Employee is the client for interacting with the Employee builders.
 	Employee *EmployeeClient
 	// EmployeeAssignment is the client for interacting with the EmployeeAssignment builders.
 	EmployeeAssignment *EmployeeAssignmentClient
+	// EmployeeMenuOptionOverride is the client for interacting with the EmployeeMenuOptionOverride builders.
+	EmployeeMenuOptionOverride *EmployeeMenuOptionOverrideClient
 	// IdentityDocumentType is the client for interacting with the IdentityDocumentType builders.
 	IdentityDocumentType *IdentityDocumentTypeClient
 	// IdentityDocumentTypeTranslation is the client for interacting with the IdentityDocumentTypeTranslation builders.
@@ -58,6 +64,18 @@ type Tx struct {
 	Location *LocationClient
 	// LocationTranslation is the client for interacting with the LocationTranslation builders.
 	LocationTranslation *LocationTranslationClient
+	// MenuCategory is the client for interacting with the MenuCategory builders.
+	MenuCategory *MenuCategoryClient
+	// MenuOption is the client for interacting with the MenuOption builders.
+	MenuOption *MenuOptionClient
+	// MenuOptionCategory is the client for interacting with the MenuOptionCategory builders.
+	MenuOptionCategory *MenuOptionCategoryClient
+	// MenuOptionFunction is the client for interacting with the MenuOptionFunction builders.
+	MenuOptionFunction *MenuOptionFunctionClient
+	// MenuTemplate is the client for interacting with the MenuTemplate builders.
+	MenuTemplate *MenuTemplateClient
+	// MenuTemplateFunction is the client for interacting with the MenuTemplateFunction builders.
+	MenuTemplateFunction *MenuTemplateFunctionClient
 	// NameType is the client for interacting with the NameType builders.
 	NameType *NameTypeClient
 	// OrganizationProfile is the client for interacting with the OrganizationProfile builders.
@@ -86,6 +104,12 @@ type Tx struct {
 	PasswordResetToken *PasswordResetTokenClient
 	// PersonProfile is the client for interacting with the PersonProfile builders.
 	PersonProfile *PersonProfileClient
+	// PositionMenuOption is the client for interacting with the PositionMenuOption builders.
+	PositionMenuOption *PositionMenuOptionClient
+	// PositionMenuOptionValidity is the client for interacting with the PositionMenuOptionValidity builders.
+	PositionMenuOptionValidity *PositionMenuOptionValidityClient
+	// RoleMenuOption is the client for interacting with the RoleMenuOption builders.
+	RoleMenuOption *RoleMenuOptionClient
 	// RoleType is the client for interacting with the RoleType builders.
 	RoleType *RoleTypeClient
 	// RoleTypeTranslation is the client for interacting with the RoleTypeTranslation builders.
@@ -94,8 +118,14 @@ type Tx struct {
 	Session *SessionClient
 	// Subscription is the client for interacting with the Subscription builders.
 	Subscription *SubscriptionClient
+	// SystemFunction is the client for interacting with the SystemFunction builders.
+	SystemFunction *SystemFunctionClient
+	// TenantRole is the client for interacting with the TenantRole builders.
+	TenantRole *TenantRoleClient
 	// UserCredentials is the client for interacting with the UserCredentials builders.
 	UserCredentials *UserCredentialsClient
+	// UserRoleAssignment is the client for interacting with the UserRoleAssignment builders.
+	UserRoleAssignment *UserRoleAssignmentClient
 
 	// lazily loaded.
 	client     *Client
@@ -239,9 +269,12 @@ func (tx *Tx) init() {
 	tx.DepartmentContactMechanism = NewDepartmentContactMechanismClient(tx.config)
 	tx.DepartmentContactMechanismValidity = NewDepartmentContactMechanismValidityClient(tx.config)
 	tx.DepartmentGroupAssignment = NewDepartmentGroupAssignmentClient(tx.config)
+	tx.DepartmentMenuOption = NewDepartmentMenuOptionClient(tx.config)
+	tx.DepartmentMenuOptionValidity = NewDepartmentMenuOptionValidityClient(tx.config)
 	tx.DepartmentTranslation = NewDepartmentTranslationClient(tx.config)
 	tx.Employee = NewEmployeeClient(tx.config)
 	tx.EmployeeAssignment = NewEmployeeAssignmentClient(tx.config)
+	tx.EmployeeMenuOptionOverride = NewEmployeeMenuOptionOverrideClient(tx.config)
 	tx.IdentityDocumentType = NewIdentityDocumentTypeClient(tx.config)
 	tx.IdentityDocumentTypeTranslation = NewIdentityDocumentTypeTranslationClient(tx.config)
 	tx.Job = NewJobClient(tx.config)
@@ -249,6 +282,12 @@ func (tx *Tx) init() {
 	tx.Locale = NewLocaleClient(tx.config)
 	tx.Location = NewLocationClient(tx.config)
 	tx.LocationTranslation = NewLocationTranslationClient(tx.config)
+	tx.MenuCategory = NewMenuCategoryClient(tx.config)
+	tx.MenuOption = NewMenuOptionClient(tx.config)
+	tx.MenuOptionCategory = NewMenuOptionCategoryClient(tx.config)
+	tx.MenuOptionFunction = NewMenuOptionFunctionClient(tx.config)
+	tx.MenuTemplate = NewMenuTemplateClient(tx.config)
+	tx.MenuTemplateFunction = NewMenuTemplateFunctionClient(tx.config)
 	tx.NameType = NewNameTypeClient(tx.config)
 	tx.OrganizationProfile = NewOrganizationProfileClient(tx.config)
 	tx.Party = NewPartyClient(tx.config)
@@ -263,11 +302,17 @@ func (tx *Tx) init() {
 	tx.PartyRole = NewPartyRoleClient(tx.config)
 	tx.PasswordResetToken = NewPasswordResetTokenClient(tx.config)
 	tx.PersonProfile = NewPersonProfileClient(tx.config)
+	tx.PositionMenuOption = NewPositionMenuOptionClient(tx.config)
+	tx.PositionMenuOptionValidity = NewPositionMenuOptionValidityClient(tx.config)
+	tx.RoleMenuOption = NewRoleMenuOptionClient(tx.config)
 	tx.RoleType = NewRoleTypeClient(tx.config)
 	tx.RoleTypeTranslation = NewRoleTypeTranslationClient(tx.config)
 	tx.Session = NewSessionClient(tx.config)
 	tx.Subscription = NewSubscriptionClient(tx.config)
+	tx.SystemFunction = NewSystemFunctionClient(tx.config)
+	tx.TenantRole = NewTenantRoleClient(tx.config)
 	tx.UserCredentials = NewUserCredentialsClient(tx.config)
+	tx.UserRoleAssignment = NewUserRoleAssignmentClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

@@ -85,6 +85,8 @@ func (Employee) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("assignments", EmployeeAssignment.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("employee_menu_option_overrides", EmployeeMenuOptionOverride.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

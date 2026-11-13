@@ -97,7 +97,15 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrIdentityDocumentTypeNotFound),
 		errors.Is(err, domain.ErrDepartmentContactNotFound),
 		errors.Is(err, domain.ErrDepartmentAddressNotFound),
-		errors.Is(err, domain.ErrAddressValidityNotFound):
+		errors.Is(err, domain.ErrAddressValidityNotFound),
+		errors.Is(err, domain.ErrSystemFunctionNotFound),
+		errors.Is(err, domain.ErrMenuTemplateNotFound),
+		errors.Is(err, domain.ErrMenuCategoryNotFound),
+		errors.Is(err, domain.ErrMenuOptionNotFound),
+		errors.Is(err, domain.ErrTenantRoleNotFound),
+		errors.Is(err, domain.ErrRoleAssignmentNotFound),
+		errors.Is(err, domain.ErrPermissionNotFound),
+		errors.Is(err, domain.ErrMenuOptionFunctionNotFound):
 		return http.StatusNotFound, "not_found"
 	case errors.Is(err, context.DeadlineExceeded):
 		return http.StatusGatewayTimeout, "timeout"
@@ -143,7 +151,15 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrInvalidPartyMerge),
 		errors.Is(err, domain.ErrInvalidSubscription),
 		errors.Is(err, domain.ErrInvalidRoleType),
-		errors.Is(err, domain.ErrInvalidPartyRole):
+		errors.Is(err, domain.ErrInvalidPartyRole),
+		errors.Is(err, domain.ErrInvalidSystemFunction),
+		errors.Is(err, domain.ErrInvalidMenuTemplate),
+		errors.Is(err, domain.ErrInvalidMenuCategory),
+		errors.Is(err, domain.ErrInvalidMenuOption),
+		errors.Is(err, domain.ErrInvalidTenantRole),
+		errors.Is(err, domain.ErrInvalidRoleAssignment),
+		errors.Is(err, domain.ErrInvalidPermission),
+		errors.Is(err, domain.ErrInvalidMenuOptionFunction):
 		return http.StatusBadRequest, "bad_request"
 	default:
 		return http.StatusInternalServerError, "internal_error"

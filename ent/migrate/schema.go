@@ -640,6 +640,95 @@ var (
 			},
 		},
 	}
+	// DepartmentMenuOptionsColumns holds the columns for the "department_menu_options" table.
+	DepartmentMenuOptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "department_id", Type: field.TypeUUID},
+		{Name: "menu_option_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// DepartmentMenuOptionsTable holds the schema information for the "department_menu_options" table.
+	DepartmentMenuOptionsTable = &schema.Table{
+		Name:       "department_menu_options",
+		Columns:    DepartmentMenuOptionsColumns,
+		PrimaryKey: []*schema.Column{DepartmentMenuOptionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "department_menu_options_departments_department_menu_options",
+				Columns:    []*schema.Column{DepartmentMenuOptionsColumns[3]},
+				RefColumns: []*schema.Column{DepartmentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_menu_options_menu_options_department_menu_options",
+				Columns:    []*schema.Column{DepartmentMenuOptionsColumns[4]},
+				RefColumns: []*schema.Column{MenuOptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_menu_options_subscriptions_department_menu_options",
+				Columns:    []*schema.Column{DepartmentMenuOptionsColumns[5]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "departmentmenuoption_tenant_id_department_id_menu_option_id",
+				Unique:  true,
+				Columns: []*schema.Column{DepartmentMenuOptionsColumns[5], DepartmentMenuOptionsColumns[3], DepartmentMenuOptionsColumns[4]},
+			},
+		},
+	}
+	// DepartmentMenuOptionValiditiesColumns holds the columns for the "department_menu_option_validities" table.
+	DepartmentMenuOptionValiditiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "department_id", Type: field.TypeUUID},
+		{Name: "menu_option_id", Type: field.TypeUUID},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "department_menu_option_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// DepartmentMenuOptionValiditiesTable holds the schema information for the "department_menu_option_validities" table.
+	DepartmentMenuOptionValiditiesTable = &schema.Table{
+		Name:       "department_menu_option_validities",
+		Columns:    DepartmentMenuOptionValiditiesColumns,
+		PrimaryKey: []*schema.Column{DepartmentMenuOptionValiditiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "department_menu_option_validities_department_menu_options_validities",
+				Columns:    []*schema.Column{DepartmentMenuOptionValiditiesColumns[7]},
+				RefColumns: []*schema.Column{DepartmentMenuOptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "department_menu_option_validities_subscriptions_department_menu_option_validities",
+				Columns:    []*schema.Column{DepartmentMenuOptionValiditiesColumns[8]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "departmentmenuoptionvalidity_tenant_id_department_menu_option_id",
+				Unique:  true,
+				Columns: []*schema.Column{DepartmentMenuOptionValiditiesColumns[8], DepartmentMenuOptionValiditiesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "end_date IS NULL",
+				},
+			},
+			{
+				Name:    "departmentmenuoptionvalidity_tenant_id_department_id_menu_option_id_start_date",
+				Unique:  false,
+				Columns: []*schema.Column{DepartmentMenuOptionValiditiesColumns[8], DepartmentMenuOptionValiditiesColumns[1], DepartmentMenuOptionValiditiesColumns[2], DepartmentMenuOptionValiditiesColumns[3]},
+			},
+		},
+	}
 	// DepartmentTranslationsColumns holds the columns for the "department_translations" table.
 	DepartmentTranslationsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -841,6 +930,49 @@ var (
 				Annotation: &entsql.IndexAnnotation{
 					Where: "end_date IS NULL",
 				},
+			},
+		},
+	}
+	// EmployeeMenuOptionOverridesColumns holds the columns for the "employee_menu_option_overrides" table.
+	EmployeeMenuOptionOverridesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "is_granted", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "employee_party_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+		{Name: "system_function_id", Type: field.TypeUUID},
+	}
+	// EmployeeMenuOptionOverridesTable holds the schema information for the "employee_menu_option_overrides" table.
+	EmployeeMenuOptionOverridesTable = &schema.Table{
+		Name:       "employee_menu_option_overrides",
+		Columns:    EmployeeMenuOptionOverridesColumns,
+		PrimaryKey: []*schema.Column{EmployeeMenuOptionOverridesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "employee_menu_option_overrides_employees_employee_menu_option_overrides",
+				Columns:    []*schema.Column{EmployeeMenuOptionOverridesColumns[4]},
+				RefColumns: []*schema.Column{EmployeesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "employee_menu_option_overrides_subscriptions_employee_menu_option_overrides",
+				Columns:    []*schema.Column{EmployeeMenuOptionOverridesColumns[5]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "employee_menu_option_overrides_system_functions_employee_menu_option_overrides",
+				Columns:    []*schema.Column{EmployeeMenuOptionOverridesColumns[6]},
+				RefColumns: []*schema.Column{SystemFunctionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "employeemenuoptionoverride_tenant_id_employee_party_id_system_function_id",
+				Unique:  true,
+				Columns: []*schema.Column{EmployeeMenuOptionOverridesColumns[5], EmployeeMenuOptionOverridesColumns[4], EmployeeMenuOptionOverridesColumns[6]},
 			},
 		},
 	}
@@ -1125,6 +1257,255 @@ var (
 				Name:    "locationtranslation_name",
 				Unique:  false,
 				Columns: []*schema.Column{LocationTranslationsColumns[1]},
+			},
+		},
+	}
+	// MenuCategoriesColumns holds the columns for the "menu_categories" table.
+	MenuCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "code", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "parent_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// MenuCategoriesTable holds the schema information for the "menu_categories" table.
+	MenuCategoriesTable = &schema.Table{
+		Name:       "menu_categories",
+		Columns:    MenuCategoriesColumns,
+		PrimaryKey: []*schema.Column{MenuCategoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "menu_categories_menu_categories_children",
+				Columns:    []*schema.Column{MenuCategoriesColumns[7]},
+				RefColumns: []*schema.Column{MenuCategoriesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "menu_categories_subscriptions_menu_categories",
+				Columns:    []*schema.Column{MenuCategoriesColumns[8]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "menucategory_tenant_id_code",
+				Unique:  true,
+				Columns: []*schema.Column{MenuCategoriesColumns[8], MenuCategoriesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "menucategory_tenant_id_parent_id",
+				Unique:  false,
+				Columns: []*schema.Column{MenuCategoriesColumns[8], MenuCategoriesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "menucategory_tenant_id_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{MenuCategoriesColumns[8], MenuCategoriesColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
+	// MenuOptionsColumns holds the columns for the "menu_options" table.
+	MenuOptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "code", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "icon", Type: field.TypeString, Nullable: true},
+		{Name: "route", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "template_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// MenuOptionsTable holds the schema information for the "menu_options" table.
+	MenuOptionsTable = &schema.Table{
+		Name:       "menu_options",
+		Columns:    MenuOptionsColumns,
+		PrimaryKey: []*schema.Column{MenuOptionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "menu_options_menu_templates_menu_options",
+				Columns:    []*schema.Column{MenuOptionsColumns[8]},
+				RefColumns: []*schema.Column{MenuTemplatesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "menu_options_subscriptions_menu_options",
+				Columns:    []*schema.Column{MenuOptionsColumns[9]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "menuoption_tenant_id_code",
+				Unique:  true,
+				Columns: []*schema.Column{MenuOptionsColumns[9], MenuOptionsColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "menuoption_tenant_id_template_id",
+				Unique:  false,
+				Columns: []*schema.Column{MenuOptionsColumns[9], MenuOptionsColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "menuoption_tenant_id_name",
+				Unique:  false,
+				Columns: []*schema.Column{MenuOptionsColumns[9], MenuOptionsColumns[2]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
+	// MenuOptionCategoriesColumns holds the columns for the "menu_option_categories" table.
+	MenuOptionCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "menu_category_id", Type: field.TypeUUID},
+		{Name: "menu_option_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// MenuOptionCategoriesTable holds the schema information for the "menu_option_categories" table.
+	MenuOptionCategoriesTable = &schema.Table{
+		Name:       "menu_option_categories",
+		Columns:    MenuOptionCategoriesColumns,
+		PrimaryKey: []*schema.Column{MenuOptionCategoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "menu_option_categories_menu_categories_menu_option_categories",
+				Columns:    []*schema.Column{MenuOptionCategoriesColumns[3]},
+				RefColumns: []*schema.Column{MenuCategoriesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "menu_option_categories_menu_options_menu_option_categories",
+				Columns:    []*schema.Column{MenuOptionCategoriesColumns[4]},
+				RefColumns: []*schema.Column{MenuOptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "menu_option_categories_subscriptions_menu_option_categories",
+				Columns:    []*schema.Column{MenuOptionCategoriesColumns[5]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "menuoptioncategory_tenant_id_menu_category_id_menu_option_id",
+				Unique:  true,
+				Columns: []*schema.Column{MenuOptionCategoriesColumns[5], MenuOptionCategoriesColumns[3], MenuOptionCategoriesColumns[4]},
+			},
+		},
+	}
+	// MenuOptionFunctionsColumns holds the columns for the "menu_option_functions" table.
+	MenuOptionFunctionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "is_required", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "menu_option_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+		{Name: "system_function_id", Type: field.TypeUUID},
+	}
+	// MenuOptionFunctionsTable holds the schema information for the "menu_option_functions" table.
+	MenuOptionFunctionsTable = &schema.Table{
+		Name:       "menu_option_functions",
+		Columns:    MenuOptionFunctionsColumns,
+		PrimaryKey: []*schema.Column{MenuOptionFunctionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "menu_option_functions_menu_options_menu_option_functions",
+				Columns:    []*schema.Column{MenuOptionFunctionsColumns[3]},
+				RefColumns: []*schema.Column{MenuOptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "menu_option_functions_subscriptions_menu_option_functions",
+				Columns:    []*schema.Column{MenuOptionFunctionsColumns[4]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "menu_option_functions_system_functions_menu_option_functions",
+				Columns:    []*schema.Column{MenuOptionFunctionsColumns[5]},
+				RefColumns: []*schema.Column{SystemFunctionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+	}
+	// MenuTemplatesColumns holds the columns for the "menu_templates" table.
+	MenuTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "code", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "client_type", Type: field.TypeEnum, Enums: []string{"FIRST_PARTY", "THIRD_PARTY"}},
+		{Name: "application_scope", Type: field.TypeEnum, Enums: []string{"PLATFORM", "TENANT_SPECIFIC"}},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+	}
+	// MenuTemplatesTable holds the schema information for the "menu_templates" table.
+	MenuTemplatesTable = &schema.Table{
+		Name:       "menu_templates",
+		Columns:    MenuTemplatesColumns,
+		PrimaryKey: []*schema.Column{MenuTemplatesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "menutemplate_code",
+				Unique:  true,
+				Columns: []*schema.Column{MenuTemplatesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
+	// MenuTemplateFunctionsColumns holds the columns for the "menu_template_functions" table.
+	MenuTemplateFunctionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "is_required", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "template_id", Type: field.TypeUUID},
+		{Name: "system_function_id", Type: field.TypeUUID},
+	}
+	// MenuTemplateFunctionsTable holds the schema information for the "menu_template_functions" table.
+	MenuTemplateFunctionsTable = &schema.Table{
+		Name:       "menu_template_functions",
+		Columns:    MenuTemplateFunctionsColumns,
+		PrimaryKey: []*schema.Column{MenuTemplateFunctionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "menu_template_functions_menu_templates_menu_template_functions",
+				Columns:    []*schema.Column{MenuTemplateFunctionsColumns[3]},
+				RefColumns: []*schema.Column{MenuTemplatesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "menu_template_functions_system_functions_menu_template_functions",
+				Columns:    []*schema.Column{MenuTemplateFunctionsColumns[4]},
+				RefColumns: []*schema.Column{SystemFunctionsColumns[0]},
+				OnDelete:   schema.Restrict,
 			},
 		},
 	}
@@ -1895,6 +2276,136 @@ var (
 			},
 		},
 	}
+	// PositionMenuOptionsColumns holds the columns for the "position_menu_options" table.
+	PositionMenuOptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "job_id", Type: field.TypeUUID},
+		{Name: "menu_option_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// PositionMenuOptionsTable holds the schema information for the "position_menu_options" table.
+	PositionMenuOptionsTable = &schema.Table{
+		Name:       "position_menu_options",
+		Columns:    PositionMenuOptionsColumns,
+		PrimaryKey: []*schema.Column{PositionMenuOptionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "position_menu_options_jobs_position_menu_options",
+				Columns:    []*schema.Column{PositionMenuOptionsColumns[3]},
+				RefColumns: []*schema.Column{JobsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "position_menu_options_menu_options_position_menu_options",
+				Columns:    []*schema.Column{PositionMenuOptionsColumns[4]},
+				RefColumns: []*schema.Column{MenuOptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "position_menu_options_subscriptions_position_menu_options",
+				Columns:    []*schema.Column{PositionMenuOptionsColumns[5]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "positionmenuoption_tenant_id_job_id_menu_option_id",
+				Unique:  true,
+				Columns: []*schema.Column{PositionMenuOptionsColumns[5], PositionMenuOptionsColumns[3], PositionMenuOptionsColumns[4]},
+			},
+		},
+	}
+	// PositionMenuOptionValiditiesColumns holds the columns for the "position_menu_option_validities" table.
+	PositionMenuOptionValiditiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "job_id", Type: field.TypeUUID},
+		{Name: "menu_option_id", Type: field.TypeUUID},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "position_menu_option_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// PositionMenuOptionValiditiesTable holds the schema information for the "position_menu_option_validities" table.
+	PositionMenuOptionValiditiesTable = &schema.Table{
+		Name:       "position_menu_option_validities",
+		Columns:    PositionMenuOptionValiditiesColumns,
+		PrimaryKey: []*schema.Column{PositionMenuOptionValiditiesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "position_menu_option_validities_position_menu_options_validities",
+				Columns:    []*schema.Column{PositionMenuOptionValiditiesColumns[7]},
+				RefColumns: []*schema.Column{PositionMenuOptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "position_menu_option_validities_subscriptions_position_menu_option_validities",
+				Columns:    []*schema.Column{PositionMenuOptionValiditiesColumns[8]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "positionmenuoptionvalidity_tenant_id_position_menu_option_id",
+				Unique:  true,
+				Columns: []*schema.Column{PositionMenuOptionValiditiesColumns[8], PositionMenuOptionValiditiesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "end_date IS NULL",
+				},
+			},
+			{
+				Name:    "positionmenuoptionvalidity_tenant_id_job_id_menu_option_id_start_date",
+				Unique:  false,
+				Columns: []*schema.Column{PositionMenuOptionValiditiesColumns[8], PositionMenuOptionValiditiesColumns[1], PositionMenuOptionValiditiesColumns[2], PositionMenuOptionValiditiesColumns[3]},
+			},
+		},
+	}
+	// RoleMenuOptionsColumns holds the columns for the "role_menu_options" table.
+	RoleMenuOptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "menu_option_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+		{Name: "tenant_role_id", Type: field.TypeUUID},
+	}
+	// RoleMenuOptionsTable holds the schema information for the "role_menu_options" table.
+	RoleMenuOptionsTable = &schema.Table{
+		Name:       "role_menu_options",
+		Columns:    RoleMenuOptionsColumns,
+		PrimaryKey: []*schema.Column{RoleMenuOptionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "role_menu_options_menu_options_role_menu_options",
+				Columns:    []*schema.Column{RoleMenuOptionsColumns[2]},
+				RefColumns: []*schema.Column{MenuOptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "role_menu_options_subscriptions_role_menu_options",
+				Columns:    []*schema.Column{RoleMenuOptionsColumns[3]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "role_menu_options_tenant_roles_role_menu_options",
+				Columns:    []*schema.Column{RoleMenuOptionsColumns[4]},
+				RefColumns: []*schema.Column{TenantRolesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "rolemenuoption_tenant_id_tenant_role_id_menu_option_id",
+				Unique:  true,
+				Columns: []*schema.Column{RoleMenuOptionsColumns[3], RoleMenuOptionsColumns[4], RoleMenuOptionsColumns[2]},
+			},
+		},
+	}
 	// RoleTypesColumns holds the columns for the "role_types" table.
 	RoleTypesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -2037,6 +2548,90 @@ var (
 			},
 		},
 	}
+	// SystemFunctionsColumns holds the columns for the "system_functions" table.
+	SystemFunctionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "code", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "function_scope", Type: field.TypeEnum, Enums: []string{"PLATFORM", "TENANT"}},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+	}
+	// SystemFunctionsTable holds the schema information for the "system_functions" table.
+	SystemFunctionsTable = &schema.Table{
+		Name:       "system_functions",
+		Columns:    SystemFunctionsColumns,
+		PrimaryKey: []*schema.Column{SystemFunctionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "systemfunction_code",
+				Unique:  true,
+				Columns: []*schema.Column{SystemFunctionsColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "systemfunction_function_scope",
+				Unique:  false,
+				Columns: []*schema.Column{SystemFunctionsColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
+	// TenantRolesColumns holds the columns for the "tenant_roles" table.
+	TenantRolesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "name", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "client_application_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "tenant_id", Type: field.TypeUUID},
+	}
+	// TenantRolesTable holds the schema information for the "tenant_roles" table.
+	TenantRolesTable = &schema.Table{
+		Name:       "tenant_roles",
+		Columns:    TenantRolesColumns,
+		PrimaryKey: []*schema.Column{TenantRolesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tenant_roles_client_applications_tenant_roles",
+				Columns:    []*schema.Column{TenantRolesColumns[6]},
+				RefColumns: []*schema.Column{ClientApplicationsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "tenant_roles_subscriptions_tenant_roles",
+				Columns:    []*schema.Column{TenantRolesColumns[7]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "tenantrole_tenant_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{TenantRolesColumns[7], TenantRolesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "tenantrole_tenant_id_client_application_id",
+				Unique:  false,
+				Columns: []*schema.Column{TenantRolesColumns[7], TenantRolesColumns[6]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+		},
+	}
 	// UserCredentialsColumns holds the columns for the "user_credentials" table.
 	UserCredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -2095,6 +2690,50 @@ var (
 			},
 		},
 	}
+	// UserRoleAssignmentsColumns holds the columns for the "user_role_assignments" table.
+	UserRoleAssignmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "is_granted", Type: field.TypeBool, Default: true},
+		{Name: "assigned_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "tenant_id", Type: field.TypeUUID},
+		{Name: "tenant_role_id", Type: field.TypeUUID},
+		{Name: "user_credentials_id", Type: field.TypeUUID},
+	}
+	// UserRoleAssignmentsTable holds the schema information for the "user_role_assignments" table.
+	UserRoleAssignmentsTable = &schema.Table{
+		Name:       "user_role_assignments",
+		Columns:    UserRoleAssignmentsColumns,
+		PrimaryKey: []*schema.Column{UserRoleAssignmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_role_assignments_subscriptions_user_role_assignments",
+				Columns:    []*schema.Column{UserRoleAssignmentsColumns[5]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "user_role_assignments_tenant_roles_user_role_assignments",
+				Columns:    []*schema.Column{UserRoleAssignmentsColumns[6]},
+				RefColumns: []*schema.Column{TenantRolesColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "user_role_assignments_user_credentials_user_role_assignments",
+				Columns:    []*schema.Column{UserRoleAssignmentsColumns[7]},
+				RefColumns: []*schema.Column{UserCredentialsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "userroleassignment_tenant_id_user_credentials_id_tenant_role_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserRoleAssignmentsColumns[5], UserRoleAssignmentsColumns[7], UserRoleAssignmentsColumns[6]},
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AddressesTable,
@@ -2109,9 +2748,12 @@ var (
 		DepartmentContactMechanismsTable,
 		DepartmentContactMechanismValiditiesTable,
 		DepartmentGroupAssignmentsTable,
+		DepartmentMenuOptionsTable,
+		DepartmentMenuOptionValiditiesTable,
 		DepartmentTranslationsTable,
 		EmployeesTable,
 		EmployeeAssignmentsTable,
+		EmployeeMenuOptionOverridesTable,
 		IdentityDocumentTypesTable,
 		IdentityDocumentTypeTranslationsTable,
 		JobsTable,
@@ -2119,6 +2761,12 @@ var (
 		LocalesTable,
 		LocationsTable,
 		LocationTranslationsTable,
+		MenuCategoriesTable,
+		MenuOptionsTable,
+		MenuOptionCategoriesTable,
+		MenuOptionFunctionsTable,
+		MenuTemplatesTable,
+		MenuTemplateFunctionsTable,
 		NameTypesTable,
 		OrganizationProfilesTable,
 		PartiesTable,
@@ -2133,11 +2781,17 @@ var (
 		PartyRolesTable,
 		PasswordResetTokensTable,
 		PersonProfilesTable,
+		PositionMenuOptionsTable,
+		PositionMenuOptionValiditiesTable,
+		RoleMenuOptionsTable,
 		RoleTypesTable,
 		RoleTypeTranslationsTable,
 		SessionsTable,
 		SubscriptionsTable,
+		SystemFunctionsTable,
+		TenantRolesTable,
 		UserCredentialsTable,
+		UserRoleAssignmentsTable,
 	}
 )
 
@@ -2205,6 +2859,17 @@ func init() {
 	DepartmentGroupAssignmentsTable.Annotation = &entsql.Annotation{
 		Table: "department_group_assignments",
 	}
+	DepartmentMenuOptionsTable.ForeignKeys[0].RefTable = DepartmentsTable
+	DepartmentMenuOptionsTable.ForeignKeys[1].RefTable = MenuOptionsTable
+	DepartmentMenuOptionsTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	DepartmentMenuOptionsTable.Annotation = &entsql.Annotation{
+		Table: "department_menu_options",
+	}
+	DepartmentMenuOptionValiditiesTable.ForeignKeys[0].RefTable = DepartmentMenuOptionsTable
+	DepartmentMenuOptionValiditiesTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	DepartmentMenuOptionValiditiesTable.Annotation = &entsql.Annotation{
+		Table: "department_menu_option_validities",
+	}
 	DepartmentTranslationsTable.ForeignKeys[0].RefTable = DepartmentsTable
 	DepartmentTranslationsTable.ForeignKeys[1].RefTable = LocalesTable
 	DepartmentTranslationsTable.ForeignKeys[2].RefTable = SubscriptionsTable
@@ -2224,6 +2889,12 @@ func init() {
 	EmployeeAssignmentsTable.ForeignKeys[3].RefTable = SubscriptionsTable
 	EmployeeAssignmentsTable.Annotation = &entsql.Annotation{
 		Table: "employee_assignments",
+	}
+	EmployeeMenuOptionOverridesTable.ForeignKeys[0].RefTable = EmployeesTable
+	EmployeeMenuOptionOverridesTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	EmployeeMenuOptionOverridesTable.ForeignKeys[2].RefTable = SystemFunctionsTable
+	EmployeeMenuOptionOverridesTable.Annotation = &entsql.Annotation{
+		Table: "employee_menu_option_overrides",
 	}
 	IdentityDocumentTypesTable.Annotation = &entsql.Annotation{
 		Table: "identity_document_types",
@@ -2253,6 +2924,36 @@ func init() {
 	LocationTranslationsTable.ForeignKeys[1].RefTable = LocationsTable
 	LocationTranslationsTable.Annotation = &entsql.Annotation{
 		Table: "location_translations",
+	}
+	MenuCategoriesTable.ForeignKeys[0].RefTable = MenuCategoriesTable
+	MenuCategoriesTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	MenuCategoriesTable.Annotation = &entsql.Annotation{
+		Table: "menu_categories",
+	}
+	MenuOptionsTable.ForeignKeys[0].RefTable = MenuTemplatesTable
+	MenuOptionsTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	MenuOptionsTable.Annotation = &entsql.Annotation{
+		Table: "menu_options",
+	}
+	MenuOptionCategoriesTable.ForeignKeys[0].RefTable = MenuCategoriesTable
+	MenuOptionCategoriesTable.ForeignKeys[1].RefTable = MenuOptionsTable
+	MenuOptionCategoriesTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	MenuOptionCategoriesTable.Annotation = &entsql.Annotation{
+		Table: "menu_option_categories",
+	}
+	MenuOptionFunctionsTable.ForeignKeys[0].RefTable = MenuOptionsTable
+	MenuOptionFunctionsTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	MenuOptionFunctionsTable.ForeignKeys[2].RefTable = SystemFunctionsTable
+	MenuOptionFunctionsTable.Annotation = &entsql.Annotation{
+		Table: "menu_option_functions",
+	}
+	MenuTemplatesTable.Annotation = &entsql.Annotation{
+		Table: "menu_templates",
+	}
+	MenuTemplateFunctionsTable.ForeignKeys[0].RefTable = MenuTemplatesTable
+	MenuTemplateFunctionsTable.ForeignKeys[1].RefTable = SystemFunctionsTable
+	MenuTemplateFunctionsTable.Annotation = &entsql.Annotation{
+		Table: "menu_template_functions",
 	}
 	NameTypesTable.Annotation = &entsql.Annotation{
 		Table: "name_types",
@@ -2334,6 +3035,23 @@ func init() {
 	PersonProfilesTable.Annotation = &entsql.Annotation{
 		Table: "person_profiles",
 	}
+	PositionMenuOptionsTable.ForeignKeys[0].RefTable = JobsTable
+	PositionMenuOptionsTable.ForeignKeys[1].RefTable = MenuOptionsTable
+	PositionMenuOptionsTable.ForeignKeys[2].RefTable = SubscriptionsTable
+	PositionMenuOptionsTable.Annotation = &entsql.Annotation{
+		Table: "position_menu_options",
+	}
+	PositionMenuOptionValiditiesTable.ForeignKeys[0].RefTable = PositionMenuOptionsTable
+	PositionMenuOptionValiditiesTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	PositionMenuOptionValiditiesTable.Annotation = &entsql.Annotation{
+		Table: "position_menu_option_validities",
+	}
+	RoleMenuOptionsTable.ForeignKeys[0].RefTable = MenuOptionsTable
+	RoleMenuOptionsTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	RoleMenuOptionsTable.ForeignKeys[2].RefTable = TenantRolesTable
+	RoleMenuOptionsTable.Annotation = &entsql.Annotation{
+		Table: "role_menu_options",
+	}
 	RoleTypesTable.Annotation = &entsql.Annotation{
 		Table: "role_types",
 	}
@@ -2350,10 +3068,24 @@ func init() {
 	SubscriptionsTable.Annotation = &entsql.Annotation{
 		Table: "subscriptions",
 	}
+	SystemFunctionsTable.Annotation = &entsql.Annotation{
+		Table: "system_functions",
+	}
+	TenantRolesTable.ForeignKeys[0].RefTable = ClientApplicationsTable
+	TenantRolesTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	TenantRolesTable.Annotation = &entsql.Annotation{
+		Table: "tenant_roles",
+	}
 	UserCredentialsTable.ForeignKeys[0].RefTable = PartiesTable
 	UserCredentialsTable.ForeignKeys[1].RefTable = PartyContactMechanismsTable
 	UserCredentialsTable.ForeignKeys[2].RefTable = SubscriptionsTable
 	UserCredentialsTable.Annotation = &entsql.Annotation{
 		Table: "user_credentials",
+	}
+	UserRoleAssignmentsTable.ForeignKeys[0].RefTable = SubscriptionsTable
+	UserRoleAssignmentsTable.ForeignKeys[1].RefTable = TenantRolesTable
+	UserRoleAssignmentsTable.ForeignKeys[2].RefTable = UserCredentialsTable
+	UserRoleAssignmentsTable.Annotation = &entsql.Annotation{
+		Table: "user_role_assignments",
 	}
 }

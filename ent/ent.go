@@ -16,9 +16,12 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmentmenuoption"
+	"enterprise-system/ent/departmentmenuoptionvalidity"
 	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/employeemenuoptionoverride"
 	"enterprise-system/ent/identitydocumenttype"
 	"enterprise-system/ent/identitydocumenttypetranslation"
 	"enterprise-system/ent/job"
@@ -26,6 +29,12 @@ import (
 	"enterprise-system/ent/locale"
 	"enterprise-system/ent/location"
 	"enterprise-system/ent/locationtranslation"
+	"enterprise-system/ent/menucategory"
+	"enterprise-system/ent/menuoption"
+	"enterprise-system/ent/menuoptioncategory"
+	"enterprise-system/ent/menuoptionfunction"
+	"enterprise-system/ent/menutemplate"
+	"enterprise-system/ent/menutemplatefunction"
 	"enterprise-system/ent/nametype"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
@@ -40,11 +49,17 @@ import (
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
+	"enterprise-system/ent/positionmenuoption"
+	"enterprise-system/ent/positionmenuoptionvalidity"
+	"enterprise-system/ent/rolemenuoption"
 	"enterprise-system/ent/roletype"
 	"enterprise-system/ent/roletypetranslation"
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/systemfunction"
+	"enterprise-system/ent/tenantrole"
 	"enterprise-system/ent/usercredentials"
+	"enterprise-system/ent/userroleassignment"
 	"errors"
 	"fmt"
 	"reflect"
@@ -125,9 +140,12 @@ func checkColumn(t, c string) error {
 			departmentcontactmechanism.Table:         departmentcontactmechanism.ValidColumn,
 			departmentcontactmechanismvalidity.Table: departmentcontactmechanismvalidity.ValidColumn,
 			departmentgroupassignment.Table:          departmentgroupassignment.ValidColumn,
+			departmentmenuoption.Table:               departmentmenuoption.ValidColumn,
+			departmentmenuoptionvalidity.Table:       departmentmenuoptionvalidity.ValidColumn,
 			departmenttranslation.Table:              departmenttranslation.ValidColumn,
 			employee.Table:                           employee.ValidColumn,
 			employeeassignment.Table:                 employeeassignment.ValidColumn,
+			employeemenuoptionoverride.Table:         employeemenuoptionoverride.ValidColumn,
 			identitydocumenttype.Table:               identitydocumenttype.ValidColumn,
 			identitydocumenttypetranslation.Table:    identitydocumenttypetranslation.ValidColumn,
 			job.Table:                                job.ValidColumn,
@@ -135,6 +153,12 @@ func checkColumn(t, c string) error {
 			locale.Table:                             locale.ValidColumn,
 			location.Table:                           location.ValidColumn,
 			locationtranslation.Table:                locationtranslation.ValidColumn,
+			menucategory.Table:                       menucategory.ValidColumn,
+			menuoption.Table:                         menuoption.ValidColumn,
+			menuoptioncategory.Table:                 menuoptioncategory.ValidColumn,
+			menuoptionfunction.Table:                 menuoptionfunction.ValidColumn,
+			menutemplate.Table:                       menutemplate.ValidColumn,
+			menutemplatefunction.Table:               menutemplatefunction.ValidColumn,
 			nametype.Table:                           nametype.ValidColumn,
 			organizationprofile.Table:                organizationprofile.ValidColumn,
 			party.Table:                              party.ValidColumn,
@@ -149,11 +173,17 @@ func checkColumn(t, c string) error {
 			partyrole.Table:                          partyrole.ValidColumn,
 			passwordresettoken.Table:                 passwordresettoken.ValidColumn,
 			personprofile.Table:                      personprofile.ValidColumn,
+			positionmenuoption.Table:                 positionmenuoption.ValidColumn,
+			positionmenuoptionvalidity.Table:         positionmenuoptionvalidity.ValidColumn,
+			rolemenuoption.Table:                     rolemenuoption.ValidColumn,
 			roletype.Table:                           roletype.ValidColumn,
 			roletypetranslation.Table:                roletypetranslation.ValidColumn,
 			session.Table:                            session.ValidColumn,
 			subscription.Table:                       subscription.ValidColumn,
+			systemfunction.Table:                     systemfunction.ValidColumn,
+			tenantrole.Table:                         tenantrole.ValidColumn,
 			usercredentials.Table:                    usercredentials.ValidColumn,
+			userroleassignment.Table:                 userroleassignment.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

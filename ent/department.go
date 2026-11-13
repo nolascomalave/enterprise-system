@@ -70,9 +70,11 @@ type DepartmentEdges struct {
 	AddressValidities []*DepartmentAddressValidity `json:"address_validities,omitempty"`
 	// Translations holds the value of the translations edge.
 	Translations []*DepartmentTranslation `json:"translations,omitempty"`
+	// DepartmentMenuOptions holds the value of the department_menu_options edge.
+	DepartmentMenuOptions []*DepartmentMenuOption `json:"department_menu_options,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [13]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -187,6 +189,15 @@ func (e DepartmentEdges) TranslationsOrErr() ([]*DepartmentTranslation, error) {
 		return e.Translations, nil
 	}
 	return nil, &NotLoadedError{edge: "translations"}
+}
+
+// DepartmentMenuOptionsOrErr returns the DepartmentMenuOptions value or an error if the edge
+// was not loaded in eager-loading.
+func (e DepartmentEdges) DepartmentMenuOptionsOrErr() ([]*DepartmentMenuOption, error) {
+	if e.loadedTypes[12] {
+		return e.DepartmentMenuOptions, nil
+	}
+	return nil, &NotLoadedError{edge: "department_menu_options"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -351,6 +362,11 @@ func (_m *Department) QueryAddressValidities() *DepartmentAddressValidityQuery {
 // QueryTranslations queries the "translations" edge of the Department entity.
 func (_m *Department) QueryTranslations() *DepartmentTranslationQuery {
 	return NewDepartmentClient(_m.config).QueryTranslations(_m)
+}
+
+// QueryDepartmentMenuOptions queries the "department_menu_options" edge of the Department entity.
+func (_m *Department) QueryDepartmentMenuOptions() *DepartmentMenuOptionQuery {
+	return NewDepartmentClient(_m.config).QueryDepartmentMenuOptions(_m)
 }
 
 // Update returns a builder for updating this Department.

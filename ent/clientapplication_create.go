@@ -6,6 +6,7 @@ import (
 	"context"
 	"enterprise-system/ent/clientapplication"
 	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/tenantrole"
 	"errors"
 	"fmt"
 	"time"
@@ -164,6 +165,21 @@ func (_c *ClientApplicationCreate) SetNillableID(v *uuid.UUID) *ClientApplicatio
 // SetTenant sets the "tenant" edge to the Subscription entity.
 func (_c *ClientApplicationCreate) SetTenant(v *Subscription) *ClientApplicationCreate {
 	return _c.SetTenantID(v.ID)
+}
+
+// AddTenantRoleIDs adds the "tenant_roles" edge to the TenantRole entity by IDs.
+func (_c *ClientApplicationCreate) AddTenantRoleIDs(ids ...uuid.UUID) *ClientApplicationCreate {
+	_c.mutation.AddTenantRoleIDs(ids...)
+	return _c
+}
+
+// AddTenantRoles adds the "tenant_roles" edges to the TenantRole entity.
+func (_c *ClientApplicationCreate) AddTenantRoles(v ...*TenantRole) *ClientApplicationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTenantRoleIDs(ids...)
 }
 
 // Mutation returns the ClientApplicationMutation object of the builder.
@@ -368,6 +384,23 @@ func (_c *ClientApplicationCreate) createSpec() (*ClientApplication, *sqlgraph.C
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.TenantID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.TenantRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clientapplication.TenantRolesTable,
+			Columns: []string{clientapplication.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.TenantRole
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

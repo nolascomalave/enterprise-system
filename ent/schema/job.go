@@ -80,6 +80,8 @@ func (Job) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("assignments", EmployeeAssignment.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("position_menu_options", PositionMenuOption.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

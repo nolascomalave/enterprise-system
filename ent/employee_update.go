@@ -7,6 +7,7 @@ import (
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/employeemenuoptionoverride"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/predicate"
@@ -243,6 +244,21 @@ func (_u *EmployeeUpdate) AddAssignments(v ...*EmployeeAssignment) *EmployeeUpda
 	return _u.AddAssignmentIDs(ids...)
 }
 
+// AddEmployeeMenuOptionOverrideIDs adds the "employee_menu_option_overrides" edge to the EmployeeMenuOptionOverride entity by IDs.
+func (_u *EmployeeUpdate) AddEmployeeMenuOptionOverrideIDs(ids ...uuid.UUID) *EmployeeUpdate {
+	_u.mutation.AddEmployeeMenuOptionOverrideIDs(ids...)
+	return _u
+}
+
+// AddEmployeeMenuOptionOverrides adds the "employee_menu_option_overrides" edges to the EmployeeMenuOptionOverride entity.
+func (_u *EmployeeUpdate) AddEmployeeMenuOptionOverrides(v ...*EmployeeMenuOptionOverride) *EmployeeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEmployeeMenuOptionOverrideIDs(ids...)
+}
+
 // Mutation returns the EmployeeMutation object of the builder.
 func (_u *EmployeeUpdate) Mutation() *EmployeeMutation {
 	return _u.mutation
@@ -333,6 +349,27 @@ func (_u *EmployeeUpdate) RemoveAssignments(v ...*EmployeeAssignment) *EmployeeU
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAssignmentIDs(ids...)
+}
+
+// ClearEmployeeMenuOptionOverrides clears all "employee_menu_option_overrides" edges to the EmployeeMenuOptionOverride entity.
+func (_u *EmployeeUpdate) ClearEmployeeMenuOptionOverrides() *EmployeeUpdate {
+	_u.mutation.ClearEmployeeMenuOptionOverrides()
+	return _u
+}
+
+// RemoveEmployeeMenuOptionOverrideIDs removes the "employee_menu_option_overrides" edge to EmployeeMenuOptionOverride entities by IDs.
+func (_u *EmployeeUpdate) RemoveEmployeeMenuOptionOverrideIDs(ids ...uuid.UUID) *EmployeeUpdate {
+	_u.mutation.RemoveEmployeeMenuOptionOverrideIDs(ids...)
+	return _u
+}
+
+// RemoveEmployeeMenuOptionOverrides removes "employee_menu_option_overrides" edges to EmployeeMenuOptionOverride entities.
+func (_u *EmployeeUpdate) RemoveEmployeeMenuOptionOverrides(v ...*EmployeeMenuOptionOverride) *EmployeeUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEmployeeMenuOptionOverrideIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -693,6 +730,54 @@ func (_u *EmployeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.EmployeeMenuOptionOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   employee.EmployeeMenuOptionOverridesTable,
+			Columns: []string{employee.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEmployeeMenuOptionOverridesIDs(); len(nodes) > 0 && !_u.mutation.EmployeeMenuOptionOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   employee.EmployeeMenuOptionOverridesTable,
+			Columns: []string{employee.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EmployeeMenuOptionOverridesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   employee.EmployeeMenuOptionOverridesTable,
+			Columns: []string{employee.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Employee
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -924,6 +1009,21 @@ func (_u *EmployeeUpdateOne) AddAssignments(v ...*EmployeeAssignment) *EmployeeU
 	return _u.AddAssignmentIDs(ids...)
 }
 
+// AddEmployeeMenuOptionOverrideIDs adds the "employee_menu_option_overrides" edge to the EmployeeMenuOptionOverride entity by IDs.
+func (_u *EmployeeUpdateOne) AddEmployeeMenuOptionOverrideIDs(ids ...uuid.UUID) *EmployeeUpdateOne {
+	_u.mutation.AddEmployeeMenuOptionOverrideIDs(ids...)
+	return _u
+}
+
+// AddEmployeeMenuOptionOverrides adds the "employee_menu_option_overrides" edges to the EmployeeMenuOptionOverride entity.
+func (_u *EmployeeUpdateOne) AddEmployeeMenuOptionOverrides(v ...*EmployeeMenuOptionOverride) *EmployeeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEmployeeMenuOptionOverrideIDs(ids...)
+}
+
 // Mutation returns the EmployeeMutation object of the builder.
 func (_u *EmployeeUpdateOne) Mutation() *EmployeeMutation {
 	return _u.mutation
@@ -1014,6 +1114,27 @@ func (_u *EmployeeUpdateOne) RemoveAssignments(v ...*EmployeeAssignment) *Employ
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAssignmentIDs(ids...)
+}
+
+// ClearEmployeeMenuOptionOverrides clears all "employee_menu_option_overrides" edges to the EmployeeMenuOptionOverride entity.
+func (_u *EmployeeUpdateOne) ClearEmployeeMenuOptionOverrides() *EmployeeUpdateOne {
+	_u.mutation.ClearEmployeeMenuOptionOverrides()
+	return _u
+}
+
+// RemoveEmployeeMenuOptionOverrideIDs removes the "employee_menu_option_overrides" edge to EmployeeMenuOptionOverride entities by IDs.
+func (_u *EmployeeUpdateOne) RemoveEmployeeMenuOptionOverrideIDs(ids ...uuid.UUID) *EmployeeUpdateOne {
+	_u.mutation.RemoveEmployeeMenuOptionOverrideIDs(ids...)
+	return _u
+}
+
+// RemoveEmployeeMenuOptionOverrides removes "employee_menu_option_overrides" edges to EmployeeMenuOptionOverride entities.
+func (_u *EmployeeUpdateOne) RemoveEmployeeMenuOptionOverrides(v ...*EmployeeMenuOptionOverride) *EmployeeUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEmployeeMenuOptionOverrideIDs(ids...)
 }
 
 // Where appends a list predicates to the EmployeeUpdate builder.
@@ -1399,6 +1520,54 @@ func (_u *EmployeeUpdateOne) sqlSave(ctx context.Context) (_node *Employee, err 
 			},
 		}
 		edge.Schema = _u.schemaConfig.EmployeeAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EmployeeMenuOptionOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   employee.EmployeeMenuOptionOverridesTable,
+			Columns: []string{employee.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEmployeeMenuOptionOverridesIDs(); len(nodes) > 0 && !_u.mutation.EmployeeMenuOptionOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   employee.EmployeeMenuOptionOverridesTable,
+			Columns: []string{employee.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EmployeeMenuOptionOverridesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   employee.EmployeeMenuOptionOverridesTable,
+			Columns: []string{employee.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

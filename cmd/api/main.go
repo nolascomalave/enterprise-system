@@ -126,6 +126,8 @@ func main() {
 	clientApplicationService := usecase.NewClientApplicationService(
 		repository.NewClientApplicationRepository(client), tokenManager, txManager, time.Now,
 	)
+	rbacRepo := repository.NewRBACRepository(client)
+	rbacService := usecase.NewRBACService(rbacRepo, txManager, time.Now)
 
 	allowedOrigins := splitCSV(os.Getenv("CORS_ALLOWED_ORIGINS"))
 	if len(allowedOrigins) == 0 {
@@ -146,6 +148,7 @@ func main() {
 		DepartmentMDMUseCase: departmentMDMService,
 		OAuthUseCase:         clientApplicationService,
 		CatalogUseCase:       catalogService,
+		RBACUseCase:          rbacService,
 		PlatformAdminKey:     os.Getenv("PLATFORM_ADMIN_KEY"),
 		TokenManager:         tokenManager,
 		CookieSecure:         os.Getenv("COOKIE_SECURE") != "false",

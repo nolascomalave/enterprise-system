@@ -1905,6 +1905,110 @@ const docTemplate = `{
                 }
             }
         },
+        "/rbac/my-menu": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the nested menu tree visible to the authenticated user for the given app.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RBAC"
+                ],
+                "summary": "Get my menu",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client application UUID",
+                        "name": "app_client_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.MenuTreeEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rbac/my-permissions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the resolved universe of system function codes for the authenticated user and app.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RBAC"
+                ],
+                "summary": "List my permissions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client application UUID",
+                        "name": "app_client_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PermissionUniverseEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/role-types": {
             "get": {
                 "description": "Returns the global role type catalog localized by Accept-Language with fallback to the default locale and then to the code.",
@@ -2886,6 +2990,17 @@ const docTemplate = `{
                 }
             }
         },
+        "enterprise-system_internal_delivery_http_dto.MenuTreeEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_domain.MenuTreeNode"
+                    }
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.MergePartiesEnvelope": {
             "type": "object",
             "properties": {
@@ -3176,6 +3291,25 @@ const docTemplate = `{
                 }
             }
         },
+        "enterprise-system_internal_delivery_http_dto.PermissionUniverseEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PermissionUniverseResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PermissionUniverseResponse": {
+            "type": "object",
+            "properties": {
+                "functions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.PersonProfileResponse": {
             "type": "object",
             "properties": {
@@ -3339,6 +3473,58 @@ const docTemplate = `{
                 },
                 "temp_token": {
                     "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_domain.MenuTreeNode": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_domain.MenuTreeNode"
+                    }
+                },
+                "code": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_domain.MenuTreeOption"
+                    }
+                },
+                "sort_order": {
+                    "type": "integer"
+                }
+            }
+        },
+        "enterprise-system_internal_domain.MenuTreeOption": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "route": {
+                    "type": "string"
+                },
+                "sort_order": {
+                    "type": "integer"
                 }
             }
         }

@@ -19,9 +19,12 @@ type SchemaConfig struct {
 	DepartmentContactMechanism         string // DepartmentContactMechanism table.
 	DepartmentContactMechanismValidity string // DepartmentContactMechanismValidity table.
 	DepartmentGroupAssignment          string // DepartmentGroupAssignment table.
+	DepartmentMenuOption               string // DepartmentMenuOption table.
+	DepartmentMenuOptionValidity       string // DepartmentMenuOptionValidity table.
 	DepartmentTranslation              string // DepartmentTranslation table.
 	Employee                           string // Employee table.
 	EmployeeAssignment                 string // EmployeeAssignment table.
+	EmployeeMenuOptionOverride         string // EmployeeMenuOptionOverride table.
 	IdentityDocumentType               string // IdentityDocumentType table.
 	IdentityDocumentTypeTranslation    string // IdentityDocumentTypeTranslation table.
 	Job                                string // Job table.
@@ -29,6 +32,12 @@ type SchemaConfig struct {
 	Locale                             string // Locale table.
 	Location                           string // Location table.
 	LocationTranslation                string // LocationTranslation table.
+	MenuCategory                       string // MenuCategory table.
+	MenuOption                         string // MenuOption table.
+	MenuOptionCategory                 string // MenuOptionCategory table.
+	MenuOptionFunction                 string // MenuOptionFunction table.
+	MenuTemplate                       string // MenuTemplate table.
+	MenuTemplateFunction               string // MenuTemplateFunction table.
 	NameType                           string // NameType table.
 	OrganizationProfile                string // OrganizationProfile table.
 	Party                              string // Party table.
@@ -43,11 +52,17 @@ type SchemaConfig struct {
 	PartyRole                          string // PartyRole table.
 	PasswordResetToken                 string // PasswordResetToken table.
 	PersonProfile                      string // PersonProfile table.
+	PositionMenuOption                 string // PositionMenuOption table.
+	PositionMenuOptionValidity         string // PositionMenuOptionValidity table.
+	RoleMenuOption                     string // RoleMenuOption table.
 	RoleType                           string // RoleType table.
 	RoleTypeTranslation                string // RoleTypeTranslation table.
 	Session                            string // Session table.
 	Subscription                       string // Subscription table.
+	SystemFunction                     string // SystemFunction table.
+	TenantRole                         string // TenantRole table.
 	UserCredentials                    string // UserCredentials table.
+	UserRoleAssignment                 string // UserRoleAssignment table.
 }
 
 type schemaCtxKey struct{}

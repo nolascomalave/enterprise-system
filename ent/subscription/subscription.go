@@ -90,6 +90,30 @@ const (
 	EdgeClientApplications = "client_applications"
 	// EdgeDepartmentTranslations holds the string denoting the department_translations edge name in mutations.
 	EdgeDepartmentTranslations = "department_translations"
+	// EdgeMenuCategories holds the string denoting the menu_categories edge name in mutations.
+	EdgeMenuCategories = "menu_categories"
+	// EdgeMenuOptions holds the string denoting the menu_options edge name in mutations.
+	EdgeMenuOptions = "menu_options"
+	// EdgeMenuOptionFunctions holds the string denoting the menu_option_functions edge name in mutations.
+	EdgeMenuOptionFunctions = "menu_option_functions"
+	// EdgeMenuOptionCategories holds the string denoting the menu_option_categories edge name in mutations.
+	EdgeMenuOptionCategories = "menu_option_categories"
+	// EdgeTenantRoles holds the string denoting the tenant_roles edge name in mutations.
+	EdgeTenantRoles = "tenant_roles"
+	// EdgeRoleMenuOptions holds the string denoting the role_menu_options edge name in mutations.
+	EdgeRoleMenuOptions = "role_menu_options"
+	// EdgeUserRoleAssignments holds the string denoting the user_role_assignments edge name in mutations.
+	EdgeUserRoleAssignments = "user_role_assignments"
+	// EdgeDepartmentMenuOptions holds the string denoting the department_menu_options edge name in mutations.
+	EdgeDepartmentMenuOptions = "department_menu_options"
+	// EdgeDepartmentMenuOptionValidities holds the string denoting the department_menu_option_validities edge name in mutations.
+	EdgeDepartmentMenuOptionValidities = "department_menu_option_validities"
+	// EdgePositionMenuOptions holds the string denoting the position_menu_options edge name in mutations.
+	EdgePositionMenuOptions = "position_menu_options"
+	// EdgePositionMenuOptionValidities holds the string denoting the position_menu_option_validities edge name in mutations.
+	EdgePositionMenuOptionValidities = "position_menu_option_validities"
+	// EdgeEmployeeMenuOptionOverrides holds the string denoting the employee_menu_option_overrides edge name in mutations.
+	EdgeEmployeeMenuOptionOverrides = "employee_menu_option_overrides"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the subscription in the database.
@@ -311,6 +335,90 @@ const (
 	DepartmentTranslationsInverseTable = "department_translations"
 	// DepartmentTranslationsColumn is the table column denoting the department_translations relation/edge.
 	DepartmentTranslationsColumn = "tenant_id"
+	// MenuCategoriesTable is the table that holds the menu_categories relation/edge.
+	MenuCategoriesTable = "menu_categories"
+	// MenuCategoriesInverseTable is the table name for the MenuCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "menucategory" package.
+	MenuCategoriesInverseTable = "menu_categories"
+	// MenuCategoriesColumn is the table column denoting the menu_categories relation/edge.
+	MenuCategoriesColumn = "tenant_id"
+	// MenuOptionsTable is the table that holds the menu_options relation/edge.
+	MenuOptionsTable = "menu_options"
+	// MenuOptionsInverseTable is the table name for the MenuOption entity.
+	// It exists in this package in order to avoid circular dependency with the "menuoption" package.
+	MenuOptionsInverseTable = "menu_options"
+	// MenuOptionsColumn is the table column denoting the menu_options relation/edge.
+	MenuOptionsColumn = "tenant_id"
+	// MenuOptionFunctionsTable is the table that holds the menu_option_functions relation/edge.
+	MenuOptionFunctionsTable = "menu_option_functions"
+	// MenuOptionFunctionsInverseTable is the table name for the MenuOptionFunction entity.
+	// It exists in this package in order to avoid circular dependency with the "menuoptionfunction" package.
+	MenuOptionFunctionsInverseTable = "menu_option_functions"
+	// MenuOptionFunctionsColumn is the table column denoting the menu_option_functions relation/edge.
+	MenuOptionFunctionsColumn = "tenant_id"
+	// MenuOptionCategoriesTable is the table that holds the menu_option_categories relation/edge.
+	MenuOptionCategoriesTable = "menu_option_categories"
+	// MenuOptionCategoriesInverseTable is the table name for the MenuOptionCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "menuoptioncategory" package.
+	MenuOptionCategoriesInverseTable = "menu_option_categories"
+	// MenuOptionCategoriesColumn is the table column denoting the menu_option_categories relation/edge.
+	MenuOptionCategoriesColumn = "tenant_id"
+	// TenantRolesTable is the table that holds the tenant_roles relation/edge.
+	TenantRolesTable = "tenant_roles"
+	// TenantRolesInverseTable is the table name for the TenantRole entity.
+	// It exists in this package in order to avoid circular dependency with the "tenantrole" package.
+	TenantRolesInverseTable = "tenant_roles"
+	// TenantRolesColumn is the table column denoting the tenant_roles relation/edge.
+	TenantRolesColumn = "tenant_id"
+	// RoleMenuOptionsTable is the table that holds the role_menu_options relation/edge.
+	RoleMenuOptionsTable = "role_menu_options"
+	// RoleMenuOptionsInverseTable is the table name for the RoleMenuOption entity.
+	// It exists in this package in order to avoid circular dependency with the "rolemenuoption" package.
+	RoleMenuOptionsInverseTable = "role_menu_options"
+	// RoleMenuOptionsColumn is the table column denoting the role_menu_options relation/edge.
+	RoleMenuOptionsColumn = "tenant_id"
+	// UserRoleAssignmentsTable is the table that holds the user_role_assignments relation/edge.
+	UserRoleAssignmentsTable = "user_role_assignments"
+	// UserRoleAssignmentsInverseTable is the table name for the UserRoleAssignment entity.
+	// It exists in this package in order to avoid circular dependency with the "userroleassignment" package.
+	UserRoleAssignmentsInverseTable = "user_role_assignments"
+	// UserRoleAssignmentsColumn is the table column denoting the user_role_assignments relation/edge.
+	UserRoleAssignmentsColumn = "tenant_id"
+	// DepartmentMenuOptionsTable is the table that holds the department_menu_options relation/edge.
+	DepartmentMenuOptionsTable = "department_menu_options"
+	// DepartmentMenuOptionsInverseTable is the table name for the DepartmentMenuOption entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentmenuoption" package.
+	DepartmentMenuOptionsInverseTable = "department_menu_options"
+	// DepartmentMenuOptionsColumn is the table column denoting the department_menu_options relation/edge.
+	DepartmentMenuOptionsColumn = "tenant_id"
+	// DepartmentMenuOptionValiditiesTable is the table that holds the department_menu_option_validities relation/edge.
+	DepartmentMenuOptionValiditiesTable = "department_menu_option_validities"
+	// DepartmentMenuOptionValiditiesInverseTable is the table name for the DepartmentMenuOptionValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "departmentmenuoptionvalidity" package.
+	DepartmentMenuOptionValiditiesInverseTable = "department_menu_option_validities"
+	// DepartmentMenuOptionValiditiesColumn is the table column denoting the department_menu_option_validities relation/edge.
+	DepartmentMenuOptionValiditiesColumn = "tenant_id"
+	// PositionMenuOptionsTable is the table that holds the position_menu_options relation/edge.
+	PositionMenuOptionsTable = "position_menu_options"
+	// PositionMenuOptionsInverseTable is the table name for the PositionMenuOption entity.
+	// It exists in this package in order to avoid circular dependency with the "positionmenuoption" package.
+	PositionMenuOptionsInverseTable = "position_menu_options"
+	// PositionMenuOptionsColumn is the table column denoting the position_menu_options relation/edge.
+	PositionMenuOptionsColumn = "tenant_id"
+	// PositionMenuOptionValiditiesTable is the table that holds the position_menu_option_validities relation/edge.
+	PositionMenuOptionValiditiesTable = "position_menu_option_validities"
+	// PositionMenuOptionValiditiesInverseTable is the table name for the PositionMenuOptionValidity entity.
+	// It exists in this package in order to avoid circular dependency with the "positionmenuoptionvalidity" package.
+	PositionMenuOptionValiditiesInverseTable = "position_menu_option_validities"
+	// PositionMenuOptionValiditiesColumn is the table column denoting the position_menu_option_validities relation/edge.
+	PositionMenuOptionValiditiesColumn = "tenant_id"
+	// EmployeeMenuOptionOverridesTable is the table that holds the employee_menu_option_overrides relation/edge.
+	EmployeeMenuOptionOverridesTable = "employee_menu_option_overrides"
+	// EmployeeMenuOptionOverridesInverseTable is the table name for the EmployeeMenuOptionOverride entity.
+	// It exists in this package in order to avoid circular dependency with the "employeemenuoptionoverride" package.
+	EmployeeMenuOptionOverridesInverseTable = "employee_menu_option_overrides"
+	// EmployeeMenuOptionOverridesColumn is the table column denoting the employee_menu_option_overrides relation/edge.
+	EmployeeMenuOptionOverridesColumn = "tenant_id"
 )
 
 // Columns holds all SQL columns for subscription fields.
@@ -847,6 +955,174 @@ func ByDepartmentTranslations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderO
 		sqlgraph.OrderByNeighborTerms(s, newDepartmentTranslationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByMenuCategoriesCount orders the results by menu_categories count.
+func ByMenuCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMenuCategoriesStep(), opts...)
+	}
+}
+
+// ByMenuCategories orders the results by menu_categories terms.
+func ByMenuCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMenuCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByMenuOptionsCount orders the results by menu_options count.
+func ByMenuOptionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMenuOptionsStep(), opts...)
+	}
+}
+
+// ByMenuOptions orders the results by menu_options terms.
+func ByMenuOptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMenuOptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByMenuOptionFunctionsCount orders the results by menu_option_functions count.
+func ByMenuOptionFunctionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMenuOptionFunctionsStep(), opts...)
+	}
+}
+
+// ByMenuOptionFunctions orders the results by menu_option_functions terms.
+func ByMenuOptionFunctions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMenuOptionFunctionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByMenuOptionCategoriesCount orders the results by menu_option_categories count.
+func ByMenuOptionCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newMenuOptionCategoriesStep(), opts...)
+	}
+}
+
+// ByMenuOptionCategories orders the results by menu_option_categories terms.
+func ByMenuOptionCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newMenuOptionCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByTenantRolesCount orders the results by tenant_roles count.
+func ByTenantRolesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTenantRolesStep(), opts...)
+	}
+}
+
+// ByTenantRoles orders the results by tenant_roles terms.
+func ByTenantRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTenantRolesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRoleMenuOptionsCount orders the results by role_menu_options count.
+func ByRoleMenuOptionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRoleMenuOptionsStep(), opts...)
+	}
+}
+
+// ByRoleMenuOptions orders the results by role_menu_options terms.
+func ByRoleMenuOptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRoleMenuOptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByUserRoleAssignmentsCount orders the results by user_role_assignments count.
+func ByUserRoleAssignmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUserRoleAssignmentsStep(), opts...)
+	}
+}
+
+// ByUserRoleAssignments orders the results by user_role_assignments terms.
+func ByUserRoleAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserRoleAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDepartmentMenuOptionsCount orders the results by department_menu_options count.
+func ByDepartmentMenuOptionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentMenuOptionsStep(), opts...)
+	}
+}
+
+// ByDepartmentMenuOptions orders the results by department_menu_options terms.
+func ByDepartmentMenuOptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentMenuOptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByDepartmentMenuOptionValiditiesCount orders the results by department_menu_option_validities count.
+func ByDepartmentMenuOptionValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newDepartmentMenuOptionValiditiesStep(), opts...)
+	}
+}
+
+// ByDepartmentMenuOptionValidities orders the results by department_menu_option_validities terms.
+func ByDepartmentMenuOptionValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentMenuOptionValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPositionMenuOptionsCount orders the results by position_menu_options count.
+func ByPositionMenuOptionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPositionMenuOptionsStep(), opts...)
+	}
+}
+
+// ByPositionMenuOptions orders the results by position_menu_options terms.
+func ByPositionMenuOptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPositionMenuOptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPositionMenuOptionValiditiesCount orders the results by position_menu_option_validities count.
+func ByPositionMenuOptionValiditiesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPositionMenuOptionValiditiesStep(), opts...)
+	}
+}
+
+// ByPositionMenuOptionValidities orders the results by position_menu_option_validities terms.
+func ByPositionMenuOptionValidities(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPositionMenuOptionValiditiesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByEmployeeMenuOptionOverridesCount orders the results by employee_menu_option_overrides count.
+func ByEmployeeMenuOptionOverridesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEmployeeMenuOptionOverridesStep(), opts...)
+	}
+}
+
+// ByEmployeeMenuOptionOverrides orders the results by employee_menu_option_overrides terms.
+func ByEmployeeMenuOptionOverrides(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEmployeeMenuOptionOverridesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPartiesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -1062,5 +1338,89 @@ func newDepartmentTranslationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DepartmentTranslationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentTranslationsTable, DepartmentTranslationsColumn),
+	)
+}
+func newMenuCategoriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MenuCategoriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MenuCategoriesTable, MenuCategoriesColumn),
+	)
+}
+func newMenuOptionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MenuOptionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MenuOptionsTable, MenuOptionsColumn),
+	)
+}
+func newMenuOptionFunctionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MenuOptionFunctionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MenuOptionFunctionsTable, MenuOptionFunctionsColumn),
+	)
+}
+func newMenuOptionCategoriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(MenuOptionCategoriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, MenuOptionCategoriesTable, MenuOptionCategoriesColumn),
+	)
+}
+func newTenantRolesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TenantRolesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TenantRolesTable, TenantRolesColumn),
+	)
+}
+func newRoleMenuOptionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RoleMenuOptionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RoleMenuOptionsTable, RoleMenuOptionsColumn),
+	)
+}
+func newUserRoleAssignmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserRoleAssignmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UserRoleAssignmentsTable, UserRoleAssignmentsColumn),
+	)
+}
+func newDepartmentMenuOptionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentMenuOptionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentMenuOptionsTable, DepartmentMenuOptionsColumn),
+	)
+}
+func newDepartmentMenuOptionValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentMenuOptionValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, DepartmentMenuOptionValiditiesTable, DepartmentMenuOptionValiditiesColumn),
+	)
+}
+func newPositionMenuOptionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PositionMenuOptionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PositionMenuOptionsTable, PositionMenuOptionsColumn),
+	)
+}
+func newPositionMenuOptionValiditiesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PositionMenuOptionValiditiesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PositionMenuOptionValiditiesTable, PositionMenuOptionValiditiesColumn),
+	)
+}
+func newEmployeeMenuOptionOverridesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EmployeeMenuOptionOverridesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EmployeeMenuOptionOverridesTable, EmployeeMenuOptionOverridesColumn),
 	)
 }

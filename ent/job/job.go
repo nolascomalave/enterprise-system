@@ -43,6 +43,8 @@ const (
 	EdgeEmployees = "employees"
 	// EdgeAssignments holds the string denoting the assignments edge name in mutations.
 	EdgeAssignments = "assignments"
+	// EdgePositionMenuOptions holds the string denoting the position_menu_options edge name in mutations.
+	EdgePositionMenuOptions = "position_menu_options"
 	// EmployeeFieldID holds the string denoting the ID field of the Employee.
 	EmployeeFieldID = "party_id"
 	// Table holds the table name of the job in the database.
@@ -75,6 +77,13 @@ const (
 	AssignmentsInverseTable = "employee_assignments"
 	// AssignmentsColumn is the table column denoting the assignments relation/edge.
 	AssignmentsColumn = "job_id"
+	// PositionMenuOptionsTable is the table that holds the position_menu_options relation/edge.
+	PositionMenuOptionsTable = "position_menu_options"
+	// PositionMenuOptionsInverseTable is the table name for the PositionMenuOption entity.
+	// It exists in this package in order to avoid circular dependency with the "positionmenuoption" package.
+	PositionMenuOptionsInverseTable = "position_menu_options"
+	// PositionMenuOptionsColumn is the table column denoting the position_menu_options relation/edge.
+	PositionMenuOptionsColumn = "job_id"
 )
 
 // Columns holds all SQL columns for job fields.
@@ -216,6 +225,20 @@ func ByAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPositionMenuOptionsCount orders the results by position_menu_options count.
+func ByPositionMenuOptionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPositionMenuOptionsStep(), opts...)
+	}
+}
+
+// ByPositionMenuOptions orders the results by position_menu_options terms.
+func ByPositionMenuOptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPositionMenuOptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -242,5 +265,12 @@ func newAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AssignmentsTable, AssignmentsColumn),
+	)
+}
+func newPositionMenuOptionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PositionMenuOptionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PositionMenuOptionsTable, PositionMenuOptionsColumn),
 	)
 }

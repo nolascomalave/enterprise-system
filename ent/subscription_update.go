@@ -15,12 +15,19 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmentmenuoption"
+	"enterprise-system/ent/departmentmenuoptionvalidity"
 	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
+	"enterprise-system/ent/employeemenuoptionoverride"
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/menucategory"
+	"enterprise-system/ent/menuoption"
+	"enterprise-system/ent/menuoptioncategory"
+	"enterprise-system/ent/menuoptionfunction"
 	"enterprise-system/ent/organizationprofile"
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
@@ -34,10 +41,15 @@ import (
 	"enterprise-system/ent/partyrole"
 	"enterprise-system/ent/passwordresettoken"
 	"enterprise-system/ent/personprofile"
+	"enterprise-system/ent/positionmenuoption"
+	"enterprise-system/ent/positionmenuoptionvalidity"
 	"enterprise-system/ent/predicate"
+	"enterprise-system/ent/rolemenuoption"
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/tenantrole"
 	"enterprise-system/ent/usercredentials"
+	"enterprise-system/ent/userroleassignment"
 	"errors"
 	"fmt"
 	"time"
@@ -592,6 +604,186 @@ func (_u *SubscriptionUpdate) AddDepartmentTranslations(v ...*DepartmentTranslat
 		ids[i] = v[i].ID
 	}
 	return _u.AddDepartmentTranslationIDs(ids...)
+}
+
+// AddMenuCategoryIDs adds the "menu_categories" edge to the MenuCategory entity by IDs.
+func (_u *SubscriptionUpdate) AddMenuCategoryIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddMenuCategoryIDs(ids...)
+	return _u
+}
+
+// AddMenuCategories adds the "menu_categories" edges to the MenuCategory entity.
+func (_u *SubscriptionUpdate) AddMenuCategories(v ...*MenuCategory) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMenuCategoryIDs(ids...)
+}
+
+// AddMenuOptionIDs adds the "menu_options" edge to the MenuOption entity by IDs.
+func (_u *SubscriptionUpdate) AddMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddMenuOptions adds the "menu_options" edges to the MenuOption entity.
+func (_u *SubscriptionUpdate) AddMenuOptions(v ...*MenuOption) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMenuOptionIDs(ids...)
+}
+
+// AddMenuOptionFunctionIDs adds the "menu_option_functions" edge to the MenuOptionFunction entity by IDs.
+func (_u *SubscriptionUpdate) AddMenuOptionFunctionIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddMenuOptionFunctionIDs(ids...)
+	return _u
+}
+
+// AddMenuOptionFunctions adds the "menu_option_functions" edges to the MenuOptionFunction entity.
+func (_u *SubscriptionUpdate) AddMenuOptionFunctions(v ...*MenuOptionFunction) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMenuOptionFunctionIDs(ids...)
+}
+
+// AddMenuOptionCategoryIDs adds the "menu_option_categories" edge to the MenuOptionCategory entity by IDs.
+func (_u *SubscriptionUpdate) AddMenuOptionCategoryIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddMenuOptionCategoryIDs(ids...)
+	return _u
+}
+
+// AddMenuOptionCategories adds the "menu_option_categories" edges to the MenuOptionCategory entity.
+func (_u *SubscriptionUpdate) AddMenuOptionCategories(v ...*MenuOptionCategory) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMenuOptionCategoryIDs(ids...)
+}
+
+// AddTenantRoleIDs adds the "tenant_roles" edge to the TenantRole entity by IDs.
+func (_u *SubscriptionUpdate) AddTenantRoleIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddTenantRoleIDs(ids...)
+	return _u
+}
+
+// AddTenantRoles adds the "tenant_roles" edges to the TenantRole entity.
+func (_u *SubscriptionUpdate) AddTenantRoles(v ...*TenantRole) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTenantRoleIDs(ids...)
+}
+
+// AddRoleMenuOptionIDs adds the "role_menu_options" edge to the RoleMenuOption entity by IDs.
+func (_u *SubscriptionUpdate) AddRoleMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddRoleMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddRoleMenuOptions adds the "role_menu_options" edges to the RoleMenuOption entity.
+func (_u *SubscriptionUpdate) AddRoleMenuOptions(v ...*RoleMenuOption) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRoleMenuOptionIDs(ids...)
+}
+
+// AddUserRoleAssignmentIDs adds the "user_role_assignments" edge to the UserRoleAssignment entity by IDs.
+func (_u *SubscriptionUpdate) AddUserRoleAssignmentIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddUserRoleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddUserRoleAssignments adds the "user_role_assignments" edges to the UserRoleAssignment entity.
+func (_u *SubscriptionUpdate) AddUserRoleAssignments(v ...*UserRoleAssignment) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserRoleAssignmentIDs(ids...)
+}
+
+// AddDepartmentMenuOptionIDs adds the "department_menu_options" edge to the DepartmentMenuOption entity by IDs.
+func (_u *SubscriptionUpdate) AddDepartmentMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddDepartmentMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddDepartmentMenuOptions adds the "department_menu_options" edges to the DepartmentMenuOption entity.
+func (_u *SubscriptionUpdate) AddDepartmentMenuOptions(v ...*DepartmentMenuOption) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentMenuOptionIDs(ids...)
+}
+
+// AddDepartmentMenuOptionValidityIDs adds the "department_menu_option_validities" edge to the DepartmentMenuOptionValidity entity by IDs.
+func (_u *SubscriptionUpdate) AddDepartmentMenuOptionValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddDepartmentMenuOptionValidityIDs(ids...)
+	return _u
+}
+
+// AddDepartmentMenuOptionValidities adds the "department_menu_option_validities" edges to the DepartmentMenuOptionValidity entity.
+func (_u *SubscriptionUpdate) AddDepartmentMenuOptionValidities(v ...*DepartmentMenuOptionValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentMenuOptionValidityIDs(ids...)
+}
+
+// AddPositionMenuOptionIDs adds the "position_menu_options" edge to the PositionMenuOption entity by IDs.
+func (_u *SubscriptionUpdate) AddPositionMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddPositionMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddPositionMenuOptions adds the "position_menu_options" edges to the PositionMenuOption entity.
+func (_u *SubscriptionUpdate) AddPositionMenuOptions(v ...*PositionMenuOption) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPositionMenuOptionIDs(ids...)
+}
+
+// AddPositionMenuOptionValidityIDs adds the "position_menu_option_validities" edge to the PositionMenuOptionValidity entity by IDs.
+func (_u *SubscriptionUpdate) AddPositionMenuOptionValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddPositionMenuOptionValidityIDs(ids...)
+	return _u
+}
+
+// AddPositionMenuOptionValidities adds the "position_menu_option_validities" edges to the PositionMenuOptionValidity entity.
+func (_u *SubscriptionUpdate) AddPositionMenuOptionValidities(v ...*PositionMenuOptionValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPositionMenuOptionValidityIDs(ids...)
+}
+
+// AddEmployeeMenuOptionOverrideIDs adds the "employee_menu_option_overrides" edge to the EmployeeMenuOptionOverride entity by IDs.
+func (_u *SubscriptionUpdate) AddEmployeeMenuOptionOverrideIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddEmployeeMenuOptionOverrideIDs(ids...)
+	return _u
+}
+
+// AddEmployeeMenuOptionOverrides adds the "employee_menu_option_overrides" edges to the EmployeeMenuOptionOverride entity.
+func (_u *SubscriptionUpdate) AddEmployeeMenuOptionOverrides(v ...*EmployeeMenuOptionOverride) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEmployeeMenuOptionOverrideIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -1248,6 +1440,258 @@ func (_u *SubscriptionUpdate) RemoveDepartmentTranslations(v ...*DepartmentTrans
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveDepartmentTranslationIDs(ids...)
+}
+
+// ClearMenuCategories clears all "menu_categories" edges to the MenuCategory entity.
+func (_u *SubscriptionUpdate) ClearMenuCategories() *SubscriptionUpdate {
+	_u.mutation.ClearMenuCategories()
+	return _u
+}
+
+// RemoveMenuCategoryIDs removes the "menu_categories" edge to MenuCategory entities by IDs.
+func (_u *SubscriptionUpdate) RemoveMenuCategoryIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveMenuCategoryIDs(ids...)
+	return _u
+}
+
+// RemoveMenuCategories removes "menu_categories" edges to MenuCategory entities.
+func (_u *SubscriptionUpdate) RemoveMenuCategories(v ...*MenuCategory) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMenuCategoryIDs(ids...)
+}
+
+// ClearMenuOptions clears all "menu_options" edges to the MenuOption entity.
+func (_u *SubscriptionUpdate) ClearMenuOptions() *SubscriptionUpdate {
+	_u.mutation.ClearMenuOptions()
+	return _u
+}
+
+// RemoveMenuOptionIDs removes the "menu_options" edge to MenuOption entities by IDs.
+func (_u *SubscriptionUpdate) RemoveMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemoveMenuOptions removes "menu_options" edges to MenuOption entities.
+func (_u *SubscriptionUpdate) RemoveMenuOptions(v ...*MenuOption) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMenuOptionIDs(ids...)
+}
+
+// ClearMenuOptionFunctions clears all "menu_option_functions" edges to the MenuOptionFunction entity.
+func (_u *SubscriptionUpdate) ClearMenuOptionFunctions() *SubscriptionUpdate {
+	_u.mutation.ClearMenuOptionFunctions()
+	return _u
+}
+
+// RemoveMenuOptionFunctionIDs removes the "menu_option_functions" edge to MenuOptionFunction entities by IDs.
+func (_u *SubscriptionUpdate) RemoveMenuOptionFunctionIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveMenuOptionFunctionIDs(ids...)
+	return _u
+}
+
+// RemoveMenuOptionFunctions removes "menu_option_functions" edges to MenuOptionFunction entities.
+func (_u *SubscriptionUpdate) RemoveMenuOptionFunctions(v ...*MenuOptionFunction) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMenuOptionFunctionIDs(ids...)
+}
+
+// ClearMenuOptionCategories clears all "menu_option_categories" edges to the MenuOptionCategory entity.
+func (_u *SubscriptionUpdate) ClearMenuOptionCategories() *SubscriptionUpdate {
+	_u.mutation.ClearMenuOptionCategories()
+	return _u
+}
+
+// RemoveMenuOptionCategoryIDs removes the "menu_option_categories" edge to MenuOptionCategory entities by IDs.
+func (_u *SubscriptionUpdate) RemoveMenuOptionCategoryIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveMenuOptionCategoryIDs(ids...)
+	return _u
+}
+
+// RemoveMenuOptionCategories removes "menu_option_categories" edges to MenuOptionCategory entities.
+func (_u *SubscriptionUpdate) RemoveMenuOptionCategories(v ...*MenuOptionCategory) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMenuOptionCategoryIDs(ids...)
+}
+
+// ClearTenantRoles clears all "tenant_roles" edges to the TenantRole entity.
+func (_u *SubscriptionUpdate) ClearTenantRoles() *SubscriptionUpdate {
+	_u.mutation.ClearTenantRoles()
+	return _u
+}
+
+// RemoveTenantRoleIDs removes the "tenant_roles" edge to TenantRole entities by IDs.
+func (_u *SubscriptionUpdate) RemoveTenantRoleIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveTenantRoleIDs(ids...)
+	return _u
+}
+
+// RemoveTenantRoles removes "tenant_roles" edges to TenantRole entities.
+func (_u *SubscriptionUpdate) RemoveTenantRoles(v ...*TenantRole) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTenantRoleIDs(ids...)
+}
+
+// ClearRoleMenuOptions clears all "role_menu_options" edges to the RoleMenuOption entity.
+func (_u *SubscriptionUpdate) ClearRoleMenuOptions() *SubscriptionUpdate {
+	_u.mutation.ClearRoleMenuOptions()
+	return _u
+}
+
+// RemoveRoleMenuOptionIDs removes the "role_menu_options" edge to RoleMenuOption entities by IDs.
+func (_u *SubscriptionUpdate) RemoveRoleMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveRoleMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemoveRoleMenuOptions removes "role_menu_options" edges to RoleMenuOption entities.
+func (_u *SubscriptionUpdate) RemoveRoleMenuOptions(v ...*RoleMenuOption) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRoleMenuOptionIDs(ids...)
+}
+
+// ClearUserRoleAssignments clears all "user_role_assignments" edges to the UserRoleAssignment entity.
+func (_u *SubscriptionUpdate) ClearUserRoleAssignments() *SubscriptionUpdate {
+	_u.mutation.ClearUserRoleAssignments()
+	return _u
+}
+
+// RemoveUserRoleAssignmentIDs removes the "user_role_assignments" edge to UserRoleAssignment entities by IDs.
+func (_u *SubscriptionUpdate) RemoveUserRoleAssignmentIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveUserRoleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveUserRoleAssignments removes "user_role_assignments" edges to UserRoleAssignment entities.
+func (_u *SubscriptionUpdate) RemoveUserRoleAssignments(v ...*UserRoleAssignment) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserRoleAssignmentIDs(ids...)
+}
+
+// ClearDepartmentMenuOptions clears all "department_menu_options" edges to the DepartmentMenuOption entity.
+func (_u *SubscriptionUpdate) ClearDepartmentMenuOptions() *SubscriptionUpdate {
+	_u.mutation.ClearDepartmentMenuOptions()
+	return _u
+}
+
+// RemoveDepartmentMenuOptionIDs removes the "department_menu_options" edge to DepartmentMenuOption entities by IDs.
+func (_u *SubscriptionUpdate) RemoveDepartmentMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveDepartmentMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentMenuOptions removes "department_menu_options" edges to DepartmentMenuOption entities.
+func (_u *SubscriptionUpdate) RemoveDepartmentMenuOptions(v ...*DepartmentMenuOption) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentMenuOptionIDs(ids...)
+}
+
+// ClearDepartmentMenuOptionValidities clears all "department_menu_option_validities" edges to the DepartmentMenuOptionValidity entity.
+func (_u *SubscriptionUpdate) ClearDepartmentMenuOptionValidities() *SubscriptionUpdate {
+	_u.mutation.ClearDepartmentMenuOptionValidities()
+	return _u
+}
+
+// RemoveDepartmentMenuOptionValidityIDs removes the "department_menu_option_validities" edge to DepartmentMenuOptionValidity entities by IDs.
+func (_u *SubscriptionUpdate) RemoveDepartmentMenuOptionValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveDepartmentMenuOptionValidityIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentMenuOptionValidities removes "department_menu_option_validities" edges to DepartmentMenuOptionValidity entities.
+func (_u *SubscriptionUpdate) RemoveDepartmentMenuOptionValidities(v ...*DepartmentMenuOptionValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentMenuOptionValidityIDs(ids...)
+}
+
+// ClearPositionMenuOptions clears all "position_menu_options" edges to the PositionMenuOption entity.
+func (_u *SubscriptionUpdate) ClearPositionMenuOptions() *SubscriptionUpdate {
+	_u.mutation.ClearPositionMenuOptions()
+	return _u
+}
+
+// RemovePositionMenuOptionIDs removes the "position_menu_options" edge to PositionMenuOption entities by IDs.
+func (_u *SubscriptionUpdate) RemovePositionMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemovePositionMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemovePositionMenuOptions removes "position_menu_options" edges to PositionMenuOption entities.
+func (_u *SubscriptionUpdate) RemovePositionMenuOptions(v ...*PositionMenuOption) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePositionMenuOptionIDs(ids...)
+}
+
+// ClearPositionMenuOptionValidities clears all "position_menu_option_validities" edges to the PositionMenuOptionValidity entity.
+func (_u *SubscriptionUpdate) ClearPositionMenuOptionValidities() *SubscriptionUpdate {
+	_u.mutation.ClearPositionMenuOptionValidities()
+	return _u
+}
+
+// RemovePositionMenuOptionValidityIDs removes the "position_menu_option_validities" edge to PositionMenuOptionValidity entities by IDs.
+func (_u *SubscriptionUpdate) RemovePositionMenuOptionValidityIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemovePositionMenuOptionValidityIDs(ids...)
+	return _u
+}
+
+// RemovePositionMenuOptionValidities removes "position_menu_option_validities" edges to PositionMenuOptionValidity entities.
+func (_u *SubscriptionUpdate) RemovePositionMenuOptionValidities(v ...*PositionMenuOptionValidity) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePositionMenuOptionValidityIDs(ids...)
+}
+
+// ClearEmployeeMenuOptionOverrides clears all "employee_menu_option_overrides" edges to the EmployeeMenuOptionOverride entity.
+func (_u *SubscriptionUpdate) ClearEmployeeMenuOptionOverrides() *SubscriptionUpdate {
+	_u.mutation.ClearEmployeeMenuOptionOverrides()
+	return _u
+}
+
+// RemoveEmployeeMenuOptionOverrideIDs removes the "employee_menu_option_overrides" edge to EmployeeMenuOptionOverride entities by IDs.
+func (_u *SubscriptionUpdate) RemoveEmployeeMenuOptionOverrideIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveEmployeeMenuOptionOverrideIDs(ids...)
+	return _u
+}
+
+// RemoveEmployeeMenuOptionOverrides removes "employee_menu_option_overrides" edges to EmployeeMenuOptionOverride entities.
+func (_u *SubscriptionUpdate) RemoveEmployeeMenuOptionOverrides(v ...*EmployeeMenuOptionOverride) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEmployeeMenuOptionOverrideIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -2824,6 +3268,582 @@ func (_u *SubscriptionUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.MenuCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuCategoriesTable,
+			Columns: []string{subscription.MenuCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menucategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuCategory
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMenuCategoriesIDs(); len(nodes) > 0 && !_u.mutation.MenuCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuCategoriesTable,
+			Columns: []string{subscription.MenuCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menucategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuCategory
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MenuCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuCategoriesTable,
+			Columns: []string{subscription.MenuCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menucategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuCategory
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionsTable,
+			Columns: []string{subscription.MenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.MenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionsTable,
+			Columns: []string{subscription.MenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionsTable,
+			Columns: []string{subscription.MenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MenuOptionFunctionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionFunctionsTable,
+			Columns: []string{subscription.MenuOptionFunctionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptionfunction.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionFunction
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMenuOptionFunctionsIDs(); len(nodes) > 0 && !_u.mutation.MenuOptionFunctionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionFunctionsTable,
+			Columns: []string{subscription.MenuOptionFunctionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptionfunction.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionFunction
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MenuOptionFunctionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionFunctionsTable,
+			Columns: []string{subscription.MenuOptionFunctionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptionfunction.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionFunction
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MenuOptionCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionCategoriesTable,
+			Columns: []string{subscription.MenuOptionCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptioncategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionCategory
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMenuOptionCategoriesIDs(); len(nodes) > 0 && !_u.mutation.MenuOptionCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionCategoriesTable,
+			Columns: []string{subscription.MenuOptionCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptioncategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionCategory
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MenuOptionCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionCategoriesTable,
+			Columns: []string{subscription.MenuOptionCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptioncategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionCategory
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TenantRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.TenantRolesTable,
+			Columns: []string{subscription.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTenantRolesIDs(); len(nodes) > 0 && !_u.mutation.TenantRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.TenantRolesTable,
+			Columns: []string{subscription.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TenantRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.TenantRolesTable,
+			Columns: []string{subscription.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RoleMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.RoleMenuOptionsTable,
+			Columns: []string{subscription.RoleMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rolemenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleMenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRoleMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.RoleMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.RoleMenuOptionsTable,
+			Columns: []string{subscription.RoleMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rolemenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RoleMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.RoleMenuOptionsTable,
+			Columns: []string{subscription.RoleMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rolemenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UserRoleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserRoleAssignmentsTable,
+			Columns: []string{subscription.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUserRoleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.UserRoleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserRoleAssignmentsTable,
+			Columns: []string{subscription.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserRoleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserRoleAssignmentsTable,
+			Columns: []string{subscription.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionsTable,
+			Columns: []string{subscription.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionsTable,
+			Columns: []string{subscription.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionsTable,
+			Columns: []string{subscription.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentMenuOptionValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionValiditiesTable,
+			Columns: []string{subscription.DepartmentMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOptionValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentMenuOptionValiditiesIDs(); len(nodes) > 0 && !_u.mutation.DepartmentMenuOptionValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionValiditiesTable,
+			Columns: []string{subscription.DepartmentMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOptionValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentMenuOptionValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionValiditiesTable,
+			Columns: []string{subscription.DepartmentMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOptionValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PositionMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionsTable,
+			Columns: []string{subscription.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPositionMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.PositionMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionsTable,
+			Columns: []string{subscription.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PositionMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionsTable,
+			Columns: []string{subscription.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PositionMenuOptionValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionValiditiesTable,
+			Columns: []string{subscription.PositionMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOptionValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPositionMenuOptionValiditiesIDs(); len(nodes) > 0 && !_u.mutation.PositionMenuOptionValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionValiditiesTable,
+			Columns: []string{subscription.PositionMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOptionValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PositionMenuOptionValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionValiditiesTable,
+			Columns: []string{subscription.PositionMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOptionValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EmployeeMenuOptionOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.EmployeeMenuOptionOverridesTable,
+			Columns: []string{subscription.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEmployeeMenuOptionOverridesIDs(); len(nodes) > 0 && !_u.mutation.EmployeeMenuOptionOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.EmployeeMenuOptionOverridesTable,
+			Columns: []string{subscription.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EmployeeMenuOptionOverridesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.EmployeeMenuOptionOverridesTable,
+			Columns: []string{subscription.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Subscription
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -3377,6 +4397,186 @@ func (_u *SubscriptionUpdateOne) AddDepartmentTranslations(v ...*DepartmentTrans
 		ids[i] = v[i].ID
 	}
 	return _u.AddDepartmentTranslationIDs(ids...)
+}
+
+// AddMenuCategoryIDs adds the "menu_categories" edge to the MenuCategory entity by IDs.
+func (_u *SubscriptionUpdateOne) AddMenuCategoryIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddMenuCategoryIDs(ids...)
+	return _u
+}
+
+// AddMenuCategories adds the "menu_categories" edges to the MenuCategory entity.
+func (_u *SubscriptionUpdateOne) AddMenuCategories(v ...*MenuCategory) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMenuCategoryIDs(ids...)
+}
+
+// AddMenuOptionIDs adds the "menu_options" edge to the MenuOption entity by IDs.
+func (_u *SubscriptionUpdateOne) AddMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddMenuOptions adds the "menu_options" edges to the MenuOption entity.
+func (_u *SubscriptionUpdateOne) AddMenuOptions(v ...*MenuOption) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMenuOptionIDs(ids...)
+}
+
+// AddMenuOptionFunctionIDs adds the "menu_option_functions" edge to the MenuOptionFunction entity by IDs.
+func (_u *SubscriptionUpdateOne) AddMenuOptionFunctionIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddMenuOptionFunctionIDs(ids...)
+	return _u
+}
+
+// AddMenuOptionFunctions adds the "menu_option_functions" edges to the MenuOptionFunction entity.
+func (_u *SubscriptionUpdateOne) AddMenuOptionFunctions(v ...*MenuOptionFunction) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMenuOptionFunctionIDs(ids...)
+}
+
+// AddMenuOptionCategoryIDs adds the "menu_option_categories" edge to the MenuOptionCategory entity by IDs.
+func (_u *SubscriptionUpdateOne) AddMenuOptionCategoryIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddMenuOptionCategoryIDs(ids...)
+	return _u
+}
+
+// AddMenuOptionCategories adds the "menu_option_categories" edges to the MenuOptionCategory entity.
+func (_u *SubscriptionUpdateOne) AddMenuOptionCategories(v ...*MenuOptionCategory) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddMenuOptionCategoryIDs(ids...)
+}
+
+// AddTenantRoleIDs adds the "tenant_roles" edge to the TenantRole entity by IDs.
+func (_u *SubscriptionUpdateOne) AddTenantRoleIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddTenantRoleIDs(ids...)
+	return _u
+}
+
+// AddTenantRoles adds the "tenant_roles" edges to the TenantRole entity.
+func (_u *SubscriptionUpdateOne) AddTenantRoles(v ...*TenantRole) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTenantRoleIDs(ids...)
+}
+
+// AddRoleMenuOptionIDs adds the "role_menu_options" edge to the RoleMenuOption entity by IDs.
+func (_u *SubscriptionUpdateOne) AddRoleMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddRoleMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddRoleMenuOptions adds the "role_menu_options" edges to the RoleMenuOption entity.
+func (_u *SubscriptionUpdateOne) AddRoleMenuOptions(v ...*RoleMenuOption) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRoleMenuOptionIDs(ids...)
+}
+
+// AddUserRoleAssignmentIDs adds the "user_role_assignments" edge to the UserRoleAssignment entity by IDs.
+func (_u *SubscriptionUpdateOne) AddUserRoleAssignmentIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddUserRoleAssignmentIDs(ids...)
+	return _u
+}
+
+// AddUserRoleAssignments adds the "user_role_assignments" edges to the UserRoleAssignment entity.
+func (_u *SubscriptionUpdateOne) AddUserRoleAssignments(v ...*UserRoleAssignment) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserRoleAssignmentIDs(ids...)
+}
+
+// AddDepartmentMenuOptionIDs adds the "department_menu_options" edge to the DepartmentMenuOption entity by IDs.
+func (_u *SubscriptionUpdateOne) AddDepartmentMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddDepartmentMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddDepartmentMenuOptions adds the "department_menu_options" edges to the DepartmentMenuOption entity.
+func (_u *SubscriptionUpdateOne) AddDepartmentMenuOptions(v ...*DepartmentMenuOption) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentMenuOptionIDs(ids...)
+}
+
+// AddDepartmentMenuOptionValidityIDs adds the "department_menu_option_validities" edge to the DepartmentMenuOptionValidity entity by IDs.
+func (_u *SubscriptionUpdateOne) AddDepartmentMenuOptionValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddDepartmentMenuOptionValidityIDs(ids...)
+	return _u
+}
+
+// AddDepartmentMenuOptionValidities adds the "department_menu_option_validities" edges to the DepartmentMenuOptionValidity entity.
+func (_u *SubscriptionUpdateOne) AddDepartmentMenuOptionValidities(v ...*DepartmentMenuOptionValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentMenuOptionValidityIDs(ids...)
+}
+
+// AddPositionMenuOptionIDs adds the "position_menu_options" edge to the PositionMenuOption entity by IDs.
+func (_u *SubscriptionUpdateOne) AddPositionMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddPositionMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddPositionMenuOptions adds the "position_menu_options" edges to the PositionMenuOption entity.
+func (_u *SubscriptionUpdateOne) AddPositionMenuOptions(v ...*PositionMenuOption) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPositionMenuOptionIDs(ids...)
+}
+
+// AddPositionMenuOptionValidityIDs adds the "position_menu_option_validities" edge to the PositionMenuOptionValidity entity by IDs.
+func (_u *SubscriptionUpdateOne) AddPositionMenuOptionValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddPositionMenuOptionValidityIDs(ids...)
+	return _u
+}
+
+// AddPositionMenuOptionValidities adds the "position_menu_option_validities" edges to the PositionMenuOptionValidity entity.
+func (_u *SubscriptionUpdateOne) AddPositionMenuOptionValidities(v ...*PositionMenuOptionValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPositionMenuOptionValidityIDs(ids...)
+}
+
+// AddEmployeeMenuOptionOverrideIDs adds the "employee_menu_option_overrides" edge to the EmployeeMenuOptionOverride entity by IDs.
+func (_u *SubscriptionUpdateOne) AddEmployeeMenuOptionOverrideIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddEmployeeMenuOptionOverrideIDs(ids...)
+	return _u
+}
+
+// AddEmployeeMenuOptionOverrides adds the "employee_menu_option_overrides" edges to the EmployeeMenuOptionOverride entity.
+func (_u *SubscriptionUpdateOne) AddEmployeeMenuOptionOverrides(v ...*EmployeeMenuOptionOverride) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddEmployeeMenuOptionOverrideIDs(ids...)
 }
 
 // Mutation returns the SubscriptionMutation object of the builder.
@@ -4033,6 +5233,258 @@ func (_u *SubscriptionUpdateOne) RemoveDepartmentTranslations(v ...*DepartmentTr
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveDepartmentTranslationIDs(ids...)
+}
+
+// ClearMenuCategories clears all "menu_categories" edges to the MenuCategory entity.
+func (_u *SubscriptionUpdateOne) ClearMenuCategories() *SubscriptionUpdateOne {
+	_u.mutation.ClearMenuCategories()
+	return _u
+}
+
+// RemoveMenuCategoryIDs removes the "menu_categories" edge to MenuCategory entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveMenuCategoryIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveMenuCategoryIDs(ids...)
+	return _u
+}
+
+// RemoveMenuCategories removes "menu_categories" edges to MenuCategory entities.
+func (_u *SubscriptionUpdateOne) RemoveMenuCategories(v ...*MenuCategory) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMenuCategoryIDs(ids...)
+}
+
+// ClearMenuOptions clears all "menu_options" edges to the MenuOption entity.
+func (_u *SubscriptionUpdateOne) ClearMenuOptions() *SubscriptionUpdateOne {
+	_u.mutation.ClearMenuOptions()
+	return _u
+}
+
+// RemoveMenuOptionIDs removes the "menu_options" edge to MenuOption entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemoveMenuOptions removes "menu_options" edges to MenuOption entities.
+func (_u *SubscriptionUpdateOne) RemoveMenuOptions(v ...*MenuOption) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMenuOptionIDs(ids...)
+}
+
+// ClearMenuOptionFunctions clears all "menu_option_functions" edges to the MenuOptionFunction entity.
+func (_u *SubscriptionUpdateOne) ClearMenuOptionFunctions() *SubscriptionUpdateOne {
+	_u.mutation.ClearMenuOptionFunctions()
+	return _u
+}
+
+// RemoveMenuOptionFunctionIDs removes the "menu_option_functions" edge to MenuOptionFunction entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveMenuOptionFunctionIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveMenuOptionFunctionIDs(ids...)
+	return _u
+}
+
+// RemoveMenuOptionFunctions removes "menu_option_functions" edges to MenuOptionFunction entities.
+func (_u *SubscriptionUpdateOne) RemoveMenuOptionFunctions(v ...*MenuOptionFunction) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMenuOptionFunctionIDs(ids...)
+}
+
+// ClearMenuOptionCategories clears all "menu_option_categories" edges to the MenuOptionCategory entity.
+func (_u *SubscriptionUpdateOne) ClearMenuOptionCategories() *SubscriptionUpdateOne {
+	_u.mutation.ClearMenuOptionCategories()
+	return _u
+}
+
+// RemoveMenuOptionCategoryIDs removes the "menu_option_categories" edge to MenuOptionCategory entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveMenuOptionCategoryIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveMenuOptionCategoryIDs(ids...)
+	return _u
+}
+
+// RemoveMenuOptionCategories removes "menu_option_categories" edges to MenuOptionCategory entities.
+func (_u *SubscriptionUpdateOne) RemoveMenuOptionCategories(v ...*MenuOptionCategory) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveMenuOptionCategoryIDs(ids...)
+}
+
+// ClearTenantRoles clears all "tenant_roles" edges to the TenantRole entity.
+func (_u *SubscriptionUpdateOne) ClearTenantRoles() *SubscriptionUpdateOne {
+	_u.mutation.ClearTenantRoles()
+	return _u
+}
+
+// RemoveTenantRoleIDs removes the "tenant_roles" edge to TenantRole entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveTenantRoleIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveTenantRoleIDs(ids...)
+	return _u
+}
+
+// RemoveTenantRoles removes "tenant_roles" edges to TenantRole entities.
+func (_u *SubscriptionUpdateOne) RemoveTenantRoles(v ...*TenantRole) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTenantRoleIDs(ids...)
+}
+
+// ClearRoleMenuOptions clears all "role_menu_options" edges to the RoleMenuOption entity.
+func (_u *SubscriptionUpdateOne) ClearRoleMenuOptions() *SubscriptionUpdateOne {
+	_u.mutation.ClearRoleMenuOptions()
+	return _u
+}
+
+// RemoveRoleMenuOptionIDs removes the "role_menu_options" edge to RoleMenuOption entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveRoleMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveRoleMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemoveRoleMenuOptions removes "role_menu_options" edges to RoleMenuOption entities.
+func (_u *SubscriptionUpdateOne) RemoveRoleMenuOptions(v ...*RoleMenuOption) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRoleMenuOptionIDs(ids...)
+}
+
+// ClearUserRoleAssignments clears all "user_role_assignments" edges to the UserRoleAssignment entity.
+func (_u *SubscriptionUpdateOne) ClearUserRoleAssignments() *SubscriptionUpdateOne {
+	_u.mutation.ClearUserRoleAssignments()
+	return _u
+}
+
+// RemoveUserRoleAssignmentIDs removes the "user_role_assignments" edge to UserRoleAssignment entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveUserRoleAssignmentIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveUserRoleAssignmentIDs(ids...)
+	return _u
+}
+
+// RemoveUserRoleAssignments removes "user_role_assignments" edges to UserRoleAssignment entities.
+func (_u *SubscriptionUpdateOne) RemoveUserRoleAssignments(v ...*UserRoleAssignment) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserRoleAssignmentIDs(ids...)
+}
+
+// ClearDepartmentMenuOptions clears all "department_menu_options" edges to the DepartmentMenuOption entity.
+func (_u *SubscriptionUpdateOne) ClearDepartmentMenuOptions() *SubscriptionUpdateOne {
+	_u.mutation.ClearDepartmentMenuOptions()
+	return _u
+}
+
+// RemoveDepartmentMenuOptionIDs removes the "department_menu_options" edge to DepartmentMenuOption entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveDepartmentMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentMenuOptions removes "department_menu_options" edges to DepartmentMenuOption entities.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentMenuOptions(v ...*DepartmentMenuOption) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentMenuOptionIDs(ids...)
+}
+
+// ClearDepartmentMenuOptionValidities clears all "department_menu_option_validities" edges to the DepartmentMenuOptionValidity entity.
+func (_u *SubscriptionUpdateOne) ClearDepartmentMenuOptionValidities() *SubscriptionUpdateOne {
+	_u.mutation.ClearDepartmentMenuOptionValidities()
+	return _u
+}
+
+// RemoveDepartmentMenuOptionValidityIDs removes the "department_menu_option_validities" edge to DepartmentMenuOptionValidity entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentMenuOptionValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveDepartmentMenuOptionValidityIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentMenuOptionValidities removes "department_menu_option_validities" edges to DepartmentMenuOptionValidity entities.
+func (_u *SubscriptionUpdateOne) RemoveDepartmentMenuOptionValidities(v ...*DepartmentMenuOptionValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentMenuOptionValidityIDs(ids...)
+}
+
+// ClearPositionMenuOptions clears all "position_menu_options" edges to the PositionMenuOption entity.
+func (_u *SubscriptionUpdateOne) ClearPositionMenuOptions() *SubscriptionUpdateOne {
+	_u.mutation.ClearPositionMenuOptions()
+	return _u
+}
+
+// RemovePositionMenuOptionIDs removes the "position_menu_options" edge to PositionMenuOption entities by IDs.
+func (_u *SubscriptionUpdateOne) RemovePositionMenuOptionIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemovePositionMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemovePositionMenuOptions removes "position_menu_options" edges to PositionMenuOption entities.
+func (_u *SubscriptionUpdateOne) RemovePositionMenuOptions(v ...*PositionMenuOption) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePositionMenuOptionIDs(ids...)
+}
+
+// ClearPositionMenuOptionValidities clears all "position_menu_option_validities" edges to the PositionMenuOptionValidity entity.
+func (_u *SubscriptionUpdateOne) ClearPositionMenuOptionValidities() *SubscriptionUpdateOne {
+	_u.mutation.ClearPositionMenuOptionValidities()
+	return _u
+}
+
+// RemovePositionMenuOptionValidityIDs removes the "position_menu_option_validities" edge to PositionMenuOptionValidity entities by IDs.
+func (_u *SubscriptionUpdateOne) RemovePositionMenuOptionValidityIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemovePositionMenuOptionValidityIDs(ids...)
+	return _u
+}
+
+// RemovePositionMenuOptionValidities removes "position_menu_option_validities" edges to PositionMenuOptionValidity entities.
+func (_u *SubscriptionUpdateOne) RemovePositionMenuOptionValidities(v ...*PositionMenuOptionValidity) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePositionMenuOptionValidityIDs(ids...)
+}
+
+// ClearEmployeeMenuOptionOverrides clears all "employee_menu_option_overrides" edges to the EmployeeMenuOptionOverride entity.
+func (_u *SubscriptionUpdateOne) ClearEmployeeMenuOptionOverrides() *SubscriptionUpdateOne {
+	_u.mutation.ClearEmployeeMenuOptionOverrides()
+	return _u
+}
+
+// RemoveEmployeeMenuOptionOverrideIDs removes the "employee_menu_option_overrides" edge to EmployeeMenuOptionOverride entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveEmployeeMenuOptionOverrideIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveEmployeeMenuOptionOverrideIDs(ids...)
+	return _u
+}
+
+// RemoveEmployeeMenuOptionOverrides removes "employee_menu_option_overrides" edges to EmployeeMenuOptionOverride entities.
+func (_u *SubscriptionUpdateOne) RemoveEmployeeMenuOptionOverrides(v ...*EmployeeMenuOptionOverride) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveEmployeeMenuOptionOverrideIDs(ids...)
 }
 
 // Where appends a list predicates to the SubscriptionUpdate builder.
@@ -5634,6 +7086,582 @@ func (_u *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscripti
 			},
 		}
 		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MenuCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuCategoriesTable,
+			Columns: []string{subscription.MenuCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menucategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuCategory
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMenuCategoriesIDs(); len(nodes) > 0 && !_u.mutation.MenuCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuCategoriesTable,
+			Columns: []string{subscription.MenuCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menucategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuCategory
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MenuCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuCategoriesTable,
+			Columns: []string{subscription.MenuCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menucategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuCategory
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionsTable,
+			Columns: []string{subscription.MenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.MenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionsTable,
+			Columns: []string{subscription.MenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionsTable,
+			Columns: []string{subscription.MenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MenuOptionFunctionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionFunctionsTable,
+			Columns: []string{subscription.MenuOptionFunctionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptionfunction.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionFunction
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMenuOptionFunctionsIDs(); len(nodes) > 0 && !_u.mutation.MenuOptionFunctionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionFunctionsTable,
+			Columns: []string{subscription.MenuOptionFunctionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptionfunction.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionFunction
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MenuOptionFunctionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionFunctionsTable,
+			Columns: []string{subscription.MenuOptionFunctionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptionfunction.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionFunction
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.MenuOptionCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionCategoriesTable,
+			Columns: []string{subscription.MenuOptionCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptioncategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionCategory
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedMenuOptionCategoriesIDs(); len(nodes) > 0 && !_u.mutation.MenuOptionCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionCategoriesTable,
+			Columns: []string{subscription.MenuOptionCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptioncategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionCategory
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.MenuOptionCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.MenuOptionCategoriesTable,
+			Columns: []string{subscription.MenuOptionCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(menuoptioncategory.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.MenuOptionCategory
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TenantRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.TenantRolesTable,
+			Columns: []string{subscription.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTenantRolesIDs(); len(nodes) > 0 && !_u.mutation.TenantRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.TenantRolesTable,
+			Columns: []string{subscription.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TenantRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.TenantRolesTable,
+			Columns: []string{subscription.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RoleMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.RoleMenuOptionsTable,
+			Columns: []string{subscription.RoleMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rolemenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleMenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRoleMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.RoleMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.RoleMenuOptionsTable,
+			Columns: []string{subscription.RoleMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rolemenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RoleMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.RoleMenuOptionsTable,
+			Columns: []string{subscription.RoleMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rolemenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.RoleMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UserRoleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserRoleAssignmentsTable,
+			Columns: []string{subscription.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUserRoleAssignmentsIDs(); len(nodes) > 0 && !_u.mutation.UserRoleAssignmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserRoleAssignmentsTable,
+			Columns: []string{subscription.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserRoleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserRoleAssignmentsTable,
+			Columns: []string{subscription.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionsTable,
+			Columns: []string{subscription.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionsTable,
+			Columns: []string{subscription.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionsTable,
+			Columns: []string{subscription.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentMenuOptionValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionValiditiesTable,
+			Columns: []string{subscription.DepartmentMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOptionValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentMenuOptionValiditiesIDs(); len(nodes) > 0 && !_u.mutation.DepartmentMenuOptionValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionValiditiesTable,
+			Columns: []string{subscription.DepartmentMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOptionValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentMenuOptionValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.DepartmentMenuOptionValiditiesTable,
+			Columns: []string{subscription.DepartmentMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOptionValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PositionMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionsTable,
+			Columns: []string{subscription.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPositionMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.PositionMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionsTable,
+			Columns: []string{subscription.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PositionMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionsTable,
+			Columns: []string{subscription.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PositionMenuOptionValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionValiditiesTable,
+			Columns: []string{subscription.PositionMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOptionValidity
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPositionMenuOptionValiditiesIDs(); len(nodes) > 0 && !_u.mutation.PositionMenuOptionValiditiesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionValiditiesTable,
+			Columns: []string{subscription.PositionMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOptionValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PositionMenuOptionValiditiesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.PositionMenuOptionValiditiesTable,
+			Columns: []string{subscription.PositionMenuOptionValiditiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoptionvalidity.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.PositionMenuOptionValidity
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.EmployeeMenuOptionOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.EmployeeMenuOptionOverridesTable,
+			Columns: []string{subscription.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedEmployeeMenuOptionOverridesIDs(); len(nodes) > 0 && !_u.mutation.EmployeeMenuOptionOverridesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.EmployeeMenuOptionOverridesTable,
+			Columns: []string{subscription.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.EmployeeMenuOptionOverridesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.EmployeeMenuOptionOverridesTable,
+			Columns: []string{subscription.EmployeeMenuOptionOverridesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(employeemenuoptionoverride.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.EmployeeMenuOptionOverride
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

@@ -42,6 +42,12 @@ type DepartmentContactMechanismValidity func(*sql.Selector)
 // DepartmentGroupAssignment is the predicate function for departmentgroupassignment builders.
 type DepartmentGroupAssignment func(*sql.Selector)
 
+// DepartmentMenuOption is the predicate function for departmentmenuoption builders.
+type DepartmentMenuOption func(*sql.Selector)
+
+// DepartmentMenuOptionValidity is the predicate function for departmentmenuoptionvalidity builders.
+type DepartmentMenuOptionValidity func(*sql.Selector)
+
 // DepartmentTranslation is the predicate function for departmenttranslation builders.
 type DepartmentTranslation func(*sql.Selector)
 
@@ -50,6 +56,9 @@ type Employee func(*sql.Selector)
 
 // EmployeeAssignment is the predicate function for employeeassignment builders.
 type EmployeeAssignment func(*sql.Selector)
+
+// EmployeeMenuOptionOverride is the predicate function for employeemenuoptionoverride builders.
+type EmployeeMenuOptionOverride func(*sql.Selector)
 
 // IdentityDocumentType is the predicate function for identitydocumenttype builders.
 type IdentityDocumentType func(*sql.Selector)
@@ -71,6 +80,24 @@ type Location func(*sql.Selector)
 
 // LocationTranslation is the predicate function for locationtranslation builders.
 type LocationTranslation func(*sql.Selector)
+
+// MenuCategory is the predicate function for menucategory builders.
+type MenuCategory func(*sql.Selector)
+
+// MenuOption is the predicate function for menuoption builders.
+type MenuOption func(*sql.Selector)
+
+// MenuOptionCategory is the predicate function for menuoptioncategory builders.
+type MenuOptionCategory func(*sql.Selector)
+
+// MenuOptionFunction is the predicate function for menuoptionfunction builders.
+type MenuOptionFunction func(*sql.Selector)
+
+// MenuTemplate is the predicate function for menutemplate builders.
+type MenuTemplate func(*sql.Selector)
+
+// MenuTemplateFunction is the predicate function for menutemplatefunction builders.
+type MenuTemplateFunction func(*sql.Selector)
 
 // NameType is the predicate function for nametype builders.
 type NameType func(*sql.Selector)
@@ -114,6 +141,15 @@ type PasswordResetToken func(*sql.Selector)
 // PersonProfile is the predicate function for personprofile builders.
 type PersonProfile func(*sql.Selector)
 
+// PositionMenuOption is the predicate function for positionmenuoption builders.
+type PositionMenuOption func(*sql.Selector)
+
+// PositionMenuOptionValidity is the predicate function for positionmenuoptionvalidity builders.
+type PositionMenuOptionValidity func(*sql.Selector)
+
+// RoleMenuOption is the predicate function for rolemenuoption builders.
+type RoleMenuOption func(*sql.Selector)
+
 // RoleType is the predicate function for roletype builders.
 type RoleType func(*sql.Selector)
 
@@ -126,5 +162,14 @@ type Session func(*sql.Selector)
 // Subscription is the predicate function for subscription builders.
 type Subscription func(*sql.Selector)
 
+// SystemFunction is the predicate function for systemfunction builders.
+type SystemFunction func(*sql.Selector)
+
+// TenantRole is the predicate function for tenantrole builders.
+type TenantRole func(*sql.Selector)
+
 // UserCredentials is the predicate function for usercredentials builders.
 type UserCredentials func(*sql.Selector)
+
+// UserRoleAssignment is the predicate function for userroleassignment builders.
+type UserRoleAssignment func(*sql.Selector)

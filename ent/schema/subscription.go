@@ -119,6 +119,30 @@ func (Subscription) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("department_translations", DepartmentTranslation.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("menu_categories", MenuCategory.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("menu_options", MenuOption.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("menu_option_functions", MenuOptionFunction.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("menu_option_categories", MenuOptionCategory.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("tenant_roles", TenantRole.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("role_menu_options", RoleMenuOption.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("user_role_assignments", UserRoleAssignment.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("department_menu_options", DepartmentMenuOption.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("department_menu_option_validities", DepartmentMenuOptionValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("position_menu_options", PositionMenuOption.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("position_menu_option_validities", PositionMenuOptionValidity.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("employee_menu_option_overrides", EmployeeMenuOptionOverride.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

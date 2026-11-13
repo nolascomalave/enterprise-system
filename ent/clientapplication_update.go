@@ -8,6 +8,7 @@ import (
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/tenantrole"
 	"errors"
 	"fmt"
 	"time"
@@ -179,6 +180,21 @@ func (_u *ClientApplicationUpdate) SetTenant(v *Subscription) *ClientApplication
 	return _u.SetTenantID(v.ID)
 }
 
+// AddTenantRoleIDs adds the "tenant_roles" edge to the TenantRole entity by IDs.
+func (_u *ClientApplicationUpdate) AddTenantRoleIDs(ids ...uuid.UUID) *ClientApplicationUpdate {
+	_u.mutation.AddTenantRoleIDs(ids...)
+	return _u
+}
+
+// AddTenantRoles adds the "tenant_roles" edges to the TenantRole entity.
+func (_u *ClientApplicationUpdate) AddTenantRoles(v ...*TenantRole) *ClientApplicationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTenantRoleIDs(ids...)
+}
+
 // Mutation returns the ClientApplicationMutation object of the builder.
 func (_u *ClientApplicationUpdate) Mutation() *ClientApplicationMutation {
 	return _u.mutation
@@ -188,6 +204,27 @@ func (_u *ClientApplicationUpdate) Mutation() *ClientApplicationMutation {
 func (_u *ClientApplicationUpdate) ClearTenant() *ClientApplicationUpdate {
 	_u.mutation.ClearTenant()
 	return _u
+}
+
+// ClearTenantRoles clears all "tenant_roles" edges to the TenantRole entity.
+func (_u *ClientApplicationUpdate) ClearTenantRoles() *ClientApplicationUpdate {
+	_u.mutation.ClearTenantRoles()
+	return _u
+}
+
+// RemoveTenantRoleIDs removes the "tenant_roles" edge to TenantRole entities by IDs.
+func (_u *ClientApplicationUpdate) RemoveTenantRoleIDs(ids ...uuid.UUID) *ClientApplicationUpdate {
+	_u.mutation.RemoveTenantRoleIDs(ids...)
+	return _u
+}
+
+// RemoveTenantRoles removes "tenant_roles" edges to TenantRole entities.
+func (_u *ClientApplicationUpdate) RemoveTenantRoles(v ...*TenantRole) *ClientApplicationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTenantRoleIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -329,6 +366,54 @@ func (_u *ClientApplicationUpdate) sqlSave(ctx context.Context) (_node int, err 
 			},
 		}
 		edge.Schema = _u.schemaConfig.ClientApplication
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TenantRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clientapplication.TenantRolesTable,
+			Columns: []string{clientapplication.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTenantRolesIDs(); len(nodes) > 0 && !_u.mutation.TenantRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clientapplication.TenantRolesTable,
+			Columns: []string{clientapplication.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TenantRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clientapplication.TenantRolesTable,
+			Columns: []string{clientapplication.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
@@ -503,6 +588,21 @@ func (_u *ClientApplicationUpdateOne) SetTenant(v *Subscription) *ClientApplicat
 	return _u.SetTenantID(v.ID)
 }
 
+// AddTenantRoleIDs adds the "tenant_roles" edge to the TenantRole entity by IDs.
+func (_u *ClientApplicationUpdateOne) AddTenantRoleIDs(ids ...uuid.UUID) *ClientApplicationUpdateOne {
+	_u.mutation.AddTenantRoleIDs(ids...)
+	return _u
+}
+
+// AddTenantRoles adds the "tenant_roles" edges to the TenantRole entity.
+func (_u *ClientApplicationUpdateOne) AddTenantRoles(v ...*TenantRole) *ClientApplicationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTenantRoleIDs(ids...)
+}
+
 // Mutation returns the ClientApplicationMutation object of the builder.
 func (_u *ClientApplicationUpdateOne) Mutation() *ClientApplicationMutation {
 	return _u.mutation
@@ -512,6 +612,27 @@ func (_u *ClientApplicationUpdateOne) Mutation() *ClientApplicationMutation {
 func (_u *ClientApplicationUpdateOne) ClearTenant() *ClientApplicationUpdateOne {
 	_u.mutation.ClearTenant()
 	return _u
+}
+
+// ClearTenantRoles clears all "tenant_roles" edges to the TenantRole entity.
+func (_u *ClientApplicationUpdateOne) ClearTenantRoles() *ClientApplicationUpdateOne {
+	_u.mutation.ClearTenantRoles()
+	return _u
+}
+
+// RemoveTenantRoleIDs removes the "tenant_roles" edge to TenantRole entities by IDs.
+func (_u *ClientApplicationUpdateOne) RemoveTenantRoleIDs(ids ...uuid.UUID) *ClientApplicationUpdateOne {
+	_u.mutation.RemoveTenantRoleIDs(ids...)
+	return _u
+}
+
+// RemoveTenantRoles removes "tenant_roles" edges to TenantRole entities.
+func (_u *ClientApplicationUpdateOne) RemoveTenantRoles(v ...*TenantRole) *ClientApplicationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTenantRoleIDs(ids...)
 }
 
 // Where appends a list predicates to the ClientApplicationUpdate builder.
@@ -683,6 +804,54 @@ func (_u *ClientApplicationUpdateOne) sqlSave(ctx context.Context) (_node *Clien
 			},
 		}
 		edge.Schema = _u.schemaConfig.ClientApplication
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.TenantRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clientapplication.TenantRolesTable,
+			Columns: []string{clientapplication.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTenantRolesIDs(); len(nodes) > 0 && !_u.mutation.TenantRolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clientapplication.TenantRolesTable,
+			Columns: []string{clientapplication.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TenantRolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clientapplication.TenantRolesTable,
+			Columns: []string{clientapplication.TenantRolesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tenantrole.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.TenantRole
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

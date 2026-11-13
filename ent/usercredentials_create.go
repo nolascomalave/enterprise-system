@@ -8,6 +8,7 @@ import (
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/usercredentials"
+	"enterprise-system/ent/userroleassignment"
 	"errors"
 	"fmt"
 	"time"
@@ -154,6 +155,21 @@ func (_c *UserCredentialsCreate) SetParty(v *Party) *UserCredentialsCreate {
 // SetPartyContactMechanism sets the "party_contact_mechanism" edge to the PartyContactMechanism entity.
 func (_c *UserCredentialsCreate) SetPartyContactMechanism(v *PartyContactMechanism) *UserCredentialsCreate {
 	return _c.SetPartyContactMechanismID(v.ID)
+}
+
+// AddUserRoleAssignmentIDs adds the "user_role_assignments" edge to the UserRoleAssignment entity by IDs.
+func (_c *UserCredentialsCreate) AddUserRoleAssignmentIDs(ids ...uuid.UUID) *UserCredentialsCreate {
+	_c.mutation.AddUserRoleAssignmentIDs(ids...)
+	return _c
+}
+
+// AddUserRoleAssignments adds the "user_role_assignments" edges to the UserRoleAssignment entity.
+func (_c *UserCredentialsCreate) AddUserRoleAssignments(v ...*UserRoleAssignment) *UserCredentialsCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUserRoleAssignmentIDs(ids...)
 }
 
 // Mutation returns the UserCredentialsMutation object of the builder.
@@ -364,6 +380,23 @@ func (_c *UserCredentialsCreate) createSpec() (*UserCredentials, *sqlgraph.Creat
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.PartyContactMechanismID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UserRoleAssignmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.UserRoleAssignmentsTable,
+			Columns: []string{usercredentials.UserRoleAssignmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userroleassignment.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.UserRoleAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

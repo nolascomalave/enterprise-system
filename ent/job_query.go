@@ -10,6 +10,7 @@ import (
 	"enterprise-system/ent/internal"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/positionmenuoption"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
 	"fmt"
@@ -25,14 +26,15 @@ import (
 // JobQuery is the builder for querying Job entities.
 type JobQuery struct {
 	config
-	ctx             *QueryContext
-	order           []job.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Job
-	withTenant      *SubscriptionQuery
-	withJobFamily   *JobFamilyQuery
-	withEmployees   *EmployeeQuery
-	withAssignments *EmployeeAssignmentQuery
+	ctx                     *QueryContext
+	order                   []job.OrderOption
+	inters                  []Interceptor
+	predicates              []predicate.Job
+	withTenant              *SubscriptionQuery
+	withJobFamily           *JobFamilyQuery
+	withEmployees           *EmployeeQuery
+	withAssignments         *EmployeeAssignmentQuery
+	withPositionMenuOptions *PositionMenuOptionQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -163,6 +165,31 @@ func (_q *JobQuery) QueryAssignments() *EmployeeAssignmentQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.EmployeeAssignment
 		step.Edge.Schema = schemaConfig.EmployeeAssignment
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPositionMenuOptions chains the current query on the "position_menu_options" edge.
+func (_q *JobQuery) QueryPositionMenuOptions() *PositionMenuOptionQuery {
+	query := (&PositionMenuOptionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(job.Table, job.FieldID, selector),
+			sqlgraph.To(positionmenuoption.Table, positionmenuoption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, job.PositionMenuOptionsTable, job.PositionMenuOptionsColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.PositionMenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOption
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -356,15 +383,16 @@ func (_q *JobQuery) Clone() *JobQuery {
 		return nil
 	}
 	return &JobQuery{
-		config:          _q.config,
-		ctx:             _q.ctx.Clone(),
-		order:           append([]job.OrderOption{}, _q.order...),
-		inters:          append([]Interceptor{}, _q.inters...),
-		predicates:      append([]predicate.Job{}, _q.predicates...),
-		withTenant:      _q.withTenant.Clone(),
-		withJobFamily:   _q.withJobFamily.Clone(),
-		withEmployees:   _q.withEmployees.Clone(),
-		withAssignments: _q.withAssignments.Clone(),
+		config:                  _q.config,
+		ctx:                     _q.ctx.Clone(),
+		order:                   append([]job.OrderOption{}, _q.order...),
+		inters:                  append([]Interceptor{}, _q.inters...),
+		predicates:              append([]predicate.Job{}, _q.predicates...),
+		withTenant:              _q.withTenant.Clone(),
+		withJobFamily:           _q.withJobFamily.Clone(),
+		withEmployees:           _q.withEmployees.Clone(),
+		withAssignments:         _q.withAssignments.Clone(),
+		withPositionMenuOptions: _q.withPositionMenuOptions.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -412,6 +440,17 @@ func (_q *JobQuery) WithAssignments(opts ...func(*EmployeeAssignmentQuery)) *Job
 		opt(query)
 	}
 	_q.withAssignments = query
+	return _q
+}
+
+// WithPositionMenuOptions tells the query-builder to eager-load the nodes that are connected to
+// the "position_menu_options" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *JobQuery) WithPositionMenuOptions(opts ...func(*PositionMenuOptionQuery)) *JobQuery {
+	query := (&PositionMenuOptionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPositionMenuOptions = query
 	return _q
 }
 
@@ -493,11 +532,12 @@ func (_q *JobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Job, err
 	var (
 		nodes       = []*Job{}
 		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			_q.withTenant != nil,
 			_q.withJobFamily != nil,
 			_q.withEmployees != nil,
 			_q.withAssignments != nil,
+			_q.withPositionMenuOptions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -543,6 +583,15 @@ func (_q *JobQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Job, err
 		if err := _q.loadAssignments(ctx, query, nodes,
 			func(n *Job) { n.Edges.Assignments = []*EmployeeAssignment{} },
 			func(n *Job, e *EmployeeAssignment) { n.Edges.Assignments = append(n.Edges.Assignments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPositionMenuOptions; query != nil {
+		if err := _q.loadPositionMenuOptions(ctx, query, nodes,
+			func(n *Job) { n.Edges.PositionMenuOptions = []*PositionMenuOption{} },
+			func(n *Job, e *PositionMenuOption) {
+				n.Edges.PositionMenuOptions = append(n.Edges.PositionMenuOptions, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -652,6 +701,36 @@ func (_q *JobQuery) loadAssignments(ctx context.Context, query *EmployeeAssignme
 	}
 	query.Where(predicate.EmployeeAssignment(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(job.AssignmentsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.JobID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "job_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *JobQuery) loadPositionMenuOptions(ctx context.Context, query *PositionMenuOptionQuery, nodes []*Job, init func(*Job), assign func(*Job, *PositionMenuOption)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Job)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(positionmenuoption.FieldJobID)
+	}
+	query.Where(predicate.PositionMenuOption(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(job.PositionMenuOptionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

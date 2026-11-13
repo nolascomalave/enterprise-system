@@ -75,6 +75,8 @@ func (UserCredentials) Edges() []ent.Edge {
 			Field("party_contact_mechanism_id").
 			Unique().
 			Required(),
+		edge.To("user_role_assignments", UserRoleAssignment.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

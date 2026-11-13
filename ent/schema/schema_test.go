@@ -45,6 +45,21 @@ func schemaCases() []schemaCase {
 		{name: "Session", schema: Session{}, table: "sessions", scope: "tenants", softDelete: true, generatedID: true},
 		{name: "UserCredentials", schema: UserCredentials{}, table: "user_credentials", scope: "tenants", softDelete: true, generatedID: true},
 		{name: "PasswordResetToken", schema: PasswordResetToken{}, table: "password_reset_tokens", scope: "tenants", softDelete: false, generatedID: true},
+		{name: "SystemFunction", schema: SystemFunction{}, table: "system_functions", scope: "global", softDelete: true, generatedID: true},
+		{name: "MenuTemplate", schema: MenuTemplate{}, table: "menu_templates", scope: "global", softDelete: true, generatedID: true},
+		{name: "MenuTemplateFunction", schema: MenuTemplateFunction{}, table: "menu_template_functions", scope: "global", softDelete: false, generatedID: true},
+		{name: "MenuCategory", schema: MenuCategory{}, table: "menu_categories", scope: "tenants", softDelete: true, generatedID: true},
+		{name: "MenuOption", schema: MenuOption{}, table: "menu_options", scope: "tenants", softDelete: true, generatedID: true},
+		{name: "MenuOptionFunction", schema: MenuOptionFunction{}, table: "menu_option_functions", scope: "tenants", softDelete: false, generatedID: true},
+		{name: "MenuOptionCategory", schema: MenuOptionCategory{}, table: "menu_option_categories", scope: "tenants", softDelete: false, generatedID: true},
+		{name: "TenantRole", schema: TenantRole{}, table: "tenant_roles", scope: "tenants", softDelete: true, generatedID: true},
+		{name: "RoleMenuOption", schema: RoleMenuOption{}, table: "role_menu_options", scope: "tenants", softDelete: false, generatedID: true},
+		{name: "UserRoleAssignment", schema: UserRoleAssignment{}, table: "user_role_assignments", scope: "tenants", softDelete: false, generatedID: true},
+		{name: "DepartmentMenuOption", schema: DepartmentMenuOption{}, table: "department_menu_options", scope: "tenants", softDelete: false, generatedID: true},
+		{name: "DepartmentMenuOptionValidity", schema: DepartmentMenuOptionValidity{}, table: "department_menu_option_validities", scope: "tenants", softDelete: false, generatedID: true},
+		{name: "PositionMenuOption", schema: PositionMenuOption{}, table: "position_menu_options", scope: "tenants", softDelete: false, generatedID: true},
+		{name: "PositionMenuOptionValidity", schema: PositionMenuOptionValidity{}, table: "position_menu_option_validities", scope: "tenants", softDelete: false, generatedID: true},
+		{name: "EmployeeMenuOptionOverride", schema: EmployeeMenuOptionOverride{}, table: "employee_menu_option_overrides", scope: "tenants", softDelete: false, generatedID: true},
 	}
 }
 
@@ -264,6 +279,11 @@ func TestSearchableFieldsUseICUCollation(t *testing.T) {
 		{name: "contact value", schema: ContactMechanism{}, field: "value"},
 		{name: "location name", schema: Location{}, field: "default_name"},
 		{name: "location translation name", schema: LocationTranslation{}, field: "name"},
+		{name: "system function name", schema: SystemFunction{}, field: "name"},
+		{name: "menu template name", schema: MenuTemplate{}, field: "name"},
+		{name: "menu category name", schema: MenuCategory{}, field: "name"},
+		{name: "menu option name", schema: MenuOption{}, field: "name"},
+		{name: "tenant role name", schema: TenantRole{}, field: "name"},
 	}
 
 	for _, tc := range cases {

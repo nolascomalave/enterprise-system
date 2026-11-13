@@ -699,6 +699,35 @@ func HasAssignmentsWith(preds ...predicate.EmployeeAssignment) predicate.Job {
 	})
 }
 
+// HasPositionMenuOptions applies the HasEdge predicate on the "position_menu_options" edge.
+func HasPositionMenuOptions() predicate.Job {
+	return predicate.Job(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PositionMenuOptionsTable, PositionMenuOptionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PositionMenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOption
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPositionMenuOptionsWith applies the HasEdge predicate on the "position_menu_options" edge with a given conditions (other predicates).
+func HasPositionMenuOptionsWith(preds ...predicate.PositionMenuOption) predicate.Job {
+	return predicate.Job(func(s *sql.Selector) {
+		step := newPositionMenuOptionsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PositionMenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOption
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Job) predicate.Job {
 	return predicate.Job(sql.AndPredicates(predicates...))

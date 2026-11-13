@@ -10,6 +10,7 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmentmenuoption"
 	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -325,6 +326,21 @@ func (_c *DepartmentCreate) AddTranslations(v ...*DepartmentTranslation) *Depart
 		ids[i] = v[i].ID
 	}
 	return _c.AddTranslationIDs(ids...)
+}
+
+// AddDepartmentMenuOptionIDs adds the "department_menu_options" edge to the DepartmentMenuOption entity by IDs.
+func (_c *DepartmentCreate) AddDepartmentMenuOptionIDs(ids ...uuid.UUID) *DepartmentCreate {
+	_c.mutation.AddDepartmentMenuOptionIDs(ids...)
+	return _c
+}
+
+// AddDepartmentMenuOptions adds the "department_menu_options" edges to the DepartmentMenuOption entity.
+func (_c *DepartmentCreate) AddDepartmentMenuOptions(v ...*DepartmentMenuOption) *DepartmentCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddDepartmentMenuOptionIDs(ids...)
 }
 
 // Mutation returns the DepartmentMutation object of the builder.
@@ -675,6 +691,23 @@ func (_c *DepartmentCreate) createSpec() (*Department, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.DepartmentMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.DepartmentMenuOptionsTable,
+			Columns: []string{department.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.DepartmentMenuOption
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

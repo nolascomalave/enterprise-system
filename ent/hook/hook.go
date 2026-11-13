@@ -152,6 +152,30 @@ func (f DepartmentGroupAssignmentFunc) Mutate(ctx context.Context, m ent.Mutatio
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepartmentGroupAssignmentMutation", m)
 }
 
+// The DepartmentMenuOptionFunc type is an adapter to allow the use of ordinary
+// function as DepartmentMenuOption mutator.
+type DepartmentMenuOptionFunc func(context.Context, *ent.DepartmentMenuOptionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DepartmentMenuOptionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DepartmentMenuOptionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepartmentMenuOptionMutation", m)
+}
+
+// The DepartmentMenuOptionValidityFunc type is an adapter to allow the use of ordinary
+// function as DepartmentMenuOptionValidity mutator.
+type DepartmentMenuOptionValidityFunc func(context.Context, *ent.DepartmentMenuOptionValidityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DepartmentMenuOptionValidityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DepartmentMenuOptionValidityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DepartmentMenuOptionValidityMutation", m)
+}
+
 // The DepartmentTranslationFunc type is an adapter to allow the use of ordinary
 // function as DepartmentTranslation mutator.
 type DepartmentTranslationFunc func(context.Context, *ent.DepartmentTranslationMutation) (ent.Value, error)
@@ -186,6 +210,18 @@ func (f EmployeeAssignmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmployeeAssignmentMutation", m)
+}
+
+// The EmployeeMenuOptionOverrideFunc type is an adapter to allow the use of ordinary
+// function as EmployeeMenuOptionOverride mutator.
+type EmployeeMenuOptionOverrideFunc func(context.Context, *ent.EmployeeMenuOptionOverrideMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EmployeeMenuOptionOverrideFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EmployeeMenuOptionOverrideMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmployeeMenuOptionOverrideMutation", m)
 }
 
 // The IdentityDocumentTypeFunc type is an adapter to allow the use of ordinary
@@ -270,6 +306,78 @@ func (f LocationTranslationFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LocationTranslationMutation", m)
+}
+
+// The MenuCategoryFunc type is an adapter to allow the use of ordinary
+// function as MenuCategory mutator.
+type MenuCategoryFunc func(context.Context, *ent.MenuCategoryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MenuCategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MenuCategoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MenuCategoryMutation", m)
+}
+
+// The MenuOptionFunc type is an adapter to allow the use of ordinary
+// function as MenuOption mutator.
+type MenuOptionFunc func(context.Context, *ent.MenuOptionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MenuOptionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MenuOptionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MenuOptionMutation", m)
+}
+
+// The MenuOptionCategoryFunc type is an adapter to allow the use of ordinary
+// function as MenuOptionCategory mutator.
+type MenuOptionCategoryFunc func(context.Context, *ent.MenuOptionCategoryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MenuOptionCategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MenuOptionCategoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MenuOptionCategoryMutation", m)
+}
+
+// The MenuOptionFunctionFunc type is an adapter to allow the use of ordinary
+// function as MenuOptionFunction mutator.
+type MenuOptionFunctionFunc func(context.Context, *ent.MenuOptionFunctionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MenuOptionFunctionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MenuOptionFunctionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MenuOptionFunctionMutation", m)
+}
+
+// The MenuTemplateFunc type is an adapter to allow the use of ordinary
+// function as MenuTemplate mutator.
+type MenuTemplateFunc func(context.Context, *ent.MenuTemplateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MenuTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MenuTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MenuTemplateMutation", m)
+}
+
+// The MenuTemplateFunctionFunc type is an adapter to allow the use of ordinary
+// function as MenuTemplateFunction mutator.
+type MenuTemplateFunctionFunc func(context.Context, *ent.MenuTemplateFunctionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f MenuTemplateFunctionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.MenuTemplateFunctionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.MenuTemplateFunctionMutation", m)
 }
 
 // The NameTypeFunc type is an adapter to allow the use of ordinary
@@ -440,6 +548,42 @@ func (f PersonProfileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PersonProfileMutation", m)
 }
 
+// The PositionMenuOptionFunc type is an adapter to allow the use of ordinary
+// function as PositionMenuOption mutator.
+type PositionMenuOptionFunc func(context.Context, *ent.PositionMenuOptionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PositionMenuOptionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PositionMenuOptionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PositionMenuOptionMutation", m)
+}
+
+// The PositionMenuOptionValidityFunc type is an adapter to allow the use of ordinary
+// function as PositionMenuOptionValidity mutator.
+type PositionMenuOptionValidityFunc func(context.Context, *ent.PositionMenuOptionValidityMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PositionMenuOptionValidityFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PositionMenuOptionValidityMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PositionMenuOptionValidityMutation", m)
+}
+
+// The RoleMenuOptionFunc type is an adapter to allow the use of ordinary
+// function as RoleMenuOption mutator.
+type RoleMenuOptionFunc func(context.Context, *ent.RoleMenuOptionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RoleMenuOptionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.RoleMenuOptionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleMenuOptionMutation", m)
+}
+
 // The RoleTypeFunc type is an adapter to allow the use of ordinary
 // function as RoleType mutator.
 type RoleTypeFunc func(context.Context, *ent.RoleTypeMutation) (ent.Value, error)
@@ -488,6 +632,30 @@ func (f SubscriptionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SubscriptionMutation", m)
 }
 
+// The SystemFunctionFunc type is an adapter to allow the use of ordinary
+// function as SystemFunction mutator.
+type SystemFunctionFunc func(context.Context, *ent.SystemFunctionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SystemFunctionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SystemFunctionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SystemFunctionMutation", m)
+}
+
+// The TenantRoleFunc type is an adapter to allow the use of ordinary
+// function as TenantRole mutator.
+type TenantRoleFunc func(context.Context, *ent.TenantRoleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TenantRoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.TenantRoleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantRoleMutation", m)
+}
+
 // The UserCredentialsFunc type is an adapter to allow the use of ordinary
 // function as UserCredentials mutator.
 type UserCredentialsFunc func(context.Context, *ent.UserCredentialsMutation) (ent.Value, error)
@@ -498,6 +666,18 @@ func (f UserCredentialsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserCredentialsMutation", m)
+}
+
+// The UserRoleAssignmentFunc type is an adapter to allow the use of ordinary
+// function as UserRoleAssignment mutator.
+type UserRoleAssignmentFunc func(context.Context, *ent.UserRoleAssignmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserRoleAssignmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserRoleAssignmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserRoleAssignmentMutation", m)
 }
 
 // Condition is a hook condition function.

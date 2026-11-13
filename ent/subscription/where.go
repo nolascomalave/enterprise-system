@@ -1261,6 +1261,354 @@ func HasDepartmentTranslationsWith(preds ...predicate.DepartmentTranslation) pre
 	})
 }
 
+// HasMenuCategories applies the HasEdge predicate on the "menu_categories" edge.
+func HasMenuCategories() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MenuCategoriesTable, MenuCategoriesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.MenuCategory
+		step.Edge.Schema = schemaConfig.MenuCategory
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMenuCategoriesWith applies the HasEdge predicate on the "menu_categories" edge with a given conditions (other predicates).
+func HasMenuCategoriesWith(preds ...predicate.MenuCategory) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newMenuCategoriesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.MenuCategory
+		step.Edge.Schema = schemaConfig.MenuCategory
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMenuOptions applies the HasEdge predicate on the "menu_options" edge.
+func HasMenuOptions() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MenuOptionsTable, MenuOptionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.MenuOption
+		step.Edge.Schema = schemaConfig.MenuOption
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMenuOptionsWith applies the HasEdge predicate on the "menu_options" edge with a given conditions (other predicates).
+func HasMenuOptionsWith(preds ...predicate.MenuOption) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newMenuOptionsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.MenuOption
+		step.Edge.Schema = schemaConfig.MenuOption
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMenuOptionFunctions applies the HasEdge predicate on the "menu_option_functions" edge.
+func HasMenuOptionFunctions() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MenuOptionFunctionsTable, MenuOptionFunctionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.MenuOptionFunction
+		step.Edge.Schema = schemaConfig.MenuOptionFunction
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMenuOptionFunctionsWith applies the HasEdge predicate on the "menu_option_functions" edge with a given conditions (other predicates).
+func HasMenuOptionFunctionsWith(preds ...predicate.MenuOptionFunction) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newMenuOptionFunctionsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.MenuOptionFunction
+		step.Edge.Schema = schemaConfig.MenuOptionFunction
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasMenuOptionCategories applies the HasEdge predicate on the "menu_option_categories" edge.
+func HasMenuOptionCategories() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, MenuOptionCategoriesTable, MenuOptionCategoriesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.MenuOptionCategory
+		step.Edge.Schema = schemaConfig.MenuOptionCategory
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasMenuOptionCategoriesWith applies the HasEdge predicate on the "menu_option_categories" edge with a given conditions (other predicates).
+func HasMenuOptionCategoriesWith(preds ...predicate.MenuOptionCategory) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newMenuOptionCategoriesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.MenuOptionCategory
+		step.Edge.Schema = schemaConfig.MenuOptionCategory
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTenantRoles applies the HasEdge predicate on the "tenant_roles" edge.
+func HasTenantRoles() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TenantRolesTable, TenantRolesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.TenantRole
+		step.Edge.Schema = schemaConfig.TenantRole
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTenantRolesWith applies the HasEdge predicate on the "tenant_roles" edge with a given conditions (other predicates).
+func HasTenantRolesWith(preds ...predicate.TenantRole) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newTenantRolesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.TenantRole
+		step.Edge.Schema = schemaConfig.TenantRole
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRoleMenuOptions applies the HasEdge predicate on the "role_menu_options" edge.
+func HasRoleMenuOptions() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RoleMenuOptionsTable, RoleMenuOptionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.RoleMenuOption
+		step.Edge.Schema = schemaConfig.RoleMenuOption
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRoleMenuOptionsWith applies the HasEdge predicate on the "role_menu_options" edge with a given conditions (other predicates).
+func HasRoleMenuOptionsWith(preds ...predicate.RoleMenuOption) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newRoleMenuOptionsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.RoleMenuOption
+		step.Edge.Schema = schemaConfig.RoleMenuOption
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUserRoleAssignments applies the HasEdge predicate on the "user_role_assignments" edge.
+func HasUserRoleAssignments() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserRoleAssignmentsTable, UserRoleAssignmentsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.UserRoleAssignment
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserRoleAssignmentsWith applies the HasEdge predicate on the "user_role_assignments" edge with a given conditions (other predicates).
+func HasUserRoleAssignmentsWith(preds ...predicate.UserRoleAssignment) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newUserRoleAssignmentsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.UserRoleAssignment
+		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDepartmentMenuOptions applies the HasEdge predicate on the "department_menu_options" edge.
+func HasDepartmentMenuOptions() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentMenuOptionsTable, DepartmentMenuOptionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentMenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentMenuOptionsWith applies the HasEdge predicate on the "department_menu_options" edge with a given conditions (other predicates).
+func HasDepartmentMenuOptionsWith(preds ...predicate.DepartmentMenuOption) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newDepartmentMenuOptionsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentMenuOption
+		step.Edge.Schema = schemaConfig.DepartmentMenuOption
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDepartmentMenuOptionValidities applies the HasEdge predicate on the "department_menu_option_validities" edge.
+func HasDepartmentMenuOptionValidities() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, DepartmentMenuOptionValiditiesTable, DepartmentMenuOptionValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentMenuOptionValidity
+		step.Edge.Schema = schemaConfig.DepartmentMenuOptionValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentMenuOptionValiditiesWith applies the HasEdge predicate on the "department_menu_option_validities" edge with a given conditions (other predicates).
+func HasDepartmentMenuOptionValiditiesWith(preds ...predicate.DepartmentMenuOptionValidity) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newDepartmentMenuOptionValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.DepartmentMenuOptionValidity
+		step.Edge.Schema = schemaConfig.DepartmentMenuOptionValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPositionMenuOptions applies the HasEdge predicate on the "position_menu_options" edge.
+func HasPositionMenuOptions() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PositionMenuOptionsTable, PositionMenuOptionsColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PositionMenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOption
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPositionMenuOptionsWith applies the HasEdge predicate on the "position_menu_options" edge with a given conditions (other predicates).
+func HasPositionMenuOptionsWith(preds ...predicate.PositionMenuOption) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newPositionMenuOptionsStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PositionMenuOption
+		step.Edge.Schema = schemaConfig.PositionMenuOption
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPositionMenuOptionValidities applies the HasEdge predicate on the "position_menu_option_validities" edge.
+func HasPositionMenuOptionValidities() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PositionMenuOptionValiditiesTable, PositionMenuOptionValiditiesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PositionMenuOptionValidity
+		step.Edge.Schema = schemaConfig.PositionMenuOptionValidity
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPositionMenuOptionValiditiesWith applies the HasEdge predicate on the "position_menu_option_validities" edge with a given conditions (other predicates).
+func HasPositionMenuOptionValiditiesWith(preds ...predicate.PositionMenuOptionValidity) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newPositionMenuOptionValiditiesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.PositionMenuOptionValidity
+		step.Edge.Schema = schemaConfig.PositionMenuOptionValidity
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEmployeeMenuOptionOverrides applies the HasEdge predicate on the "employee_menu_option_overrides" edge.
+func HasEmployeeMenuOptionOverrides() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EmployeeMenuOptionOverridesTable, EmployeeMenuOptionOverridesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.EmployeeMenuOptionOverride
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEmployeeMenuOptionOverridesWith applies the HasEdge predicate on the "employee_menu_option_overrides" edge with a given conditions (other predicates).
+func HasEmployeeMenuOptionOverridesWith(preds ...predicate.EmployeeMenuOptionOverride) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newEmployeeMenuOptionOverridesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.EmployeeMenuOptionOverride
+		step.Edge.Schema = schemaConfig.EmployeeMenuOptionOverride
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Subscription) predicate.Subscription {
 	return predicate.Subscription(sql.AndPredicates(predicates...))

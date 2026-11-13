@@ -10,6 +10,7 @@ import (
 	"enterprise-system/ent/departmentcontactmechanism"
 	"enterprise-system/ent/departmentcontactmechanismvalidity"
 	"enterprise-system/ent/departmentgroupassignment"
+	"enterprise-system/ent/departmentmenuoption"
 	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeeassignment"
@@ -339,6 +340,21 @@ func (_u *DepartmentUpdate) AddTranslations(v ...*DepartmentTranslation) *Depart
 	return _u.AddTranslationIDs(ids...)
 }
 
+// AddDepartmentMenuOptionIDs adds the "department_menu_options" edge to the DepartmentMenuOption entity by IDs.
+func (_u *DepartmentUpdate) AddDepartmentMenuOptionIDs(ids ...uuid.UUID) *DepartmentUpdate {
+	_u.mutation.AddDepartmentMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddDepartmentMenuOptions adds the "department_menu_options" edges to the DepartmentMenuOption entity.
+func (_u *DepartmentUpdate) AddDepartmentMenuOptions(v ...*DepartmentMenuOption) *DepartmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentMenuOptionIDs(ids...)
+}
+
 // Mutation returns the DepartmentMutation object of the builder.
 func (_u *DepartmentUpdate) Mutation() *DepartmentMutation {
 	return _u.mutation
@@ -549,6 +565,27 @@ func (_u *DepartmentUpdate) RemoveTranslations(v ...*DepartmentTranslation) *Dep
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveTranslationIDs(ids...)
+}
+
+// ClearDepartmentMenuOptions clears all "department_menu_options" edges to the DepartmentMenuOption entity.
+func (_u *DepartmentUpdate) ClearDepartmentMenuOptions() *DepartmentUpdate {
+	_u.mutation.ClearDepartmentMenuOptions()
+	return _u
+}
+
+// RemoveDepartmentMenuOptionIDs removes the "department_menu_options" edge to DepartmentMenuOption entities by IDs.
+func (_u *DepartmentUpdate) RemoveDepartmentMenuOptionIDs(ids ...uuid.UUID) *DepartmentUpdate {
+	_u.mutation.RemoveDepartmentMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentMenuOptions removes "department_menu_options" edges to DepartmentMenuOption entities.
+func (_u *DepartmentUpdate) RemoveDepartmentMenuOptions(v ...*DepartmentMenuOption) *DepartmentUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentMenuOptionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1165,6 +1202,54 @@ func (_u *DepartmentUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.DepartmentMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.DepartmentMenuOptionsTable,
+			Columns: []string{department.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.DepartmentMenuOptionsTable,
+			Columns: []string{department.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.DepartmentMenuOptionsTable,
+			Columns: []string{department.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.Department
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -1487,6 +1572,21 @@ func (_u *DepartmentUpdateOne) AddTranslations(v ...*DepartmentTranslation) *Dep
 	return _u.AddTranslationIDs(ids...)
 }
 
+// AddDepartmentMenuOptionIDs adds the "department_menu_options" edge to the DepartmentMenuOption entity by IDs.
+func (_u *DepartmentUpdateOne) AddDepartmentMenuOptionIDs(ids ...uuid.UUID) *DepartmentUpdateOne {
+	_u.mutation.AddDepartmentMenuOptionIDs(ids...)
+	return _u
+}
+
+// AddDepartmentMenuOptions adds the "department_menu_options" edges to the DepartmentMenuOption entity.
+func (_u *DepartmentUpdateOne) AddDepartmentMenuOptions(v ...*DepartmentMenuOption) *DepartmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddDepartmentMenuOptionIDs(ids...)
+}
+
 // Mutation returns the DepartmentMutation object of the builder.
 func (_u *DepartmentUpdateOne) Mutation() *DepartmentMutation {
 	return _u.mutation
@@ -1697,6 +1797,27 @@ func (_u *DepartmentUpdateOne) RemoveTranslations(v ...*DepartmentTranslation) *
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveTranslationIDs(ids...)
+}
+
+// ClearDepartmentMenuOptions clears all "department_menu_options" edges to the DepartmentMenuOption entity.
+func (_u *DepartmentUpdateOne) ClearDepartmentMenuOptions() *DepartmentUpdateOne {
+	_u.mutation.ClearDepartmentMenuOptions()
+	return _u
+}
+
+// RemoveDepartmentMenuOptionIDs removes the "department_menu_options" edge to DepartmentMenuOption entities by IDs.
+func (_u *DepartmentUpdateOne) RemoveDepartmentMenuOptionIDs(ids ...uuid.UUID) *DepartmentUpdateOne {
+	_u.mutation.RemoveDepartmentMenuOptionIDs(ids...)
+	return _u
+}
+
+// RemoveDepartmentMenuOptions removes "department_menu_options" edges to DepartmentMenuOption entities.
+func (_u *DepartmentUpdateOne) RemoveDepartmentMenuOptions(v ...*DepartmentMenuOption) *DepartmentUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveDepartmentMenuOptionIDs(ids...)
 }
 
 // Where appends a list predicates to the DepartmentUpdate builder.
@@ -2338,6 +2459,54 @@ func (_u *DepartmentUpdateOne) sqlSave(ctx context.Context) (_node *Department, 
 			},
 		}
 		edge.Schema = _u.schemaConfig.DepartmentTranslation
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.DepartmentMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.DepartmentMenuOptionsTable,
+			Columns: []string{department.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedDepartmentMenuOptionsIDs(); len(nodes) > 0 && !_u.mutation.DepartmentMenuOptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.DepartmentMenuOptionsTable,
+			Columns: []string{department.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.DepartmentMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.DepartmentMenuOptionsTable,
+			Columns: []string{department.DepartmentMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(departmentmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.DepartmentMenuOption
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

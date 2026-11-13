@@ -8,6 +8,7 @@ import (
 	"enterprise-system/ent/employeeassignment"
 	"enterprise-system/ent/job"
 	"enterprise-system/ent/jobfamily"
+	"enterprise-system/ent/positionmenuoption"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/internal/domain"
 	"errors"
@@ -173,6 +174,21 @@ func (_c *JobCreate) AddAssignments(v ...*EmployeeAssignment) *JobCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddAssignmentIDs(ids...)
+}
+
+// AddPositionMenuOptionIDs adds the "position_menu_options" edge to the PositionMenuOption entity by IDs.
+func (_c *JobCreate) AddPositionMenuOptionIDs(ids ...uuid.UUID) *JobCreate {
+	_c.mutation.AddPositionMenuOptionIDs(ids...)
+	return _c
+}
+
+// AddPositionMenuOptions adds the "position_menu_options" edges to the PositionMenuOption entity.
+func (_c *JobCreate) AddPositionMenuOptions(v ...*PositionMenuOption) *JobCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPositionMenuOptionIDs(ids...)
 }
 
 // Mutation returns the JobMutation object of the builder.
@@ -388,6 +404,23 @@ func (_c *JobCreate) createSpec() (*Job, *sqlgraph.CreateSpec) {
 			},
 		}
 		edge.Schema = _c.schemaConfig.EmployeeAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.PositionMenuOptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   job.PositionMenuOptionsTable,
+			Columns: []string{job.PositionMenuOptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(positionmenuoption.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.PositionMenuOption
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

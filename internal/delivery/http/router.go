@@ -25,6 +25,7 @@ type Dependencies struct {
 	DepartmentMDMUseCase DepartmentMDMUseCase
 	OAuthUseCase         OAuthUseCase
 	CatalogUseCase       CatalogUseCase
+	RBACUseCase          RBACUseCase
 	PlatformAdminKey     string
 	TokenManager         *auth.Manager
 
@@ -81,6 +82,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	departmentMDMHandler := NewDepartmentMDMHandler(deps.DepartmentMDMUseCase)
 	oauthHandler := NewOAuthHandler(deps.OAuthUseCase)
 	catalogHandler := NewCatalogHandler(deps.CatalogUseCase)
+	rbacHandler := NewRBACHandler(deps.RBACUseCase)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -108,6 +110,9 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	partyHandler := NewPartyHandler(deps.PartyUseCase)
 	protected := api.Group("")
 	protected.Use(TenantMiddleware(deps.TokenManager))
+	if deps.RBACUseCase != nil {
+		protected.Use(RBACMiddleware(deps.RBACUseCase))
+	}
 	{
 		protected.POST("/parties", partyHandler.Create)
 		protected.GET("/parties", partyHandler.List)
@@ -131,6 +136,8 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.POST("/parties/:id/identity-documents", identityHandler.AddIdentityDocument)
 		protected.POST("/client-applications", oauthHandler.CreateClientApplication)
 		protected.GET("/platform/status", oauthHandler.PlatformStatus)
+		protected.GET("/rbac/my-permissions", rbacHandler.MyPermissions)
+		protected.GET("/rbac/my-menu", rbacHandler.MyMenu)
 		protected.POST("/auth/change-password", accountHandler.ChangePassword)
 	}
 
