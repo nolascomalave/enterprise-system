@@ -37,6 +37,24 @@ API multi-tenant basada en **Party Model**, escrita en Go con Clean Architecture
 | `GIN_MODE` | No | `debug` | Usa `release` en producción |
 | `ATLAS_DEV_DATABASE_URL` | Solo Atlas | — | Base de desarrollo vacía para `atlas schema apply` |
 
+### Archivo `.env`
+
+Para desarrollo local puedes usar un archivo `.env` en la raíz del proyecto:
+
+```bash
+cp .env.example .env
+# edita .env con tus credenciales locales
+```
+
+`cmd/api` carga `.env` automáticamente al arrancar mediante `godotenv`. Si el
+archivo no existe (por ejemplo, en producción con variables inyectadas por el
+sistema), la API arranca igualmente y solo registra un warning.
+
+El archivo `.env` está incluido en `.gitignore` para no subir secretos. La
+plantilla `.env.example` sí se versiona.
+
+Ejemplo alternativo con variables exportadas en la shell:
+
 Ejemplo para desarrollo local:
 
 ```bash

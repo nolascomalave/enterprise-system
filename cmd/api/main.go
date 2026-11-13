@@ -30,11 +30,16 @@ import (
 	"enterprise-system/internal/infrastructure/storage/local"
 	"enterprise-system/internal/infrastructure/transaction"
 	"enterprise-system/internal/usecase"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("WARN: .env file not found (%v); using system environment variables", err)
+	}
+
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		log.Fatal("DATABASE_URL is required")
