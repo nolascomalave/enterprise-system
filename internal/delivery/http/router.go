@@ -110,6 +110,9 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	partyHandler := NewPartyHandler(deps.PartyUseCase)
 	protected := api.Group("")
 	protected.Use(TenantMiddleware(deps.TokenManager))
+	if deps.RBACUseCase != nil {
+		protected.Use(RBACMiddleware(deps.RBACUseCase))
+	}
 	{
 		protected.POST("/parties", partyHandler.Create)
 		protected.GET("/parties", partyHandler.List)
@@ -134,6 +137,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.POST("/client-applications", oauthHandler.CreateClientApplication)
 		protected.GET("/platform/status", oauthHandler.PlatformStatus)
 		protected.GET("/rbac/my-permissions", rbacHandler.MyPermissions)
+		protected.GET("/rbac/my-menu", rbacHandler.MyMenu)
 		protected.POST("/auth/change-password", accountHandler.ChangePassword)
 	}
 

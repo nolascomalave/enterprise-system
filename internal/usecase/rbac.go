@@ -37,6 +37,7 @@ type RBACUseCase interface {
 	ListUserRoles(ctx context.Context, tenantID, userCredentialsID uuid.UUID) ([]*domain.UserRoleAssignment, error)
 
 	ResolvePermissions(ctx context.Context, input ResolvePermissionsInput) (*domain.PermissionUniverse, error)
+	GetUserMenu(ctx context.Context, input GetUserMenuInput) ([]domain.MenuTreeNode, error)
 }
 
 // RBACService implements RBACUseCase.
@@ -105,6 +106,12 @@ type AssignUserRoleInput struct {
 }
 
 type ResolvePermissionsInput struct {
+	TenantID          uuid.UUID
+	UserCredentialsID uuid.UUID
+	AppClientID       uuid.UUID
+}
+
+type GetUserMenuInput struct {
 	TenantID          uuid.UUID
 	UserCredentialsID uuid.UUID
 	AppClientID       uuid.UUID
@@ -376,3 +383,11 @@ func (s *RBACService) ResolvePermissions(ctx context.Context, input ResolvePermi
 	})
 }
 
+func (s *RBACService) GetUserMenu(ctx context.Context, input GetUserMenuInput) ([]domain.MenuTreeNode, error) {
+	if input.TenantID == uuid.Nil || input.UserCredentialsID == uuid.Nil || input.AppClientID == uuid.Nil {
+		return nil, validationError("invalid_menu_input", "tenant_id, user_id and app_client_id are required", domain.ErrInvalidPermission)
+	}
+	return readWithinTransaction(ctx, s.tx, func(ctx context.Context) ([]domain.MenuTreeNode, error) {
+		return s.repo.GetMenuTree(ctx, input.TenantID, input.UserCredentialsID, input.AppClientID)
+	})
+}

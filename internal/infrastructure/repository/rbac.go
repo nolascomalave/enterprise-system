@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"enterprise-system/ent"
@@ -10,6 +11,7 @@ import (
 	"enterprise-system/ent/employeemenuoptionoverride"
 	"enterprise-system/ent/menucategory"
 	"enterprise-system/ent/menuoption"
+	"enterprise-system/ent/menuoptioncategory"
 	"enterprise-system/ent/menutemplate"
 	"enterprise-system/ent/positionmenuoptionvalidity"
 	"enterprise-system/ent/rolemenuoption"
@@ -725,8 +727,154 @@ func (r *RBACRepository) ResolvePermissionUniverse(ctx context.Context, tenantID
 	return &domain.PermissionUniverse{Functions: result}, nil
 }
 
+type menuOptionLink struct {
+	optionID  uuid.UUID
+	sortOrder int
+}
+
 func (r *RBACRepository) GetMenuTree(ctx context.Context, tenantID, userCredentialsID, appClientID uuid.UUID) ([]domain.MenuTreeNode, error) {
-	return nil, nil
+	var tree []domain.MenuTreeNode
+
+	err := r.withClient(ctx, func(client *ent.Client) error {
+		universe, err := r.ResolvePermissionUniverse(ctx, tenantID, userCredentialsID, appClientID)
+		if err != nil {
+			return err
+		}
+
+		allowed := make(map[string]struct{}, len(universe.Functions))
+		for _, code := range universe.Functions {
+			allowed[code] = struct{}{}
+		}
+
+		options, err := client.MenuOption.Query().
+			Where(
+				menuoption.TenantID(tenantID),
+				menuoption.DeletedAtIsNil(),
+			).
+			WithMenuOptionFunctions(func(q *ent.MenuOptionFunctionQuery) {
+				q.WithSystemFunction(func(q *ent.SystemFunctionQuery) {
+					q.Where(systemfunction.DeletedAtIsNil())
+				})
+			}).
+			All(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+
+		visibleOptions := make(map[uuid.UUID]*ent.MenuOption, len(options))
+		for _, opt := range options {
+			for _, fn := range opt.Edges.MenuOptionFunctions {
+				if fn.Edges.SystemFunction == nil {
+					continue
+				}
+				if _, ok := allowed[fn.Edges.SystemFunction.Code]; ok {
+					visibleOptions[opt.ID] = opt
+					break
+				}
+			}
+		}
+
+		categoryLinks, err := client.MenuOptionCategory.Query().
+			Where(menuoptioncategory.TenantID(tenantID)).
+			All(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+
+		categoryOptions := make(map[uuid.UUID][]menuOptionLink, len(categoryLinks))
+		for _, link := range categoryLinks {
+			opt, ok := visibleOptions[link.MenuOptionID]
+			if !ok {
+				continue
+			}
+			categoryOptions[link.MenuCategoryID] = append(categoryOptions[link.MenuCategoryID], menuOptionLink{
+				optionID:  opt.ID,
+				sortOrder: link.SortOrder,
+			})
+		}
+
+		for catID, links := range categoryOptions {
+			sort.Slice(links, func(i, j int) bool {
+				return links[i].sortOrder < links[j].sortOrder
+			})
+			categoryOptions[catID] = links
+		}
+
+		categories, err := client.MenuCategory.Query().
+			Where(
+				menucategory.TenantID(tenantID),
+				menucategory.DeletedAtIsNil(),
+			).
+			All(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+
+		categoryByID := make(map[uuid.UUID]*ent.MenuCategory, len(categories))
+		childrenByParent := make(map[uuid.UUID][]*ent.MenuCategory, len(categories))
+		for _, cat := range categories {
+			categoryByID[cat.ID] = cat
+			if cat.ParentID != nil {
+				childrenByParent[*cat.ParentID] = append(childrenByParent[*cat.ParentID], cat)
+			}
+		}
+
+		var build func(cat *ent.MenuCategory) domain.MenuTreeNode
+		build = func(cat *ent.MenuCategory) domain.MenuTreeNode {
+			node := domain.MenuTreeNode{
+				ID:        cat.ID,
+				Code:      cat.Code,
+				Name:      cat.Name,
+				SortOrder: cat.SortOrder,
+			}
+
+			links := categoryOptions[cat.ID]
+			node.Options = make([]domain.MenuTreeOption, 0, len(links))
+			for _, link := range links {
+				opt := visibleOptions[link.optionID]
+				node.Options = append(node.Options, domain.MenuTreeOption{
+					ID:        opt.ID,
+					Code:      opt.Code,
+					Name:      opt.Name,
+					Icon:      opt.Icon,
+					Route:     opt.Route,
+					SortOrder: link.sortOrder,
+				})
+			}
+
+			children := childrenByParent[cat.ID]
+			sort.Slice(children, func(i, j int) bool {
+				return children[i].SortOrder < children[j].SortOrder
+			})
+			node.Children = make([]domain.MenuTreeNode, 0, len(children))
+			for _, child := range children {
+				node.Children = append(node.Children, build(child))
+			}
+
+			return node
+		}
+
+		roots := make([]*ent.MenuCategory, 0)
+		for _, cat := range categories {
+			if cat.ParentID == nil {
+				roots = append(roots, cat)
+			}
+		}
+		sort.Slice(roots, func(i, j int) bool {
+			return roots[i].SortOrder < roots[j].SortOrder
+		})
+
+		tree = make([]domain.MenuTreeNode, 0, len(roots))
+		for _, root := range roots {
+			tree = append(tree, build(root))
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return tree, nil
 }
 
 // ----------------------------------------------------------------------------

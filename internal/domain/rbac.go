@@ -326,22 +326,22 @@ type PermissionUniverse struct {
 
 // MenuTreeNode is a category node with nested options.
 type MenuTreeNode struct {
-	ID        uuid.UUID
-	Code      string
-	Name      string
-	SortOrder int
-	Options   []MenuTreeOption
-	Children  []MenuTreeNode
+	ID        uuid.UUID        `json:"id"`
+	Code      string           `json:"code"`
+	Name      string           `json:"name"`
+	SortOrder int              `json:"sort_order"`
+	Options   []MenuTreeOption `json:"options"`
+	Children  []MenuTreeNode   `json:"children"`
 }
 
 // MenuTreeOption is a visible menu option.
 type MenuTreeOption struct {
-	ID        uuid.UUID
-	Code      string
-	Name      string
-	Icon      string
-	Route     string
-	SortOrder int
+	ID        uuid.UUID `json:"id"`
+	Code      string    `json:"code"`
+	Name      string    `json:"name"`
+	Icon      string    `json:"icon,omitempty"`
+	Route     string    `json:"route,omitempty"`
+	SortOrder int       `json:"sort_order"`
 }
 
 // RBACRepository persists and queries RBAC entities.

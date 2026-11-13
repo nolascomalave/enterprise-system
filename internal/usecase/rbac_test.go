@@ -29,6 +29,9 @@ type fakeRBACRepo struct {
 	departmentPermissions map[uuid.UUID][]string         // department_id -> codes
 	rolePermissions       map[string][]string            // tenant_id:user_id:app_client_id -> codes (pre-filtered granted)
 	overridePermissions   map[uuid.UUID][]string         // party_id -> codes
+
+	// Menu tree simulation
+	menuTree []domain.MenuTreeNode
 }
 
 func newFakeRBACRepo() *fakeRBACRepo {
@@ -46,6 +49,7 @@ func newFakeRBACRepo() *fakeRBACRepo {
 		departmentPermissions: make(map[uuid.UUID][]string),
 		rolePermissions:       make(map[string][]string),
 		overridePermissions:   make(map[uuid.UUID][]string),
+		menuTree:              make([]domain.MenuTreeNode, 0),
 	}
 }
 
@@ -241,7 +245,7 @@ func (r *fakeRBACRepo) ResolvePermissionUniverse(ctx context.Context, tenantID, 
 }
 
 func (r *fakeRBACRepo) GetMenuTree(ctx context.Context, tenantID, userCredentialsID, appClientID uuid.UUID) ([]domain.MenuTreeNode, error) {
-	return nil, nil
+	return r.menuTree, nil
 }
 
 func rbacService(t *testing.T) *RBACService {
@@ -579,4 +583,67 @@ func TestResolvePermissionsRequiresValidInput(t *testing.T) {
 
 	_, err := service.ResolvePermissions(context.Background(), ResolvePermissionsInput{})
 	require.ErrorIs(t, err, domain.ErrInvalidPermission)
+}
+
+func TestGetUserMenuRequiresValidInput(t *testing.T) {
+	service := rbacService(t)
+
+	_, err := service.GetUserMenu(context.Background(), GetUserMenuInput{})
+	require.ErrorIs(t, err, domain.ErrInvalidPermission)
+
+	_, err = service.GetUserMenu(context.Background(), GetUserMenuInput{
+		TenantID:          uuid.New(),
+		UserCredentialsID: uuid.New(),
+		AppClientID:       uuid.Nil,
+	})
+	require.ErrorIs(t, err, domain.ErrInvalidPermission)
+}
+
+func TestGetUserMenuReturnsTree(t *testing.T) {
+	service := rbacService(t)
+	tenantID := uuid.New()
+	userID := uuid.New()
+	appClientID := uuid.New()
+
+	expected := []domain.MenuTreeNode{
+		{
+			ID:        uuid.New(),
+			Code:      "root",
+			Name:      "Root",
+			SortOrder: 1,
+			Options: []domain.MenuTreeOption{
+				{
+					ID:        uuid.New(),
+					Code:      "opt",
+					Name:      "Option",
+					SortOrder: 0,
+				},
+			},
+		},
+	}
+
+	repo := service.repo.(*fakeRBACRepo)
+	repo.menuTree = expected
+
+	tree, err := service.GetUserMenu(context.Background(), GetUserMenuInput{
+		TenantID: tenantID, UserCredentialsID: userID, AppClientID: appClientID,
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, expected, tree)
+}
+
+func TestGetUserMenuUsesTransactionManager(t *testing.T) {
+	repo := newFakeRBACRepo()
+	tx := newFakeTxManager()
+	service := NewRBACService(repo, tx, time.Now)
+
+	_, err := service.GetUserMenu(context.Background(), GetUserMenuInput{
+		TenantID:          uuid.New(),
+		UserCredentialsID: uuid.New(),
+		AppClientID:       uuid.New(),
+	})
+
+	require.NoError(t, err)
+	assert.GreaterOrEqual(t, tx.calls, 1)
 }

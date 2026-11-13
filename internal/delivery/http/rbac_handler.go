@@ -17,6 +17,7 @@ import (
 // RBACUseCase exposes RBAC operations to the HTTP layer.
 type RBACUseCase interface {
 	ResolvePermissions(ctx context.Context, input usecase.ResolvePermissionsInput) (*domain.PermissionUniverse, error)
+	GetUserMenu(ctx context.Context, input usecase.GetUserMenuInput) ([]domain.MenuTreeNode, error)
 }
 
 // RBACHandler handles RBAC-related HTTP requests.
@@ -72,4 +73,47 @@ func (h *RBACHandler) MyPermissions(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.PermissionUniverseEnvelope{
 		Data: dto.PermissionUniverseResponse{Functions: universe.Functions},
 	})
+}
+
+// MyMenu godoc
+// @Summary      Get my menu
+// @Description  Returns the nested menu tree visible to the authenticated user for the given app.
+// @Tags         RBAC
+// @Produce      json
+// @Security     BearerAuth
+// @Param        app_client_id query string true "Client application UUID"
+// @Success      200 {object} dto.MenuTreeEnvelope
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /rbac/my-menu [get]
+func (h *RBACHandler) MyMenu(c *gin.Context) {
+	sc, ok := enttenant.SessionContextFrom(c.Request.Context())
+	if !ok {
+		c.Error(unauthorizedError(ErrUnauthorized))
+		return
+	}
+
+	rawAppClientID := strings.TrimSpace(c.Query("app_client_id"))
+	if rawAppClientID == "" {
+		c.Error(apperror.NewValidation("missing_app_client", "app_client_id is required", nil))
+		return
+	}
+	appClientID, err := uuid.Parse(rawAppClientID)
+	if err != nil || appClientID == uuid.Nil {
+		c.Error(apperror.NewValidation("invalid_app_client", "app_client_id must be a valid UUID", err))
+		return
+	}
+
+	tree, err := h.uc.GetUserMenu(c.Request.Context(), usecase.GetUserMenuInput{
+		TenantID:          sc.TenantID,
+		UserCredentialsID: sc.UserID,
+		AppClientID:       appClientID,
+	})
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.MenuTreeEnvelope{Data: tree})
 }

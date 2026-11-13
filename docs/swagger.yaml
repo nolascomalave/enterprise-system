@@ -624,6 +624,13 @@ definitions:
     - password
     - tenant_id
     type: object
+  enterprise-system_internal_delivery_http_dto.MenuTreeEnvelope:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/enterprise-system_internal_domain.MenuTreeNode'
+        type: array
+    type: object
   enterprise-system_internal_delivery_http_dto.MergePartiesEnvelope:
     properties:
       data:
@@ -935,6 +942,40 @@ definitions:
     required:
     - code
     - temp_token
+    type: object
+  enterprise-system_internal_domain.MenuTreeNode:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/enterprise-system_internal_domain.MenuTreeNode'
+        type: array
+      code:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/enterprise-system_internal_domain.MenuTreeOption'
+        type: array
+      sort_order:
+        type: integer
+    type: object
+  enterprise-system_internal_domain.MenuTreeOption:
+    properties:
+      code:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      route:
+        type: string
+      sort_order:
+        type: integer
     type: object
 info:
   contact: {}
@@ -2180,6 +2221,40 @@ paths:
       summary: Platform status
       tags:
       - Platform
+  /rbac/my-menu:
+    get:
+      description: Returns the nested menu tree visible to the authenticated user
+        for the given app.
+      parameters:
+      - description: Client application UUID
+        in: query
+        name: app_client_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.MenuTreeEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get my menu
+      tags:
+      - RBAC
   /rbac/my-permissions:
     get:
       description: Returns the resolved universe of system function codes for the
