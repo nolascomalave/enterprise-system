@@ -23,6 +23,7 @@ import (
 
 	"enterprise-system/internal/auth"
 	deliveryhttp "enterprise-system/internal/delivery/http"
+	"enterprise-system/internal/infrastructure/cache"
 	emailinfra "enterprise-system/internal/infrastructure/email"
 	"enterprise-system/internal/infrastructure/enttenant"
 	"enterprise-system/internal/infrastructure/repository"
@@ -30,6 +31,7 @@ import (
 	"enterprise-system/internal/infrastructure/transaction"
 	"enterprise-system/internal/usecase"
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -67,6 +69,19 @@ func main() {
 	}
 
 	txManager := transaction.NewManager(client)
+
+	var redisClient *redis.Client
+	if redisURL := strings.TrimSpace(os.Getenv("REDIS_URL")); redisURL != "" {
+		redisClient, err = cache.NewRedisClient(context.Background(), redisURL)
+		if err != nil {
+			log.Printf("WARN: redis unavailable (%v); using in-memory rate limiter", err)
+			redisClient = nil
+		} else {
+			defer func() { _ = redisClient.Close() }()
+		}
+	} else {
+		log.Printf("WARN: REDIS_URL is not set; using in-memory rate limiter")
+	}
 
 	partyRepo := repository.NewPartyRepository(client)
 	partyService := usecase.NewPartyService(partyRepo, txManager, time.Now)

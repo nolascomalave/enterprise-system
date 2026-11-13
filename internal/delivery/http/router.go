@@ -7,6 +7,7 @@ import (
 	_ "enterprise-system/docs"
 	"enterprise-system/internal/auth"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -29,6 +30,7 @@ type Dependencies struct {
 	TenantRelationshipUseCase TenantRelationshipUseCase
 	PlatformAdminKey          string
 	TokenManager              *auth.Manager
+	RedisClient               *redis.Client
 
 	CookieSecure   bool
 	RefreshTTL     time.Duration
@@ -64,12 +66,18 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	if deps.AuthRateWindow <= 0 {
 		deps.AuthRateWindow = time.Minute
 	}
-	loginLimiter := NewRateLimiter(deps.AuthRateLimit, deps.AuthRateWindow)
-	refreshLimiter := NewRateLimiter(deps.AuthRateLimit, deps.AuthRateWindow)
-	twoFALimiter := NewRateLimiter(deps.AuthRateLimit, deps.AuthRateWindow)
-	forgotLimiter := NewRateLimiter(deps.AuthRateLimit, deps.AuthRateWindow)
-	resetLimiter := NewRateLimiter(deps.AuthRateLimit, deps.AuthRateWindow)
-	onboardingLimiter := NewRateLimiter(3, time.Hour)
+	newLimiter := func(prefix string, limit int, window time.Duration) *RateLimiter {
+		if deps.RedisClient != nil {
+			return NewRedisRateLimiter(deps.RedisClient, prefix, limit, window)
+		}
+		return NewRateLimiter(limit, window)
+	}
+	loginLimiter := newLimiter("login", deps.AuthRateLimit, deps.AuthRateWindow)
+	refreshLimiter := newLimiter("refresh", deps.AuthRateLimit, deps.AuthRateWindow)
+	twoFALimiter := newLimiter("2fa", deps.AuthRateLimit, deps.AuthRateWindow)
+	forgotLimiter := newLimiter("forgot-password", deps.AuthRateLimit, deps.AuthRateWindow)
+	resetLimiter := newLimiter("reset-password", deps.AuthRateLimit, deps.AuthRateWindow)
+	onboardingLimiter := newLimiter("onboarding", 3, time.Hour)
 
 	authHandler := NewAuthHandler(deps.AuthUseCase, deps.CookieSecure, deps.RefreshTTL)
 	accountHandler := NewAccountHandler(deps.AccountUseCase)

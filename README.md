@@ -8,6 +8,7 @@ API multi-tenant basada en **Party Model**, escrita en Go con Clean Architecture
 - Gin
 - Ent
 - PostgreSQL 18 (`uuidv7`, RLS, particiones de auditoría)
+- Redis 7+ (rate limiting distribuido; fallback a memoria)
 - JWT + refresh tokens rotativos + TOTP
 - Swagger/OpenAPI
 
@@ -15,6 +16,7 @@ API multi-tenant basada en **Party Model**, escrita en Go con Clean Architecture
 
 - Go 1.25+
 - PostgreSQL 18+
+- Redis 7+ (opcional en local: si no está disponible, el rate limiter usa memoria)
 - `psql`
 - `swag` (se ejecuta vía `go run` desde el Makefile)
 - Opcional: Atlas para aplicar el esquema Ent
@@ -26,6 +28,7 @@ API multi-tenant basada en **Party Model**, escrita en Go con Clean Architecture
 | `DATABASE_URL` | Sí | — | DSN de PostgreSQL |
 | `JWT_SECRET` | Sí | — | Secreto HS256 de al menos 32 bytes |
 | `JWT_ISSUER` | No | `enterprise-system` | Emisor de los JWT |
+| `REDIS_URL` | No | `redis://localhost:6379/0` | Redis para rate limiting distribuido; si falta o falla, se usa memoria |
 | `PORT` | No | `8080` | Puerto HTTP |
 | `COOKIE_SECURE` | No | `true` | `false` solo para HTTP local |
 | `CORS_ALLOWED_ORIGINS` | No | `http://localhost:3000` | Orígenes exactos separados por coma; `*` permite todos sin credenciales |
@@ -39,11 +42,35 @@ Ejemplo para desarrollo local:
 ```bash
 export DATABASE_URL='postgresql://ai_mcp_user:password@localhost:5432/enterprise_system'
 export JWT_SECRET='01234567890123456789012345678901'
+export REDIS_URL='redis://localhost:6379/0'
 export COOKIE_SECURE=false
 export CORS_ALLOWED_ORIGINS='http://localhost:3000'
 export GIN_MODE=release
 go run ./cmd/api
 ```
+
+## Redis para desarrollo local
+
+El rate limiter de autenticación usa Redis cuando `REDIS_URL` está definida y la
+conexión funciona. Sin Redis, la API arranca igualmente y usa el limitador en
+memoria (fail-open), con un log de advertencia.
+
+Instalación nativa en macOS (sin Docker):
+
+```bash
+brew install redis
+brew services start redis
+redis-cli ping   # debe responder PONG
+```
+
+Para dos o más instancias de la API, todas deben apuntar al mismo Redis:
+
+```bash
+export REDIS_URL='redis://localhost:6379/0'
+```
+
+`REDIS_URL` también se puede omitir; en ese caso el rate limiter usa memoria y
+los contadores no se comparten entre instancias.
 
 ## Diagrama de base de datos
 
