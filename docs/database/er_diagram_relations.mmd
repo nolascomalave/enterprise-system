@@ -1,0 +1,120 @@
+erDiagram
+    audit_change_log {}
+    global_client_applications {}
+    global_contact_mechanisms {}
+    global_countries {}
+    global_identity_document_type_translations {}
+    global_identity_document_types {}
+    global_locales {}
+    global_location_translations {}
+    global_locations {}
+    global_menu_template_functions {}
+    global_menu_templates {}
+    global_name_types {}
+    global_role_type_translations {}
+    global_role_types {}
+    global_subscriptions {}
+    global_system_functions {}
+    tenants_address_validities {}
+    tenants_addresses {}
+    tenants_attached_documents {}
+    tenants_corporate_groups {}
+    tenants_department_address_validities {}
+    tenants_department_addresses {}
+    tenants_department_contact_mechanism_validities {}
+    tenants_department_contact_mechanisms {}
+    tenants_department_group_assignments {}
+    tenants_department_menu_option_validities {}
+    tenants_department_menu_options {}
+    tenants_department_translations {}
+    tenants_departments {}
+    tenants_employee_assignments {}
+    tenants_employee_menu_option_overrides {}
+    tenants_employees {}
+    tenants_job_families {}
+    tenants_jobs {}
+    tenants_menu_categories {}
+    tenants_menu_option_categories {}
+    tenants_menu_option_functions {}
+    tenants_menu_options {}
+    tenants_organization_profiles {}
+    tenants_parties {}
+    tenants_party_contact_mechanism_validities {}
+    tenants_party_contact_mechanisms {}
+    tenants_party_identity_document_validities {}
+    tenants_party_identity_documents {}
+    tenants_party_merge_log {}
+    tenants_party_name_validities {}
+    tenants_party_names {}
+    tenants_party_nationalities {}
+    tenants_party_roles {}
+    tenants_password_reset_tokens {}
+    tenants_person_profiles {}
+    tenants_position_menu_option_validities {}
+    tenants_position_menu_options {}
+    tenants_role_menu_options {}
+    tenants_sessions {}
+    tenants_tenant_roles {}
+    tenants_user_credentials {}
+    tenants_user_role_assignments {}
+    global_subscriptions ||--o{ global_client_applications : "client_applications_tenant_id_fkey"
+    global_identity_document_types ||--o{ global_identity_document_type_translations : "identity_document_type_translati_identity_document_type_id_fkey"
+    global_locales ||--o{ global_identity_document_type_translations : "identity_document_type_translations_locale_code_fkey"
+    global_locales ||--o{ global_location_translations : "location_translations_locale_fk"
+    global_locations ||--o{ global_location_translations : "location_translations_location_id_fkey"
+    global_countries ||--o{ global_locations : "locations_country_code_fkey"
+    global_locations ||--o{ global_locations : "locations_parent_id_fkey"
+    global_system_functions ||--o{ global_menu_template_functions : "menu_template_functions_system_function_id_fkey"
+    global_menu_templates ||--o{ global_menu_template_functions : "menu_template_functions_template_id_fkey"
+    global_locales ||--o{ global_role_type_translations : "role_type_translations_locale_code_fkey"
+    global_role_types ||--o{ global_role_type_translations : "role_type_translations_role_type_id_fkey"
+    tenants_addresses ||--o{ tenants_address_validities : "address_validities_address_fk"
+    tenants_parties ||--o{ tenants_addresses : "addresses_parties_addresses"
+    tenants_department_addresses ||--o{ tenants_department_address_validities : "department_address_validities_address_fk"
+    tenants_departments ||--o{ tenants_department_addresses : "department_addresses_department_fk"
+    tenants_department_contact_mechanisms ||--o{ tenants_department_contact_mechanism_validities : "department_contact_mechanism_validities_contact_fk"
+    tenants_departments ||--o{ tenants_department_contact_mechanisms : "department_contact_mechanisms_department_fk"
+    tenants_departments ||--o{ tenants_department_group_assignments : "department_group_assignments_department_fk"
+    tenants_corporate_groups ||--o{ tenants_department_group_assignments : "department_group_assignments_group_fk"
+    tenants_department_menu_options ||--o{ tenants_department_menu_option_validities : "department_menu_option_validities_parent_fk"
+    tenants_departments ||--o{ tenants_department_menu_options : "department_menu_options_department_fk"
+    tenants_menu_options ||--o{ tenants_department_menu_options : "department_menu_options_option_fk"
+    tenants_departments ||--o{ tenants_department_translations : "department_translations_department_fk"
+    tenants_departments ||--o{ tenants_departments : "departments_departments_children"
+    tenants_employees ||--o{ tenants_departments : "departments_employees_managed_departments"
+    tenants_departments ||--o{ tenants_employee_assignments : "employee_assignments_departments_assignments"
+    tenants_employees ||--o{ tenants_employee_assignments : "employee_assignments_employees_assignments"
+    tenants_jobs ||--o{ tenants_employee_assignments : "employee_assignments_jobs_assignments"
+    tenants_employees ||--o{ tenants_employee_menu_option_overrides : "employee_menu_option_overrides_employee_party_id_fkey"
+    tenants_departments ||--o{ tenants_employees : "employees_departments_employees"
+    tenants_employees ||--o{ tenants_employees : "employees_employees_direct_reports"
+    tenants_jobs ||--o{ tenants_employees : "employees_jobs_employees"
+    tenants_job_families ||--o{ tenants_jobs : "jobs_job_families_jobs"
+    tenants_menu_categories ||--o{ tenants_menu_categories : "menu_categories_parent_id_fkey"
+    tenants_menu_categories ||--o{ tenants_menu_option_categories : "menu_option_categories_category_fk"
+    tenants_menu_options ||--o{ tenants_menu_option_categories : "menu_option_categories_option_fk"
+    tenants_menu_options ||--o{ tenants_menu_option_functions : "menu_option_functions_option_fk"
+    tenants_parties ||--o{ tenants_organization_profiles : "organization_profiles_parties_organization_profile"
+    tenants_parties ||--o{ tenants_parties : "parties_parties_merged_parties"
+    tenants_party_contact_mechanisms ||--o{ tenants_party_contact_mechanism_validities : "party_contact_mechanism_validities_relation_fk"
+    tenants_parties ||--o{ tenants_party_contact_mechanisms : "party_contact_mechanisms_parties_party_contact_mechanisms"
+    tenants_party_identity_documents ||--o{ tenants_party_identity_document_validities : "party_identity_document_validities_document_fk"
+    tenants_parties ||--o{ tenants_party_identity_documents : "party_identity_documents_party_fk"
+    tenants_parties ||--o{ tenants_party_merge_log : "party_merge_log_parties_merge_sources"
+    tenants_parties ||--o{ tenants_party_merge_log : "party_merge_log_parties_merge_targets"
+    tenants_party_names ||--o{ tenants_party_name_validities : "party_name_validities_name_fk"
+    tenants_parties ||--o{ tenants_party_names : "party_names_party_fk"
+    tenants_parties ||--o{ tenants_party_nationalities : "party_nationalities_party_fk"
+    tenants_parties ||--o{ tenants_party_roles : "party_roles_parties_party_roles"
+    tenants_parties ||--o{ tenants_password_reset_tokens : "password_reset_tokens_parties_password_reset_tokens"
+    tenants_parties ||--o{ tenants_person_profiles : "person_profiles_parties_person_profile"
+    tenants_position_menu_options ||--o{ tenants_position_menu_option_validities : "position_menu_option_validities_parent_fk"
+    tenants_jobs ||--o{ tenants_position_menu_options : "position_menu_options_job_fk"
+    tenants_menu_options ||--o{ tenants_position_menu_options : "position_menu_options_option_fk"
+    tenants_menu_options ||--o{ tenants_role_menu_options : "role_menu_options_option_fk"
+    tenants_tenant_roles ||--o{ tenants_role_menu_options : "role_menu_options_role_fk"
+    tenants_parties ||--o{ tenants_sessions : "sessions_parties_sessions"
+    tenants_parties ||--o{ tenants_user_credentials : "user_credentials_parties_credentials"
+    tenants_party_contact_mechanisms ||--o{ tenants_user_credentials : "user_credentials_party_contact_mechanisms_credentials"
+    tenants_tenant_roles ||--o{ tenants_user_role_assignments : "user_role_assignments_role_fk"
+    tenants_user_credentials ||--o{ tenants_user_role_assignments : "user_role_assignments_user_fk"

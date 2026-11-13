@@ -12,22 +12,23 @@ import (
 )
 
 type Dependencies struct {
-	PartyUseCase         PartyUseCase
-	AuthUseCase          AuthUseCase
-	AccountUseCase       AccountUseCase
-	OnboardingUseCase    OnboardingUseCase
-	OrgStructureUseCase  OrgStructureUseCase
-	MergePartiesUseCase  MergePartiesUseCase
-	DocumentUseCase      DocumentUseCase
-	PartyNameUseCase     PartyNameUseCase
-	LocationUseCase      LocationUseCase
-	IdentityUseCase      IdentityUseCase
-	DepartmentMDMUseCase DepartmentMDMUseCase
-	OAuthUseCase         OAuthUseCase
-	CatalogUseCase       CatalogUseCase
-	RBACUseCase          RBACUseCase
-	PlatformAdminKey     string
-	TokenManager         *auth.Manager
+	PartyUseCase              PartyUseCase
+	AuthUseCase               AuthUseCase
+	AccountUseCase            AccountUseCase
+	OnboardingUseCase         OnboardingUseCase
+	OrgStructureUseCase       OrgStructureUseCase
+	MergePartiesUseCase       MergePartiesUseCase
+	DocumentUseCase           DocumentUseCase
+	PartyNameUseCase          PartyNameUseCase
+	LocationUseCase           LocationUseCase
+	IdentityUseCase           IdentityUseCase
+	DepartmentMDMUseCase      DepartmentMDMUseCase
+	OAuthUseCase              OAuthUseCase
+	CatalogUseCase            CatalogUseCase
+	RBACUseCase               RBACUseCase
+	TenantRelationshipUseCase TenantRelationshipUseCase
+	PlatformAdminKey          string
+	TokenManager              *auth.Manager
 
 	CookieSecure   bool
 	RefreshTTL     time.Duration
@@ -83,6 +84,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	oauthHandler := NewOAuthHandler(deps.OAuthUseCase)
 	catalogHandler := NewCatalogHandler(deps.CatalogUseCase)
 	rbacHandler := NewRBACHandler(deps.RBACUseCase)
+	tenantRelationshipHandler := NewTenantRelationshipHandler(deps.TenantRelationshipUseCase)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -138,6 +140,12 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.GET("/platform/status", oauthHandler.PlatformStatus)
 		protected.GET("/rbac/my-permissions", rbacHandler.MyPermissions)
 		protected.GET("/rbac/my-menu", rbacHandler.MyMenu)
+		protected.POST("/tenant-relationships/initiate", tenantRelationshipHandler.Initiate)
+		protected.POST("/tenant-relationships/consume-token", tenantRelationshipHandler.ConsumeToken)
+		protected.POST("/tenant-relationships/:id/emit-token", tenantRelationshipHandler.EmitToken)
+		protected.POST("/tenant-relationships/:id/reject", tenantRelationshipHandler.Reject)
+		protected.POST("/tenant-relationships/:id/cancel", tenantRelationshipHandler.Cancel)
+		protected.POST("/tenant-relationships/:id/revoke", tenantRelationshipHandler.Revoke)
 		protected.POST("/auth/change-password", accountHandler.ChangePassword)
 	}
 

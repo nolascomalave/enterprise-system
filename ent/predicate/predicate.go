@@ -165,8 +165,17 @@ type Subscription func(*sql.Selector)
 // SystemFunction is the predicate function for systemfunction builders.
 type SystemFunction func(*sql.Selector)
 
+// TenantRelationship is the predicate function for tenantrelationship builders.
+type TenantRelationship func(*sql.Selector)
+
+// TenantRelationshipInvite is the predicate function for tenantrelationshipinvite builders.
+type TenantRelationshipInvite func(*sql.Selector)
+
 // TenantRole is the predicate function for tenantrole builders.
 type TenantRole func(*sql.Selector)
+
+// TenantTransfer is the predicate function for tenanttransfer builders.
+type TenantTransfer func(*sql.Selector)
 
 // UserCredentials is the predicate function for usercredentials builders.
 type UserCredentials func(*sql.Selector)

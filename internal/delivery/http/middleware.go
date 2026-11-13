@@ -105,7 +105,10 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrTenantRoleNotFound),
 		errors.Is(err, domain.ErrRoleAssignmentNotFound),
 		errors.Is(err, domain.ErrPermissionNotFound),
-		errors.Is(err, domain.ErrMenuOptionFunctionNotFound):
+		errors.Is(err, domain.ErrMenuOptionFunctionNotFound),
+		errors.Is(err, domain.ErrTenantRelationshipNotFound),
+		errors.Is(err, domain.ErrRelationshipInviteNotFound),
+		errors.Is(err, domain.ErrTenantTransferNotFound):
 		return http.StatusNotFound, "not_found"
 	case errors.Is(err, context.DeadlineExceeded):
 		return http.StatusGatewayTimeout, "timeout"
@@ -120,8 +123,11 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrIdentityDocumentExists),
 		errors.Is(err, domain.ErrCorporateGroupTenantMismatch),
 		errors.Is(err, domain.ErrDepartmentTenantMismatch),
-		errors.Is(err, domain.ErrPartyTenantMismatch):
+		errors.Is(err, domain.ErrPartyTenantMismatch),
+		errors.Is(err, domain.ErrRelationshipAlreadyPending):
 		return http.StatusConflict, "conflict"
+	case errors.Is(err, domain.ErrUnauthorizedRelationshipAction):
+		return http.StatusForbidden, "forbidden"
 	case errors.Is(err, ErrBadRequest),
 		errors.Is(err, domain.ErrInvalidTenantRegistration),
 		errors.Is(err, auth.Err2FANotEnabled),
@@ -159,7 +165,15 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrInvalidTenantRole),
 		errors.Is(err, domain.ErrInvalidRoleAssignment),
 		errors.Is(err, domain.ErrInvalidPermission),
-		errors.Is(err, domain.ErrInvalidMenuOptionFunction):
+		errors.Is(err, domain.ErrInvalidMenuOptionFunction),
+		errors.Is(err, domain.ErrTenantInactive),
+		errors.Is(err, domain.ErrInvalidTenantRelationship),
+		errors.Is(err, domain.ErrInvalidRelationshipTransition),
+		errors.Is(err, domain.ErrInvalidRelationshipInvite),
+		errors.Is(err, domain.ErrInviteNotActive),
+		errors.Is(err, domain.ErrTokenRevoked),
+		errors.Is(err, domain.ErrInvalidTenantTransfer),
+		errors.Is(err, domain.ErrRelationshipCycleDetected):
 		return http.StatusBadRequest, "bad_request"
 	default:
 		return http.StatusInternalServerError, "internal_error"

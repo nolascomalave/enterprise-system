@@ -128,6 +128,9 @@ func main() {
 	)
 	rbacRepo := repository.NewRBACRepository(client)
 	rbacService := usecase.NewRBACService(rbacRepo, txManager, time.Now)
+	tenantRelationshipService := usecase.NewTenantRelationshipService(
+		repository.NewTenantRelationshipRepository(client), txManager, time.Now,
+	)
 
 	allowedOrigins := splitCSV(os.Getenv("CORS_ALLOWED_ORIGINS"))
 	if len(allowedOrigins) == 0 {
@@ -135,28 +138,29 @@ func main() {
 	}
 
 	router := deliveryhttp.NewRouter(deliveryhttp.Dependencies{
-		PartyUseCase:         partyService,
-		AuthUseCase:          authService,
-		AccountUseCase:       accountService,
-		OnboardingUseCase:    onboardingService,
-		OrgStructureUseCase:  orgService,
-		MergePartiesUseCase:  mergeService,
-		DocumentUseCase:      documentService,
-		PartyNameUseCase:     partyNameService,
-		LocationUseCase:      locationService,
-		IdentityUseCase:      identityService,
-		DepartmentMDMUseCase: departmentMDMService,
-		OAuthUseCase:         clientApplicationService,
-		CatalogUseCase:       catalogService,
-		RBACUseCase:          rbacService,
-		PlatformAdminKey:     os.Getenv("PLATFORM_ADMIN_KEY"),
-		TokenManager:         tokenManager,
-		CookieSecure:         os.Getenv("COOKIE_SECURE") != "false",
-		RefreshTTL:           30 * 24 * time.Hour,
-		AuthRateLimit:        5,
-		AuthRateWindow:       time.Minute,
-		TrustedProxies:       splitCSV(os.Getenv("TRUSTED_PROXIES")),
-		AllowedOrigins:       allowedOrigins,
+		PartyUseCase:              partyService,
+		AuthUseCase:               authService,
+		AccountUseCase:            accountService,
+		OnboardingUseCase:         onboardingService,
+		OrgStructureUseCase:       orgService,
+		MergePartiesUseCase:       mergeService,
+		DocumentUseCase:           documentService,
+		PartyNameUseCase:          partyNameService,
+		LocationUseCase:           locationService,
+		IdentityUseCase:           identityService,
+		DepartmentMDMUseCase:      departmentMDMService,
+		OAuthUseCase:              clientApplicationService,
+		CatalogUseCase:            catalogService,
+		RBACUseCase:               rbacService,
+		TenantRelationshipUseCase: tenantRelationshipService,
+		PlatformAdminKey:          os.Getenv("PLATFORM_ADMIN_KEY"),
+		TokenManager:              tokenManager,
+		CookieSecure:              os.Getenv("COOKIE_SECURE") != "false",
+		RefreshTTL:                30 * 24 * time.Hour,
+		AuthRateLimit:             5,
+		AuthRateWindow:            time.Minute,
+		TrustedProxies:            splitCSV(os.Getenv("TRUSTED_PROXIES")),
+		AllowedOrigins:            allowedOrigins,
 	})
 
 	port := os.Getenv("PORT")

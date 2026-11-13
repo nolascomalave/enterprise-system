@@ -24,15 +24,22 @@ var rbacRouteFunctions = map[string]string{
 	"GET /api/v1/employees":                  "org:read",
 	"POST /api/v1/employees":                 "org:write",
 
-	"POST /api/v1/documents":                 "documents:write",
-	"POST /api/v1/client-applications":       "admin:write",
-	"GET /api/v1/platform/status":            "platform:admin",
+	"POST /api/v1/documents":           "documents:write",
+	"POST /api/v1/client-applications": "admin:write",
+	"GET /api/v1/platform/status":      "platform:admin",
 
-	"GET /api/v1/rbac/my-permissions":        "rbac:read",
-	"GET /api/v1/rbac/my-menu":               "rbac:read",
+	"GET /api/v1/rbac/my-permissions": "rbac:read",
+	"GET /api/v1/rbac/my-menu":        "rbac:read",
 
-	"POST /api/v1/auth/change-password":      "account:write",
-	"POST /api/v1/corporate-groups":          "org:write",
+	"POST /api/v1/auth/change-password": "account:write",
+	"POST /api/v1/corporate-groups":     "org:write",
+
+	"POST /api/v1/tenant-relationships/initiate":       "org:write",
+	"POST /api/v1/tenant-relationships/consume-token":  "org:write",
+	"POST /api/v1/tenant-relationships/:id/emit-token": "org:write",
+	"POST /api/v1/tenant-relationships/:id/reject":     "org:write",
+	"POST /api/v1/tenant-relationships/:id/cancel":     "org:write",
+	"POST /api/v1/tenant-relationships/:id/revoke":     "org:write",
 }
 
 // requiredRBACFunction returns the system function required for a route.

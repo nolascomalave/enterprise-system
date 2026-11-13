@@ -2042,6 +2042,404 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/tenant-relationships/consume-token": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Subsidiary-only action. The subsidiary is taken from the JWT; no tenant_id is accepted from the body. Approves the relationship after cycle validation.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tenant Relationships"
+                ],
+                "summary": "Consume an invite token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client application UUID",
+                        "name": "X-App-Client-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Invite token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ConsumeInviteTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tenant-relationships/initiate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "The authenticated subsidiary requests affiliation to a holding. The subsidiary is taken from the JWT.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tenant Relationships"
+                ],
+                "summary": "Initiate a PENDING holding/subsidiary relationship",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client application UUID",
+                        "name": "X-App-Client-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Holding and relationship type",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.InitiateRelationshipRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tenant-relationships/{id}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Subsidiary-only action. Cancels the relationship and invalidates its active invites.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tenant Relationships"
+                ],
+                "summary": "Cancel a PENDING relationship",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client application UUID",
+                        "name": "X-App-Client-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Relationship UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.RelationshipReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tenant-relationships/{id}/emit-token": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Holding-only action. Emits the invite token once for a PENDING relationship.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tenant Relationships"
+                ],
+                "summary": "Emit an invite token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client application UUID",
+                        "name": "X-App-Client-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Relationship UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.EmitInviteTokenEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tenant-relationships/{id}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Holding-only action. Rejects the relationship and invalidates its active invites.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tenant Relationships"
+                ],
+                "summary": "Reject a PENDING relationship",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client application UUID",
+                        "name": "X-App-Client-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Relationship UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Reason",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.RelationshipReasonRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/tenant-relationships/{id}/revoke": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Holding-only action. Revokes the relationship.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tenant Relationships"
+                ],
+                "summary": "Revoke an APPROVED relationship",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client application UUID",
+                        "name": "X-App-Client-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Relationship UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -2288,6 +2686,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "token_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.ConsumeInviteTokenRequest": {
+            "type": "object",
+            "required": [
+                "invite_code"
+            ],
+            "properties": {
+                "invite_code": {
                     "type": "string"
                 }
             }
@@ -2738,6 +3147,25 @@ const docTemplate = `{
                 }
             }
         },
+        "enterprise-system_internal_delivery_http_dto.EmitInviteTokenEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.EmitInviteTokenResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.EmitInviteTokenResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "invite_code": {
+                    "type": "string"
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.EmployeeEnvelope": {
             "type": "object",
             "properties": {
@@ -2842,6 +3270,21 @@ const docTemplate = `{
                 "timestamp": {
                     "type": "string",
                     "example": "2026-11-10T12:00:00Z"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.InitiateRelationshipRequest": {
+            "type": "object",
+            "required": [
+                "holding_tenant_id",
+                "relationship_type"
+            ],
+            "properties": {
+                "holding_tenant_id": {
+                    "type": "string"
+                },
+                "relationship_type": {
+                    "type": "string"
                 }
             }
         },
@@ -3403,6 +3846,14 @@ const docTemplate = `{
                 }
             }
         },
+        "enterprise-system_internal_delivery_http_dto.RelationshipReasonRequest": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.ResetPasswordRequest": {
             "type": "object",
             "required": [
@@ -3415,6 +3866,52 @@ const docTemplate = `{
                     "minLength": 8
                 },
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TenantRelationshipResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.TenantRelationshipResponse": {
+            "type": "object",
+            "properties": {
+                "approved_at": {
+                    "type": "string"
+                },
+                "canceled_at": {
+                    "type": "string"
+                },
+                "ends_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "rejected_at": {
+                    "type": "string"
+                },
+                "rejection_reason": {
+                    "type": "string"
+                },
+                "relationship_type": {
+                    "type": "string"
+                },
+                "requested_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tenant_id_holding": {
+                    "type": "string"
+                },
+                "tenant_id_subsidiary": {
                     "type": "string"
                 }
             }

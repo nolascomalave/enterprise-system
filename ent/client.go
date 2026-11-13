@@ -64,7 +64,10 @@ import (
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/systemfunction"
+	"enterprise-system/ent/tenantrelationship"
+	"enterprise-system/ent/tenantrelationshipinvite"
 	"enterprise-system/ent/tenantrole"
+	"enterprise-system/ent/tenanttransfer"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 
@@ -189,8 +192,14 @@ type Client struct {
 	Subscription *SubscriptionClient
 	// SystemFunction is the client for interacting with the SystemFunction builders.
 	SystemFunction *SystemFunctionClient
+	// TenantRelationship is the client for interacting with the TenantRelationship builders.
+	TenantRelationship *TenantRelationshipClient
+	// TenantRelationshipInvite is the client for interacting with the TenantRelationshipInvite builders.
+	TenantRelationshipInvite *TenantRelationshipInviteClient
 	// TenantRole is the client for interacting with the TenantRole builders.
 	TenantRole *TenantRoleClient
+	// TenantTransfer is the client for interacting with the TenantTransfer builders.
+	TenantTransfer *TenantTransferClient
 	// UserCredentials is the client for interacting with the UserCredentials builders.
 	UserCredentials *UserCredentialsClient
 	// UserRoleAssignment is the client for interacting with the UserRoleAssignment builders.
@@ -259,7 +268,10 @@ func (c *Client) init() {
 	c.Session = NewSessionClient(c.config)
 	c.Subscription = NewSubscriptionClient(c.config)
 	c.SystemFunction = NewSystemFunctionClient(c.config)
+	c.TenantRelationship = NewTenantRelationshipClient(c.config)
+	c.TenantRelationshipInvite = NewTenantRelationshipInviteClient(c.config)
 	c.TenantRole = NewTenantRoleClient(c.config)
+	c.TenantTransfer = NewTenantTransferClient(c.config)
 	c.UserCredentials = NewUserCredentialsClient(c.config)
 	c.UserRoleAssignment = NewUserRoleAssignmentClient(c.config)
 }
@@ -410,7 +422,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Session:                            NewSessionClient(cfg),
 		Subscription:                       NewSubscriptionClient(cfg),
 		SystemFunction:                     NewSystemFunctionClient(cfg),
+		TenantRelationship:                 NewTenantRelationshipClient(cfg),
+		TenantRelationshipInvite:           NewTenantRelationshipInviteClient(cfg),
 		TenantRole:                         NewTenantRoleClient(cfg),
+		TenantTransfer:                     NewTenantTransferClient(cfg),
 		UserCredentials:                    NewUserCredentialsClient(cfg),
 		UserRoleAssignment:                 NewUserRoleAssignmentClient(cfg),
 	}, nil
@@ -485,7 +500,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Session:                            NewSessionClient(cfg),
 		Subscription:                       NewSubscriptionClient(cfg),
 		SystemFunction:                     NewSystemFunctionClient(cfg),
+		TenantRelationship:                 NewTenantRelationshipClient(cfg),
+		TenantRelationshipInvite:           NewTenantRelationshipInviteClient(cfg),
 		TenantRole:                         NewTenantRoleClient(cfg),
+		TenantTransfer:                     NewTenantTransferClient(cfg),
 		UserCredentials:                    NewUserCredentialsClient(cfg),
 		UserRoleAssignment:                 NewUserRoleAssignmentClient(cfg),
 	}, nil
@@ -533,7 +551,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.PartyNameValidity, c.PartyNationality, c.PartyRole, c.PasswordResetToken,
 		c.PersonProfile, c.PositionMenuOption, c.PositionMenuOptionValidity,
 		c.RoleMenuOption, c.RoleType, c.RoleTypeTranslation, c.Session, c.Subscription,
-		c.SystemFunction, c.TenantRole, c.UserCredentials, c.UserRoleAssignment,
+		c.SystemFunction, c.TenantRelationship, c.TenantRelationshipInvite,
+		c.TenantRole, c.TenantTransfer, c.UserCredentials, c.UserRoleAssignment,
 	} {
 		n.Use(hooks...)
 	}
@@ -559,7 +578,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.PartyNameValidity, c.PartyNationality, c.PartyRole, c.PasswordResetToken,
 		c.PersonProfile, c.PositionMenuOption, c.PositionMenuOptionValidity,
 		c.RoleMenuOption, c.RoleType, c.RoleTypeTranslation, c.Session, c.Subscription,
-		c.SystemFunction, c.TenantRole, c.UserCredentials, c.UserRoleAssignment,
+		c.SystemFunction, c.TenantRelationship, c.TenantRelationshipInvite,
+		c.TenantRole, c.TenantTransfer, c.UserCredentials, c.UserRoleAssignment,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -674,8 +694,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Subscription.mutate(ctx, m)
 	case *SystemFunctionMutation:
 		return c.SystemFunction.mutate(ctx, m)
+	case *TenantRelationshipMutation:
+		return c.TenantRelationship.mutate(ctx, m)
+	case *TenantRelationshipInviteMutation:
+		return c.TenantRelationshipInvite.mutate(ctx, m)
 	case *TenantRoleMutation:
 		return c.TenantRole.mutate(ctx, m)
+	case *TenantTransferMutation:
+		return c.TenantTransfer.mutate(ctx, m)
 	case *UserCredentialsMutation:
 		return c.UserCredentials.mutate(ctx, m)
 	case *UserRoleAssignmentMutation:
@@ -12180,6 +12206,329 @@ func (c *SystemFunctionClient) mutate(ctx context.Context, m *SystemFunctionMuta
 	}
 }
 
+// TenantRelationshipClient is a client for the TenantRelationship schema.
+type TenantRelationshipClient struct {
+	config
+}
+
+// NewTenantRelationshipClient returns a client for the TenantRelationship from the given config.
+func NewTenantRelationshipClient(c config) *TenantRelationshipClient {
+	return &TenantRelationshipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tenantrelationship.Hooks(f(g(h())))`.
+func (c *TenantRelationshipClient) Use(hooks ...Hook) {
+	c.hooks.TenantRelationship = append(c.hooks.TenantRelationship, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tenantrelationship.Intercept(f(g(h())))`.
+func (c *TenantRelationshipClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TenantRelationship = append(c.inters.TenantRelationship, interceptors...)
+}
+
+// Create returns a builder for creating a TenantRelationship entity.
+func (c *TenantRelationshipClient) Create() *TenantRelationshipCreate {
+	mutation := newTenantRelationshipMutation(c.config, OpCreate)
+	return &TenantRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TenantRelationship entities.
+func (c *TenantRelationshipClient) CreateBulk(builders ...*TenantRelationshipCreate) *TenantRelationshipCreateBulk {
+	return &TenantRelationshipCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TenantRelationshipClient) MapCreateBulk(slice any, setFunc func(*TenantRelationshipCreate, int)) *TenantRelationshipCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TenantRelationshipCreateBulk{err: fmt.Errorf("calling to TenantRelationshipClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TenantRelationshipCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TenantRelationshipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TenantRelationship.
+func (c *TenantRelationshipClient) Update() *TenantRelationshipUpdate {
+	mutation := newTenantRelationshipMutation(c.config, OpUpdate)
+	return &TenantRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TenantRelationshipClient) UpdateOne(_m *TenantRelationship) *TenantRelationshipUpdateOne {
+	mutation := newTenantRelationshipMutation(c.config, OpUpdateOne, withTenantRelationship(_m))
+	return &TenantRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TenantRelationshipClient) UpdateOneID(id uuid.UUID) *TenantRelationshipUpdateOne {
+	mutation := newTenantRelationshipMutation(c.config, OpUpdateOne, withTenantRelationshipID(id))
+	return &TenantRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TenantRelationship.
+func (c *TenantRelationshipClient) Delete() *TenantRelationshipDelete {
+	mutation := newTenantRelationshipMutation(c.config, OpDelete)
+	return &TenantRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TenantRelationshipClient) DeleteOne(_m *TenantRelationship) *TenantRelationshipDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TenantRelationshipClient) DeleteOneID(id uuid.UUID) *TenantRelationshipDeleteOne {
+	builder := c.Delete().Where(tenantrelationship.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TenantRelationshipDeleteOne{builder}
+}
+
+// Query returns a query builder for TenantRelationship.
+func (c *TenantRelationshipClient) Query() *TenantRelationshipQuery {
+	return &TenantRelationshipQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTenantRelationship},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TenantRelationship entity by its id.
+func (c *TenantRelationshipClient) Get(ctx context.Context, id uuid.UUID) (*TenantRelationship, error) {
+	return c.Query().Where(tenantrelationship.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TenantRelationshipClient) GetX(ctx context.Context, id uuid.UUID) *TenantRelationship {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryInvites queries the invites edge of a TenantRelationship.
+func (c *TenantRelationshipClient) QueryInvites(_m *TenantRelationship) *TenantRelationshipInviteQuery {
+	query := (&TenantRelationshipInviteClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenantrelationship.Table, tenantrelationship.FieldID, id),
+			sqlgraph.To(tenantrelationshipinvite.Table, tenantrelationshipinvite.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, tenantrelationship.InvitesTable, tenantrelationship.InvitesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.TenantRelationshipInvite
+		step.Edge.Schema = schemaConfig.TenantRelationshipInvite
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTransfers queries the transfers edge of a TenantRelationship.
+func (c *TenantRelationshipClient) QueryTransfers(_m *TenantRelationship) *TenantTransferQuery {
+	query := (&TenantTransferClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenantrelationship.Table, tenantrelationship.FieldID, id),
+			sqlgraph.To(tenanttransfer.Table, tenanttransfer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, tenantrelationship.TransfersTable, tenantrelationship.TransfersColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.TenantTransfer
+		step.Edge.Schema = schemaConfig.TenantTransfer
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TenantRelationshipClient) Hooks() []Hook {
+	return c.hooks.TenantRelationship
+}
+
+// Interceptors returns the client interceptors.
+func (c *TenantRelationshipClient) Interceptors() []Interceptor {
+	return c.inters.TenantRelationship
+}
+
+func (c *TenantRelationshipClient) mutate(ctx context.Context, m *TenantRelationshipMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TenantRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TenantRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TenantRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TenantRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TenantRelationship mutation op: %q", m.Op())
+	}
+}
+
+// TenantRelationshipInviteClient is a client for the TenantRelationshipInvite schema.
+type TenantRelationshipInviteClient struct {
+	config
+}
+
+// NewTenantRelationshipInviteClient returns a client for the TenantRelationshipInvite from the given config.
+func NewTenantRelationshipInviteClient(c config) *TenantRelationshipInviteClient {
+	return &TenantRelationshipInviteClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tenantrelationshipinvite.Hooks(f(g(h())))`.
+func (c *TenantRelationshipInviteClient) Use(hooks ...Hook) {
+	c.hooks.TenantRelationshipInvite = append(c.hooks.TenantRelationshipInvite, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tenantrelationshipinvite.Intercept(f(g(h())))`.
+func (c *TenantRelationshipInviteClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TenantRelationshipInvite = append(c.inters.TenantRelationshipInvite, interceptors...)
+}
+
+// Create returns a builder for creating a TenantRelationshipInvite entity.
+func (c *TenantRelationshipInviteClient) Create() *TenantRelationshipInviteCreate {
+	mutation := newTenantRelationshipInviteMutation(c.config, OpCreate)
+	return &TenantRelationshipInviteCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TenantRelationshipInvite entities.
+func (c *TenantRelationshipInviteClient) CreateBulk(builders ...*TenantRelationshipInviteCreate) *TenantRelationshipInviteCreateBulk {
+	return &TenantRelationshipInviteCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TenantRelationshipInviteClient) MapCreateBulk(slice any, setFunc func(*TenantRelationshipInviteCreate, int)) *TenantRelationshipInviteCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TenantRelationshipInviteCreateBulk{err: fmt.Errorf("calling to TenantRelationshipInviteClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TenantRelationshipInviteCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TenantRelationshipInviteCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TenantRelationshipInvite.
+func (c *TenantRelationshipInviteClient) Update() *TenantRelationshipInviteUpdate {
+	mutation := newTenantRelationshipInviteMutation(c.config, OpUpdate)
+	return &TenantRelationshipInviteUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TenantRelationshipInviteClient) UpdateOne(_m *TenantRelationshipInvite) *TenantRelationshipInviteUpdateOne {
+	mutation := newTenantRelationshipInviteMutation(c.config, OpUpdateOne, withTenantRelationshipInvite(_m))
+	return &TenantRelationshipInviteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TenantRelationshipInviteClient) UpdateOneID(id uuid.UUID) *TenantRelationshipInviteUpdateOne {
+	mutation := newTenantRelationshipInviteMutation(c.config, OpUpdateOne, withTenantRelationshipInviteID(id))
+	return &TenantRelationshipInviteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TenantRelationshipInvite.
+func (c *TenantRelationshipInviteClient) Delete() *TenantRelationshipInviteDelete {
+	mutation := newTenantRelationshipInviteMutation(c.config, OpDelete)
+	return &TenantRelationshipInviteDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TenantRelationshipInviteClient) DeleteOne(_m *TenantRelationshipInvite) *TenantRelationshipInviteDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TenantRelationshipInviteClient) DeleteOneID(id uuid.UUID) *TenantRelationshipInviteDeleteOne {
+	builder := c.Delete().Where(tenantrelationshipinvite.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TenantRelationshipInviteDeleteOne{builder}
+}
+
+// Query returns a query builder for TenantRelationshipInvite.
+func (c *TenantRelationshipInviteClient) Query() *TenantRelationshipInviteQuery {
+	return &TenantRelationshipInviteQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTenantRelationshipInvite},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TenantRelationshipInvite entity by its id.
+func (c *TenantRelationshipInviteClient) Get(ctx context.Context, id uuid.UUID) (*TenantRelationshipInvite, error) {
+	return c.Query().Where(tenantrelationshipinvite.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TenantRelationshipInviteClient) GetX(ctx context.Context, id uuid.UUID) *TenantRelationshipInvite {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRelationship queries the relationship edge of a TenantRelationshipInvite.
+func (c *TenantRelationshipInviteClient) QueryRelationship(_m *TenantRelationshipInvite) *TenantRelationshipQuery {
+	query := (&TenantRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenantrelationshipinvite.Table, tenantrelationshipinvite.FieldID, id),
+			sqlgraph.To(tenantrelationship.Table, tenantrelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tenantrelationshipinvite.RelationshipTable, tenantrelationshipinvite.RelationshipColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.TenantRelationship
+		step.Edge.Schema = schemaConfig.TenantRelationshipInvite
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TenantRelationshipInviteClient) Hooks() []Hook {
+	return c.hooks.TenantRelationshipInvite
+}
+
+// Interceptors returns the client interceptors.
+func (c *TenantRelationshipInviteClient) Interceptors() []Interceptor {
+	return c.inters.TenantRelationshipInvite
+}
+
+func (c *TenantRelationshipInviteClient) mutate(ctx context.Context, m *TenantRelationshipInviteMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TenantRelationshipInviteCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TenantRelationshipInviteUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TenantRelationshipInviteUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TenantRelationshipInviteDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TenantRelationshipInvite mutation op: %q", m.Op())
+	}
+}
+
 // TenantRoleClient is a client for the TenantRole schema.
 type TenantRoleClient struct {
 	config
@@ -12386,6 +12735,158 @@ func (c *TenantRoleClient) mutate(ctx context.Context, m *TenantRoleMutation) (V
 		return (&TenantRoleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown TenantRole mutation op: %q", m.Op())
+	}
+}
+
+// TenantTransferClient is a client for the TenantTransfer schema.
+type TenantTransferClient struct {
+	config
+}
+
+// NewTenantTransferClient returns a client for the TenantTransfer from the given config.
+func NewTenantTransferClient(c config) *TenantTransferClient {
+	return &TenantTransferClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tenanttransfer.Hooks(f(g(h())))`.
+func (c *TenantTransferClient) Use(hooks ...Hook) {
+	c.hooks.TenantTransfer = append(c.hooks.TenantTransfer, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tenanttransfer.Intercept(f(g(h())))`.
+func (c *TenantTransferClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TenantTransfer = append(c.inters.TenantTransfer, interceptors...)
+}
+
+// Create returns a builder for creating a TenantTransfer entity.
+func (c *TenantTransferClient) Create() *TenantTransferCreate {
+	mutation := newTenantTransferMutation(c.config, OpCreate)
+	return &TenantTransferCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TenantTransfer entities.
+func (c *TenantTransferClient) CreateBulk(builders ...*TenantTransferCreate) *TenantTransferCreateBulk {
+	return &TenantTransferCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TenantTransferClient) MapCreateBulk(slice any, setFunc func(*TenantTransferCreate, int)) *TenantTransferCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TenantTransferCreateBulk{err: fmt.Errorf("calling to TenantTransferClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TenantTransferCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TenantTransferCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TenantTransfer.
+func (c *TenantTransferClient) Update() *TenantTransferUpdate {
+	mutation := newTenantTransferMutation(c.config, OpUpdate)
+	return &TenantTransferUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TenantTransferClient) UpdateOne(_m *TenantTransfer) *TenantTransferUpdateOne {
+	mutation := newTenantTransferMutation(c.config, OpUpdateOne, withTenantTransfer(_m))
+	return &TenantTransferUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TenantTransferClient) UpdateOneID(id uuid.UUID) *TenantTransferUpdateOne {
+	mutation := newTenantTransferMutation(c.config, OpUpdateOne, withTenantTransferID(id))
+	return &TenantTransferUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TenantTransfer.
+func (c *TenantTransferClient) Delete() *TenantTransferDelete {
+	mutation := newTenantTransferMutation(c.config, OpDelete)
+	return &TenantTransferDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TenantTransferClient) DeleteOne(_m *TenantTransfer) *TenantTransferDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TenantTransferClient) DeleteOneID(id uuid.UUID) *TenantTransferDeleteOne {
+	builder := c.Delete().Where(tenanttransfer.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TenantTransferDeleteOne{builder}
+}
+
+// Query returns a query builder for TenantTransfer.
+func (c *TenantTransferClient) Query() *TenantTransferQuery {
+	return &TenantTransferQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTenantTransfer},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TenantTransfer entity by its id.
+func (c *TenantTransferClient) Get(ctx context.Context, id uuid.UUID) (*TenantTransfer, error) {
+	return c.Query().Where(tenanttransfer.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TenantTransferClient) GetX(ctx context.Context, id uuid.UUID) *TenantTransfer {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRelationship queries the relationship edge of a TenantTransfer.
+func (c *TenantTransferClient) QueryRelationship(_m *TenantTransfer) *TenantRelationshipQuery {
+	query := (&TenantRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tenanttransfer.Table, tenanttransfer.FieldID, id),
+			sqlgraph.To(tenantrelationship.Table, tenantrelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tenanttransfer.RelationshipTable, tenanttransfer.RelationshipColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.TenantRelationship
+		step.Edge.Schema = schemaConfig.TenantTransfer
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TenantTransferClient) Hooks() []Hook {
+	return c.hooks.TenantTransfer
+}
+
+// Interceptors returns the client interceptors.
+func (c *TenantTransferClient) Interceptors() []Interceptor {
+	return c.inters.TenantTransfer
+}
+
+func (c *TenantTransferClient) mutate(ctx context.Context, m *TenantTransferMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TenantTransferCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TenantTransferUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TenantTransferUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TenantTransferDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TenantTransfer mutation op: %q", m.Op())
 	}
 }
 
@@ -12805,8 +13306,9 @@ type (
 		PartyIdentityDocumentValidity, PartyMergeLog, PartyName, PartyNameValidity,
 		PartyNationality, PartyRole, PasswordResetToken, PersonProfile,
 		PositionMenuOption, PositionMenuOptionValidity, RoleMenuOption, RoleType,
-		RoleTypeTranslation, Session, Subscription, SystemFunction, TenantRole,
-		UserCredentials, UserRoleAssignment []ent.Hook
+		RoleTypeTranslation, Session, Subscription, SystemFunction, TenantRelationship,
+		TenantRelationshipInvite, TenantRole, TenantTransfer, UserCredentials,
+		UserRoleAssignment []ent.Hook
 	}
 	inters struct {
 		Address, AddressValidity, AttachedDocument, ClientApplication, ContactMechanism,
@@ -12823,8 +13325,9 @@ type (
 		PartyIdentityDocumentValidity, PartyMergeLog, PartyName, PartyNameValidity,
 		PartyNationality, PartyRole, PasswordResetToken, PersonProfile,
 		PositionMenuOption, PositionMenuOptionValidity, RoleMenuOption, RoleType,
-		RoleTypeTranslation, Session, Subscription, SystemFunction, TenantRole,
-		UserCredentials, UserRoleAssignment []ent.Interceptor
+		RoleTypeTranslation, Session, Subscription, SystemFunction, TenantRelationship,
+		TenantRelationshipInvite, TenantRole, TenantTransfer, UserCredentials,
+		UserRoleAssignment []ent.Interceptor
 	}
 )
 
@@ -12884,7 +13387,10 @@ var (
 		Session:                            tableSchemas[1],
 		Subscription:                       tableSchemas[0],
 		SystemFunction:                     tableSchemas[0],
+		TenantRelationship:                 tableSchemas[0],
+		TenantRelationshipInvite:           tableSchemas[0],
 		TenantRole:                         tableSchemas[1],
+		TenantTransfer:                     tableSchemas[0],
 		UserCredentials:                    tableSchemas[1],
 		UserRoleAssignment:                 tableSchemas[1],
 	}
