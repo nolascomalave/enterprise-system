@@ -32,6 +32,10 @@ func TestDepartmentCompositeFKBlocksCrossTenant(t *testing.T) {
 	// FK itself. The transaction rollback restores RLS.
 	_, err = tx.Exec(`ALTER TABLE tenants.department_contact_mechanisms DISABLE ROW LEVEL SECURITY`)
 	require.NoError(t, err)
+	_, err = tx.Exec(`ALTER TABLE tenants.parties DISABLE ROW LEVEL SECURITY`)
+	require.NoError(t, err)
+	_, err = tx.Exec(`ALTER TABLE tenants.departments DISABLE ROW LEVEL SECURITY`)
+	require.NoError(t, err)
 
 	tenantA, tenantB := uuid.New(), uuid.New()
 	partyA, partyB := uuid.New(), uuid.New()

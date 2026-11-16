@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -24,6 +25,7 @@ type AuthService struct {
 	sessions    auth.SessionRepository
 	tx          TransactionManager
 	binder      TenantContextBinder
+	blocklist   auth.SessionBlocklist
 	now         func() time.Time
 }
 
@@ -43,6 +45,11 @@ func NewAuthService(
 		manager: manager, credentials: credentials, contacts: contacts,
 		sessions: sessions, tx: tx, binder: binder, now: now,
 	}
+}
+
+// SetSessionBlocklist configures the revoked-session store used after logout.
+func (s *AuthService) SetSessionBlocklist(blocklist auth.SessionBlocklist) {
+	s.blocklist = blocklist
 }
 
 func (s *AuthService) withinTx(ctx context.Context, fn func(context.Context) error) error {
@@ -267,7 +274,7 @@ func (s *AuthService) Logout(ctx context.Context, refreshToken string) error {
 		return invalidTokenError(auth.ErrInvalidToken)
 	}
 	ctx = s.binder.BindTenant(ctx, tenantID, uuid.Nil, sessionID)
-	return s.withinTx(ctx, func(ctx context.Context) error {
+	err = s.withinTx(ctx, func(ctx context.Context) error {
 		session, err := s.sessions.GetByID(ctx, tenantID, sessionID)
 		if err != nil {
 			if errors.Is(err, auth.ErrNotFound) {
@@ -290,6 +297,20 @@ func (s *AuthService) Logout(ctx context.Context, refreshToken string) error {
 		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	s.blockSession(ctx, sessionID)
+	return nil
+}
+
+func (s *AuthService) blockSession(ctx context.Context, sessionID uuid.UUID) {
+	if s.blocklist == nil || s.manager == nil || sessionID == uuid.Nil {
+		return
+	}
+	if err := s.blocklist.Block(ctx, sessionID, s.manager.AccessTTL()); err != nil {
+		slog.Warn("auth: block revoked session", "error", err)
+	}
 }
 
 func (s *AuthService) issueSession(ctx context.Context, credentials *auth.Credentials, metadata map[string]any) (*LoginResult, error) {

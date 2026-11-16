@@ -67,7 +67,7 @@ func TestCreateClientApplicationReturnsSecretOnce(t *testing.T) {
 	require.NotNil(t, created.Application)
 	assert.NotEmpty(t, created.ClientSecret)
 	assert.NotEqual(t, created.ClientSecret, created.Application.ClientSecretHash)
-	assert.True(t, manager.VerifyPassword(created.Application.ClientSecretHash, created.ClientSecret))
+	assert.True(t, manager.VerifyClientSecret(created.Application.ClientSecretHash, created.ClientSecret))
 	assert.Equal(t, []string{"parties:read", "locations:read"}, created.Application.Scopes)
 	stored, ok := repo.applications[created.Application.ClientID]
 	require.True(t, ok)
@@ -142,15 +142,14 @@ func TestIssueClientTokenRejectsInactiveApplication(t *testing.T) {
 	manager := clientApplicationTestManager(t)
 	service := NewClientApplicationService(repo, manager, newFakeTxManager(), time.Now)
 	secret := "S3cret-Client-Secret-1234567890"
-	hash, err := manager.HashPassword(secret)
-	require.NoError(t, err)
+	hash := manager.HashClientSecret(secret)
 	app := &domain.ClientApplication{
 		ID: uuid.New(), TenantID: ptrUUID(uuid.New()), Name: "App", ClientID: "client",
 		ClientSecretHash: hash, Scopes: []string{"parties:read"}, IsActive: false,
 	}
 	repo.applications[app.ClientID] = app
 
-	_, err = service.IssueToken(context.Background(), app.ClientID, secret)
+	_, err := service.IssueToken(context.Background(), app.ClientID, secret)
 
 	require.ErrorIs(t, err, auth.ErrInvalidCredentials)
 }

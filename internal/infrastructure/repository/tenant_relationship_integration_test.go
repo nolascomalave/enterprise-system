@@ -80,7 +80,7 @@ func TestTenantRelationshipsPendingUniqueness(t *testing.T) {
 		holding, "holding-"+holding.String(), subsidiary, "subsidiary-"+subsidiary.String())
 	require.NoError(t, err)
 
-	_, err = tx.Exec(`SET LOCAL app.current_tenant_id = $1`, subsidiary.String())
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, subsidiary.String())
 	require.NoError(t, err)
 
 	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
@@ -121,7 +121,7 @@ func TestTenantTransfersRLSTenantIsolation(t *testing.T) {
 		outsider, "outsider-"+outsider.String())
 	require.NoError(t, err)
 
-	_, err = tx.Exec(`SET LOCAL app.current_tenant_id = $1`, subsidiary.String())
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, subsidiary.String())
 	require.NoError(t, err)
 
 	relationshipID := uuid.New()
@@ -131,7 +131,7 @@ func TestTenantTransfersRLSTenantIsolation(t *testing.T) {
 		relationshipID, holding, subsidiary)
 	require.NoError(t, err)
 
-	_, err = tx.Exec(`SET LOCAL app.current_tenant_id = $1`, holding.String())
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, holding.String())
 	require.NoError(t, err)
 	_, err = tx.Exec(`INSERT INTO global.tenant_transfers
 		(id, relationship_id, requested_by_tenant_id, status)
@@ -140,24 +140,30 @@ func TestTenantTransfersRLSTenantIsolation(t *testing.T) {
 	require.NoError(t, err)
 
 	// Holding can see its transfer.
-	_, err = tx.Exec(`SET LOCAL app.current_tenant_id = $1`, holding.String())
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, holding.String())
 	require.NoError(t, err)
 	var count int
 	require.NoError(t, tx.QueryRow(`SELECT count(*) FROM global.tenant_transfers WHERE relationship_id = $1`, relationshipID).Scan(&count))
 	require.Equal(t, 1, count)
 
 	// Outsider sees nothing.
-	_, err = tx.Exec(`SET LOCAL app.current_tenant_id = $1`, outsider.String())
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, outsider.String())
 	require.NoError(t, err)
 	require.NoError(t, tx.QueryRow(`SELECT count(*) FROM global.tenant_transfers WHERE relationship_id = $1`, relationshipID).Scan(&count))
 	require.Equal(t, 0, count)
 
 	// Outsider cannot insert.
+	_, err = tx.Exec(`SAVEPOINT sp_outsider`)
+	require.NoError(t, err)
 	_, err = tx.Exec(`INSERT INTO global.tenant_transfers
 		(id, relationship_id, requested_by_tenant_id, status)
 		VALUES ($1, $2, $3, 'TRANSFER_REQUESTED')`,
 		uuid.New(), relationshipID, outsider)
 	require.Error(t, err)
+	_, err = tx.Exec(`ROLLBACK TO SAVEPOINT sp_outsider`)
+	require.NoError(t, err)
+	_, err = tx.Exec(`RELEASE SAVEPOINT sp_outsider`)
+	require.NoError(t, err)
 }
 
 func TestTenantRelationshipsInsertOnlyBySubsidiary(t *testing.T) {
@@ -180,20 +186,73 @@ func TestTenantRelationshipsInsertOnlyBySubsidiary(t *testing.T) {
 	require.NoError(t, err)
 
 	// Holding cannot create the PENDING relationship.
-	_, err = tx.Exec(`SET LOCAL app.current_tenant_id = $1`, holding.String())
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, holding.String())
+	require.NoError(t, err)
+	_, err = tx.Exec(`SAVEPOINT sp_holding`)
 	require.NoError(t, err)
 	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
 		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
 		VALUES ($1, $2, $3, 'OWNERSHIP', 'PENDING')`,
 		uuid.New(), holding, subsidiary)
 	require.Error(t, err)
+	_, err = tx.Exec(`ROLLBACK TO SAVEPOINT sp_holding`)
+	require.NoError(t, err)
+	_, err = tx.Exec(`RELEASE SAVEPOINT sp_holding`)
+	require.NoError(t, err)
 
 	// Subsidiary can.
-	_, err = tx.Exec(`SET LOCAL app.current_tenant_id = $1`, subsidiary.String())
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, subsidiary.String())
 	require.NoError(t, err)
 	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
 		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
 		VALUES ($1, $2, $3, 'OWNERSHIP', 'PENDING')`,
 		uuid.New(), holding, subsidiary)
 	require.NoError(t, err)
+}
+
+func TestRelationshipCycleFunctionDetectsCrossTenantCycle(t *testing.T) {
+	db := tenantRelationshipTestDB(t)
+
+	tx, err := db.Begin()
+	require.NoError(t, err)
+	defer tx.Rollback()
+
+	a, b, c, d := uuid.New(), uuid.New(), uuid.New(), uuid.New()
+	_, err = tx.Exec(`INSERT INTO global.subscriptions (id, name, slug, status) VALUES
+		($1, 'A', $2, 'ACTIVE'), ($3, 'B', $4, 'ACTIVE'),
+		($5, 'C', $6, 'ACTIVE'), ($7, 'D', $8, 'ACTIVE')`,
+		a, "a-"+a.String(), b, "b-"+b.String(), c, "c-"+c.String(), d, "d-"+d.String())
+	require.NoError(t, err)
+
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, c.String())
+	require.NoError(t, err)
+	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
+		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
+		VALUES ($1, $2, $3, 'OWNERSHIP', 'APPROVED')`, uuid.New(), b, c)
+	require.NoError(t, err)
+
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, a.String())
+	require.NoError(t, err)
+	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
+		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
+		VALUES ($1, $2, $3, 'OWNERSHIP', 'APPROVED')`, uuid.New(), c, a)
+	require.NoError(t, err)
+
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, b.String())
+	require.NoError(t, err)
+	var cycle bool
+	require.NoError(t, tx.QueryRow(`SELECT global.fn_check_relationship_cycle($1, $2)`, a, b).Scan(&cycle))
+	require.True(t, cycle, "the cross-tenant cycle must be detected")
+
+	var nonCycle bool
+	require.NoError(t, tx.QueryRow(`SELECT global.fn_check_relationship_cycle($1, $2)`, d, b).Scan(&nonCycle))
+	require.False(t, nonCycle)
+
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, c.String())
+	require.NoError(t, err)
+	_, err = tx.Exec(`SELECT global.fn_check_relationship_cycle($1, $2)`, a, b)
+	require.Error(t, err)
+	var pqErr *pq.Error
+	require.True(t, errors.As(err, &pqErr))
+	require.Equal(t, "42501", string(pqErr.Code), "outsider must be rejected")
 }

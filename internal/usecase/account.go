@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -40,6 +41,7 @@ type AccountService struct {
 	emailSender auth.EmailSender
 	tx          TransactionManager
 	binder      TenantContextBinder
+	blocklist   auth.SessionBlocklist
 	now         func() time.Time
 }
 
@@ -64,6 +66,12 @@ func NewAccountService(
 	}
 }
 
+// SetSessionBlocklist configures the revoked-session store used after
+// password changes and resets.
+func (s *AccountService) SetSessionBlocklist(blocklist auth.SessionBlocklist) {
+	s.blocklist = blocklist
+}
+
 func (s *AccountService) withinTx(ctx context.Context, fn func(context.Context) error) error {
 	if s == nil || s.tx == nil {
 		return errors.New("account: nil transaction manager")
@@ -86,7 +94,8 @@ func (s *AccountService) ChangePassword(ctx context.Context, in ChangePasswordIn
 	}
 	ctx = s.binder.BindTenant(ctx, in.TenantID, in.PartyID, in.SessionID)
 
-	return s.withinTx(ctx, func(ctx context.Context) error {
+	var revokedSessionIDs []uuid.UUID
+	err := s.withinTx(ctx, func(ctx context.Context) error {
 		credentials, err := s.credentials.GetByPartyID(ctx, in.TenantID, in.PartyID)
 		if err != nil {
 			if errors.Is(err, auth.ErrNotFound) {
@@ -116,11 +125,25 @@ func (s *AccountService) ChangePassword(ctx context.Context, in ChangePasswordIn
 			}
 			return fmt.Errorf("update password: %w", err)
 		}
+		activeIDs, err := s.sessions.ListActiveSessionIDs(ctx, in.TenantID, in.PartyID, now)
+		if err != nil {
+			return fmt.Errorf("list active sessions: %w", err)
+		}
 		if err := s.sessions.RevokeAllExcept(ctx, in.TenantID, in.PartyID, in.SessionID, now); err != nil {
 			return fmt.Errorf("revoke other sessions: %w", err)
 		}
+		for _, id := range activeIDs {
+			if id != in.SessionID {
+				revokedSessionIDs = append(revokedSessionIDs, id)
+			}
+		}
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	s.blockSessions(ctx, revokedSessionIDs)
+	return nil
 }
 
 // ForgotPassword always behaves the same for known and unknown emails to avoid
@@ -213,7 +236,8 @@ func (s *AccountService) ResetPassword(ctx context.Context, in ResetPasswordInpu
 	ctx = s.binder.BindTenant(ctx, tenantID, partyID, uuid.Nil)
 
 	now := s.now().UTC()
-	return s.withinTx(ctx, func(ctx context.Context) error {
+	var revokedSessionIDs []uuid.UUID
+	err = s.withinTx(ctx, func(ctx context.Context) error {
 		consumed, err := s.resetTokens.Consume(ctx, tenantID, s.manager.HashResetToken(in.Token), now)
 		if err != nil {
 			if errors.Is(err, auth.ErrInvalidResetToken) {
@@ -252,9 +276,34 @@ func (s *AccountService) ResetPassword(ctx context.Context, in ResetPasswordInpu
 			}
 			return fmt.Errorf("update password: %w", err)
 		}
+		activeIDs, err := s.sessions.ListActiveSessionIDs(ctx, tenantID, partyID, now)
+		if err != nil {
+			return fmt.Errorf("list active sessions: %w", err)
+		}
 		if err := s.sessions.RevokeAll(ctx, tenantID, partyID, now); err != nil {
 			return fmt.Errorf("revoke sessions: %w", err)
 		}
+		revokedSessionIDs = activeIDs
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	s.blockSessions(ctx, revokedSessionIDs)
+	return nil
+}
+
+func (s *AccountService) blockSessions(ctx context.Context, ids []uuid.UUID) {
+	if s.blocklist == nil || s.manager == nil {
+		return
+	}
+	ttl := s.manager.AccessTTL()
+	for _, id := range ids {
+		if id == uuid.Nil {
+			continue
+		}
+		if err := s.blocklist.Block(ctx, id, ttl); err != nil {
+			slog.Warn("account: block revoked session", "error", err)
+		}
+	}
 }

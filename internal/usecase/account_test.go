@@ -121,6 +121,68 @@ func TestChangePasswordRevokesOtherSessions(t *testing.T) {
 	assert.NotNil(t, resetRepo.tokens[0].UsedAt)
 }
 
+func TestChangePasswordBlocksRevokedSessions(t *testing.T) {
+	manager := accountTestManager(t)
+	creds := accountTestCreds(t, manager)
+	credRepo := &fakeCredentialRepo{credentials: creds}
+	sessionRepo := newFakeSessionRepo()
+	currentSession := uuid.New()
+	otherSession := uuid.New()
+	expires := time.Now().Add(time.Hour)
+	sessionRepo.sessions[currentSession] = &auth.Session{
+		ID: currentSession, TenantID: creds.TenantID, UserID: creds.PartyID, ExpiresAt: expires,
+	}
+	sessionRepo.sessions[otherSession] = &auth.Session{
+		ID: otherSession, TenantID: creds.TenantID, UserID: creds.PartyID, ExpiresAt: expires,
+	}
+	service := newAccountTestService(manager, credRepo, sessionRepo,
+		&fakeResetRepo{}, &fakeEmailSender{}, &fakeBinder{})
+	blocklist := &fakeSessionBlocklist{}
+	service.SetSessionBlocklist(blocklist)
+
+	err := service.ChangePassword(context.Background(), ChangePasswordInput{
+		TenantID: creds.TenantID, PartyID: creds.PartyID, SessionID: currentSession,
+		CurrentPassword: "current-password", NewPassword: "new-password-123",
+	})
+
+	require.NoError(t, err)
+	assert.True(t, blocklist.blocked[otherSession])
+	assert.False(t, blocklist.blocked[currentSession])
+}
+
+func TestResetPasswordBlocksAllSessions(t *testing.T) {
+	manager := accountTestManager(t)
+	creds := accountTestCreds(t, manager)
+	credRepo := &fakeCredentialRepo{credentials: creds}
+	sessionRepo := newFakeSessionRepo()
+	expires := time.Now().Add(time.Hour)
+	sessionA, sessionB := uuid.New(), uuid.New()
+	sessionRepo.sessions[sessionA] = &auth.Session{
+		ID: sessionA, TenantID: creds.TenantID, UserID: creds.PartyID, ExpiresAt: expires,
+	}
+	sessionRepo.sessions[sessionB] = &auth.Session{
+		ID: sessionB, TenantID: creds.TenantID, UserID: creds.PartyID, ExpiresAt: expires,
+	}
+	rawToken, tokenHash, err := manager.GenerateResetToken(creds.TenantID, creds.PartyID)
+	require.NoError(t, err)
+	resetRepo := &fakeResetRepo{tokens: []*auth.PasswordResetToken{{
+		TenantID: creds.TenantID, PartyID: creds.PartyID,
+		TokenHash: tokenHash, ExpiresAt: time.Now().Add(time.Hour),
+	}}}
+	service := newAccountTestService(manager, credRepo, sessionRepo,
+		resetRepo, &fakeEmailSender{}, &fakeBinder{})
+	blocklist := &fakeSessionBlocklist{}
+	service.SetSessionBlocklist(blocklist)
+
+	err = service.ResetPassword(context.Background(), ResetPasswordInput{
+		Token: rawToken, NewPassword: "new-password-123",
+	})
+
+	require.NoError(t, err)
+	assert.True(t, blocklist.blocked[sessionA])
+	assert.True(t, blocklist.blocked[sessionB])
+}
+
 func TestChangePasswordRejectsWrongCurrent(t *testing.T) {
 	manager := accountTestManager(t)
 	creds := accountTestCreds(t, manager)

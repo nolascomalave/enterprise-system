@@ -169,3 +169,17 @@ func TestResetTokenRejectsMalformed(t *testing.T) {
 	_, _, err := m.ParseResetToken("not-a-token")
 	require.ErrorIs(t, err, ErrInvalidToken)
 }
+
+func TestClientSecretUsesHMACAndSupportsLegacyBcrypt(t *testing.T) {
+	m := testManager(t, time.Now)
+
+	hash := m.HashClientSecret("high-entropy-client-secret")
+	assert.Contains(t, hash, "hmac-sha256:")
+	assert.True(t, m.VerifyClientSecret(hash, "high-entropy-client-secret"))
+	assert.False(t, m.VerifyClientSecret(hash, "wrong-secret"))
+
+	legacy, err := m.HashPassword("high-entropy-client-secret")
+	require.NoError(t, err)
+	assert.True(t, m.VerifyClientSecret(legacy, "high-entropy-client-secret"))
+	assert.False(t, m.VerifyClientSecret(legacy, "wrong-secret"))
+}

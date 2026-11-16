@@ -30,6 +30,7 @@ type Dependencies struct {
 	TenantRelationshipUseCase TenantRelationshipUseCase
 	PlatformAdminKey          string
 	TokenManager              *auth.Manager
+	SessionBlocklist          auth.SessionBlocklist
 	RedisClient               *redis.Client
 
 	CookieSecure   bool
@@ -78,6 +79,8 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	forgotLimiter := newLimiter("forgot-password", deps.AuthRateLimit, deps.AuthRateWindow)
 	resetLimiter := newLimiter("reset-password", deps.AuthRateLimit, deps.AuthRateWindow)
 	onboardingLimiter := newLimiter("onboarding", 3, time.Hour)
+	platformAdminLimiter := newLimiter("platform-admin", deps.AuthRateLimit, deps.AuthRateWindow)
+	oauthTokenLimiter := newLimiter("oauth-token", deps.AuthRateLimit, deps.AuthRateWindow)
 
 	authHandler := NewAuthHandler(deps.AuthUseCase, deps.CookieSecure, deps.RefreshTTL)
 	accountHandler := NewAccountHandler(deps.AccountUseCase)
@@ -99,9 +102,9 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	api := router.Group("/api/v1")
 	api.GET("/health", Health)
 	api.GET("/locations", locationHandler.List)
-	api.POST("/oauth/token", oauthHandler.Token)
+	api.POST("/oauth/token", RateLimit(oauthTokenLimiter), oauthHandler.Token)
 	api.POST("/client-applications/first-party",
-		PlatformAdminMiddleware(deps.PlatformAdminKey), oauthHandler.CreateFirstPartyApplication)
+		RateLimit(platformAdminLimiter), PlatformAdminMiddleware(deps.PlatformAdminKey), oauthHandler.CreateFirstPartyApplication)
 	api.GET("/identity-document-types", catalogHandler.ListIdentityDocumentTypes)
 	api.GET("/role-types", catalogHandler.ListRoleTypes)
 
@@ -119,7 +122,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 
 	partyHandler := NewPartyHandler(deps.PartyUseCase)
 	protected := api.Group("")
-	protected.Use(TenantMiddleware(deps.TokenManager))
+	protected.Use(TenantMiddleware(deps.TokenManager, deps.SessionBlocklist))
 	if deps.RBACUseCase != nil {
 		protected.Use(RBACMiddleware(deps.RBACUseCase))
 	}

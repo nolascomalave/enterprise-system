@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"enterprise-system/ent"
@@ -12,6 +13,7 @@ import (
 	"enterprise-system/internal/domain"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 var _ domain.TenantRelationshipRepository = (*TenantRelationshipRepository)(nil)
@@ -85,28 +87,25 @@ func (r *TenantRelationshipRepository) LockRelationship(ctx context.Context, rel
 }
 
 // WouldCreateCycle reports whether adding holding -> subsidiary to the
-// APPROVED graph would close a cycle. The recursive CTE is bounded to depth 20.
+// APPROVED graph would close a cycle. The recursive check runs inside the
+// guarded global.fn_check_relationship_cycle SECURITY DEFINER function, which
+// can see the full graph while rejecting callers that are not participants.
 func (r *TenantRelationshipRepository) WouldCreateCycle(ctx context.Context, holdingID, subsidiaryID uuid.UUID) (bool, error) {
 	var cycle bool
 	err := r.withClient(ctx, func(client *ent.Client) error {
 		exists, err := client.TenantRelationship.Query().
 			Where(func(s *sql.Selector) {
-				s.Where(sql.ExprP(`EXISTS (
-					WITH RECURSIVE descendants AS (
-						SELECT tenant_id_subsidiary AS tenant_id, 1 AS depth
-						  FROM global.tenant_relationships
-						 WHERE tenant_id_holding = $1 AND status = 'APPROVED'
-						UNION ALL
-						SELECT r.tenant_id_subsidiary, d.depth + 1
-						  FROM global.tenant_relationships r
-						  JOIN descendants d ON r.tenant_id_holding = d.tenant_id
-						 WHERE r.status = 'APPROVED' AND d.depth < 20
-					)
-					SELECT 1 FROM descendants WHERE tenant_id = $2
-				)`, subsidiaryID, holdingID))
+				s.Where(sql.ExprP(
+					"(SELECT global.fn_check_relationship_cycle($1, $2))",
+					holdingID, subsidiaryID,
+				))
 			}).
 			Exist(ctx)
 		if err != nil {
+			var pqErr *pq.Error
+			if errors.As(err, &pqErr) && pqErr.Code == "42501" {
+				return domain.ErrUnauthorizedRelationshipAction
+			}
 			return repoError(err)
 		}
 		cycle = exists
