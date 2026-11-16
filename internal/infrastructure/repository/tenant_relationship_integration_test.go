@@ -85,13 +85,13 @@ func TestTenantRelationshipsPendingUniqueness(t *testing.T) {
 
 	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
 		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
-		VALUES ($1, $2, $3, 'OWNERSHIP', 'PENDING')`,
+		VALUES ($1, $2, $3, 'SUBSIDIARY_OF', 'PENDING')`,
 		uuid.New(), holding, subsidiary)
 	require.NoError(t, err)
 
 	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
 		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
-		VALUES ($1, $2, $3, 'OWNERSHIP', 'PENDING')`,
+		VALUES ($1, $2, $3, 'SUBSIDIARY_OF', 'PENDING')`,
 		uuid.New(), holding, subsidiary)
 	require.Error(t, err)
 
@@ -127,7 +127,7 @@ func TestTenantTransfersRLSTenantIsolation(t *testing.T) {
 	relationshipID := uuid.New()
 	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
 		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
-		VALUES ($1, $2, $3, 'OWNERSHIP', 'APPROVED')`,
+		VALUES ($1, $2, $3, 'SUBSIDIARY_OF', 'APPROVED')`,
 		relationshipID, holding, subsidiary)
 	require.NoError(t, err)
 
@@ -192,7 +192,7 @@ func TestTenantRelationshipsInsertOnlyBySubsidiary(t *testing.T) {
 	require.NoError(t, err)
 	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
 		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
-		VALUES ($1, $2, $3, 'OWNERSHIP', 'PENDING')`,
+		VALUES ($1, $2, $3, 'SUBSIDIARY_OF', 'PENDING')`,
 		uuid.New(), holding, subsidiary)
 	require.Error(t, err)
 	_, err = tx.Exec(`ROLLBACK TO SAVEPOINT sp_holding`)
@@ -205,7 +205,7 @@ func TestTenantRelationshipsInsertOnlyBySubsidiary(t *testing.T) {
 	require.NoError(t, err)
 	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
 		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
-		VALUES ($1, $2, $3, 'OWNERSHIP', 'PENDING')`,
+		VALUES ($1, $2, $3, 'SUBSIDIARY_OF', 'PENDING')`,
 		uuid.New(), holding, subsidiary)
 	require.NoError(t, err)
 }
@@ -228,14 +228,14 @@ func TestRelationshipCycleFunctionDetectsCrossTenantCycle(t *testing.T) {
 	require.NoError(t, err)
 	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
 		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
-		VALUES ($1, $2, $3, 'OWNERSHIP', 'APPROVED')`, uuid.New(), b, c)
+		VALUES ($1, $2, $3, 'SUBSIDIARY_OF', 'APPROVED')`, uuid.New(), b, c)
 	require.NoError(t, err)
 
 	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, a.String())
 	require.NoError(t, err)
 	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
 		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
-		VALUES ($1, $2, $3, 'OWNERSHIP', 'APPROVED')`, uuid.New(), c, a)
+		VALUES ($1, $2, $3, 'SUBSIDIARY_OF', 'APPROVED')`, uuid.New(), c, a)
 	require.NoError(t, err)
 
 	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, b.String())
@@ -255,4 +255,138 @@ func TestRelationshipCycleFunctionDetectsCrossTenantCycle(t *testing.T) {
 	var pqErr *pq.Error
 	require.True(t, errors.As(err, &pqErr))
 	require.Equal(t, "42501", string(pqErr.Code), "outsider must be rejected")
+}
+
+func TestRelationshipCycleFunctionRejectsGraphTooDeep(t *testing.T) {
+	db := tenantRelationshipTestDB(t)
+
+	tx, err := db.Begin()
+	require.NoError(t, err)
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`CREATE TEMP TABLE audit_nodes ON COMMIT DROP AS
+		SELECT gs AS idx, gen_random_uuid() AS id FROM generate_series(1, 23) gs`)
+	require.NoError(t, err)
+	_, err = tx.Exec(`INSERT INTO global.subscriptions (id, name, slug, status)
+		SELECT id, 'Node '||idx, 'node-'||id, 'ACTIVE' FROM audit_nodes`)
+	require.NoError(t, err)
+
+	_, err = tx.Exec(`DO $$
+	DECLARE
+		v_holding uuid;
+		v_subsidiary uuid;
+		i int;
+	BEGIN
+		FOR i IN 1..22 LOOP
+			SELECT id INTO v_holding FROM audit_nodes WHERE idx = i;
+			SELECT id INTO v_subsidiary FROM audit_nodes WHERE idx = i + 1;
+			PERFORM set_config('app.current_tenant_id', v_subsidiary::text, true);
+			INSERT INTO global.tenant_relationships
+				(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
+			VALUES
+				(gen_random_uuid(), v_holding, v_subsidiary, 'SUBSIDIARY_OF', 'APPROVED');
+		END LOOP;
+	END
+	$$`)
+	require.NoError(t, err)
+
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', (SELECT id::text FROM audit_nodes WHERE idx = 2), true)`)
+	require.NoError(t, err)
+
+	var result bool
+	err = tx.QueryRow(`SELECT global.fn_check_relationship_cycle(
+		(SELECT id FROM audit_nodes WHERE idx = 1),
+		(SELECT id FROM audit_nodes WHERE idx = 2)
+	)`).Scan(&result)
+	require.Error(t, err)
+	var pqErr *pq.Error
+	require.True(t, errors.As(err, &pqErr))
+	require.Equal(t, "54000", string(pqErr.Code))
+}
+
+func TestRelationshipTypeCatalogCheck(t *testing.T) {
+	db := tenantRelationshipTestDB(t)
+
+	tx, err := db.Begin()
+	require.NoError(t, err)
+	defer tx.Rollback()
+
+	holding, subsidiary := uuid.New(), uuid.New()
+	_, err = tx.Exec(`INSERT INTO global.subscriptions (id, name, slug, status) VALUES
+		($1, 'Holding', $2, 'ACTIVE'), ($3, 'Subsidiary', $4, 'ACTIVE')`,
+		holding, "holding-"+holding.String(), subsidiary, "subsidiary-"+subsidiary.String())
+	require.NoError(t, err)
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, subsidiary.String())
+	require.NoError(t, err)
+
+	_, err = tx.Exec(`SAVEPOINT sp_type`)
+	require.NoError(t, err)
+	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
+		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
+		VALUES ($1, $2, $3, 'OWNERSHIP', 'PENDING')`, uuid.New(), holding, subsidiary)
+	require.Error(t, err)
+	var pqErr *pq.Error
+	require.True(t, errors.As(err, &pqErr))
+	require.Equal(t, "23514", string(pqErr.Code))
+	_, err = tx.Exec(`ROLLBACK TO SAVEPOINT sp_type`)
+	require.NoError(t, err)
+	_, err = tx.Exec(`RELEASE SAVEPOINT sp_type`)
+	require.NoError(t, err)
+
+	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
+		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
+		VALUES ($1, $2, $3, 'SUBSIDIARY_OF', 'PENDING')`, uuid.New(), holding, subsidiary)
+	require.NoError(t, err)
+}
+
+func TestUniqueActiveInvitePerRelationship(t *testing.T) {
+	db := tenantRelationshipTestDB(t)
+
+	tx, err := db.Begin()
+	require.NoError(t, err)
+	defer tx.Rollback()
+
+	holding, subsidiary, relationshipID := uuid.New(), uuid.New(), uuid.New()
+	_, err = tx.Exec(`INSERT INTO global.subscriptions (id, name, slug, status) VALUES
+		($1, 'Holding', $2, 'ACTIVE'), ($3, 'Subsidiary', $4, 'ACTIVE')`,
+		holding, "holding-"+holding.String(), subsidiary, "subsidiary-"+subsidiary.String())
+	require.NoError(t, err)
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, subsidiary.String())
+	require.NoError(t, err)
+	_, err = tx.Exec(`INSERT INTO global.tenant_relationships
+		(id, tenant_id_holding, tenant_id_subsidiary, relationship_type, status)
+		VALUES ($1, $2, $3, 'SUBSIDIARY_OF', 'PENDING')`,
+		relationshipID, holding, subsidiary)
+	require.NoError(t, err)
+
+	_, err = tx.Exec(`SELECT set_config('app.current_tenant_id', $1, true)`, holding.String())
+	require.NoError(t, err)
+	_, err = tx.Exec(`INSERT INTO global.tenant_relationship_invites
+		(relationship_id, token_hash, expires_at)
+		VALUES ($1, decode('01','hex'), now() + interval '1 day')`, relationshipID)
+	require.NoError(t, err)
+
+	_, err = tx.Exec(`SAVEPOINT sp_duplicate_invite`)
+	require.NoError(t, err)
+	_, err = tx.Exec(`INSERT INTO global.tenant_relationship_invites
+		(relationship_id, token_hash, expires_at)
+		VALUES ($1, decode('02','hex'), now() + interval '1 day')`, relationshipID)
+	require.Error(t, err)
+	var pqErr *pq.Error
+	require.True(t, errors.As(err, &pqErr))
+	require.Equal(t, "23505", string(pqErr.Code))
+	_, err = tx.Exec(`ROLLBACK TO SAVEPOINT sp_duplicate_invite`)
+	require.NoError(t, err)
+	_, err = tx.Exec(`RELEASE SAVEPOINT sp_duplicate_invite`)
+	require.NoError(t, err)
+
+	_, err = tx.Exec(`UPDATE global.tenant_relationship_invites
+		SET canceled_at = now(), canceled_by_tenant_id = $1
+		WHERE relationship_id = $2 AND canceled_at IS NULL AND consumed_at IS NULL`,
+		holding, relationshipID)
+	require.NoError(t, err)
+	_, err = tx.Exec(`INSERT INTO global.tenant_relationship_invites
+		(relationship_id, token_hash, expires_at)
+		VALUES ($1, decode('03','hex'), now() + interval '1 day')`, relationshipID)
+	require.NoError(t, err)
 }

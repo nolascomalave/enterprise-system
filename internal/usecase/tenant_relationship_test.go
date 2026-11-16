@@ -124,7 +124,7 @@ func tenantRelationshipService(t *testing.T) (*TenantRelationshipService, *fakeT
 func startPending(t *testing.T, service *TenantRelationshipService, holding, subsidiary uuid.UUID) *domain.TenantRelationship {
 	t.Helper()
 	relationship, err := service.StartPendingRelationship(context.Background(), StartPendingRelationshipInput{
-		HoldingTenantID: holding, SubsidiaryTenantID: subsidiary, RelationshipType: "OWNERSHIP",
+		HoldingTenantID: holding, SubsidiaryTenantID: subsidiary, RelationshipType: "SUBSIDIARY_OF",
 	})
 	require.NoError(t, err)
 	return relationship
@@ -136,10 +136,10 @@ func TestStartPendingRelationshipRejectsInactiveHolding(t *testing.T) {
 	repo.active[subsidiary] = true
 
 	_, err := service.StartPendingRelationship(context.Background(), StartPendingRelationshipInput{
-		HoldingTenantID: holding, SubsidiaryTenantID: subsidiary, RelationshipType: "OWNERSHIP",
+		HoldingTenantID: holding, SubsidiaryTenantID: subsidiary, RelationshipType: "SUBSIDIARY_OF",
 	})
 
-	require.ErrorIs(t, err, domain.ErrTenantInactive)
+	require.ErrorIs(t, err, domain.ErrUnauthorizedRelationshipAction)
 }
 
 func TestStartPendingRelationshipRejectsInactiveSubsidiary(t *testing.T) {
@@ -148,10 +148,10 @@ func TestStartPendingRelationshipRejectsInactiveSubsidiary(t *testing.T) {
 	repo.active[holding] = true
 
 	_, err := service.StartPendingRelationship(context.Background(), StartPendingRelationshipInput{
-		HoldingTenantID: holding, SubsidiaryTenantID: subsidiary, RelationshipType: "OWNERSHIP",
+		HoldingTenantID: holding, SubsidiaryTenantID: subsidiary, RelationshipType: "SUBSIDIARY_OF",
 	})
 
-	require.ErrorIs(t, err, domain.ErrTenantInactive)
+	require.ErrorIs(t, err, domain.ErrUnauthorizedRelationshipAction)
 }
 
 func TestStartPendingRelationshipCreatesOnlyPending(t *testing.T) {
@@ -176,9 +176,9 @@ func TestStartPendingRelationshipRejectsDuplicatePending(t *testing.T) {
 	startPending(t, service, holding, subsidiary)
 
 	_, err := service.StartPendingRelationship(context.Background(), StartPendingRelationshipInput{
-		HoldingTenantID: holding, SubsidiaryTenantID: subsidiary, RelationshipType: "OWNERSHIP",
+		HoldingTenantID: holding, SubsidiaryTenantID: subsidiary, RelationshipType: "SUBSIDIARY_OF",
 	})
-	require.ErrorIs(t, err, domain.ErrRelationshipAlreadyPending)
+	require.ErrorIs(t, err, domain.ErrUnauthorizedRelationshipAction)
 }
 
 func TestEmitInviteTokenCreatesInvite(t *testing.T) {
@@ -243,6 +243,7 @@ func TestCancelPendingRelationshipInvalidatesInvites(t *testing.T) {
 		RelationshipID: relationship.ID, HoldingID: holding,
 	})
 	require.NoError(t, err)
+	repo.cancelInvitesCalls = 0
 
 	canceled, err := service.CancelPendingRelationship(context.Background(), CancelPendingRelationshipInput{
 		RelationshipID: relationship.ID, SubsidiaryID: subsidiary, Reason: "no longer needed",
@@ -284,6 +285,7 @@ func TestRejectRelationshipInvalidatesInvites(t *testing.T) {
 		RelationshipID: relationship.ID, HoldingID: holding,
 	})
 	require.NoError(t, err)
+	repo.cancelInvitesCalls = 0
 
 	rejected, err := service.RejectRelationship(context.Background(), RejectRelationshipInput{
 		RelationshipID: relationship.ID, HoldingID: holding, Reason: "not valid",
@@ -475,4 +477,100 @@ func TestRevokeApprovedRelationshipRejectsWrongTenant(t *testing.T) {
 	})
 
 	require.ErrorIs(t, err, domain.ErrUnauthorizedRelationshipAction)
+}
+
+func TestEmitInviteTokenRejectsInactiveHolding(t *testing.T) {
+	service, repo, _ := tenantRelationshipService(t)
+	holding, subsidiary := uuid.New(), uuid.New()
+	repo.active[holding] = true
+	repo.active[subsidiary] = true
+	relationship := startPending(t, service, holding, subsidiary)
+	repo.active[holding] = false
+
+	_, err := service.EmitInviteToken(context.Background(), EmitInviteTokenInput{
+		RelationshipID: relationship.ID, HoldingID: holding,
+	})
+	require.ErrorIs(t, err, domain.ErrTenantInactive)
+}
+
+func TestEmitInviteTokenRejectsInactiveSubsidiary(t *testing.T) {
+	service, repo, _ := tenantRelationshipService(t)
+	holding, subsidiary := uuid.New(), uuid.New()
+	repo.active[holding] = true
+	repo.active[subsidiary] = true
+	relationship := startPending(t, service, holding, subsidiary)
+	repo.active[subsidiary] = false
+
+	_, err := service.EmitInviteToken(context.Background(), EmitInviteTokenInput{
+		RelationshipID: relationship.ID, HoldingID: holding,
+	})
+	require.ErrorIs(t, err, domain.ErrTenantInactive)
+}
+
+func TestConsumeInviteTokenRejectsInactiveHolding(t *testing.T) {
+	service, repo, _ := tenantRelationshipService(t)
+	holding, subsidiary := uuid.New(), uuid.New()
+	repo.active[holding] = true
+	repo.active[subsidiary] = true
+	relationship := startPending(t, service, holding, subsidiary)
+	emitted, err := service.EmitInviteToken(context.Background(), EmitInviteTokenInput{
+		RelationshipID: relationship.ID, HoldingID: holding,
+	})
+	require.NoError(t, err)
+	repo.active[holding] = false
+
+	_, err = service.ConsumeInviteToken(context.Background(), ConsumeInviteTokenInput{
+		InviteCode: emitted.InviteCode, SubsidiaryID: subsidiary,
+	})
+	require.ErrorIs(t, err, domain.ErrTenantInactive)
+}
+
+func TestConsumeInviteTokenRejectsInactiveSubsidiary(t *testing.T) {
+	service, repo, _ := tenantRelationshipService(t)
+	holding, subsidiary := uuid.New(), uuid.New()
+	repo.active[holding] = true
+	repo.active[subsidiary] = true
+	relationship := startPending(t, service, holding, subsidiary)
+	emitted, err := service.EmitInviteToken(context.Background(), EmitInviteTokenInput{
+		RelationshipID: relationship.ID, HoldingID: holding,
+	})
+	require.NoError(t, err)
+	repo.active[subsidiary] = false
+
+	_, err = service.ConsumeInviteToken(context.Background(), ConsumeInviteTokenInput{
+		InviteCode: emitted.InviteCode, SubsidiaryID: subsidiary,
+	})
+	require.ErrorIs(t, err, domain.ErrTenantInactive)
+}
+
+func TestEmitInviteTokenRotatesActiveInvite(t *testing.T) {
+	service, repo, _ := tenantRelationshipService(t)
+	holding, subsidiary := uuid.New(), uuid.New()
+	repo.active[holding] = true
+	repo.active[subsidiary] = true
+	relationship := startPending(t, service, holding, subsidiary)
+
+	first, err := service.EmitInviteToken(context.Background(), EmitInviteTokenInput{
+		RelationshipID: relationship.ID, HoldingID: holding,
+	})
+	require.NoError(t, err)
+	second, err := service.EmitInviteToken(context.Background(), EmitInviteTokenInput{
+		RelationshipID: relationship.ID, HoldingID: holding,
+	})
+	require.NoError(t, err)
+
+	firstInvite := repo.invitesByHash[string(first.Invite.TokenHash)]
+	secondInvite := repo.invitesByHash[string(second.Invite.TokenHash)]
+	require.NotNil(t, firstInvite)
+	require.NotNil(t, secondInvite)
+	assert.NotNil(t, firstInvite.CanceledAt)
+	assert.Nil(t, secondInvite.CanceledAt)
+
+	active := 0
+	for _, invite := range repo.invitesByHash {
+		if invite.CanceledAt == nil && invite.ConsumedAt == nil {
+			active++
+		}
+	}
+	assert.Equal(t, 1, active)
 }

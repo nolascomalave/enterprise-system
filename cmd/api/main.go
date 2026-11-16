@@ -138,6 +138,7 @@ func main() {
 		repository.NewAttachedDocumentRepository(client),
 		txManager, "local", time.Now,
 	)
+	documentService.SetOriginChecker(repository.NewDocumentOriginChecker(client))
 	partyNameService := usecase.NewPartyNameService(
 		repository.NewPartyNameRepository(client), txManager, time.Now,
 	)

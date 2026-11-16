@@ -170,3 +170,66 @@ func TestUploadDocumentPropagatesRepositoryErrors(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "database down")
 }
+
+type fakeOriginChecker struct {
+	allowed bool
+	err     error
+	calls   int
+}
+
+func (f *fakeOriginChecker) OriginBelongsToTenant(ctx context.Context, tenantID uuid.UUID, originTable string, originID uuid.UUID) (bool, error) {
+	f.calls++
+	return f.allowed, f.err
+}
+
+func TestUploadDocumentRejectsForeignPartyOrigin(t *testing.T) {
+	repo := &fakeAttachedDocumentRepo{}
+	service, _, _, tenantID := documentTestService(t, repo)
+	checker := &fakeOriginChecker{allowed: false}
+	service.SetOriginChecker(checker)
+
+	_, err := service.Upload(context.Background(), UploadDocumentInput{
+		TenantID: tenantID, OriginTable: "parties", OriginID: uuid.New(),
+		OriginalName: "audit.txt", MimeType: "text/plain",
+		Reader: bytes.NewReader([]byte("audit-origin")),
+	})
+
+	require.Error(t, err)
+	assert.Equal(t, 1, checker.calls)
+	assert.Equal(t, 0, repo.created)
+}
+
+func TestUploadDocumentAllowsPartyOriginInTenant(t *testing.T) {
+	repo := &fakeAttachedDocumentRepo{}
+	service, _, _, tenantID := documentTestService(t, repo)
+	checker := &fakeOriginChecker{allowed: true}
+	service.SetOriginChecker(checker)
+
+	document, err := service.Upload(context.Background(), UploadDocumentInput{
+		TenantID: tenantID, OriginTable: "parties", OriginID: uuid.New(),
+		OriginalName: "audit.txt", MimeType: "text/plain",
+		Reader: bytes.NewReader([]byte("audit-origin")),
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, document)
+	assert.Equal(t, 1, checker.calls)
+	assert.Equal(t, 1, repo.created)
+}
+
+func TestUploadDocumentSkipsOriginCheckForOtherTables(t *testing.T) {
+	repo := &fakeAttachedDocumentRepo{}
+	service, _, _, tenantID := documentTestService(t, repo)
+	checker := &fakeOriginChecker{allowed: false}
+	service.SetOriginChecker(checker)
+
+	document, err := service.Upload(context.Background(), UploadDocumentInput{
+		TenantID: tenantID, OriginTable: "employees", OriginID: uuid.New(),
+		OriginalName: "audit.txt", MimeType: "text/plain",
+		Reader: bytes.NewReader([]byte("audit-origin")),
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, document)
+	assert.Equal(t, 0, checker.calls)
+}

@@ -102,7 +102,7 @@ func (f *fakeTenantRelationshipUseCase) RevokeApprovedRelationship(ctx context.C
 func relationshipRouter(t *testing.T, tr usecase.TenantRelationshipUseCase) (*gin.Engine, *auth.Manager) {
 	t.Helper()
 	manager := testAuthManager(t)
-	rbac := &fakeRBACUseCase{universe: &domain.PermissionUniverse{Functions: []string{"org:write"}}}
+	rbac := &fakeRBACUseCase{universe: &domain.PermissionUniverse{Functions: []string{"tenant_relationship:write"}}}
 	router := NewRouter(Dependencies{
 		TokenManager:              manager,
 		RBACUseCase:               rbac,
@@ -122,7 +122,7 @@ func TestTenantRelationshipFullFlow(t *testing.T) {
 
 	initiate := requestWithTokenAndApp(router, http.MethodPost,
 		"/api/v1/tenant-relationships/initiate",
-		[]byte(`{"holding_tenant_id":"`+holding.String()+`","relationship_type":"OWNERSHIP"}`),
+		[]byte(`{"holding_tenant_id":"`+holding.String()+`","relationship_type":"SUBSIDIARY_OF"}`),
 		subsidiaryToken, appClientID)
 	require.Equal(t, http.StatusCreated, initiate.Code, initiate.Body.String())
 	assert.Equal(t, subsidiary, tr.lastInitiate.SubsidiaryTenantID)

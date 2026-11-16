@@ -102,11 +102,7 @@ func (r *TenantRelationshipRepository) WouldCreateCycle(ctx context.Context, hol
 			}).
 			Exist(ctx)
 		if err != nil {
-			var pqErr *pq.Error
-			if errors.As(err, &pqErr) && pqErr.Code == "42501" {
-				return domain.ErrUnauthorizedRelationshipAction
-			}
-			return repoError(err)
+			return translateRelationshipCycleError(err)
 		}
 		cycle = exists
 		return nil
@@ -261,6 +257,19 @@ func (r *TenantRelationshipRepository) FindTransfer(ctx context.Context, transfe
 		return nil
 	})
 	return result, err
+}
+
+func translateRelationshipCycleError(err error) error {
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
+		switch string(pqErr.Code) {
+		case "42501":
+			return domain.ErrUnauthorizedRelationshipAction
+		case "54000":
+			return domain.ErrRelationshipGraphTooDeep
+		}
+	}
+	return repoError(err)
 }
 
 func toDomainTenantRelationship(row *ent.TenantRelationship) *domain.TenantRelationship {

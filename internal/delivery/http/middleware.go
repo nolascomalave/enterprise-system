@@ -124,7 +124,8 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrCorporateGroupTenantMismatch),
 		errors.Is(err, domain.ErrDepartmentTenantMismatch),
 		errors.Is(err, domain.ErrPartyTenantMismatch),
-		errors.Is(err, domain.ErrRelationshipAlreadyPending):
+		errors.Is(err, domain.ErrRelationshipAlreadyPending),
+		errors.Is(err, domain.ErrInviteAlreadyActive):
 		return http.StatusConflict, "conflict"
 	case errors.Is(err, domain.ErrUnauthorizedRelationshipAction):
 		return http.StatusForbidden, "forbidden"
@@ -173,7 +174,9 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrInviteNotActive),
 		errors.Is(err, domain.ErrTokenRevoked),
 		errors.Is(err, domain.ErrInvalidTenantTransfer),
-		errors.Is(err, domain.ErrRelationshipCycleDetected):
+		errors.Is(err, domain.ErrRelationshipCycleDetected),
+		errors.Is(err, domain.ErrRelationshipGraphTooDeep),
+		errors.Is(err, domain.ErrPlatformFunctionNotAllowed):
 		return http.StatusBadRequest, "bad_request"
 	default:
 		return http.StatusInternalServerError, "internal_error"

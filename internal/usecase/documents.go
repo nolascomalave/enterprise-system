@@ -29,14 +29,20 @@ type UploadDocumentInput struct {
 	Reader       io.Reader
 }
 
+// DocumentOriginChecker validates that a document's origin belongs to the tenant.
+type DocumentOriginChecker interface {
+	OriginBelongsToTenant(ctx context.Context, tenantID uuid.UUID, originTable string, originID uuid.UUID) (bool, error)
+}
+
 // DocumentService implements the secure hybrid storage use case (CAS +
 // relational metadata).
 type DocumentService struct {
-	storage   domain.FileStorage
-	documents domain.AttachedDocumentRepository
-	tx        TransactionManager
-	provider  string
-	now       func() time.Time
+	storage       domain.FileStorage
+	documents     domain.AttachedDocumentRepository
+	tx            TransactionManager
+	originChecker DocumentOriginChecker
+	provider      string
+	now           func() time.Time
 }
 
 func NewDocumentService(
@@ -56,6 +62,11 @@ func NewDocumentService(
 		storage: storage, documents: documents, tx: tx,
 		provider: provider, now: now,
 	}
+}
+
+// SetOriginChecker configures optional origin ownership validation.
+func (s *DocumentService) SetOriginChecker(checker DocumentOriginChecker) {
+	s.originChecker = checker
 }
 
 // Upload validates the input, streams it through SHA-256, deduplicates by
@@ -84,6 +95,18 @@ func (s *DocumentService) Upload(ctx context.Context, in UploadDocumentInput) (*
 	mimeType := strings.TrimSpace(in.MimeType)
 	if mimeType == "" {
 		return nil, validationError("invalid_document", "mime_type is required", nil)
+	}
+
+	if originTable == "parties" && s.originChecker != nil {
+		allowed, err := readWithinTransaction(ctx, s.tx, func(ctx context.Context) (bool, error) {
+			return s.originChecker.OriginBelongsToTenant(ctx, in.TenantID, originTable, in.OriginID)
+		})
+		if err != nil {
+			return nil, internalError(fmt.Errorf("validate document origin: %w", err))
+		}
+		if !allowed {
+			return nil, validationError("invalid_origin", "origin_id does not belong to the tenant", nil)
+		}
 	}
 
 	size, hash, temp, err := bufferDocument(in.Reader)

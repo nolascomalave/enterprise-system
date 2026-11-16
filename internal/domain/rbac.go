@@ -349,6 +349,7 @@ type RBACRepository interface {
 	// System functions
 	CreateSystemFunction(ctx context.Context, fn *SystemFunction) error
 	FindSystemFunctionByCode(ctx context.Context, code string) (*SystemFunction, error)
+	FindSystemFunctionByID(ctx context.Context, id uuid.UUID) (*SystemFunction, error)
 
 	// Menu templates
 	CreateMenuTemplate(ctx context.Context, template *MenuTemplate) error
@@ -380,6 +381,9 @@ type RBACRepository interface {
 	AssignUserRole(ctx context.Context, assignment *UserRoleAssignment) error
 	RevokeUserRole(ctx context.Context, tenantID, userCredentialsID, roleID uuid.UUID) error
 	ListUserRoleAssignments(ctx context.Context, tenantID, userCredentialsID uuid.UUID) ([]*UserRoleAssignment, error)
+
+	// App client validation
+	AppClientAllowed(ctx context.Context, tenantID, appClientID uuid.UUID) (bool, error)
 
 	// Permission resolution (Fase 2)
 	ResolvePermissionUniverse(ctx context.Context, tenantID, userCredentialsID, appClientID uuid.UUID) (*PermissionUniverse, error)

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"enterprise-system/ent"
+	"enterprise-system/ent/clientapplication"
 	"enterprise-system/ent/departmentmenuoptionvalidity"
 	"enterprise-system/ent/employee"
 	"enterprise-system/ent/employeemenuoptionoverride"
@@ -64,6 +65,28 @@ func (r *RBACRepository) CreateSystemFunction(ctx context.Context, fn *domain.Sy
 	})
 }
 
+func (r *RBACRepository) AppClientAllowed(ctx context.Context, tenantID, appClientID uuid.UUID) (bool, error) {
+	var allowed bool
+	err := r.withClient(ctx, func(client *ent.Client) error {
+		app, err := client.ClientApplication.Query().
+			Where(
+				clientapplication.ID(appClientID),
+				clientapplication.IsActive(true),
+				clientapplication.DeletedAtIsNil(),
+			).
+			Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return nil
+			}
+			return repoError(err)
+		}
+		allowed = app.TenantID == nil || *app.TenantID == tenantID
+		return nil
+	})
+	return allowed, err
+}
+
 func (r *RBACRepository) FindSystemFunctionByCode(ctx context.Context, code string) (*domain.SystemFunction, error) {
 	var result *domain.SystemFunction
 	err := r.withClient(ctx, func(client *ent.Client) error {
@@ -85,6 +108,24 @@ func (r *RBACRepository) FindSystemFunctionByCode(ctx context.Context, code stri
 // ----------------------------------------------------------------------------
 // Menu templates
 // ----------------------------------------------------------------------------
+
+func (r *RBACRepository) FindSystemFunctionByID(ctx context.Context, id uuid.UUID) (*domain.SystemFunction, error) {
+	var result *domain.SystemFunction
+	err := r.withClient(ctx, func(client *ent.Client) error {
+		row, err := client.SystemFunction.Query().
+			Where(systemfunction.ID(id), systemfunction.DeletedAtIsNil()).
+			Only(ctx)
+		if err != nil {
+			if ent.IsNotFound(err) {
+				return domain.ErrSystemFunctionNotFound
+			}
+			return repoError(err)
+		}
+		result = toDomainSystemFunction(row)
+		return nil
+	})
+	return result, err
+}
 
 func (r *RBACRepository) CreateMenuTemplate(ctx context.Context, template *domain.MenuTemplate) error {
 	return r.withClient(ctx, func(client *ent.Client) error {

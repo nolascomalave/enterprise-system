@@ -34,12 +34,12 @@ var rbacRouteFunctions = map[string]string{
 	"POST /api/v1/auth/change-password": "account:write",
 	"POST /api/v1/corporate-groups":     "org:write",
 
-	"POST /api/v1/tenant-relationships/initiate":       "org:write",
-	"POST /api/v1/tenant-relationships/consume-token":  "org:write",
-	"POST /api/v1/tenant-relationships/:id/emit-token": "org:write",
-	"POST /api/v1/tenant-relationships/:id/reject":     "org:write",
-	"POST /api/v1/tenant-relationships/:id/cancel":     "org:write",
-	"POST /api/v1/tenant-relationships/:id/revoke":     "org:write",
+	"POST /api/v1/tenant-relationships/initiate":       "tenant_relationship:write",
+	"POST /api/v1/tenant-relationships/consume-token":  "tenant_relationship:write",
+	"POST /api/v1/tenant-relationships/:id/emit-token": "tenant_relationship:write",
+	"POST /api/v1/tenant-relationships/:id/reject":     "tenant_relationship:write",
+	"POST /api/v1/tenant-relationships/:id/cancel":     "tenant_relationship:write",
+	"POST /api/v1/tenant-relationships/:id/revoke":     "tenant_relationship:write",
 }
 
 // requiredRBACFunction returns the system function required for a route.
