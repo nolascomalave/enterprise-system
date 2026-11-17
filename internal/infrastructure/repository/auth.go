@@ -211,6 +211,24 @@ func (r *SessionRepository) RevokeIfActive(
 	return nil
 }
 
+func (r *SessionRepository) ListActiveSessionIDs(ctx context.Context, tenantID, userID uuid.UUID, at time.Time) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		var err error
+		ids, err = client.Session.Query().
+			Where(
+				session.TenantID(tenantID),
+				session.UserID(userID),
+				session.RevokedAtIsNil(),
+				session.DeletedAtIsNil(),
+				session.ExpiresAtGT(at),
+			).
+			IDs(ctx)
+		return repoError(err)
+	})
+	return ids, err
+}
+
 func (r *SessionRepository) RevokeAll(ctx context.Context, tenantID, userID uuid.UUID, at time.Time) error {
 	return r.revokeAll(ctx, tenantID, userID, uuid.Nil, at)
 }

@@ -10,6 +10,7 @@ import (
 
 	"enterprise-system/internal/infrastructure/enttenant"
 	"enterprise-system/internal/infrastructure/transaction"
+	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"enterprise-system/internal/common/apperror"
 	"enterprise-system/internal/domain"
 	"enterprise-system/internal/infrastructure/enttenant"
 	"github.com/gin-gonic/gin"
@@ -124,4 +125,21 @@ func TestRBACMiddlewareInjectsUniverse(t *testing.T) {
 	require.Equal(t, http.StatusOK, recorder.Code)
 	require.NotNil(t, injected)
 	assert.Equal(t, []string{"party:read"}, injected.Functions)
+}
+
+func TestRBACMiddlewareRejectsDisallowedAppClientID(t *testing.T) {
+	uc := &fakeRBACUseCase{
+		appErr:   apperror.NewValidation("invalid_app_client", "X-App-Client-ID is not allowed", nil),
+		universe: &domain.PermissionUniverse{Functions: []string{"party:read"}},
+	}
+	router := rbacTestRouter(uc, enttenant.SessionContext{TenantID: uuid.New(), UserID: uuid.New()})
+
+	recorder := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/parties", nil)
+	req.Header.Set("X-App-Client-ID", uuid.New().String())
+	router.ServeHTTP(recorder, req)
+
+	require.Equal(t, http.StatusBadRequest, recorder.Code)
+	body := decodeBody(t, recorder)
+	assert.Equal(t, "invalid_app_client", body["code"])
 }

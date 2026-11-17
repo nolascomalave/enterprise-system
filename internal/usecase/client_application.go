@@ -102,10 +102,7 @@ func (s *ClientApplicationService) Create(ctx context.Context, in CreateClientAp
 	if err != nil {
 		return nil, internalError(err)
 	}
-	secretHash, err := s.manager.HashPassword(clientSecret)
-	if err != nil {
-		return nil, internalError(fmt.Errorf("hash client secret: %w", err))
-	}
+	secretHash := s.manager.HashClientSecret(clientSecret)
 	now := s.now().UTC()
 	applicationID, err := uuid.NewV7()
 	if err != nil {
@@ -133,12 +130,12 @@ func (s *ClientApplicationService) IssueToken(ctx context.Context, clientID, cli
 	application, err := s.repo.FindByClientID(ctx, clientID)
 	if err != nil {
 		if errors.Is(err, domain.ErrClientApplicationNotFound) {
-			s.manager.DummyVerify(clientSecret)
+			s.manager.DummyClientVerify(clientSecret)
 			return nil, auth.ErrInvalidCredentials
 		}
 		return nil, fmt.Errorf("find client application: %w", err)
 	}
-	if !application.IsActive || !s.manager.VerifyPassword(application.ClientSecretHash, clientSecret) {
+	if !application.IsActive || !s.manager.VerifyClientSecret(application.ClientSecretHash, clientSecret) {
 		return nil, auth.ErrInvalidCredentials
 	}
 	token, err := s.manager.IssueClientToken(

@@ -147,6 +147,38 @@ func (r *fakeSessionRepo) RevokeAllExcept(ctx context.Context, tenantID, userID,
 	return nil
 }
 
+func (r *fakeSessionRepo) ListActiveSessionIDs(ctx context.Context, tenantID, userID uuid.UUID, at time.Time) ([]uuid.UUID, error) {
+	if r.err != nil {
+		return nil, r.err
+	}
+	var ids []uuid.UUID
+	for id, session := range r.sessions {
+		if session.TenantID == tenantID && session.UserID == userID &&
+			session.RevokedAt == nil && session.ExpiresAt.After(at) {
+			ids = append(ids, id)
+		}
+	}
+	return ids, nil
+}
+
+type fakeSessionBlocklist struct {
+	blocked map[uuid.UUID]bool
+	ttl     time.Duration
+}
+
+func (b *fakeSessionBlocklist) Block(ctx context.Context, sessionID uuid.UUID, ttl time.Duration) error {
+	if b.blocked == nil {
+		b.blocked = make(map[uuid.UUID]bool)
+	}
+	b.blocked[sessionID] = true
+	b.ttl = ttl
+	return nil
+}
+
+func (b *fakeSessionBlocklist) IsBlocked(ctx context.Context, sessionID uuid.UUID) (bool, error) {
+	return b.blocked[sessionID], nil
+}
+
 type fakeBinder struct {
 	tenantID  uuid.UUID
 	userID    uuid.UUID
@@ -383,6 +415,25 @@ func TestAuthLogoutRevokesSession(t *testing.T) {
 
 	require.NoError(t, service.Logout(context.Background(), login.RefreshToken))
 	assert.NotNil(t, sessionRepo.sessions[login.SessionID].RevokedAt)
+}
+
+func TestAuthLogoutBlocksSession(t *testing.T) {
+	manager := authTestManager(t)
+	creds := authTestCredentials(t, manager)
+	sessionRepo := newFakeSessionRepo()
+	service := newAuthTestService(manager, &fakeCredentialRepo{credentials: creds},
+		sessionRepo, &fakeBinder{})
+	blocklist := &fakeSessionBlocklist{}
+	service.SetSessionBlocklist(blocklist)
+
+	login, err := service.Login(context.Background(), LoginInput{
+		TenantID: creds.TenantID, Email: "user@example.com", Password: "correct horse battery staple",
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, service.Logout(context.Background(), login.RefreshToken))
+	assert.True(t, blocklist.blocked[login.SessionID])
+	assert.Equal(t, manager.AccessTTL(), blocklist.ttl)
 }
 
 func TestAuthLogoutRejectsTamperedToken(t *testing.T) {

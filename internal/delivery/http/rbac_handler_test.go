@@ -43,6 +43,11 @@ type fakeRBACUseCase struct {
 	universe  *domain.PermissionUniverse
 	menuTree  []domain.MenuTreeNode
 	err       error
+	appErr    error
+}
+
+func (f *fakeRBACUseCase) ValidateAppClientID(ctx context.Context, tenantID, appClientID uuid.UUID) error {
+	return f.appErr
 }
 
 func (f *fakeRBACUseCase) ResolvePermissions(ctx context.Context, input usecase.ResolvePermissionsInput) (*domain.PermissionUniverse, error) {

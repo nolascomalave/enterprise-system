@@ -21,6 +21,7 @@ type fakeRBACRepo struct {
 	roleMenuOptions     map[string]*domain.RoleMenuOption
 	userRoleAssignments map[string]*domain.UserRoleAssignment
 	createErr           error
+	appClientAllowed    bool
 
 	// Permission resolver simulation
 	userCredentials       map[uuid.UUID]uuid.UUID        // user_id -> party_id
@@ -56,6 +57,19 @@ func newFakeRBACRepo() *fakeRBACRepo {
 func (r *fakeRBACRepo) CreateSystemFunction(ctx context.Context, fn *domain.SystemFunction) error {
 	r.functions[fn.Code] = fn
 	return nil
+}
+
+func (r *fakeRBACRepo) FindSystemFunctionByID(ctx context.Context, id uuid.UUID) (*domain.SystemFunction, error) {
+	for _, fn := range r.functions {
+		if fn.ID == id {
+			return fn, nil
+		}
+	}
+	return nil, domain.ErrSystemFunctionNotFound
+}
+
+func (r *fakeRBACRepo) AppClientAllowed(ctx context.Context, tenantID, appClientID uuid.UUID) (bool, error) {
+	return r.appClientAllowed, nil
 }
 
 func (r *fakeRBACRepo) FindSystemFunctionByCode(ctx context.Context, code string) (*domain.SystemFunction, error) {
@@ -494,13 +508,18 @@ func TestRBACServiceUsesTransactionManager(t *testing.T) {
 
 func TestAssignMenuOptionFunction(t *testing.T) {
 	service := rbacService(t)
+	repo := service.repo.(*fakeRBACRepo)
 	tenantID := uuid.New()
 	opt, _ := service.CreateMenuOption(context.Background(), CreateMenuOptionInput{
 		TenantID: tenantID, Code: "opt", Name: "Option",
 	})
-	fnID := uuid.New()
+	function := &domain.SystemFunction{
+		ID: uuid.New(), Code: "party:read", Name: "Party read",
+		FunctionScope: domain.FunctionScopeTenant,
+	}
+	repo.functions[function.Code] = function
 
-	err := service.AssignMenuOptionFunction(context.Background(), tenantID, opt.ID, fnID, true)
+	err := service.AssignMenuOptionFunction(context.Background(), tenantID, opt.ID, function.ID, true)
 
 	require.NoError(t, err)
 }
@@ -646,4 +665,44 @@ func TestGetUserMenuUsesTransactionManager(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, tx.calls, 1)
+}
+
+func TestValidateAppClientID(t *testing.T) {
+	repo := newFakeRBACRepo()
+	service := NewRBACService(repo, newFakeTxManager(), time.Now)
+
+	require.Error(t, service.ValidateAppClientID(context.Background(), uuid.Nil, uuid.New()))
+	require.Error(t, service.ValidateAppClientID(context.Background(), uuid.New(), uuid.Nil))
+
+	repo.appClientAllowed = false
+	require.Error(t, service.ValidateAppClientID(context.Background(), uuid.New(), uuid.New()))
+
+	repo.appClientAllowed = true
+	require.NoError(t, service.ValidateAppClientID(context.Background(), uuid.New(), uuid.New()))
+}
+
+func TestAssignMenuOptionFunctionRejectsPlatformScope(t *testing.T) {
+	repo := newFakeRBACRepo()
+	function := &domain.SystemFunction{
+		ID: uuid.New(), Code: "platform:admin", Name: "Platform admin",
+		FunctionScope: domain.FunctionScopePlatform,
+	}
+	repo.functions[function.Code] = function
+	service := NewRBACService(repo, newFakeTxManager(), time.Now)
+
+	err := service.AssignMenuOptionFunction(context.Background(), uuid.New(), uuid.New(), function.ID, true)
+	require.ErrorIs(t, err, domain.ErrPlatformFunctionNotAllowed)
+}
+
+func TestAssignMenuOptionFunctionAllowsTenantScope(t *testing.T) {
+	repo := newFakeRBACRepo()
+	function := &domain.SystemFunction{
+		ID: uuid.New(), Code: "party:read", Name: "Party read",
+		FunctionScope: domain.FunctionScopeTenant,
+	}
+	repo.functions[function.Code] = function
+	service := NewRBACService(repo, newFakeTxManager(), time.Now)
+
+	err := service.AssignMenuOptionFunction(context.Background(), uuid.New(), uuid.New(), function.ID, true)
+	require.NoError(t, err)
 }

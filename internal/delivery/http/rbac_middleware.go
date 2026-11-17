@@ -73,6 +73,12 @@ func RBACMiddleware(uc RBACUseCase) gin.HandlerFunc {
 			return
 		}
 
+		if err := uc.ValidateAppClientID(c.Request.Context(), sc.TenantID, appClientID); err != nil {
+			c.Error(err)
+			c.Abort()
+			return
+		}
+
 		universe, err := uc.ResolvePermissions(c.Request.Context(), usecase.ResolvePermissionsInput{
 			TenantID:          sc.TenantID,
 			UserCredentialsID: sc.UserID,

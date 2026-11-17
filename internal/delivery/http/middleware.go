@@ -124,7 +124,8 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrCorporateGroupTenantMismatch),
 		errors.Is(err, domain.ErrDepartmentTenantMismatch),
 		errors.Is(err, domain.ErrPartyTenantMismatch),
-		errors.Is(err, domain.ErrRelationshipAlreadyPending):
+		errors.Is(err, domain.ErrRelationshipAlreadyPending),
+		errors.Is(err, domain.ErrInviteAlreadyActive):
 		return http.StatusConflict, "conflict"
 	case errors.Is(err, domain.ErrUnauthorizedRelationshipAction):
 		return http.StatusForbidden, "forbidden"
@@ -173,7 +174,9 @@ func mapSentinelError(err error) (int, string) {
 		errors.Is(err, domain.ErrInviteNotActive),
 		errors.Is(err, domain.ErrTokenRevoked),
 		errors.Is(err, domain.ErrInvalidTenantTransfer),
-		errors.Is(err, domain.ErrRelationshipCycleDetected):
+		errors.Is(err, domain.ErrRelationshipCycleDetected),
+		errors.Is(err, domain.ErrRelationshipGraphTooDeep),
+		errors.Is(err, domain.ErrPlatformFunctionNotAllowed):
 		return http.StatusBadRequest, "bad_request"
 	default:
 		return http.StatusInternalServerError, "internal_error"
@@ -211,7 +214,7 @@ func safeMessage(status int) string {
 // TenantMiddleware validates the Bearer access token and injects its tenant,
 // user and session claims into the request context. Client-credentials tokens
 // also inject their tenant but must satisfy the route's OAuth scope.
-func TenantMiddleware(manager *auth.Manager) gin.HandlerFunc {
+func TenantMiddleware(manager *auth.Manager, blocklist auth.SessionBlocklist) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		raw := bearerToken(c.GetHeader("Authorization"))
 		if raw == "" || manager == nil {
@@ -238,6 +241,17 @@ func TenantMiddleware(manager *auth.Manager) gin.HandlerFunc {
 				c.Error(apperror.NewUnauthorized("unauthorized", "unauthorized", fmt.Errorf("invalid session claim")))
 				c.Abort()
 				return
+			}
+			if blocklist != nil {
+				blocked, blockErr := blocklist.IsBlocked(c.Request.Context(), sessionID)
+				if blockErr != nil {
+					slog.Warn("tenant middleware: session blocklist check failed", "error", blockErr)
+				}
+				if blocked {
+					c.Error(apperror.NewUnauthorized("session_revoked", "session revoked", auth.ErrSessionRevoked))
+					c.Abort()
+					return
+				}
 			}
 			bindTenantSession(c, tenantID, userID, sessionID)
 			c.Next()

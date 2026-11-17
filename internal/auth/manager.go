@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
@@ -25,28 +26,31 @@ const (
 )
 
 type Config struct {
-	Secret     []byte
-	Issuer     string
-	AccessTTL  time.Duration
-	RefreshTTL time.Duration
-	TempTTL    time.Duration
-	ResetTTL   time.Duration
-	ClientTTL  time.Duration
-	BcryptCost int
-	Now        func() time.Time
+	Secret             []byte
+	ClientSecretPepper []byte
+	Issuer             string
+	AccessTTL          time.Duration
+	RefreshTTL         time.Duration
+	TempTTL            time.Duration
+	ResetTTL           time.Duration
+	ClientTTL          time.Duration
+	BcryptCost         int
+	Now                func() time.Time
 }
 
 type Manager struct {
-	secret     []byte
-	issuer     string
-	accessTTL  time.Duration
-	refreshTTL time.Duration
-	tempTTL    time.Duration
-	resetTTL   time.Duration
-	clientTTL  time.Duration
-	bcryptCost int
-	dummyHash  []byte
-	now        func() time.Time
+	secret             []byte
+	clientSecretPepper []byte
+	dummyClientMAC     []byte
+	issuer             string
+	accessTTL          time.Duration
+	refreshTTL         time.Duration
+	tempTTL            time.Duration
+	resetTTL           time.Duration
+	clientTTL          time.Duration
+	bcryptCost         int
+	dummyHash          []byte
+	now                func() time.Time
 }
 
 type AccessClaims struct {
@@ -109,17 +113,25 @@ func NewManager(cfg Config) (*Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("auth: prepare dummy password hash: %w", err)
 	}
+	if len(cfg.ClientSecretPepper) == 0 {
+		cfg.ClientSecretPepper = cfg.Secret
+	}
+	clientSecretPepper := append([]byte(nil), cfg.ClientSecretPepper...)
+	dummyMAC := hmac.New(sha256.New, clientSecretPepper)
+	dummyMAC.Write([]byte("enterprise-system-dummy-client-secret"))
 	return &Manager{
-		secret:     cfg.Secret,
-		issuer:     cfg.Issuer,
-		accessTTL:  cfg.AccessTTL,
-		refreshTTL: cfg.RefreshTTL,
-		tempTTL:    cfg.TempTTL,
-		resetTTL:   cfg.ResetTTL,
-		clientTTL:  cfg.ClientTTL,
-		bcryptCost: cfg.BcryptCost,
-		dummyHash:  dummyHash,
-		now:        cfg.Now,
+		secret:             cfg.Secret,
+		clientSecretPepper: clientSecretPepper,
+		dummyClientMAC:     dummyMAC.Sum(nil),
+		issuer:             cfg.Issuer,
+		accessTTL:          cfg.AccessTTL,
+		refreshTTL:         cfg.RefreshTTL,
+		tempTTL:            cfg.TempTTL,
+		resetTTL:           cfg.ResetTTL,
+		clientTTL:          cfg.ClientTTL,
+		bcryptCost:         cfg.BcryptCost,
+		dummyHash:          dummyHash,
+		now:                cfg.Now,
 	}, nil
 }
 
@@ -414,6 +426,34 @@ func (m *Manager) VerifyPassword(hash, password string) bool {
 // not exist, reducing user-enumeration by timing.
 func (m *Manager) DummyVerify(password string) {
 	_ = bcrypt.CompareHashAndPassword(m.dummyHash, []byte(password))
+}
+
+const clientSecretHashPrefix = "hmac-sha256:"
+
+// HashClientSecret derives the stored client-secret verifier with HMAC-SHA-256
+// and the configured pepper. Client secrets are high-entropy random values, so
+// bcrypt's deliberate cost is unnecessary and becomes a DoS vector.
+func (m *Manager) HashClientSecret(secret string) string {
+	mac := hmac.New(sha256.New, m.clientSecretPepper)
+	mac.Write([]byte(secret))
+	return clientSecretHashPrefix + hex.EncodeToString(mac.Sum(nil))
+}
+
+// VerifyClientSecret accepts the HMAC format and falls back to bcrypt for
+// legacy client applications created before the HMAC migration.
+func (m *Manager) VerifyClientSecret(stored, secret string) bool {
+	if strings.HasPrefix(stored, clientSecretHashPrefix) {
+		return hmac.Equal([]byte(m.HashClientSecret(secret)), []byte(stored))
+	}
+	return bcrypt.CompareHashAndPassword([]byte(stored), []byte(secret)) == nil
+}
+
+// DummyClientVerify performs constant-time HMAC work for unknown client IDs
+// without the bcrypt cost.
+func (m *Manager) DummyClientVerify(secret string) {
+	mac := hmac.New(sha256.New, m.clientSecretPepper)
+	mac.Write([]byte(secret))
+	_ = hmac.Equal(mac.Sum(nil), m.dummyClientMAC)
 }
 
 func (m *Manager) GenerateTOTPSecret(issuer, account string) (string, string, error) {

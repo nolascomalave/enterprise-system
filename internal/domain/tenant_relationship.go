@@ -44,10 +44,15 @@ type TenantRelationship struct {
 	UpdatedAt          time.Time
 }
 
+const RelationshipTypeSubsidiaryOf = "SUBSIDIARY_OF"
+
 func NewPendingTenantRelationship(holding, subsidiary uuid.UUID, relationshipType string, now time.Time) (*TenantRelationship, error) {
 	relationshipType = strings.TrimSpace(relationshipType)
-	if holding == uuid.Nil || subsidiary == uuid.Nil || holding == subsidiary || relationshipType == "" {
-		return nil, fmt.Errorf("%w: invalid holding/subsidiary/type", ErrInvalidTenantRelationship)
+	if holding == uuid.Nil || subsidiary == uuid.Nil || holding == subsidiary {
+		return nil, fmt.Errorf("%w: invalid holding/subsidiary", ErrInvalidTenantRelationship)
+	}
+	if relationshipType != RelationshipTypeSubsidiaryOf {
+		return nil, fmt.Errorf("%w: unsupported relationship type", ErrInvalidTenantRelationship)
 	}
 	now = now.UTC()
 	return &TenantRelationship{

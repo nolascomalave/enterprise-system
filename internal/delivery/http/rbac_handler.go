@@ -16,6 +16,7 @@ import (
 
 // RBACUseCase exposes RBAC operations to the HTTP layer.
 type RBACUseCase interface {
+	ValidateAppClientID(ctx context.Context, tenantID, appClientID uuid.UUID) error
 	ResolvePermissions(ctx context.Context, input usecase.ResolvePermissionsInput) (*domain.PermissionUniverse, error)
 	GetUserMenu(ctx context.Context, input usecase.GetUserMenuInput) ([]domain.MenuTreeNode, error)
 }

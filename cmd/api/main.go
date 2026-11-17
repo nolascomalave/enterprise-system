@@ -48,9 +48,17 @@ func main() {
 	if len(secret) < 32 {
 		log.Fatal("JWT_SECRET is required and must be at least 32 bytes")
 	}
+	clientSecretPepper := os.Getenv("CLIENT_SECRET_PEPPER")
+	if clientSecretPepper == "" {
+		clientSecretPepper = secret
+	}
 	issuer := os.Getenv("JWT_ISSUER")
 	if issuer == "" {
 		issuer = "enterprise-system"
+	}
+	platformAdminKey := strings.TrimSpace(os.Getenv("PLATFORM_ADMIN_KEY"))
+	if err := validatePlatformAdminKey(platformAdminKey); err != nil {
+		log.Fatalf("invalid PLATFORM_ADMIN_KEY: %v", err)
 	}
 
 	client, err := enttenant.Open("postgres", dsn)
@@ -60,14 +68,15 @@ func main() {
 	defer func() { _ = client.Close() }()
 
 	tokenManager, err := auth.NewManager(auth.Config{
-		Secret:     []byte(secret),
-		Issuer:     issuer,
-		AccessTTL:  15 * time.Minute,
-		RefreshTTL: 30 * 24 * time.Hour,
-		TempTTL:    5 * time.Minute,
-		ResetTTL:   time.Hour,
-		BcryptCost: 12,
-		Now:        time.Now,
+		Secret:             []byte(secret),
+		ClientSecretPepper: []byte(clientSecretPepper),
+		Issuer:             issuer,
+		AccessTTL:          15 * time.Minute,
+		RefreshTTL:         30 * 24 * time.Hour,
+		TempTTL:            5 * time.Minute,
+		ResetTTL:           time.Hour,
+		BcryptCost:         12,
+		Now:                time.Now,
 	})
 	if err != nil {
 		log.Fatalf("configure auth: %v", err)
@@ -94,15 +103,18 @@ func main() {
 	partyContactRepo := repository.NewPartyContactRepository(client)
 	sessionRepo := repository.NewSessionRepository(client)
 	binder := enttenant.ContextBinder{}
+	sessionBlocklist := cache.NewSessionBlocklist(redisClient)
 	authService := usecase.NewAuthService(
 		tokenManager, credentialRepo, partyContactRepo, sessionRepo, txManager, binder, time.Now,
 	)
+	authService.SetSessionBlocklist(sessionBlocklist)
 	accountService := usecase.NewAccountService(
 		tokenManager, credentialRepo, partyContactRepo, sessionRepo,
 		repository.NewPasswordResetTokenRepository(client),
 		emailinfra.NewConsoleSender(os.Stdout),
 		txManager, binder, time.Now,
 	)
+	accountService.SetSessionBlocklist(sessionBlocklist)
 	onboardingService := usecase.NewRegisterTenantService(
 		tokenManager,
 		txManager,
@@ -126,6 +138,7 @@ func main() {
 		repository.NewAttachedDocumentRepository(client),
 		txManager, "local", time.Now,
 	)
+	documentService.SetOriginChecker(repository.NewDocumentOriginChecker(client))
 	partyNameService := usecase.NewPartyNameService(
 		repository.NewPartyNameRepository(client), txManager, time.Now,
 	)
@@ -173,7 +186,7 @@ func main() {
 		CatalogUseCase:            catalogService,
 		RBACUseCase:               rbacService,
 		TenantRelationshipUseCase: tenantRelationshipService,
-		PlatformAdminKey:          os.Getenv("PLATFORM_ADMIN_KEY"),
+		PlatformAdminKey:          platformAdminKey,
 		TokenManager:              tokenManager,
 		CookieSecure:              os.Getenv("COOKIE_SECURE") != "false",
 		RefreshTTL:                30 * 24 * time.Hour,
@@ -228,6 +241,20 @@ func main() {
 	if err := <-serverErr; err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Printf("server error during shutdown: %v", err)
 	}
+}
+
+func validatePlatformAdminKey(key string) error {
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return errors.New("PLATFORM_ADMIN_KEY is required")
+	}
+	if key == "change-me" {
+		return errors.New("PLATFORM_ADMIN_KEY must not be the default placeholder")
+	}
+	if len(key) < 32 {
+		return errors.New("PLATFORM_ADMIN_KEY must be at least 32 characters")
+	}
+	return nil
 }
 
 func splitCSV(value string) []string {

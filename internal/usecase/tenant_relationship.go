@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -67,16 +68,19 @@ func (s *TenantRelationshipService) StartPendingRelationship(
 			return fmt.Errorf("check holding tenant: %w", err)
 		}
 		if !holdingActive {
-			return validationError("tenant_inactive", "holding tenant is inactive or deleted", domain.ErrTenantInactive)
+			return validationError("forbidden", "relationship request rejected", domain.ErrUnauthorizedRelationshipAction)
 		}
 		subsidiaryActive, err := s.repo.TenantActive(ctx, input.SubsidiaryTenantID)
 		if err != nil {
 			return fmt.Errorf("check subsidiary tenant: %w", err)
 		}
 		if !subsidiaryActive {
-			return validationError("tenant_inactive", "subsidiary tenant is inactive or deleted", domain.ErrTenantInactive)
+			return validationError("forbidden", "relationship request rejected", domain.ErrUnauthorizedRelationshipAction)
 		}
 		if err := s.repo.CreateRelationship(ctx, relationship); err != nil {
+			if errors.Is(err, domain.ErrRelationshipAlreadyPending) {
+				return validationError("forbidden", "relationship request rejected", domain.ErrUnauthorizedRelationshipAction)
+			}
 			return fmt.Errorf("create tenant relationship: %w", err)
 		}
 		return nil
@@ -122,6 +126,22 @@ func (s *TenantRelationshipService) EmitInviteToken(
 		}
 		if relationship.TenantIDHolding != input.HoldingID {
 			return validationError("forbidden", "only the holding can emit invites", domain.ErrUnauthorizedRelationshipAction)
+		}
+		if active, err := s.repo.TenantActive(ctx, relationship.TenantIDHolding); err != nil {
+			return fmt.Errorf("check holding tenant: %w", err)
+		} else if !active {
+			return validationError("tenant_inactive", "holding tenant is inactive or deleted", domain.ErrTenantInactive)
+		}
+		if active, err := s.repo.TenantActive(ctx, relationship.TenantIDSubsidiary); err != nil {
+			return fmt.Errorf("check subsidiary tenant: %w", err)
+		} else if !active {
+			return validationError("tenant_inactive", "subsidiary tenant is inactive or deleted", domain.ErrTenantInactive)
+		}
+
+		// Rotate the active invite: at most one token may be active per
+		// relationship. The partial unique index is the hard guarantee.
+		if err := s.repo.CancelActiveInvites(ctx, relationship.ID, input.HoldingID, now); err != nil {
+			return fmt.Errorf("cancel active invites: %w", err)
 		}
 
 		inviteCode, inviteHash, err := newInviteCode()
@@ -263,6 +283,17 @@ func (s *TenantRelationshipService) ConsumeInviteToken(
 		relationship, err := s.repo.LockRelationship(ctx, invite.RelationshipID)
 		if err != nil {
 			return err
+		}
+
+		if active, err := s.repo.TenantActive(ctx, relationship.TenantIDHolding); err != nil {
+			return fmt.Errorf("check holding tenant: %w", err)
+		} else if !active {
+			return validationError("tenant_inactive", "holding tenant is inactive or deleted", domain.ErrTenantInactive)
+		}
+		if active, err := s.repo.TenantActive(ctx, relationship.TenantIDSubsidiary); err != nil {
+			return fmt.Errorf("check subsidiary tenant: %w", err)
+		} else if !active {
+			return validationError("tenant_inactive", "subsidiary tenant is inactive or deleted", domain.ErrTenantInactive)
 		}
 
 		if invite.CanceledAt != nil {

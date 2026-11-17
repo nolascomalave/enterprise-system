@@ -36,6 +36,7 @@ type RBACUseCase interface {
 	RevokeUserRole(ctx context.Context, tenantID, userCredentialsID, roleID uuid.UUID) error
 	ListUserRoles(ctx context.Context, tenantID, userCredentialsID uuid.UUID) ([]*domain.UserRoleAssignment, error)
 
+	ValidateAppClientID(ctx context.Context, tenantID, appClientID uuid.UUID) error
 	ResolvePermissions(ctx context.Context, input ResolvePermissionsInput) (*domain.PermissionUniverse, error)
 	GetUserMenu(ctx context.Context, input GetUserMenuInput) ([]domain.MenuTreeNode, error)
 }
@@ -321,6 +322,17 @@ func (s *RBACService) AssignMenuOptionFunction(ctx context.Context, tenantID, op
 		CreatedAt:        s.now().UTC(),
 	}
 	return s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
+		function, err := s.repo.FindSystemFunctionByID(ctx, functionID)
+		if err != nil {
+			return err
+		}
+		if function.FunctionScope == domain.FunctionScopePlatform {
+			return validationError(
+				"platform_function_not_allowed",
+				"platform functions cannot be assigned to tenant menu options",
+				domain.ErrPlatformFunctionNotAllowed,
+			)
+		}
 		return s.repo.AssignMenuOptionFunction(ctx, link)
 	})
 }
@@ -372,6 +384,22 @@ func (s *RBACService) ListUserRoles(ctx context.Context, tenantID, userCredentia
 	return readWithinTransaction(ctx, s.tx, func(ctx context.Context) ([]*domain.UserRoleAssignment, error) {
 		return s.repo.ListUserRoleAssignments(ctx, tenantID, userCredentialsID)
 	})
+}
+
+func (s *RBACService) ValidateAppClientID(ctx context.Context, tenantID, appClientID uuid.UUID) error {
+	if tenantID == uuid.Nil || appClientID == uuid.Nil {
+		return validationError("invalid_app_client", "app_client_id is required", nil)
+	}
+	allowed, err := readWithinTransaction(ctx, s.tx, func(ctx context.Context) (bool, error) {
+		return s.repo.AppClientAllowed(ctx, tenantID, appClientID)
+	})
+	if err != nil {
+		return fmt.Errorf("validate app client: %w", err)
+	}
+	if !allowed {
+		return validationError("invalid_app_client", "X-App-Client-ID is not allowed for this tenant", nil)
+	}
+	return nil
 }
 
 func (s *RBACService) ResolvePermissions(ctx context.Context, input ResolvePermissionsInput) (*domain.PermissionUniverse, error) {

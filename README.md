@@ -29,6 +29,8 @@ API multi-tenant basada en **Party Model**, escrita en Go con Clean Architecture
 | `JWT_SECRET` | Sí | — | Secreto HS256 de al menos 32 bytes |
 | `JWT_ISSUER` | No | `enterprise-system` | Emisor de los JWT |
 | `REDIS_URL` | No | `redis://localhost:6379/0` | Redis para rate limiting distribuido; si falta o falla, se usa memoria |
+| `PLATFORM_ADMIN_KEY` | No | — | Clave de administración de plataforma; >=32 caracteres. Vacía, `change-me` o corta impide el arranque |
+| `CLIENT_SECRET_PEPPER` | No | `JWT_SECRET` | Pepper HMAC para verificar `client_secret` de aplicaciones OAuth |
 | `PORT` | No | `8080` | Puerto HTTP |
 | `COOKIE_SECURE` | No | `true` | `false` solo para HTTP local |
 | `CORS_ALLOWED_ORIGINS` | No | `http://localhost:3000` | Orígenes exactos separados por coma; `*` permite todos sin credenciales |

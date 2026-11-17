@@ -94,4 +94,7 @@ var (
 	ErrTenantTransferNotFound         = errors.New("tenant transfer not found")
 	ErrUnauthorizedRelationshipAction = errors.New("tenant is not allowed to perform this relationship action")
 	ErrRelationshipCycleDetected      = errors.New("tenant relationship would create a cycle")
+	ErrRelationshipGraphTooDeep       = errors.New("tenant relationship graph exceeds the supported depth")
+	ErrPlatformFunctionNotAllowed     = errors.New("platform function cannot be assigned to tenant RBAC")
+	ErrInviteAlreadyActive            = errors.New("an active invite already exists")
 )

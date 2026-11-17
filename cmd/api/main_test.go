@@ -1,10 +1,12 @@
 package main
 
 import (
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSplitCSV(t *testing.T) {
@@ -25,4 +27,13 @@ func TestShutdownTimeout(t *testing.T) {
 		t.Setenv("SHUTDOWN_TIMEOUT", "not-a-duration")
 		assert.Equal(t, 10*time.Second, shutdownTimeout())
 	})
+}
+
+func TestValidatePlatformAdminKey(t *testing.T) {
+	assert.Error(t, validatePlatformAdminKey(""))
+	assert.Error(t, validatePlatformAdminKey("change-me"))
+	assert.Error(t, validatePlatformAdminKey("short"))
+	assert.Error(t, validatePlatformAdminKey(strings.Repeat("a", 31)))
+	require.NoError(t, validatePlatformAdminKey(strings.Repeat("a", 32)))
+	require.NoError(t, validatePlatformAdminKey("  "+strings.Repeat("b", 32)+"  "))
 }

@@ -68,6 +68,7 @@ type SessionRepository interface {
 	RevokeIfActive(ctx context.Context, tenantID, sessionID uuid.UUID, tokenHash []byte, at time.Time) error
 	RevokeAll(ctx context.Context, tenantID, userID uuid.UUID, at time.Time) error
 	RevokeAllExcept(ctx context.Context, tenantID, userID, exceptSessionID uuid.UUID, at time.Time) error
+	ListActiveSessionIDs(ctx context.Context, tenantID, userID uuid.UUID, at time.Time) ([]uuid.UUID, error)
 }
 
 type PasswordResetToken struct {
