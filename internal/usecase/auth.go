@@ -26,7 +26,22 @@ type AuthService struct {
 	tx          TransactionManager
 	binder      TenantContextBinder
 	blocklist   auth.SessionBlocklist
+	emailOTP    SecurityCodeRequester
+	otpCodes    domain.SecurityCodeManager
 	now         func() time.Time
+}
+
+// SecurityCodeRequester is the narrow port used to deliver a login security
+// code without coupling AuthService to the full MFA use case.
+type SecurityCodeRequester interface {
+	RequestSecurityCode(ctx context.Context, in RequestSecurityCodeInput) error
+}
+
+// SetEmailOTPFlow wires the EMAIL_OTP second factor. When it is not configured,
+// login fails closed instead of bypassing the second factor.
+func (s *AuthService) SetEmailOTPFlow(requester SecurityCodeRequester, codes domain.SecurityCodeManager) {
+	s.emailOTP = requester
+	s.otpCodes = codes
 }
 
 func NewAuthService(
@@ -125,9 +140,9 @@ func (s *AuthService) Login(ctx context.Context, in LoginInput) (*LoginResult, e
 		return nil, invalidCredentialsError(auth.ErrInvalidCredentials)
 	}
 
-	if credentials.TOTPEnabled {
-		if credentials.TOTPSecret == "" {
-			return nil, twoFANotEnabledError(auth.Err2FANotEnabled)
+	if credentials.MFAEnabled {
+		if err := s.prepareSecondFactor(ctx, in.TenantID, credentials); err != nil {
+			return nil, err
 		}
 		tempToken, err := s.manager.IssueTempToken(in.TenantID, credentials.PartyID)
 		if err != nil {
@@ -144,6 +159,27 @@ func (s *AuthService) Login(ctx context.Context, in LoginInput) (*LoginResult, e
 		AccessToken: result.AccessToken, RefreshToken: result.RefreshToken,
 		SessionID: result.SessionID, ExpiresIn: result.ExpiresIn,
 	}, nil
+}
+
+func (s *AuthService) prepareSecondFactor(ctx context.Context, tenantID uuid.UUID, credentials *auth.Credentials) error {
+	switch credentials.MFAMethod {
+	case domain.MFAMethodTOTP:
+		if credentials.TOTPSecret == "" {
+			return twoFANotEnabledError(auth.Err2FANotEnabled)
+		}
+		return nil
+	case domain.MFAMethodEmailOTP:
+		if s.emailOTP == nil {
+			return internalError(errors.New("email OTP flow is not configured"))
+		}
+		return s.emailOTP.RequestSecurityCode(ctx, RequestSecurityCodeInput{
+			TenantID: tenantID,
+			PartyID:  credentials.PartyID,
+			Action:   SecurityActionLogin,
+		})
+	default:
+		return twoFANotEnabledError(auth.Err2FANotEnabled)
+	}
 }
 
 func (s *AuthService) loginLookupError(err error, password string) error {
@@ -182,26 +218,48 @@ func (s *AuthService) Verify2FA(ctx context.Context, in Verify2FAInput) (*LoginR
 			}
 			return fmt.Errorf("find credentials: %w", err)
 		}
-		if !credentials.TOTPEnabled || credentials.TOTPSecret == "" {
+		if !credentials.MFAEnabled {
 			return twoFANotEnabledError(auth.Err2FANotEnabled)
 		}
 
-		if !s.manager.ValidateTOTP(credentials.TOTPSecret, in.Code) {
-			remaining, ok := s.manager.VerifyBackupCode(credentials.BackupCodesHash, in.Code)
-			if !ok {
-				return invalidTOTPError(auth.ErrInvalidTOTP)
+		switch credentials.MFAMethod {
+		case domain.MFAMethodTOTP:
+			if credentials.TOTPSecret == "" {
+				return twoFANotEnabledError(auth.Err2FANotEnabled)
 			}
-			// Optimistic update: the code is only consumed if nobody else
-			// modified the credentials since they were read. A concurrent
-			// consumer wins and this request treats the code as already used.
-			if err := s.credentials.ConsumeBackupCodeIfUnchanged(
-				ctx, tenantID, userID, credentials.UpdatedAt, remaining, s.now().UTC(),
-			); err != nil {
-				if errors.Is(err, auth.ErrConcurrentModification) {
+			if !s.manager.ValidateTOTP(credentials.TOTPSecret, in.Code) {
+				remaining, ok := s.manager.VerifyBackupCode(credentials.BackupCodesHash, in.Code)
+				if !ok {
 					return invalidTOTPError(auth.ErrInvalidTOTP)
 				}
-				return fmt.Errorf("consume backup code: %w", err)
+				// Optimistic update: the code is only consumed if nobody else
+				// modified the credentials since they were read. A concurrent
+				// consumer wins and this request treats the code as already used.
+				if err := s.credentials.ConsumeBackupCodeIfUnchanged(
+					ctx, tenantID, userID, credentials.UpdatedAt, remaining, s.now().UTC(),
+				); err != nil {
+					if errors.Is(err, auth.ErrConcurrentModification) {
+						return invalidTOTPError(auth.ErrInvalidTOTP)
+					}
+					return fmt.Errorf("consume backup code: %w", err)
+				}
 			}
+		case domain.MFAMethodEmailOTP:
+			if s.otpCodes == nil {
+				return internalError(errors.New("email OTP flow is not configured"))
+			}
+			if err := s.otpCodes.Verify(ctx, userID, SecurityActionLogin, in.Code); err != nil {
+				switch {
+				case errors.Is(err, domain.ErrInvalidSecurityCode):
+					return unauthorizedError("invalid_security_code", "invalid or expired security code", err)
+				case errors.Is(err, domain.ErrOTPServiceUnavailable):
+					return internalError(err)
+				default:
+					return internalError(err)
+				}
+			}
+		default:
+			return twoFANotEnabledError(auth.Err2FANotEnabled)
 		}
 
 		var issueErr error

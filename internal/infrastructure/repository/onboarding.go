@@ -11,6 +11,7 @@ import (
 	"enterprise-system/ent/partycontactmechanismvalidity"
 	"enterprise-system/ent/roletype"
 	entsubscription "enterprise-system/ent/subscription"
+	"enterprise-system/ent/usercredentials"
 	"enterprise-system/internal/auth"
 	"enterprise-system/internal/domain"
 	"enterprise-system/internal/usecase"
@@ -239,6 +240,10 @@ func (s *TenantProvisioningStore) CreateUserCredentials(ctx context.Context, c *
 	if c == nil {
 		return errors.New("provisioning: nil credentials")
 	}
+	method := c.MFAMethod
+	if method == "" {
+		method = domain.MFAMethodNone
+	}
 	return s.withClient(ctx, func(client *ent.Client) error {
 		_, err := client.UserCredentials.Create().
 			SetID(c.ID).
@@ -246,7 +251,8 @@ func (s *TenantProvisioningStore) CreateUserCredentials(ctx context.Context, c *
 			SetPartyID(c.PartyID).
 			SetPartyContactMechanismID(c.PartyContactMechanismID).
 			SetPasswordHash(c.PasswordHash).
-			SetTotpEnabled(c.TOTPEnabled).
+			SetMfaEnabled(c.MFAEnabled).
+			SetMfaMethod(usercredentials.MfaMethod(method)).
 			SetBackupCodesHash(c.BackupCodesHash).
 			SetCreatedAt(c.CreatedAt).
 			SetUpdatedAt(c.UpdatedAt).

@@ -67,3 +67,29 @@ func TestContactMechanismUpdate(t *testing.T) {
 
 	require.ErrorIs(t, contact.Update(ContactTypeEmail, "not-an-email"), ErrInvalidContactMechanism)
 }
+
+func TestContactTypeCanReceiveSecurityCode(t *testing.T) {
+	tests := []struct {
+		ctype ContactType
+		want  bool
+	}{
+		{ContactTypeEmail, true},
+		{ContactTypePhone, true},
+		{ContactTypeMobile, true},
+		{ContactTypeFax, false},
+		{ContactTypeWebsite, false},
+	}
+	for _, tt := range tests {
+		assert.Equal(t, tt.want, tt.ctype.CanReceiveSecurityCode(), string(tt.ctype))
+	}
+}
+
+func TestNewContactMechanismSetsSecurityCodeCapability(t *testing.T) {
+	email, err := NewContactMechanism(ContactTypeEmail, "user@example.com")
+	require.NoError(t, err)
+	assert.True(t, email.CanReceiveSecurityCode)
+
+	fax, err := NewContactMechanism(ContactTypeFax, "+15555550100")
+	require.NoError(t, err)
+	assert.False(t, fax.CanReceiveSecurityCode)
+}

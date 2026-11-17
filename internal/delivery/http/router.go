@@ -16,6 +16,7 @@ type Dependencies struct {
 	PartyUseCase              PartyUseCase
 	AuthUseCase               AuthUseCase
 	AccountUseCase            AccountUseCase
+	MFAUseCase                MFAUseCase
 	OnboardingUseCase         OnboardingUseCase
 	OrgStructureUseCase       OrgStructureUseCase
 	MergePartiesUseCase       MergePartiesUseCase
@@ -78,6 +79,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	twoFALimiter := newLimiter("2fa", deps.AuthRateLimit, deps.AuthRateWindow)
 	forgotLimiter := newLimiter("forgot-password", deps.AuthRateLimit, deps.AuthRateWindow)
 	resetLimiter := newLimiter("reset-password", deps.AuthRateLimit, deps.AuthRateWindow)
+	otpLimiter := newLimiter("request-otp", deps.AuthRateLimit, deps.AuthRateWindow)
 	onboardingLimiter := newLimiter("onboarding", 3, time.Hour)
 	platformAdminLimiter := newLimiter("platform-admin", deps.AuthRateLimit, deps.AuthRateWindow)
 	oauthTokenLimiter := newLimiter("oauth-token", deps.AuthRateLimit, deps.AuthRateWindow)
@@ -119,6 +121,18 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	}
 
 	api.POST("/onboarding/register", RateLimit(onboardingLimiter), onboardingHandler.Register)
+
+	// MFA endpoints are authenticated but intentionally exempt from RBAC: they
+	// operate on the caller's own credentials and must not require an app scope.
+	if deps.MFAUseCase != nil {
+		mfaHandler := NewMFAHandler(deps.MFAUseCase)
+		mfaRoutes := api.Group("")
+		mfaRoutes.Use(TenantMiddleware(deps.TokenManager, deps.SessionBlocklist))
+		{
+			mfaRoutes.PUT("/auth/mfa-preferences", mfaHandler.UpdatePreferences)
+			mfaRoutes.POST("/auth/request-otp", RateLimit(otpLimiter), mfaHandler.RequestSecurityCode)
+		}
+	}
 
 	partyHandler := NewPartyHandler(deps.PartyUseCase)
 	protected := api.Group("")

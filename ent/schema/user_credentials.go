@@ -40,8 +40,11 @@ func (UserCredentials) Fields() []ent.Field {
 		field.String("totp_secret").
 			Optional().
 			Sensitive(),
-		field.Bool("totp_enabled").
+		field.Bool("mfa_enabled").
 			Default(false),
+		field.Enum("mfa_method").
+			Values("NONE", "TOTP", "EMAIL_OTP").
+			Default("NONE"),
 		field.JSON("backup_codes_hash", []string{}).
 			Default([]string{}),
 		field.Time("created_at").

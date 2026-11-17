@@ -61,6 +61,11 @@ func Value(v string) predicate.ContactMechanism {
 	return predicate.ContactMechanism(sql.FieldEQ(FieldValue, v))
 }
 
+// CanReceiveSecurityCode applies equality check predicate on the "can_receive_security_code" field. It's identical to CanReceiveSecurityCodeEQ.
+func CanReceiveSecurityCode(v bool) predicate.ContactMechanism {
+	return predicate.ContactMechanism(sql.FieldEQ(FieldCanReceiveSecurityCode, v))
+}
+
 // TypeEQ applies the EQ predicate on the "type" field.
 func TypeEQ(v Type) predicate.ContactMechanism {
 	return predicate.ContactMechanism(sql.FieldEQ(FieldType, v))
@@ -144,6 +149,16 @@ func ValueEqualFold(v string) predicate.ContactMechanism {
 // ValueContainsFold applies the ContainsFold predicate on the "value" field.
 func ValueContainsFold(v string) predicate.ContactMechanism {
 	return predicate.ContactMechanism(sql.FieldContainsFold(FieldValue, v))
+}
+
+// CanReceiveSecurityCodeEQ applies the EQ predicate on the "can_receive_security_code" field.
+func CanReceiveSecurityCodeEQ(v bool) predicate.ContactMechanism {
+	return predicate.ContactMechanism(sql.FieldEQ(FieldCanReceiveSecurityCode, v))
+}
+
+// CanReceiveSecurityCodeNEQ applies the NEQ predicate on the "can_receive_security_code" field.
+func CanReceiveSecurityCodeNEQ(v bool) predicate.ContactMechanism {
+	return predicate.ContactMechanism(sql.FieldNEQ(FieldCanReceiveSecurityCode, v))
 }
 
 // HasPartyContactMechanisms applies the HasEdge predicate on the "party_contact_mechanisms" edge.

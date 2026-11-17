@@ -61,6 +61,7 @@ func (r *PartyContactRepository) FindOrCreateContactMechanism(ctx context.Contex
 			SetID(contact.ID).
 			SetType(contactmechanism.Type(contact.Type)).
 			SetValue(contact.Value).
+			SetCanReceiveSecurityCode(contact.CanReceiveSecurityCode).
 			OnConflictColumns(contactmechanism.FieldType, contactmechanism.FieldValue).
 			DoNothing().
 			Exec(ctx)
@@ -72,6 +73,15 @@ func (r *PartyContactRepository) FindOrCreateContactMechanism(ctx context.Contex
 			Only(ctx)
 		if err != nil {
 			return repoError(err)
+		}
+		// Self-heal rows created before the security-code flag existed.
+		if row.CanReceiveSecurityCode != contact.CanReceiveSecurityCode {
+			row, err = client.ContactMechanism.UpdateOneID(row.ID).
+				SetCanReceiveSecurityCode(contact.CanReceiveSecurityCode).
+				Save(ctx)
+			if err != nil {
+				return repoError(err)
+			}
 		}
 		result = toDomainContactMechanism(row)
 		return nil
@@ -476,7 +486,10 @@ func toDomainContactMechanism(e *ent.ContactMechanism) *domain.ContactMechanism 
 	if e == nil {
 		return nil
 	}
-	return &domain.ContactMechanism{ID: e.ID, Type: domain.ContactType(e.Type), Value: e.Value}
+	return &domain.ContactMechanism{
+		ID: e.ID, Type: domain.ContactType(e.Type), Value: e.Value,
+		CanReceiveSecurityCode: e.CanReceiveSecurityCode,
+	}
 }
 
 func toDomainPartyContactMechanism(e *ent.PartyContactMechanism, validity *ent.PartyContactMechanismValidity) *domain.PartyContactMechanism {

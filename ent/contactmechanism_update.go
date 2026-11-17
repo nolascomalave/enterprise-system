@@ -59,6 +59,20 @@ func (_u *ContactMechanismUpdate) SetNillableValue(v *string) *ContactMechanismU
 	return _u
 }
 
+// SetCanReceiveSecurityCode sets the "can_receive_security_code" field.
+func (_u *ContactMechanismUpdate) SetCanReceiveSecurityCode(v bool) *ContactMechanismUpdate {
+	_u.mutation.SetCanReceiveSecurityCode(v)
+	return _u
+}
+
+// SetNillableCanReceiveSecurityCode sets the "can_receive_security_code" field if the given value is not nil.
+func (_u *ContactMechanismUpdate) SetNillableCanReceiveSecurityCode(v *bool) *ContactMechanismUpdate {
+	if v != nil {
+		_u.SetCanReceiveSecurityCode(*v)
+	}
+	return _u
+}
+
 // AddPartyContactMechanismIDs adds the "party_contact_mechanisms" edge to the PartyContactMechanism entity by IDs.
 func (_u *ContactMechanismUpdate) AddPartyContactMechanismIDs(ids ...uuid.UUID) *ContactMechanismUpdate {
 	_u.mutation.AddPartyContactMechanismIDs(ids...)
@@ -195,6 +209,9 @@ func (_u *ContactMechanismUpdate) sqlSave(ctx context.Context) (_node int, err e
 	}
 	if value, ok := _u.mutation.Value(); ok {
 		_spec.SetField(contactmechanism.FieldValue, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CanReceiveSecurityCode(); ok {
+		_spec.SetField(contactmechanism.FieldCanReceiveSecurityCode, field.TypeBool, value)
 	}
 	if _u.mutation.PartyContactMechanismsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -338,6 +355,20 @@ func (_u *ContactMechanismUpdateOne) SetValue(v string) *ContactMechanismUpdateO
 func (_u *ContactMechanismUpdateOne) SetNillableValue(v *string) *ContactMechanismUpdateOne {
 	if v != nil {
 		_u.SetValue(*v)
+	}
+	return _u
+}
+
+// SetCanReceiveSecurityCode sets the "can_receive_security_code" field.
+func (_u *ContactMechanismUpdateOne) SetCanReceiveSecurityCode(v bool) *ContactMechanismUpdateOne {
+	_u.mutation.SetCanReceiveSecurityCode(v)
+	return _u
+}
+
+// SetNillableCanReceiveSecurityCode sets the "can_receive_security_code" field if the given value is not nil.
+func (_u *ContactMechanismUpdateOne) SetNillableCanReceiveSecurityCode(v *bool) *ContactMechanismUpdateOne {
+	if v != nil {
+		_u.SetCanReceiveSecurityCode(*v)
 	}
 	return _u
 }
@@ -508,6 +539,9 @@ func (_u *ContactMechanismUpdateOne) sqlSave(ctx context.Context) (_node *Contac
 	}
 	if value, ok := _u.mutation.Value(); ok {
 		_spec.SetField(contactmechanism.FieldValue, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CanReceiveSecurityCode(); ok {
+		_spec.SetField(contactmechanism.FieldCanReceiveSecurityCode, field.TypeBool, value)
 	}
 	if _u.mutation.PartyContactMechanismsCleared() {
 		edge := &sqlgraph.EdgeSpec{

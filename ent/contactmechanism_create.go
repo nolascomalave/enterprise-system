@@ -37,6 +37,20 @@ func (_c *ContactMechanismCreate) SetValue(v string) *ContactMechanismCreate {
 	return _c
 }
 
+// SetCanReceiveSecurityCode sets the "can_receive_security_code" field.
+func (_c *ContactMechanismCreate) SetCanReceiveSecurityCode(v bool) *ContactMechanismCreate {
+	_c.mutation.SetCanReceiveSecurityCode(v)
+	return _c
+}
+
+// SetNillableCanReceiveSecurityCode sets the "can_receive_security_code" field if the given value is not nil.
+func (_c *ContactMechanismCreate) SetNillableCanReceiveSecurityCode(v *bool) *ContactMechanismCreate {
+	if v != nil {
+		_c.SetCanReceiveSecurityCode(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *ContactMechanismCreate) SetID(v uuid.UUID) *ContactMechanismCreate {
 	_c.mutation.SetID(v)
@@ -116,6 +130,10 @@ func (_c *ContactMechanismCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *ContactMechanismCreate) defaults() {
+	if _, ok := _c.mutation.CanReceiveSecurityCode(); !ok {
+		v := contactmechanism.DefaultCanReceiveSecurityCode
+		_c.mutation.SetCanReceiveSecurityCode(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := contactmechanism.DefaultID()
 		_c.mutation.SetID(v)
@@ -139,6 +157,9 @@ func (_c *ContactMechanismCreate) check() error {
 		if err := contactmechanism.ValueValidator(v); err != nil {
 			return &ValidationError{Name: "value", err: fmt.Errorf(`ent: validator failed for field "ContactMechanism.value": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.CanReceiveSecurityCode(); !ok {
+		return &ValidationError{Name: "can_receive_security_code", err: errors.New(`ent: missing required field "ContactMechanism.can_receive_security_code"`)}
 	}
 	return nil
 }
@@ -184,6 +205,10 @@ func (_c *ContactMechanismCreate) createSpec() (*ContactMechanism, *sqlgraph.Cre
 	if value, ok := _c.mutation.Value(); ok {
 		_spec.SetField(contactmechanism.FieldValue, field.TypeString, value)
 		_node.Value = value
+	}
+	if value, ok := _c.mutation.CanReceiveSecurityCode(); ok {
+		_spec.SetField(contactmechanism.FieldCanReceiveSecurityCode, field.TypeBool, value)
+		_node.CanReceiveSecurityCode = value
 	}
 	if nodes := _c.mutation.PartyContactMechanismsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -295,6 +320,18 @@ func (u *ContactMechanismUpsert) UpdateValue() *ContactMechanismUpsert {
 	return u
 }
 
+// SetCanReceiveSecurityCode sets the "can_receive_security_code" field.
+func (u *ContactMechanismUpsert) SetCanReceiveSecurityCode(v bool) *ContactMechanismUpsert {
+	u.Set(contactmechanism.FieldCanReceiveSecurityCode, v)
+	return u
+}
+
+// UpdateCanReceiveSecurityCode sets the "can_receive_security_code" field to the value that was provided on create.
+func (u *ContactMechanismUpsert) UpdateCanReceiveSecurityCode() *ContactMechanismUpsert {
+	u.SetExcluded(contactmechanism.FieldCanReceiveSecurityCode)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -368,6 +405,20 @@ func (u *ContactMechanismUpsertOne) SetValue(v string) *ContactMechanismUpsertOn
 func (u *ContactMechanismUpsertOne) UpdateValue() *ContactMechanismUpsertOne {
 	return u.Update(func(s *ContactMechanismUpsert) {
 		s.UpdateValue()
+	})
+}
+
+// SetCanReceiveSecurityCode sets the "can_receive_security_code" field.
+func (u *ContactMechanismUpsertOne) SetCanReceiveSecurityCode(v bool) *ContactMechanismUpsertOne {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.SetCanReceiveSecurityCode(v)
+	})
+}
+
+// UpdateCanReceiveSecurityCode sets the "can_receive_security_code" field to the value that was provided on create.
+func (u *ContactMechanismUpsertOne) UpdateCanReceiveSecurityCode() *ContactMechanismUpsertOne {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.UpdateCanReceiveSecurityCode()
 	})
 }
 
@@ -611,6 +662,20 @@ func (u *ContactMechanismUpsertBulk) SetValue(v string) *ContactMechanismUpsertB
 func (u *ContactMechanismUpsertBulk) UpdateValue() *ContactMechanismUpsertBulk {
 	return u.Update(func(s *ContactMechanismUpsert) {
 		s.UpdateValue()
+	})
+}
+
+// SetCanReceiveSecurityCode sets the "can_receive_security_code" field.
+func (u *ContactMechanismUpsertBulk) SetCanReceiveSecurityCode(v bool) *ContactMechanismUpsertBulk {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.SetCanReceiveSecurityCode(v)
+	})
+}
+
+// UpdateCanReceiveSecurityCode sets the "can_receive_security_code" field to the value that was provided on create.
+func (u *ContactMechanismUpsertBulk) UpdateCanReceiveSecurityCode() *ContactMechanismUpsertBulk {
+	return u.Update(func(s *ContactMechanismUpsert) {
+		s.UpdateCanReceiveSecurityCode()
 	})
 }
 

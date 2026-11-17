@@ -32,8 +32,10 @@ type UserCredentials struct {
 	PasswordHash string `json:"-"`
 	// TotpSecret holds the value of the "totp_secret" field.
 	TotpSecret string `json:"-"`
-	// TotpEnabled holds the value of the "totp_enabled" field.
-	TotpEnabled bool `json:"totp_enabled,omitempty"`
+	// MfaEnabled holds the value of the "mfa_enabled" field.
+	MfaEnabled bool `json:"mfa_enabled,omitempty"`
+	// MfaMethod holds the value of the "mfa_method" field.
+	MfaMethod usercredentials.MfaMethod `json:"mfa_method,omitempty"`
 	// BackupCodesHash holds the value of the "backup_codes_hash" field.
 	BackupCodesHash []string `json:"backup_codes_hash,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -112,9 +114,9 @@ func (*UserCredentials) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case usercredentials.FieldBackupCodesHash:
 			values[i] = new([]byte)
-		case usercredentials.FieldTotpEnabled:
+		case usercredentials.FieldMfaEnabled:
 			values[i] = new(sql.NullBool)
-		case usercredentials.FieldPasswordHash, usercredentials.FieldTotpSecret:
+		case usercredentials.FieldPasswordHash, usercredentials.FieldTotpSecret, usercredentials.FieldMfaMethod:
 			values[i] = new(sql.NullString)
 		case usercredentials.FieldCreatedAt, usercredentials.FieldUpdatedAt, usercredentials.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -171,11 +173,17 @@ func (_m *UserCredentials) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.TotpSecret = value.String
 			}
-		case usercredentials.FieldTotpEnabled:
+		case usercredentials.FieldMfaEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field totp_enabled", values[i])
+				return fmt.Errorf("unexpected type %T for field mfa_enabled", values[i])
 			} else if value.Valid {
-				_m.TotpEnabled = value.Bool
+				_m.MfaEnabled = value.Bool
+			}
+		case usercredentials.FieldMfaMethod:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field mfa_method", values[i])
+			} else if value.Valid {
+				_m.MfaMethod = usercredentials.MfaMethod(value.String)
 			}
 		case usercredentials.FieldBackupCodesHash:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -273,8 +281,11 @@ func (_m *UserCredentials) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("totp_secret=<sensitive>")
 	builder.WriteString(", ")
-	builder.WriteString("totp_enabled=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TotpEnabled))
+	builder.WriteString("mfa_enabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MfaEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("mfa_method=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MfaMethod))
 	builder.WriteString(", ")
 	builder.WriteString("backup_codes_hash=")
 	builder.WriteString(fmt.Sprintf("%v", _m.BackupCodesHash))

@@ -279,3 +279,24 @@ func TestErrorMappingInternal(t *testing.T) {
 	assert.Equal(t, "internal_error", body["code"])
 	assert.Equal(t, "internal server error", body["error"])
 }
+
+func TestMFARoutesUseJWTOWithoutRBACScope(t *testing.T) {
+	manager := testAuthManager(t)
+	tenantID, userID := uuid.New(), uuid.New()
+	mfa := &fakeMFAUseCase{}
+	router := NewRouter(Dependencies{MFAUseCase: mfa, TokenManager: manager})
+	token := accessToken(t, manager, tenantID, userID, uuid.New())
+
+	recorder := requestWithToken(router, http.MethodPut, "/api/v1/auth/mfa-preferences",
+		[]byte(`{"enabled":true,"method":"EMAIL_OTP"}`), token)
+	require.Equal(t, http.StatusNoContent, recorder.Code)
+	require.Equal(t, 1, mfa.updateCalls)
+	assert.Equal(t, tenantID, mfa.updateInput.TenantID)
+	assert.Equal(t, userID, mfa.updateInput.PartyID)
+
+	recorder = requestWithToken(router, http.MethodPost, "/api/v1/auth/request-otp",
+		[]byte(`{"action":"CHANGE_PASSWORD"}`), token)
+	require.Equal(t, http.StatusAccepted, recorder.Code)
+	require.Equal(t, 1, mfa.requestCalls)
+	assert.Equal(t, "CHANGE_PASSWORD", mfa.requestInput.Action)
+}

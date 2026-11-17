@@ -97,4 +97,13 @@ var (
 	ErrRelationshipGraphTooDeep       = errors.New("tenant relationship graph exceeds the supported depth")
 	ErrPlatformFunctionNotAllowed     = errors.New("platform function cannot be assigned to tenant RBAC")
 	ErrInviteAlreadyActive            = errors.New("an active invite already exists")
+
+	// MFA / security codes
+	ErrInvalidMFAMethod               = errors.New("invalid MFA method")
+	ErrTOTPNotConfigured              = errors.New("TOTP is not configured for this user")
+	ErrMFAContactRequired             = errors.New("a contact mechanism that can receive security codes is required")
+	ErrOTPCooldown                    = errors.New("security code requested too recently")
+	ErrOTPServiceUnavailable          = errors.New("security code service unavailable")
+	ErrInvalidSecurityCode            = errors.New("invalid or expired security code")
+	ErrUnsupportedSecurityCodeChannel = errors.New("unsupported security code channel")
 )

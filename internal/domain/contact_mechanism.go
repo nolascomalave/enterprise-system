@@ -29,13 +29,24 @@ func (t ContactType) Valid() bool {
 	}
 }
 
+// CanReceiveSecurityCode reports whether the channel can deliver a security code.
+func (t ContactType) CanReceiveSecurityCode() bool {
+	switch t {
+	case ContactTypeEmail, ContactTypePhone, ContactTypeMobile:
+		return true
+	default:
+		return false
+	}
+}
+
 // ContactMechanism is global master data: a unique (type, value) pair shared by
 // parties across tenants. Tenant-specific lifecycle lives in
 // PartyContactMechanism.
 type ContactMechanism struct {
-	ID    uuid.UUID
-	Type  ContactType
-	Value string
+	ID                     uuid.UUID
+	Type                   ContactType
+	Value                  string
+	CanReceiveSecurityCode bool
 }
 
 func NewContactMechanism(contactType ContactType, value string) (*ContactMechanism, error) {
@@ -44,9 +55,10 @@ func NewContactMechanism(contactType ContactType, value string) (*ContactMechani
 		return nil, fmt.Errorf("generate contact mechanism id: %w", err)
 	}
 	contact := &ContactMechanism{
-		ID:    id,
-		Type:  contactType,
-		Value: strings.TrimSpace(value),
+		ID:                     id,
+		Type:                   contactType,
+		Value:                  strings.TrimSpace(value),
+		CanReceiveSecurityCode: contactType.CanReceiveSecurityCode(),
 	}
 	if err := contact.Validate(); err != nil {
 		return nil, err
@@ -109,5 +121,6 @@ func (c *ContactMechanism) Update(contactType ContactType, value string) error {
 	}
 	c.Type = contactType
 	c.Value = strings.TrimSpace(value)
+	c.CanReceiveSecurityCode = contactType.CanReceiveSecurityCode()
 	return c.Validate()
 }

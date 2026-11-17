@@ -21,6 +21,8 @@ type ContactMechanism struct {
 	Type contactmechanism.Type `json:"type,omitempty"`
 	// Value holds the value of the "value" field.
 	Value string `json:"value,omitempty"`
+	// CanReceiveSecurityCode holds the value of the "can_receive_security_code" field.
+	CanReceiveSecurityCode bool `json:"can_receive_security_code,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ContactMechanismQuery when eager-loading is set.
 	Edges        ContactMechanismEdges `json:"edges"`
@@ -61,6 +63,8 @@ func (*ContactMechanism) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case contactmechanism.FieldCanReceiveSecurityCode:
+			values[i] = new(sql.NullBool)
 		case contactmechanism.FieldType, contactmechanism.FieldValue:
 			values[i] = new(sql.NullString)
 		case contactmechanism.FieldID:
@@ -97,6 +101,12 @@ func (_m *ContactMechanism) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field value", values[i])
 			} else if value.Valid {
 				_m.Value = value.String
+			}
+		case contactmechanism.FieldCanReceiveSecurityCode:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field can_receive_security_code", values[i])
+			} else if value.Valid {
+				_m.CanReceiveSecurityCode = value.Bool
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -149,6 +159,9 @@ func (_m *ContactMechanism) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("value=")
 	builder.WriteString(_m.Value)
+	builder.WriteString(", ")
+	builder.WriteString("can_receive_security_code=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CanReceiveSecurityCode))
 	builder.WriteByte(')')
 	return builder.String()
 }
