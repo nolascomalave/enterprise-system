@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 	"time"
 
@@ -500,13 +501,63 @@ func (m *Manager) GenerateBackupCodes(count int) ([]string, []string, error) {
 	return plain, hashes, nil
 }
 
+const backupCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+// GenerateBackupCodesSHA256 creates formatted one-time codes and stores only
+// their SHA-256 hash. Codes are canonicalized as uppercase without separators;
+// the formatted value is returned once for the user to save.
+func (m *Manager) GenerateBackupCodesSHA256(count int) ([]string, []string, error) {
+	if count <= 0 {
+		return nil, nil, errors.New("auth: backup code count must be positive")
+	}
+	plain := make([]string, 0, count)
+	hashes := make([]string, 0, count)
+	alphabetSize := big.NewInt(int64(len(backupCodeAlphabet)))
+	for i := 0; i < count; i++ {
+		raw := make([]byte, 8)
+		for j := range raw {
+			n, err := rand.Int(rand.Reader, alphabetSize)
+			if err != nil {
+				return nil, nil, fmt.Errorf("auth: generate backup code: %w", err)
+			}
+			raw[j] = backupCodeAlphabet[n.Int64()]
+		}
+		canonical := string(raw)
+		plain = append(plain, canonical[:4]+"-"+canonical[4:])
+		sum := sha256.Sum256([]byte(canonical))
+		hashes = append(hashes, hex.EncodeToString(sum[:]))
+	}
+	return plain, hashes, nil
+}
+
+func normalizeBackupCode(code string) string {
+	code = strings.ToUpper(strings.TrimSpace(code))
+	code = strings.ReplaceAll(code, "-", "")
+	code = strings.ReplaceAll(code, " ", "")
+	return code
+}
+
 func (m *Manager) VerifyBackupCode(hashes []string, code string) ([]string, bool) {
 	code = strings.TrimSpace(code)
 	if code == "" {
 		return hashes, false
 	}
+	normalized := normalizeBackupCode(code)
+	sum := sha256.Sum256([]byte(normalized))
+	sha256Hash := hex.EncodeToString(sum[:])
+
 	for i, hash := range hashes {
-		if bcrypt.CompareHashAndPassword([]byte(hash), []byte(code)) == nil {
+		matched := false
+		switch {
+		case strings.HasPrefix(hash, "$2"):
+			// Legacy bcrypt hashes generated before the SHA-256 migration.
+			if bcrypt.CompareHashAndPassword([]byte(hash), []byte(code)) == nil {
+				matched = true
+			}
+		case len(hash) == 64:
+			matched = subtle.ConstantTimeCompare([]byte(hash), []byte(sha256Hash)) == 1
+		}
+		if matched {
 			remaining := make([]string, 0, len(hashes)-1)
 			remaining = append(remaining, hashes[:i]...)
 			remaining = append(remaining, hashes[i+1:]...)

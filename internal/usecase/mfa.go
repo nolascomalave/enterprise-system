@@ -34,6 +34,7 @@ var allowedSecurityActions = map[string]struct{}{
 type TOTPManager interface {
 	GenerateTOTPSecret(issuer, account string) (secret, otpauthURL string, err error)
 	ValidateTOTP(secret, code string) bool
+	GenerateBackupCodesSHA256(count int) (plain, hashes []string, err error)
 }
 
 // MFACredentialRepository is the narrow credential port used by MFAService.
@@ -41,7 +42,7 @@ type MFACredentialRepository interface {
 	GetByPartyID(ctx context.Context, tenantID, partyID uuid.UUID) (*auth.Credentials, error)
 	UpdateMFAPreferences(ctx context.Context, tenantID, partyID uuid.UUID, enabled bool, method domain.MFAMethod, at time.Time) error
 	UpdateTOTPSecret(ctx context.Context, tenantID, partyID uuid.UUID, secret string, at time.Time) error
-	ActivateTOTP(ctx context.Context, tenantID, partyID uuid.UUID, at time.Time) error
+	ActivateTOTP(ctx context.Context, tenantID, partyID uuid.UUID, backupCodesHash []string, at time.Time) error
 }
 
 // MFAContactRepository is the narrow contact port used by MFAService.
@@ -109,8 +110,15 @@ func (s *MFAService) SetupTOTP(ctx context.Context, tenantID, partyID uuid.UUID)
 			}
 			return fmt.Errorf("load user credentials: %w", err)
 		}
-		if credentials.MFAEnabled && credentials.MFAMethod == domain.MFAMethodTOTP && credentials.TOTPSecret != "" {
-			return validationError("totp_already_enabled", "TOTP is already enabled", domain.ErrTOTPAlreadyEnabled)
+		if credentials.MFAEnabled {
+			if credentials.MFAMethod == domain.MFAMethodTOTP && credentials.TOTPVerified {
+				return validationError("totp_already_enabled", "TOTP is already enabled", domain.ErrTOTPAlreadyEnabled)
+			}
+			return validationError(
+				"mfa_already_active",
+				"disable the active MFA method before starting a new enrolment",
+				domain.ErrMFAActive,
+			)
 		}
 
 		account := partyID.String()
@@ -139,20 +147,26 @@ func (s *MFAService) SetupTOTP(ctx context.Context, tenantID, partyID uuid.UUID)
 	return result, nil
 }
 
-// VerifyTOTP validates a code against the pending secret and enables TOTP.
-func (s *MFAService) VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID, code string) error {
+// VerifyTOTP validates a code against the pending secret, enables TOTP and
+// returns one-time backup codes. The plaintext codes are returned only here.
+type VerifyTOTPResult struct {
+	BackupCodes []string
+}
+
+func (s *MFAService) VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID, code string) (*VerifyTOTPResult, error) {
 	if tenantID == uuid.Nil || partyID == uuid.Nil {
-		return validationError("invalid_input", "tenant_id and party_id are required", nil)
+		return nil, validationError("invalid_input", "tenant_id and party_id are required", nil)
 	}
 	if s.totp == nil {
-		return internalError(errors.New("TOTP manager is not configured"))
+		return nil, internalError(errors.New("TOTP manager is not configured"))
 	}
 	code = strings.TrimSpace(code)
 	if code == "" {
-		return validationError("invalid_totp", "TOTP code is required", auth.ErrInvalidTOTP)
+		return nil, validationError("invalid_totp", "TOTP code is required", auth.ErrInvalidTOTP)
 	}
 
-	return s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
+	var result *VerifyTOTPResult
+	err := s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
 		credentials, err := s.users.GetByPartyID(ctx, tenantID, partyID)
 		if err != nil {
 			if errors.Is(err, auth.ErrNotFound) {
@@ -162,6 +176,16 @@ func (s *MFAService) VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID
 		}
 		if strings.TrimSpace(credentials.TOTPSecret) == "" {
 			return validationError("totp_not_setup", "TOTP setup must be started first", domain.ErrTOTPNotConfigured)
+		}
+		if credentials.MFAEnabled {
+			if credentials.MFAMethod == domain.MFAMethodTOTP && credentials.TOTPVerified {
+				return validationError("totp_already_enabled", "TOTP is already enabled", domain.ErrTOTPAlreadyEnabled)
+			}
+			return validationError(
+				"mfa_already_active",
+				"disable the active MFA method before enrolling TOTP",
+				domain.ErrMFAActive,
+			)
 		}
 		if !s.totp.ValidateTOTP(credentials.TOTPSecret, code) {
 			return validationError("invalid_totp", "invalid TOTP code", auth.ErrInvalidTOTP)
@@ -177,11 +201,20 @@ func (s *MFAService) VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID
 				domain.ErrMFAContactRequired,
 			)
 		}
-		if err := s.users.ActivateTOTP(ctx, tenantID, partyID, s.now().UTC()); err != nil {
+		plain, hashes, err := s.totp.GenerateBackupCodesSHA256(8)
+		if err != nil {
+			return internalError(fmt.Errorf("generate backup codes: %w", err))
+		}
+		if err := s.users.ActivateTOTP(ctx, tenantID, partyID, hashes, s.now().UTC()); err != nil {
 			return fmt.Errorf("enable TOTP: %w", err)
 		}
+		result = &VerifyTOTPResult{BackupCodes: plain}
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 type UpdateMFAPreferencesInput struct {
@@ -189,6 +222,7 @@ type UpdateMFAPreferencesInput struct {
 	PartyID  uuid.UUID
 	Enabled  bool
 	Method   domain.MFAMethod
+	OTPCode  string
 }
 
 // UpdateMFAPreferences enables or disables MFA. Enabling requires at least one
@@ -213,14 +247,41 @@ func (s *MFAService) UpdateMFAPreferences(ctx context.Context, in UpdateMFAPrefe
 	// Validate the contact and persist the preference in the same transaction
 	// so the check cannot race with a concurrent contact removal.
 	return s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
-		if in.Enabled && method == domain.MFAMethodTOTP {
-			credentials, err := s.users.GetByPartyID(ctx, in.TenantID, in.PartyID)
-			if err != nil {
-				if errors.Is(err, auth.ErrNotFound) {
-					return notFoundError("user_not_found", "user credentials not found", err)
-				}
-				return fmt.Errorf("load user credentials: %w", err)
+		credentials, err := s.users.GetByPartyID(ctx, in.TenantID, in.PartyID)
+		if err != nil {
+			if errors.Is(err, auth.ErrNotFound) {
+				return notFoundError("user_not_found", "user credentials not found", err)
 			}
+			return fmt.Errorf("load user credentials: %w", err)
+		}
+
+		// Changing an already-active MFA configuration requires step-up. A
+		// first-time enable (MFA was off) does not need a code.
+		requiresStepUp := credentials.MFAEnabled && (!in.Enabled || method != credentials.MFAMethod)
+		if requiresStepUp {
+			if strings.TrimSpace(in.OTPCode) == "" {
+				return validationError("otp_required", "otp_code is required to change an active MFA configuration", domain.ErrOTPRequired)
+			}
+			if s.codes == nil {
+				return internalError(errors.New("security code manager is not configured"))
+			}
+			action := SecurityActionEnableMFA
+			if !in.Enabled {
+				action = SecurityActionDisableMFA
+			}
+			if err := s.codes.Verify(ctx, in.PartyID, action, in.OTPCode); err != nil {
+				switch {
+				case errors.Is(err, domain.ErrInvalidSecurityCode):
+					return validationError("invalid_otp", "invalid or expired security code", err)
+				case errors.Is(err, domain.ErrOTPServiceUnavailable):
+					return internalError(err)
+				default:
+					return internalError(err)
+				}
+			}
+		}
+
+		if in.Enabled && method == domain.MFAMethodTOTP {
 			if strings.TrimSpace(credentials.TOTPSecret) == "" {
 				return validationError(
 					"totp_not_configured",

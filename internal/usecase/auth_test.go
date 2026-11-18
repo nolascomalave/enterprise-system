@@ -632,3 +632,41 @@ func TestAuthVerify2FARejectsInvalidEmailOTP(t *testing.T) {
 	require.Error(t, err)
 	assert.Empty(t, sessionRepo.created)
 }
+
+func TestLoginWithBackupCode(t *testing.T) {
+	manager := authTestManager(t)
+	creds := authTestCredentials(t, manager)
+	secret, _, err := manager.GenerateTOTPSecret("enterprise-system", "user@example.com")
+	require.NoError(t, err)
+	plain, hashes, err := manager.GenerateBackupCodesSHA256(2)
+	require.NoError(t, err)
+	creds.MFAEnabled = true
+	creds.MFAMethod = domain.MFAMethodTOTP
+	creds.TOTPSecret = secret
+	creds.BackupCodesHash = hashes
+
+	credRepo := &fakeCredentialRepo{credentials: creds}
+	sessionRepo := newFakeSessionRepo()
+	service := newAuthTestService(manager, credRepo, sessionRepo, &fakeBinder{})
+
+	login, err := service.Login(context.Background(), LoginInput{
+		TenantID: creds.TenantID, Email: "user@example.com", Password: "correct horse battery staple",
+	})
+	require.NoError(t, err)
+	require.True(t, login.Requires2FA)
+
+	result, err := service.Verify2FA(context.Background(), Verify2FAInput{
+		TempToken: login.TempToken, Code: plain[0],
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, result.AccessToken)
+	assert.Len(t, sessionRepo.created, 1)
+	require.NotNil(t, credRepo.updated)
+	assert.Len(t, credRepo.updated.BackupCodesHash, 1)
+
+	_, err = service.Verify2FA(context.Background(), Verify2FAInput{
+		TempToken: login.TempToken, Code: plain[0],
+	})
+	require.ErrorIs(t, err, auth.ErrInvalidTOTP)
+	assert.Len(t, sessionRepo.created, 1, "the consumed code must not create a second session")
+}

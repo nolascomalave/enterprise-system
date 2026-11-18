@@ -283,9 +283,12 @@ func TestErrorMappingInternal(t *testing.T) {
 func TestMFARoutesUseJWTOWithoutRBACScope(t *testing.T) {
 	manager := testAuthManager(t)
 	tenantID, userID := uuid.New(), uuid.New()
-	mfa := &fakeMFAUseCase{setupResult: &usecase.SetupTOTPResult{
-		Secret: "JBSWY3DPEHPK3PXP", OTPAuthURL: "otpauth://totp/enterprise-system:user@example.com",
-	}}
+	mfa := &fakeMFAUseCase{
+		setupResult: &usecase.SetupTOTPResult{
+			Secret: "JBSWY3DPEHPK3PXP", OTPAuthURL: "otpauth://totp/enterprise-system:user@example.com",
+		},
+		verifyResult: &usecase.VerifyTOTPResult{BackupCodes: []string{"A1B2-C3D4"}},
+	}
 	router := NewRouter(Dependencies{MFAUseCase: mfa, TokenManager: manager})
 	token := accessToken(t, manager, tenantID, userID, uuid.New())
 

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 	"time"
 
@@ -182,4 +183,36 @@ func TestClientSecretUsesHMACAndSupportsLegacyBcrypt(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, m.VerifyClientSecret(legacy, "high-entropy-client-secret"))
 	assert.False(t, m.VerifyClientSecret(legacy, "wrong-secret"))
+}
+
+func TestBackupCodesSHA256AreFormattedAndOneTime(t *testing.T) {
+	m := testManager(t, time.Now)
+
+	plain, hashes, err := m.GenerateBackupCodesSHA256(8)
+	require.NoError(t, err)
+	require.Len(t, plain, 8)
+	require.Len(t, hashes, 8)
+
+	for i := range plain {
+		assert.Regexp(t, `^[A-Z2-9]{4}-[A-Z2-9]{4}$`, plain[i])
+		assert.Len(t, hashes[i], 64, "SHA-256 hex hash")
+		assert.NotEqual(t, plain[i], hashes[i])
+	}
+
+	remaining, ok := m.VerifyBackupCode(hashes, strings.ToLower(plain[0]))
+	require.True(t, ok)
+	assert.Len(t, remaining, 7)
+
+	_, ok = m.VerifyBackupCode(remaining, plain[0])
+	assert.False(t, ok)
+}
+
+func TestVerifyBackupCodeStillAcceptsLegacyBcryptHashes(t *testing.T) {
+	m := testManager(t, time.Now)
+
+	plain, hashes, err := m.GenerateBackupCodes(2)
+	require.NoError(t, err)
+	remaining, ok := m.VerifyBackupCode(hashes, plain[0])
+	require.True(t, ok)
+	assert.Len(t, remaining, 1)
 }

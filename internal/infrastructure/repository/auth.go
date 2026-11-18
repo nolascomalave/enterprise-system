@@ -103,6 +103,7 @@ func (r *CredentialRepository) UpdateTOTPSecret(
 func (r *CredentialRepository) ActivateTOTP(
 	ctx context.Context,
 	tenantID, partyID uuid.UUID,
+	backupCodesHash []string,
 	at time.Time,
 ) error {
 	var affected int
@@ -117,6 +118,7 @@ func (r *CredentialRepository) ActivateTOTP(
 			SetMfaEnabled(true).
 			SetMfaMethod(usercredentials.MfaMethodTOTP).
 			SetTotpVerified(true).
+			SetBackupCodesHash(backupCodesHash).
 			SetUpdatedAt(at).
 			Save(ctx)
 		return repoError(err)

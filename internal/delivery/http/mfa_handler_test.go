@@ -31,6 +31,7 @@ type fakeMFAUseCase struct {
 	setupTenant uuid.UUID
 	setupParty  uuid.UUID
 
+	verifyResult *usecase.VerifyTOTPResult
 	verifyErr    error
 	verifyCalls  int
 	verifyTenant uuid.UUID
@@ -56,10 +57,10 @@ func (f *fakeMFAUseCase) SetupTOTP(ctx context.Context, tenantID, partyID uuid.U
 	return f.setupResult, f.setupErr
 }
 
-func (f *fakeMFAUseCase) VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID, code string) error {
+func (f *fakeMFAUseCase) VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID, code string) (*usecase.VerifyTOTPResult, error) {
 	f.verifyCalls++
 	f.verifyTenant, f.verifyParty, f.verifyCode = tenantID, partyID, code
-	return f.verifyErr
+	return f.verifyResult, f.verifyErr
 }
 
 func mfaTestRouter(uc MFAUseCase, sc enttenant.SessionContext) *gin.Engine {
@@ -204,7 +205,10 @@ func TestSetupTOTPEndpoint(t *testing.T) {
 }
 
 func TestVerifyTOTPEndpoint(t *testing.T) {
-	uc := &fakeMFAUseCase{}
+	uc := &fakeMFAUseCase{verifyResult: &usecase.VerifyTOTPResult{BackupCodes: []string{
+		"A1B2-C3D4", "E5F6-G7H8", "J9K2-L3M4", "N5P6-Q7R8",
+		"S9T2-U3V4", "W5X6-Y7Z8", "A2B3-C4D5", "E6F7-G8H9",
+	}}}
 	tenantID, partyID := uuid.New(), uuid.New()
 	router := mfaTestRouter(uc, enttenant.SessionContext{TenantID: tenantID, UserID: partyID})
 
@@ -219,6 +223,26 @@ func TestVerifyTOTPEndpoint(t *testing.T) {
 	assert.Equal(t, tenantID, uc.verifyTenant)
 	assert.Equal(t, partyID, uc.verifyParty)
 	assert.Equal(t, "123456", uc.verifyCode)
+
+	body := decodeBody(t, recorder)
+	data := body["data"].(map[string]any)
+	codes := data["backup_codes"].([]any)
+	assert.Len(t, codes, 8)
+	assert.Equal(t, "A1B2-C3D4", codes[0])
+}
+
+func TestUpdateMFAPreferencesEndpointForwardsOTP(t *testing.T) {
+	uc := &fakeMFAUseCase{}
+	router := mfaTestRouter(uc, enttenant.SessionContext{TenantID: uuid.New(), UserID: uuid.New()})
+
+	request := httptest.NewRequest(http.MethodPut, "/api/v1/auth/mfa-preferences",
+		bytes.NewBufferString(`{"enabled":false,"otp_code":"123456"}`))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+
+	require.Equal(t, http.StatusNoContent, recorder.Code)
+	assert.Equal(t, "123456", uc.updateInput.OTPCode)
 }
 
 func TestVerifyTOTPEndpointRequiresCode(t *testing.T) {

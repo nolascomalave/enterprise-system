@@ -234,7 +234,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Enables or disables MFA for the authenticated user. Enabling requires a contact that can receive security codes.",
+                "description": "Enables or disables MFA. Changing or disabling an active MFA configuration requires otp_code, requested with action DISABLE_MFA (to disable) or ENABLE_MFA (to change method). Enabling requires a contact that can receive security codes.",
                 "consumes": [
                     "application/json"
                 ],
@@ -451,7 +451,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Validates a code against the pending TOTP secret and enables TOTP for the user.",
+                "description": "Validates a code against the pending TOTP secret, enables TOTP and returns 8 one-time backup codes. The plaintext backup codes are shown only in this response.",
                 "consumes": [
                     "application/json"
                 ],
@@ -477,7 +477,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.MessageEnvelope"
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TOTPVerifyEnvelope"
                         }
                     },
                     "400": {
@@ -4090,6 +4090,14 @@ const docTemplate = `{
                 }
             }
         },
+        "enterprise-system_internal_delivery_http_dto.TOTPVerifyEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TOTPVerifyResponse"
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.TOTPVerifyRequest": {
             "type": "object",
             "required": [
@@ -4098,6 +4106,17 @@ const docTemplate = `{
             "properties": {
                 "code": {
                     "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.TOTPVerifyResponse": {
+            "type": "object",
+            "properties": {
+                "backup_codes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -4182,6 +4201,9 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "method": {
+                    "type": "string"
+                },
+                "otp_code": {
                     "type": "string"
                 }
             }

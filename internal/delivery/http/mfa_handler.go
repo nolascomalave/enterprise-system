@@ -2,9 +2,11 @@ package http
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 
+	"enterprise-system/internal/common/apperror"
 	"enterprise-system/internal/delivery/http/dto"
 	"enterprise-system/internal/domain"
 	"enterprise-system/internal/infrastructure/enttenant"
@@ -17,7 +19,7 @@ type MFAUseCase interface {
 	UpdateMFAPreferences(ctx context.Context, in usecase.UpdateMFAPreferencesInput) error
 	RequestSecurityCode(ctx context.Context, in usecase.RequestSecurityCodeInput) error
 	SetupTOTP(ctx context.Context, tenantID, partyID uuid.UUID) (*usecase.SetupTOTPResult, error)
-	VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID, code string) error
+	VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID, code string) (*usecase.VerifyTOTPResult, error)
 }
 
 type MFAHandler struct {
@@ -30,7 +32,7 @@ func NewMFAHandler(uc MFAUseCase) *MFAHandler {
 
 // UpdatePreferences godoc
 // @Summary      Update MFA preferences
-// @Description  Enables or disables MFA for the authenticated user. Enabling requires a contact that can receive security codes.
+// @Description  Enables or disables MFA. Changing or disabling an active MFA configuration requires otp_code, requested with action DISABLE_MFA (to disable) or ENABLE_MFA (to change method). Enabling requires a contact that can receive security codes.
 // @Tags         MFA
 // @Accept       json
 // @Produce      json
@@ -63,6 +65,7 @@ func (h *MFAHandler) UpdatePreferences(c *gin.Context) {
 		PartyID:  sessionContext.UserID,
 		Enabled:  request.Enabled,
 		Method:   method,
+		OTPCode:  request.OTPCode,
 	})
 	if err != nil {
 		c.Error(err)
@@ -140,13 +143,13 @@ func (h *MFAHandler) SetupTOTP(c *gin.Context) {
 
 // VerifyTOTP godoc
 // @Summary      Verify TOTP enrolment
-// @Description  Validates a code against the pending TOTP secret and enables TOTP for the user.
+// @Description  Validates a code against the pending TOTP secret, enables TOTP and returns 8 one-time backup codes. The plaintext backup codes are shown only in this response.
 // @Tags         MFA
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
 // @Param        request body dto.TOTPVerifyRequest true "TOTP code"
-// @Success      200 {object} dto.MessageEnvelope
+// @Success      200 {object} dto.TOTPVerifyEnvelope
 // @Failure      400 {object} dto.ErrorResponse
 // @Failure      401 {object} dto.ErrorResponse
 // @Router       /auth/totp/verify [post]
@@ -163,10 +166,16 @@ func (h *MFAHandler) VerifyTOTP(c *gin.Context) {
 		return
 	}
 
-	err := h.uc.VerifyTOTP(c.Request.Context(), sessionContext.TenantID, sessionContext.UserID, request.Code)
+	result, err := h.uc.VerifyTOTP(c.Request.Context(), sessionContext.TenantID, sessionContext.UserID, request.Code)
 	if err != nil {
 		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": dto.MessageResponse{Message: "TOTP enabled"}})
+	if result == nil {
+		c.Error(apperror.NewInternal(errors.New("nil TOTP verify result")))
+		return
+	}
+	c.JSON(http.StatusOK, dto.TOTPVerifyEnvelope{Data: dto.TOTPVerifyResponse{
+		BackupCodes: result.BackupCodes,
+	}})
 }
