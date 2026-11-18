@@ -80,6 +80,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	forgotLimiter := newLimiter("forgot-password", deps.AuthRateLimit, deps.AuthRateWindow)
 	resetLimiter := newLimiter("reset-password", deps.AuthRateLimit, deps.AuthRateWindow)
 	otpLimiter := newLimiter("request-otp", deps.AuthRateLimit, deps.AuthRateWindow)
+	totpLimiter := newLimiter("totp", deps.AuthRateLimit, deps.AuthRateWindow)
 	onboardingLimiter := newLimiter("onboarding", 3, time.Hour)
 	platformAdminLimiter := newLimiter("platform-admin", deps.AuthRateLimit, deps.AuthRateWindow)
 	oauthTokenLimiter := newLimiter("oauth-token", deps.AuthRateLimit, deps.AuthRateWindow)
@@ -131,6 +132,8 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		{
 			mfaRoutes.PUT("/auth/mfa-preferences", mfaHandler.UpdatePreferences)
 			mfaRoutes.POST("/auth/request-otp", RateLimit(otpLimiter), mfaHandler.RequestSecurityCode)
+			mfaRoutes.POST("/auth/totp/setup", RateLimit(totpLimiter), mfaHandler.SetupTOTP)
+			mfaRoutes.POST("/auth/totp/verify", RateLimit(totpLimiter), mfaHandler.VerifyTOTP)
 		}
 	}
 

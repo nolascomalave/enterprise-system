@@ -70,6 +70,66 @@ func (r *CredentialRepository) GetByPartyID(ctx context.Context, tenantID, party
 	return result, err
 }
 
+func (r *CredentialRepository) UpdateTOTPSecret(
+	ctx context.Context,
+	tenantID, partyID uuid.UUID,
+	secret string,
+	at time.Time,
+) error {
+	var affected int
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		var err error
+		affected, err = client.UserCredentials.Update().
+			Where(
+				usercredentials.TenantID(tenantID),
+				usercredentials.PartyID(partyID),
+				usercredentials.DeletedAtIsNil(),
+			).
+			SetTotpSecret(secret).
+			SetTotpVerified(false).
+			SetUpdatedAt(at).
+			Save(ctx)
+		return repoError(err)
+	})
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return auth.ErrNotFound
+	}
+	return nil
+}
+
+func (r *CredentialRepository) ActivateTOTP(
+	ctx context.Context,
+	tenantID, partyID uuid.UUID,
+	at time.Time,
+) error {
+	var affected int
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		var err error
+		affected, err = client.UserCredentials.Update().
+			Where(
+				usercredentials.TenantID(tenantID),
+				usercredentials.PartyID(partyID),
+				usercredentials.DeletedAtIsNil(),
+			).
+			SetMfaEnabled(true).
+			SetMfaMethod(usercredentials.MfaMethodTOTP).
+			SetTotpVerified(true).
+			SetUpdatedAt(at).
+			Save(ctx)
+		return repoError(err)
+	})
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return auth.ErrNotFound
+	}
+	return nil
+}
+
 func (r *CredentialRepository) UpdateMFAPreferences(
 	ctx context.Context,
 	tenantID, partyID uuid.UUID,
@@ -295,7 +355,8 @@ func toAuthCredentials(e *ent.UserCredentials) *auth.Credentials {
 		ID: e.ID, TenantID: e.TenantID, PartyID: e.PartyID,
 		PartyContactMechanismID: e.PartyContactMechanismID,
 		PasswordHash:            e.PasswordHash, TOTPSecret: e.TotpSecret,
-		MFAEnabled: e.MfaEnabled, MFAMethod: domain.MFAMethod(e.MfaMethod),
+		TOTPVerified: e.TotpVerified,
+		MFAEnabled:   e.MfaEnabled, MFAMethod: domain.MFAMethod(e.MfaMethod),
 		BackupCodesHash: e.BackupCodesHash,
 		CreatedAt:       e.CreatedAt, UpdatedAt: e.UpdatedAt, DeletedAt: e.DeletedAt,
 	}

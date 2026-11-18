@@ -283,7 +283,9 @@ func TestErrorMappingInternal(t *testing.T) {
 func TestMFARoutesUseJWTOWithoutRBACScope(t *testing.T) {
 	manager := testAuthManager(t)
 	tenantID, userID := uuid.New(), uuid.New()
-	mfa := &fakeMFAUseCase{}
+	mfa := &fakeMFAUseCase{setupResult: &usecase.SetupTOTPResult{
+		Secret: "JBSWY3DPEHPK3PXP", OTPAuthURL: "otpauth://totp/enterprise-system:user@example.com",
+	}}
 	router := NewRouter(Dependencies{MFAUseCase: mfa, TokenManager: manager})
 	token := accessToken(t, manager, tenantID, userID, uuid.New())
 
@@ -299,4 +301,14 @@ func TestMFARoutesUseJWTOWithoutRBACScope(t *testing.T) {
 	require.Equal(t, http.StatusAccepted, recorder.Code)
 	require.Equal(t, 1, mfa.requestCalls)
 	assert.Equal(t, "CHANGE_PASSWORD", mfa.requestInput.Action)
+
+	recorder = requestWithToken(router, http.MethodPost, "/api/v1/auth/totp/setup", nil, token)
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Equal(t, 1, mfa.setupCalls)
+
+	recorder = requestWithToken(router, http.MethodPost, "/api/v1/auth/totp/verify",
+		[]byte(`{"code":"123456"}`), token)
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Equal(t, 1, mfa.verifyCalls)
+	assert.Equal(t, "123456", mfa.verifyCode)
 }

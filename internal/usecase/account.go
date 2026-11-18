@@ -19,6 +19,7 @@ type ChangePasswordInput struct {
 	SessionID       uuid.UUID
 	CurrentPassword string
 	NewPassword     string
+	OTPCode         string
 }
 
 type ForgotPasswordInput struct {
@@ -42,6 +43,7 @@ type AccountService struct {
 	tx          TransactionManager
 	binder      TenantContextBinder
 	blocklist   auth.SessionBlocklist
+	otpCodes    domain.SecurityCodeManager
 	now         func() time.Time
 }
 
@@ -70,6 +72,11 @@ func NewAccountService(
 // password changes and resets.
 func (s *AccountService) SetSessionBlocklist(blocklist auth.SessionBlocklist) {
 	s.blocklist = blocklist
+}
+
+// SetSecurityCodes wires the step-up OTP verifier used when MFA is enabled.
+func (s *AccountService) SetSecurityCodes(codes domain.SecurityCodeManager) {
+	s.otpCodes = codes
 }
 
 func (s *AccountService) withinTx(ctx context.Context, fn func(context.Context) error) error {
@@ -105,6 +112,24 @@ func (s *AccountService) ChangePassword(ctx context.Context, in ChangePasswordIn
 		}
 		if !s.manager.VerifyPassword(credentials.PasswordHash, in.CurrentPassword) {
 			return invalidCurrentPasswordError(auth.ErrInvalidCurrentPassword)
+		}
+		if credentials.MFAEnabled {
+			if strings.TrimSpace(in.OTPCode) == "" {
+				return validationError("otp_required", "otp_code is required when MFA is enabled", domain.ErrOTPRequired)
+			}
+			if s.otpCodes == nil {
+				return internalError(errors.New("security code manager is not configured"))
+			}
+			if err := s.otpCodes.Verify(ctx, in.PartyID, SecurityActionChangePassword, in.OTPCode); err != nil {
+				switch {
+				case errors.Is(err, domain.ErrInvalidSecurityCode):
+					return validationError("invalid_otp", "invalid or expired security code", err)
+				case errors.Is(err, domain.ErrOTPServiceUnavailable):
+					return internalError(err)
+				default:
+					return internalError(err)
+				}
+			}
 		}
 		newHash, err := s.manager.HashPassword(in.NewPassword)
 		if err != nil {

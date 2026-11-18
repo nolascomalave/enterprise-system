@@ -138,3 +138,16 @@ func TestResetPasswordInvalidToken(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, recorder.Code)
 }
+
+func TestChangePasswordForwardsOTPCode(t *testing.T) {
+	manager := testAuthManager(t)
+	uc := &fakeAccountUseCase{}
+	router := NewRouter(Dependencies{AccountUseCase: uc, TokenManager: manager})
+	token := accessToken(t, manager, uuid.New(), uuid.New(), uuid.New())
+
+	recorder := requestWithToken(router, http.MethodPost, "/api/v1/auth/change-password",
+		[]byte(`{"current_password":"current-password","new_password":"new-password-123","otp_code":"123456"}`), token)
+
+	require.Equal(t, http.StatusNoContent, recorder.Code)
+	assert.Equal(t, "123456", uc.changeInput.OTPCode)
+}

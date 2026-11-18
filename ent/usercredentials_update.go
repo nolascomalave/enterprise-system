@@ -111,6 +111,20 @@ func (_u *UserCredentialsUpdate) ClearTotpSecret() *UserCredentialsUpdate {
 	return _u
 }
 
+// SetTotpVerified sets the "totp_verified" field.
+func (_u *UserCredentialsUpdate) SetTotpVerified(v bool) *UserCredentialsUpdate {
+	_u.mutation.SetTotpVerified(v)
+	return _u
+}
+
+// SetNillableTotpVerified sets the "totp_verified" field if the given value is not nil.
+func (_u *UserCredentialsUpdate) SetNillableTotpVerified(v *bool) *UserCredentialsUpdate {
+	if v != nil {
+		_u.SetTotpVerified(*v)
+	}
+	return _u
+}
+
 // SetMfaEnabled sets the "mfa_enabled" field.
 func (_u *UserCredentialsUpdate) SetMfaEnabled(v bool) *UserCredentialsUpdate {
 	_u.mutation.SetMfaEnabled(v)
@@ -331,6 +345,9 @@ func (_u *UserCredentialsUpdate) sqlSave(ctx context.Context) (_node int, err er
 	}
 	if _u.mutation.TotpSecretCleared() {
 		_spec.ClearField(usercredentials.FieldTotpSecret, field.TypeString)
+	}
+	if value, ok := _u.mutation.TotpVerified(); ok {
+		_spec.SetField(usercredentials.FieldTotpVerified, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.MfaEnabled(); ok {
 		_spec.SetField(usercredentials.FieldMfaEnabled, field.TypeBool, value)
@@ -594,6 +611,20 @@ func (_u *UserCredentialsUpdateOne) ClearTotpSecret() *UserCredentialsUpdateOne 
 	return _u
 }
 
+// SetTotpVerified sets the "totp_verified" field.
+func (_u *UserCredentialsUpdateOne) SetTotpVerified(v bool) *UserCredentialsUpdateOne {
+	_u.mutation.SetTotpVerified(v)
+	return _u
+}
+
+// SetNillableTotpVerified sets the "totp_verified" field if the given value is not nil.
+func (_u *UserCredentialsUpdateOne) SetNillableTotpVerified(v *bool) *UserCredentialsUpdateOne {
+	if v != nil {
+		_u.SetTotpVerified(*v)
+	}
+	return _u
+}
+
 // SetMfaEnabled sets the "mfa_enabled" field.
 func (_u *UserCredentialsUpdateOne) SetMfaEnabled(v bool) *UserCredentialsUpdateOne {
 	_u.mutation.SetMfaEnabled(v)
@@ -844,6 +875,9 @@ func (_u *UserCredentialsUpdateOne) sqlSave(ctx context.Context) (_node *UserCre
 	}
 	if _u.mutation.TotpSecretCleared() {
 		_spec.ClearField(usercredentials.FieldTotpSecret, field.TypeString)
+	}
+	if value, ok := _u.mutation.TotpVerified(); ok {
+		_spec.SetField(usercredentials.FieldTotpVerified, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.MfaEnabled(); ok {
 		_spec.SetField(usercredentials.FieldMfaEnabled, field.TypeBool, value)

@@ -40,6 +40,8 @@ func (UserCredentials) Fields() []ent.Field {
 		field.String("totp_secret").
 			Optional().
 			Sensitive(),
+		field.Bool("totp_verified").
+			Default(false),
 		field.Bool("mfa_enabled").
 			Default(false),
 		field.Enum("mfa_method").

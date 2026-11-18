@@ -74,7 +74,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Requires the current password. Revokes all other sessions and pending reset tokens.",
+                "description": "Requires the current password. When MFA is enabled, otp_code is required. Revokes all other sessions and pending reset tokens.",
                 "consumes": [
                     "application/json"
                 ],
@@ -227,6 +227,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/mfa-preferences": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enables or disables MFA for the authenticated user. Enabling requires a contact that can receive security codes.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MFA"
+                ],
+                "summary": "Update MFA preferences",
+                "parameters": [
+                    {
+                        "description": "MFA preferences",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.UpdateMFAPreferencesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/refresh": {
             "post": {
                 "description": "Reads the HttpOnly refresh cookie, revokes the old session and issues a new access/refresh pair.",
@@ -252,6 +300,57 @@ const docTemplate = `{
                     },
                     "429": {
                         "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/request-otp": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Sends a one-time security code to the authenticated user's primary contact mechanism.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MFA"
+                ],
+                "summary": "Request a security code",
+                "parameters": [
+                    {
+                        "description": "Security code action",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.RequestSecurityCodeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.MessageEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
                         }
@@ -301,6 +400,94 @@ const docTemplate = `{
                     },
                     "429": {
                         "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/totp/setup": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates a TOTP secret and returns the otpauth URL for the authenticator app. MFA is not enabled until the code is verified.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MFA"
+                ],
+                "summary": "Start TOTP enrolment",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TOTPSetupEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/totp/verify": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Validates a code against the pending TOTP secret and enables TOTP for the user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MFA"
+                ],
+                "summary": "Verify TOTP enrolment",
+                "parameters": [
+                    {
+                        "description": "TOTP code",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TOTPVerifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.MessageEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
                         }
@@ -2647,6 +2834,9 @@ const docTemplate = `{
                 "new_password": {
                     "type": "string",
                     "minLength": 8
+                },
+                "otp_code": {
+                    "type": "string"
                 }
             }
         },
@@ -3854,6 +4044,17 @@ const docTemplate = `{
                 }
             }
         },
+        "enterprise-system_internal_delivery_http_dto.RequestSecurityCodeRequest": {
+            "type": "object",
+            "required": [
+                "action"
+            ],
+            "properties": {
+                "action": {
+                    "type": "string"
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.ResetPasswordRequest": {
             "type": "object",
             "required": [
@@ -3866,6 +4067,36 @@ const docTemplate = `{
                     "minLength": 8
                 },
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.TOTPSetupEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.TOTPSetupResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.TOTPSetupResponse": {
+            "type": "object",
+            "properties": {
+                "otpauth_url": {
+                    "type": "string"
+                },
+                "secret": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.TOTPVerifyRequest": {
+            "type": "object",
+            "required": [
+                "code"
+            ],
+            "properties": {
+                "code": {
                     "type": "string"
                 }
             }
@@ -3940,6 +4171,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.UpdateMFAPreferencesRequest": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "method": {
                     "type": "string"
                 }
             }

@@ -122,6 +122,8 @@ func main() {
 		txManager, time.Now,
 	)
 	authService.SetEmailOTPFlow(mfaService, otpManager)
+	mfaService.SetTOTPManager(tokenManager)
+	accountService.SetSecurityCodes(otpManager)
 	onboardingService := usecase.NewRegisterTenantService(
 		tokenManager,
 		txManager,

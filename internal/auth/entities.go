@@ -18,6 +18,7 @@ type Credentials struct {
 	PartyContactMechanismID uuid.UUID
 	PasswordHash            string
 	TOTPSecret              string
+	TOTPVerified            bool
 	MFAEnabled              bool
 	MFAMethod               domain.MFAMethod
 	BackupCodesHash         []string

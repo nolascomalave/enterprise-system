@@ -30,10 +30,18 @@ var allowedSecurityActions = map[string]struct{}{
 	SecurityActionLogin:          {},
 }
 
+// TOTPManager generates and validates TOTP secrets/codes.
+type TOTPManager interface {
+	GenerateTOTPSecret(issuer, account string) (secret, otpauthURL string, err error)
+	ValidateTOTP(secret, code string) bool
+}
+
 // MFACredentialRepository is the narrow credential port used by MFAService.
 type MFACredentialRepository interface {
 	GetByPartyID(ctx context.Context, tenantID, partyID uuid.UUID) (*auth.Credentials, error)
 	UpdateMFAPreferences(ctx context.Context, tenantID, partyID uuid.UUID, enabled bool, method domain.MFAMethod, at time.Time) error
+	UpdateTOTPSecret(ctx context.Context, tenantID, partyID uuid.UUID, secret string, at time.Time) error
+	ActivateTOTP(ctx context.Context, tenantID, partyID uuid.UUID, at time.Time) error
 }
 
 // MFAContactRepository is the narrow contact port used by MFAService.
@@ -48,6 +56,7 @@ type MFAService struct {
 	contacts MFAContactRepository
 	codes    domain.SecurityCodeManager
 	sender   domain.SecurityCodeSender
+	totp     TOTPManager
 	tx       TransactionManager
 	now      func() time.Time
 }
@@ -67,6 +76,112 @@ func NewMFAService(
 		users: users, contacts: contacts, codes: codes,
 		sender: sender, tx: tx, now: now,
 	}
+}
+
+// SetTOTPManager wires the TOTP generator/validator used by enrolment.
+func (s *MFAService) SetTOTPManager(manager TOTPManager) {
+	s.totp = manager
+}
+
+const totpIssuer = "enterprise-system"
+
+type SetupTOTPResult struct {
+	Secret     string
+	OTPAuthURL string
+}
+
+// SetupTOTP generates a new TOTP secret and stores it as pending enrolment.
+// MFA stays disabled until VerifyTOTP validates a code from the user's app.
+func (s *MFAService) SetupTOTP(ctx context.Context, tenantID, partyID uuid.UUID) (*SetupTOTPResult, error) {
+	if tenantID == uuid.Nil || partyID == uuid.Nil {
+		return nil, validationError("invalid_input", "tenant_id and party_id are required", nil)
+	}
+	if s.totp == nil {
+		return nil, internalError(errors.New("TOTP manager is not configured"))
+	}
+
+	var result *SetupTOTPResult
+	err := s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
+		credentials, err := s.users.GetByPartyID(ctx, tenantID, partyID)
+		if err != nil {
+			if errors.Is(err, auth.ErrNotFound) {
+				return notFoundError("user_not_found", "user credentials not found", err)
+			}
+			return fmt.Errorf("load user credentials: %w", err)
+		}
+		if credentials.MFAEnabled && credentials.MFAMethod == domain.MFAMethodTOTP && credentials.TOTPSecret != "" {
+			return validationError("totp_already_enabled", "TOTP is already enabled", domain.ErrTOTPAlreadyEnabled)
+		}
+
+		account := partyID.String()
+		if s.contacts != nil {
+			if partyContact, err := s.contacts.GetPartyContact(ctx, tenantID, credentials.PartyContactMechanismID); err == nil &&
+				partyContact != nil && partyContact.Contact != nil &&
+				partyContact.Contact.Type == domain.ContactTypeEmail &&
+				strings.TrimSpace(partyContact.Contact.Value) != "" {
+				account = partyContact.Contact.Value
+			}
+		}
+
+		secret, otpauthURL, err := s.totp.GenerateTOTPSecret(totpIssuer, account)
+		if err != nil {
+			return internalError(fmt.Errorf("generate TOTP secret: %w", err))
+		}
+		if err := s.users.UpdateTOTPSecret(ctx, tenantID, partyID, secret, s.now().UTC()); err != nil {
+			return fmt.Errorf("store TOTP secret: %w", err)
+		}
+		result = &SetupTOTPResult{Secret: secret, OTPAuthURL: otpauthURL}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// VerifyTOTP validates a code against the pending secret and enables TOTP.
+func (s *MFAService) VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID, code string) error {
+	if tenantID == uuid.Nil || partyID == uuid.Nil {
+		return validationError("invalid_input", "tenant_id and party_id are required", nil)
+	}
+	if s.totp == nil {
+		return internalError(errors.New("TOTP manager is not configured"))
+	}
+	code = strings.TrimSpace(code)
+	if code == "" {
+		return validationError("invalid_totp", "TOTP code is required", auth.ErrInvalidTOTP)
+	}
+
+	return s.tx.WithinTransaction(ctx, func(ctx context.Context) error {
+		credentials, err := s.users.GetByPartyID(ctx, tenantID, partyID)
+		if err != nil {
+			if errors.Is(err, auth.ErrNotFound) {
+				return notFoundError("user_not_found", "user credentials not found", err)
+			}
+			return fmt.Errorf("load user credentials: %w", err)
+		}
+		if strings.TrimSpace(credentials.TOTPSecret) == "" {
+			return validationError("totp_not_setup", "TOTP setup must be started first", domain.ErrTOTPNotConfigured)
+		}
+		if !s.totp.ValidateTOTP(credentials.TOTPSecret, code) {
+			return validationError("invalid_totp", "invalid TOTP code", auth.ErrInvalidTOTP)
+		}
+		hasContact, err := s.hasCodeCapableContact(ctx, tenantID, partyID)
+		if err != nil {
+			return fmt.Errorf("check security contact: %w", err)
+		}
+		if !hasContact {
+			return validationError(
+				"mfa_contact_required",
+				"at least one contact mechanism that can receive security codes is required",
+				domain.ErrMFAContactRequired,
+			)
+		}
+		if err := s.users.ActivateTOTP(ctx, tenantID, partyID, s.now().UTC()); err != nil {
+			return fmt.Errorf("enable TOTP: %w", err)
+		}
+		return nil
+	})
 }
 
 type UpdateMFAPreferencesInput struct {
@@ -111,6 +226,13 @@ func (s *MFAService) UpdateMFAPreferences(ctx context.Context, in UpdateMFAPrefe
 					"totp_not_configured",
 					"TOTP must be configured before it can be enabled",
 					domain.ErrTOTPNotConfigured,
+				)
+			}
+			if !credentials.TOTPVerified {
+				return validationError(
+					"totp_not_verified",
+					"TOTP enrolment must be verified before it can be enabled",
+					domain.ErrTOTPNotVerified,
 				)
 			}
 		}

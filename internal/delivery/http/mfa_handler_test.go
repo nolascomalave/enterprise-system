@@ -24,6 +24,18 @@ type fakeMFAUseCase struct {
 	requestErr   error
 	updateCalls  int
 	requestCalls int
+
+	setupResult *usecase.SetupTOTPResult
+	setupErr    error
+	setupCalls  int
+	setupTenant uuid.UUID
+	setupParty  uuid.UUID
+
+	verifyErr    error
+	verifyCalls  int
+	verifyTenant uuid.UUID
+	verifyParty  uuid.UUID
+	verifyCode   string
 }
 
 func (f *fakeMFAUseCase) UpdateMFAPreferences(ctx context.Context, in usecase.UpdateMFAPreferencesInput) error {
@@ -38,6 +50,18 @@ func (f *fakeMFAUseCase) RequestSecurityCode(ctx context.Context, in usecase.Req
 	return f.requestErr
 }
 
+func (f *fakeMFAUseCase) SetupTOTP(ctx context.Context, tenantID, partyID uuid.UUID) (*usecase.SetupTOTPResult, error) {
+	f.setupCalls++
+	f.setupTenant, f.setupParty = tenantID, partyID
+	return f.setupResult, f.setupErr
+}
+
+func (f *fakeMFAUseCase) VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID, code string) error {
+	f.verifyCalls++
+	f.verifyTenant, f.verifyParty, f.verifyCode = tenantID, partyID, code
+	return f.verifyErr
+}
+
 func mfaTestRouter(uc MFAUseCase, sc enttenant.SessionContext) *gin.Engine {
 	router := gin.New()
 	router.Use(ErrorMiddleware())
@@ -46,6 +70,8 @@ func mfaTestRouter(uc MFAUseCase, sc enttenant.SessionContext) *gin.Engine {
 	group.Use(sessionContextMiddleware(sc))
 	group.PUT("/api/v1/auth/mfa-preferences", handler.UpdatePreferences)
 	group.POST("/api/v1/auth/request-otp", handler.RequestSecurityCode)
+	group.POST("/api/v1/auth/totp/setup", handler.SetupTOTP)
+	group.POST("/api/v1/auth/totp/verify", handler.VerifyTOTP)
 	return router
 }
 
@@ -154,4 +180,57 @@ func TestRequestSecurityCodeEndpointRequiresAction(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, recorder.Code)
 	assert.Equal(t, 0, uc.requestCalls)
+}
+
+func TestSetupTOTPEndpoint(t *testing.T) {
+	uc := &fakeMFAUseCase{setupResult: &usecase.SetupTOTPResult{
+		Secret: "JBSWY3DPEHPK3PXP", OTPAuthURL: "otpauth://totp/enterprise-system:user@example.com?secret=JBSWY3DPEHPK3PXP",
+	}}
+	tenantID, partyID := uuid.New(), uuid.New()
+	router := mfaTestRouter(uc, enttenant.SessionContext{TenantID: tenantID, UserID: partyID})
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/auth/totp/setup", nil)
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	body := decodeBody(t, recorder)
+	data := body["data"].(map[string]any)
+	assert.Equal(t, "JBSWY3DPEHPK3PXP", data["secret"])
+	assert.Contains(t, data["otpauth_url"], "otpauth://")
+	require.Equal(t, 1, uc.setupCalls)
+	assert.Equal(t, tenantID, uc.setupTenant)
+	assert.Equal(t, partyID, uc.setupParty)
+}
+
+func TestVerifyTOTPEndpoint(t *testing.T) {
+	uc := &fakeMFAUseCase{}
+	tenantID, partyID := uuid.New(), uuid.New()
+	router := mfaTestRouter(uc, enttenant.SessionContext{TenantID: tenantID, UserID: partyID})
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/auth/totp/verify",
+		bytes.NewBufferString(`{"code":"123456"}`))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.Equal(t, 1, uc.verifyCalls)
+	assert.Equal(t, tenantID, uc.verifyTenant)
+	assert.Equal(t, partyID, uc.verifyParty)
+	assert.Equal(t, "123456", uc.verifyCode)
+}
+
+func TestVerifyTOTPEndpointRequiresCode(t *testing.T) {
+	uc := &fakeMFAUseCase{}
+	router := mfaTestRouter(uc, enttenant.SessionContext{TenantID: uuid.New(), UserID: uuid.New()})
+
+	request := httptest.NewRequest(http.MethodPost, "/api/v1/auth/totp/verify",
+		bytes.NewBufferString(`{}`))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+
+	require.Equal(t, http.StatusBadRequest, recorder.Code)
+	assert.Equal(t, 0, uc.verifyCalls)
 }

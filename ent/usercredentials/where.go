@@ -82,6 +82,11 @@ func TotpSecret(v string) predicate.UserCredentials {
 	return predicate.UserCredentials(sql.FieldEQ(FieldTotpSecret, v))
 }
 
+// TotpVerified applies equality check predicate on the "totp_verified" field. It's identical to TotpVerifiedEQ.
+func TotpVerified(v bool) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldEQ(FieldTotpVerified, v))
+}
+
 // MfaEnabled applies equality check predicate on the "mfa_enabled" field. It's identical to MfaEnabledEQ.
 func MfaEnabled(v bool) predicate.UserCredentials {
 	return predicate.UserCredentials(sql.FieldEQ(FieldMfaEnabled, v))
@@ -300,6 +305,16 @@ func TotpSecretEqualFold(v string) predicate.UserCredentials {
 // TotpSecretContainsFold applies the ContainsFold predicate on the "totp_secret" field.
 func TotpSecretContainsFold(v string) predicate.UserCredentials {
 	return predicate.UserCredentials(sql.FieldContainsFold(FieldTotpSecret, v))
+}
+
+// TotpVerifiedEQ applies the EQ predicate on the "totp_verified" field.
+func TotpVerifiedEQ(v bool) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldEQ(FieldTotpVerified, v))
+}
+
+// TotpVerifiedNEQ applies the NEQ predicate on the "totp_verified" field.
+func TotpVerifiedNEQ(v bool) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldNEQ(FieldTotpVerified, v))
 }
 
 // MfaEnabledEQ applies the EQ predicate on the "mfa_enabled" field.

@@ -101,6 +101,9 @@ var (
 	// MFA / security codes
 	ErrInvalidMFAMethod               = errors.New("invalid MFA method")
 	ErrTOTPNotConfigured              = errors.New("TOTP is not configured for this user")
+	ErrTOTPAlreadyEnabled             = errors.New("TOTP is already enabled for this user")
+	ErrTOTPNotVerified                = errors.New("TOTP enrolment has not been verified")
+	ErrOTPRequired                    = errors.New("security code is required for this action")
 	ErrMFAContactRequired             = errors.New("a contact mechanism that can receive security codes is required")
 	ErrOTPCooldown                    = errors.New("security code requested too recently")
 	ErrOTPServiceUnavailable          = errors.New("security code service unavailable")

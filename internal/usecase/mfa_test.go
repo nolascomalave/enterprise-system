@@ -18,11 +18,17 @@ type fakeMFAUserRepository struct {
 	getErr      error
 	updateErr   error
 
-	updatedTenant uuid.UUID
-	updatedParty  uuid.UUID
-	updatedEnable bool
-	updatedMethod domain.MFAMethod
-	updateCalls   int
+	updatedTenant     uuid.UUID
+	updatedParty      uuid.UUID
+	updatedEnable     bool
+	updatedMethod     domain.MFAMethod
+	updateCalls       int
+	updatedTOTPSecret string
+	updateTOTPCalls   int
+	updateTOTPErr     error
+
+	activateCalls int
+	activateErr   error
 }
 
 func (r *fakeMFAUserRepository) GetByPartyID(ctx context.Context, tenantID, partyID uuid.UUID) (*auth.Credentials, error) {
@@ -33,6 +39,20 @@ func (r *fakeMFAUserRepository) GetByPartyID(ctx context.Context, tenantID, part
 		return nil, auth.ErrNotFound
 	}
 	return r.credentials, nil
+}
+
+func (r *fakeMFAUserRepository) UpdateTOTPSecret(ctx context.Context, tenantID, partyID uuid.UUID, secret string, at time.Time) error {
+	r.updateTOTPCalls++
+	if r.updateTOTPErr != nil {
+		return r.updateTOTPErr
+	}
+	r.updatedTOTPSecret = secret
+	return nil
+}
+
+func (r *fakeMFAUserRepository) ActivateTOTP(ctx context.Context, tenantID, partyID uuid.UUID, at time.Time) error {
+	r.activateCalls++
+	return r.activateErr
 }
 
 func (r *fakeMFAUserRepository) UpdateMFAPreferences(
@@ -378,13 +398,29 @@ func TestUpdateMFAPreferencesRejectsTOTPWithoutSecret(t *testing.T) {
 	})
 
 	require.ErrorIs(t, err, domain.ErrTOTPNotConfigured)
+	assert.Equal(t, 0, users.activateCalls)
+}
+
+func TestUpdateMFAPreferencesRejectsUnverifiedTOTP(t *testing.T) {
+	tenantID, partyID := uuid.New(), uuid.New()
+	users := &fakeMFAUserRepository{credentials: &auth.Credentials{
+		TenantID: tenantID, PartyID: partyID, TOTPSecret: "JBSWY3DPEHPK3PXP", TOTPVerified: false,
+	}}
+	contacts := &fakeMFAContactRepository{contacts: []*domain.PartyContact{codeCapableContact(tenantID, partyID)}}
+	service := newMFAServiceForTest(users, contacts, &fakeSecurityCodeManager{}, &fakeSecurityCodeSender{})
+
+	err := service.UpdateMFAPreferences(context.Background(), UpdateMFAPreferencesInput{
+		TenantID: tenantID, PartyID: partyID, Enabled: true, Method: domain.MFAMethodTOTP,
+	})
+
+	require.ErrorIs(t, err, domain.ErrTOTPNotVerified)
 	assert.Equal(t, 0, users.updateCalls)
 }
 
 func TestUpdateMFAPreferencesAllowsTOTPWithSecret(t *testing.T) {
 	tenantID, partyID := uuid.New(), uuid.New()
 	users := &fakeMFAUserRepository{credentials: &auth.Credentials{
-		TenantID: tenantID, PartyID: partyID, TOTPSecret: "JBSWY3DPEHPK3PXP",
+		TenantID: tenantID, PartyID: partyID, TOTPSecret: "JBSWY3DPEHPK3PXP", TOTPVerified: true,
 	}}
 	contacts := &fakeMFAContactRepository{contacts: []*domain.PartyContact{codeCapableContact(tenantID, partyID)}}
 	service := newMFAServiceForTest(users, contacts, &fakeSecurityCodeManager{}, &fakeSecurityCodeSender{})
@@ -442,4 +478,114 @@ func TestRequestSecurityCodeRejectsContactFromAnotherParty(t *testing.T) {
 	require.Error(t, err)
 	assert.Equal(t, 0, codes.generateCalls)
 	assert.Equal(t, 0, sender.calls)
+}
+
+type fakeTOTPManager struct {
+	secret string
+	url    string
+	genErr error
+
+	issuer  string
+	account string
+
+	valid           bool
+	validatedSecret string
+	validatedCode   string
+}
+
+func (m *fakeTOTPManager) GenerateTOTPSecret(issuer, account string) (string, string, error) {
+	m.issuer, m.account = issuer, account
+	return m.secret, m.url, m.genErr
+}
+
+func (m *fakeTOTPManager) ValidateTOTP(secret, code string) bool {
+	m.validatedSecret, m.validatedCode = secret, code
+	return m.valid
+}
+
+func TestSetupTOTPStoresSecretWithoutEnablingMFA(t *testing.T) {
+	tenantID, partyID := uuid.New(), uuid.New()
+	relationID := uuid.New()
+	users := &fakeMFAUserRepository{credentials: &auth.Credentials{
+		TenantID: tenantID, PartyID: partyID, PartyContactMechanismID: relationID,
+	}}
+	contact := codeCapableContact(tenantID, partyID)
+	contact.Relation.ID = relationID
+	contacts := &fakeMFAContactRepository{byID: map[uuid.UUID]*domain.PartyContact{relationID: contact}}
+	totp := &fakeTOTPManager{secret: "JBSWY3DPEHPK3PXP", url: "otpauth://totp/enterprise-system:user@example.com?secret=JBSWY3DPEHPK3PXP"}
+	service := newMFAServiceForTest(users, contacts, &fakeSecurityCodeManager{}, &fakeSecurityCodeSender{})
+	service.SetTOTPManager(totp)
+
+	result, err := service.SetupTOTP(context.Background(), tenantID, partyID)
+
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, "JBSWY3DPEHPK3PXP", result.Secret)
+	assert.Equal(t, totp.url, result.OTPAuthURL)
+	assert.Equal(t, "user@example.com", totp.account)
+	assert.Equal(t, "JBSWY3DPEHPK3PXP", users.updatedTOTPSecret)
+	assert.Equal(t, 0, users.updateCalls, "setup must not enable MFA by itself")
+	assert.Equal(t, 1, users.updateTOTPCalls)
+}
+
+func TestSetupTOTPRejectsAlreadyEnabledTOTP(t *testing.T) {
+	tenantID, partyID := uuid.New(), uuid.New()
+	users := &fakeMFAUserRepository{credentials: &auth.Credentials{
+		TenantID: tenantID, PartyID: partyID, MFAEnabled: true,
+		MFAMethod: domain.MFAMethodTOTP, TOTPSecret: "EXISTING",
+	}}
+	totp := &fakeTOTPManager{secret: "NEWSECRET"}
+	service := newMFAServiceForTest(users, &fakeMFAContactRepository{}, &fakeSecurityCodeManager{}, &fakeSecurityCodeSender{})
+	service.SetTOTPManager(totp)
+
+	_, err := service.SetupTOTP(context.Background(), tenantID, partyID)
+
+	require.ErrorIs(t, err, domain.ErrTOTPAlreadyEnabled)
+	assert.Equal(t, 0, users.updateTOTPCalls)
+}
+
+func TestVerifyTOTPActivatesTOTPWhenCodeIsValid(t *testing.T) {
+	tenantID, partyID := uuid.New(), uuid.New()
+	users := &fakeMFAUserRepository{credentials: &auth.Credentials{
+		TenantID: tenantID, PartyID: partyID, TOTPSecret: "JBSWY3DPEHPK3PXP",
+	}}
+	totp := &fakeTOTPManager{valid: true}
+	contacts := &fakeMFAContactRepository{contacts: []*domain.PartyContact{codeCapableContact(tenantID, partyID)}}
+	service := newMFAServiceForTest(users, contacts, &fakeSecurityCodeManager{}, &fakeSecurityCodeSender{})
+	service.SetTOTPManager(totp)
+
+	err := service.VerifyTOTP(context.Background(), tenantID, partyID, "123456")
+
+	require.NoError(t, err)
+	assert.Equal(t, "JBSWY3DPEHPK3PXP", totp.validatedSecret)
+	assert.Equal(t, "123456", totp.validatedCode)
+	assert.Equal(t, 1, users.activateCalls)
+	assert.Equal(t, 0, users.updateCalls)
+}
+
+func TestVerifyTOTPRejectsInvalidCode(t *testing.T) {
+	tenantID, partyID := uuid.New(), uuid.New()
+	users := &fakeMFAUserRepository{credentials: &auth.Credentials{
+		TenantID: tenantID, PartyID: partyID, TOTPSecret: "JBSWY3DPEHPK3PXP",
+	}}
+	totp := &fakeTOTPManager{valid: false}
+	service := newMFAServiceForTest(users, &fakeMFAContactRepository{}, &fakeSecurityCodeManager{}, &fakeSecurityCodeSender{})
+	service.SetTOTPManager(totp)
+
+	err := service.VerifyTOTP(context.Background(), tenantID, partyID, "000000")
+
+	require.ErrorIs(t, err, auth.ErrInvalidTOTP)
+	assert.Equal(t, 0, users.activateCalls)
+}
+
+func TestVerifyTOTPRequiresSetup(t *testing.T) {
+	tenantID, partyID := uuid.New(), uuid.New()
+	users := &fakeMFAUserRepository{credentials: &auth.Credentials{TenantID: tenantID, PartyID: partyID}}
+	service := newMFAServiceForTest(users, &fakeMFAContactRepository{}, &fakeSecurityCodeManager{}, &fakeSecurityCodeSender{})
+	service.SetTOTPManager(&fakeTOTPManager{valid: true})
+
+	err := service.VerifyTOTP(context.Background(), tenantID, partyID, "123456")
+
+	require.ErrorIs(t, err, domain.ErrTOTPNotConfigured)
+	assert.Equal(t, 0, users.activateCalls)
 }

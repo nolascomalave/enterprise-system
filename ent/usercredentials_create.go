@@ -66,6 +66,20 @@ func (_c *UserCredentialsCreate) SetNillableTotpSecret(v *string) *UserCredentia
 	return _c
 }
 
+// SetTotpVerified sets the "totp_verified" field.
+func (_c *UserCredentialsCreate) SetTotpVerified(v bool) *UserCredentialsCreate {
+	_c.mutation.SetTotpVerified(v)
+	return _c
+}
+
+// SetNillableTotpVerified sets the "totp_verified" field if the given value is not nil.
+func (_c *UserCredentialsCreate) SetNillableTotpVerified(v *bool) *UserCredentialsCreate {
+	if v != nil {
+		_c.SetTotpVerified(*v)
+	}
+	return _c
+}
+
 // SetMfaEnabled sets the "mfa_enabled" field.
 func (_c *UserCredentialsCreate) SetMfaEnabled(v bool) *UserCredentialsCreate {
 	_c.mutation.SetMfaEnabled(v)
@@ -221,6 +235,10 @@ func (_c *UserCredentialsCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *UserCredentialsCreate) defaults() {
+	if _, ok := _c.mutation.TotpVerified(); !ok {
+		v := usercredentials.DefaultTotpVerified
+		_c.mutation.SetTotpVerified(v)
+	}
 	if _, ok := _c.mutation.MfaEnabled(); !ok {
 		v := usercredentials.DefaultMfaEnabled
 		_c.mutation.SetMfaEnabled(v)
@@ -265,6 +283,9 @@ func (_c *UserCredentialsCreate) check() error {
 		if err := usercredentials.PasswordHashValidator(v); err != nil {
 			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.password_hash": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.TotpVerified(); !ok {
+		return &ValidationError{Name: "totp_verified", err: errors.New(`ent: missing required field "UserCredentials.totp_verified"`)}
 	}
 	if _, ok := _c.mutation.MfaEnabled(); !ok {
 		return &ValidationError{Name: "mfa_enabled", err: errors.New(`ent: missing required field "UserCredentials.mfa_enabled"`)}
@@ -333,6 +354,10 @@ func (_c *UserCredentialsCreate) createSpec() (*UserCredentials, *sqlgraph.Creat
 	if value, ok := _c.mutation.TotpSecret(); ok {
 		_spec.SetField(usercredentials.FieldTotpSecret, field.TypeString, value)
 		_node.TotpSecret = value
+	}
+	if value, ok := _c.mutation.TotpVerified(); ok {
+		_spec.SetField(usercredentials.FieldTotpVerified, field.TypeBool, value)
+		_node.TotpVerified = value
 	}
 	if value, ok := _c.mutation.MfaEnabled(); ok {
 		_spec.SetField(usercredentials.FieldMfaEnabled, field.TypeBool, value)
@@ -547,6 +572,18 @@ func (u *UserCredentialsUpsert) ClearTotpSecret() *UserCredentialsUpsert {
 	return u
 }
 
+// SetTotpVerified sets the "totp_verified" field.
+func (u *UserCredentialsUpsert) SetTotpVerified(v bool) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldTotpVerified, v)
+	return u
+}
+
+// UpdateTotpVerified sets the "totp_verified" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdateTotpVerified() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldTotpVerified)
+	return u
+}
+
 // SetMfaEnabled sets the "mfa_enabled" field.
 func (u *UserCredentialsUpsert) SetMfaEnabled(v bool) *UserCredentialsUpsert {
 	u.Set(usercredentials.FieldMfaEnabled, v)
@@ -738,6 +775,20 @@ func (u *UserCredentialsUpsertOne) UpdateTotpSecret() *UserCredentialsUpsertOne 
 func (u *UserCredentialsUpsertOne) ClearTotpSecret() *UserCredentialsUpsertOne {
 	return u.Update(func(s *UserCredentialsUpsert) {
 		s.ClearTotpSecret()
+	})
+}
+
+// SetTotpVerified sets the "totp_verified" field.
+func (u *UserCredentialsUpsertOne) SetTotpVerified(v bool) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetTotpVerified(v)
+	})
+}
+
+// UpdateTotpVerified sets the "totp_verified" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdateTotpVerified() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateTotpVerified()
 	})
 }
 
@@ -1110,6 +1161,20 @@ func (u *UserCredentialsUpsertBulk) UpdateTotpSecret() *UserCredentialsUpsertBul
 func (u *UserCredentialsUpsertBulk) ClearTotpSecret() *UserCredentialsUpsertBulk {
 	return u.Update(func(s *UserCredentialsUpsert) {
 		s.ClearTotpSecret()
+	})
+}
+
+// SetTotpVerified sets the "totp_verified" field.
+func (u *UserCredentialsUpsertBulk) SetTotpVerified(v bool) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetTotpVerified(v)
+	})
+}
+
+// UpdateTotpVerified sets the "totp_verified" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdateTotpVerified() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateTotpVerified()
 	})
 }
 

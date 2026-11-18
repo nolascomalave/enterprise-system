@@ -26,6 +26,8 @@ const (
 	FieldPasswordHash = "password_hash"
 	// FieldTotpSecret holds the string denoting the totp_secret field in the database.
 	FieldTotpSecret = "totp_secret"
+	// FieldTotpVerified holds the string denoting the totp_verified field in the database.
+	FieldTotpVerified = "totp_verified"
 	// FieldMfaEnabled holds the string denoting the mfa_enabled field in the database.
 	FieldMfaEnabled = "mfa_enabled"
 	// FieldMfaMethod holds the string denoting the mfa_method field in the database.
@@ -86,6 +88,7 @@ var Columns = []string{
 	FieldPartyContactMechanismID,
 	FieldPasswordHash,
 	FieldTotpSecret,
+	FieldTotpVerified,
 	FieldMfaEnabled,
 	FieldMfaMethod,
 	FieldBackupCodesHash,
@@ -107,6 +110,8 @@ func ValidColumn(column string) bool {
 var (
 	// PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
 	PasswordHashValidator func(string) error
+	// DefaultTotpVerified holds the default value on creation for the "totp_verified" field.
+	DefaultTotpVerified bool
 	// DefaultMfaEnabled holds the default value on creation for the "mfa_enabled" field.
 	DefaultMfaEnabled bool
 	// DefaultBackupCodesHash holds the default value on creation for the "backup_codes_hash" field.
@@ -179,6 +184,11 @@ func ByPasswordHash(opts ...sql.OrderTermOption) OrderOption {
 // ByTotpSecret orders the results by the totp_secret field.
 func ByTotpSecret(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTotpSecret, opts...).ToFunc()
+}
+
+// ByTotpVerified orders the results by the totp_verified field.
+func ByTotpVerified(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotpVerified, opts...).ToFunc()
 }
 
 // ByMfaEnabled orders the results by the mfa_enabled field.

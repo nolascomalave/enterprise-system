@@ -32,6 +32,8 @@ type UserCredentials struct {
 	PasswordHash string `json:"-"`
 	// TotpSecret holds the value of the "totp_secret" field.
 	TotpSecret string `json:"-"`
+	// TotpVerified holds the value of the "totp_verified" field.
+	TotpVerified bool `json:"totp_verified,omitempty"`
 	// MfaEnabled holds the value of the "mfa_enabled" field.
 	MfaEnabled bool `json:"mfa_enabled,omitempty"`
 	// MfaMethod holds the value of the "mfa_method" field.
@@ -114,7 +116,7 @@ func (*UserCredentials) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case usercredentials.FieldBackupCodesHash:
 			values[i] = new([]byte)
-		case usercredentials.FieldMfaEnabled:
+		case usercredentials.FieldTotpVerified, usercredentials.FieldMfaEnabled:
 			values[i] = new(sql.NullBool)
 		case usercredentials.FieldPasswordHash, usercredentials.FieldTotpSecret, usercredentials.FieldMfaMethod:
 			values[i] = new(sql.NullString)
@@ -172,6 +174,12 @@ func (_m *UserCredentials) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field totp_secret", values[i])
 			} else if value.Valid {
 				_m.TotpSecret = value.String
+			}
+		case usercredentials.FieldTotpVerified:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field totp_verified", values[i])
+			} else if value.Valid {
+				_m.TotpVerified = value.Bool
 			}
 		case usercredentials.FieldMfaEnabled:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -280,6 +288,9 @@ func (_m *UserCredentials) String() string {
 	builder.WriteString("password_hash=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("totp_secret=<sensitive>")
+	builder.WriteString(", ")
+	builder.WriteString("totp_verified=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TotpVerified))
 	builder.WriteString(", ")
 	builder.WriteString("mfa_enabled=")
 	builder.WriteString(fmt.Sprintf("%v", _m.MfaEnabled))

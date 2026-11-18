@@ -10,7 +10,7 @@ import (
 func TestMFAMigrationSchema(t *testing.T) {
 	db := tenantRelationshipTestDB(t)
 
-	var hasFlag, hasMFAEnabled, hasMFAMethod, hasLegacyTotp bool
+	var hasFlag, hasMFAEnabled, hasMFAMethod, hasLegacyTotp, hasTOTPVerified bool
 	err := db.QueryRow(`
 		SELECT
 			EXISTS (SELECT 1 FROM information_schema.columns
@@ -24,13 +24,17 @@ func TestMFAMigrationSchema(t *testing.T) {
 			           AND column_name='mfa_method'),
 			EXISTS (SELECT 1 FROM information_schema.columns
 			         WHERE table_schema='tenants' AND table_name='user_credentials'
-			           AND column_name='totp_enabled')
-	`).Scan(&hasFlag, &hasMFAEnabled, &hasMFAMethod, &hasLegacyTotp)
+			           AND column_name='totp_enabled'),
+			EXISTS (SELECT 1 FROM information_schema.columns
+			         WHERE table_schema='tenants' AND table_name='user_credentials'
+			           AND column_name='totp_verified')
+	`).Scan(&hasFlag, &hasMFAEnabled, &hasMFAMethod, &hasLegacyTotp, &hasTOTPVerified)
 	require.NoError(t, err)
 	require.True(t, hasFlag)
 	require.True(t, hasMFAEnabled)
 	require.True(t, hasMFAMethod)
 	require.False(t, hasLegacyTotp, "totp_enabled must be renamed to mfa_enabled")
+	require.True(t, hasTOTPVerified)
 
 	var methodCheck, consistencyCheck string
 	err = db.QueryRow(`
@@ -51,6 +55,15 @@ func TestMFAMigrationSchema(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, consistencyCheck, "mfa_enabled")
 	require.Contains(t, consistencyCheck, "mfa_method")
+
+	var verifiedCheck string
+	err = db.QueryRow(`
+		SELECT pg_get_constraintdef(oid)
+		  FROM pg_constraint
+		 WHERE conname='user_credentials_totp_verified_chk'
+	`).Scan(&verifiedCheck)
+	require.NoError(t, err)
+	require.Contains(t, verifiedCheck, "totp_verified")
 }
 
 func TestContactMechanismSecurityFlagDefaultsToFalse(t *testing.T) {

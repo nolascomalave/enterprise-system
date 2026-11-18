@@ -16,6 +16,8 @@ import (
 type MFAUseCase interface {
 	UpdateMFAPreferences(ctx context.Context, in usecase.UpdateMFAPreferencesInput) error
 	RequestSecurityCode(ctx context.Context, in usecase.RequestSecurityCodeInput) error
+	SetupTOTP(ctx context.Context, tenantID, partyID uuid.UUID) (*usecase.SetupTOTPResult, error)
+	VerifyTOTP(ctx context.Context, tenantID, partyID uuid.UUID, code string) error
 }
 
 type MFAHandler struct {
@@ -107,4 +109,64 @@ func (h *MFAHandler) RequestSecurityCode(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{"data": dto.MessageResponse{
 		Message: "security code sent",
 	}})
+}
+
+// SetupTOTP godoc
+// @Summary      Start TOTP enrolment
+// @Description  Generates a TOTP secret and returns the otpauth URL for the authenticator app. MFA is not enabled until the code is verified.
+// @Tags         MFA
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} dto.TOTPSetupEnvelope
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Router       /auth/totp/setup [post]
+func (h *MFAHandler) SetupTOTP(c *gin.Context) {
+	sessionContext, ok := enttenant.SessionContextFrom(c.Request.Context())
+	if !ok || sessionContext.TenantID == uuid.Nil || sessionContext.UserID == uuid.Nil {
+		c.Error(unauthorizedError(ErrUnauthorized))
+		return
+	}
+
+	result, err := h.uc.SetupTOTP(c.Request.Context(), sessionContext.TenantID, sessionContext.UserID)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, dto.TOTPSetupEnvelope{Data: dto.TOTPSetupResponse{
+		Secret: result.Secret, OTPAuthURL: result.OTPAuthURL,
+	}})
+}
+
+// VerifyTOTP godoc
+// @Summary      Verify TOTP enrolment
+// @Description  Validates a code against the pending TOTP secret and enables TOTP for the user.
+// @Tags         MFA
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body dto.TOTPVerifyRequest true "TOTP code"
+// @Success      200 {object} dto.MessageEnvelope
+// @Failure      400 {object} dto.ErrorResponse
+// @Failure      401 {object} dto.ErrorResponse
+// @Router       /auth/totp/verify [post]
+func (h *MFAHandler) VerifyTOTP(c *gin.Context) {
+	sessionContext, ok := enttenant.SessionContextFrom(c.Request.Context())
+	if !ok || sessionContext.TenantID == uuid.Nil || sessionContext.UserID == uuid.Nil {
+		c.Error(unauthorizedError(ErrUnauthorized))
+		return
+	}
+
+	var request dto.TOTPVerifyRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.Error(badRequestError(err))
+		return
+	}
+
+	err := h.uc.VerifyTOTP(c.Request.Context(), sessionContext.TenantID, sessionContext.UserID, request.Code)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": dto.MessageResponse{Message: "TOTP enabled"}})
 }

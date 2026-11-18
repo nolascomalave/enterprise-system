@@ -57304,6 +57304,7 @@ type UserCredentialsMutation struct {
 	id                             *uuid.UUID
 	password_hash                  *string
 	totp_secret                    *string
+	totp_verified                  *bool
 	mfa_enabled                    *bool
 	mfa_method                     *usercredentials.MfaMethod
 	backup_codes_hash              *[]string
@@ -57621,6 +57622,42 @@ func (m *UserCredentialsMutation) TotpSecretCleared() bool {
 func (m *UserCredentialsMutation) ResetTotpSecret() {
 	m.totp_secret = nil
 	delete(m.clearedFields, usercredentials.FieldTotpSecret)
+}
+
+// SetTotpVerified sets the "totp_verified" field.
+func (m *UserCredentialsMutation) SetTotpVerified(b bool) {
+	m.totp_verified = &b
+}
+
+// TotpVerified returns the value of the "totp_verified" field in the mutation.
+func (m *UserCredentialsMutation) TotpVerified() (r bool, exists bool) {
+	v := m.totp_verified
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotpVerified returns the old "totp_verified" field's value of the UserCredentials entity.
+// If the UserCredentials object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserCredentialsMutation) OldTotpVerified(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotpVerified is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotpVerified requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotpVerified: %w", err)
+	}
+	return oldValue.TotpVerified, nil
+}
+
+// ResetTotpVerified resets all changes to the "totp_verified" field.
+func (m *UserCredentialsMutation) ResetTotpVerified() {
+	m.totp_verified = nil
 }
 
 // SetMfaEnabled sets the "mfa_enabled" field.
@@ -58036,7 +58073,7 @@ func (m *UserCredentialsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserCredentialsMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.tenant != nil {
 		fields = append(fields, usercredentials.FieldTenantID)
 	}
@@ -58051,6 +58088,9 @@ func (m *UserCredentialsMutation) Fields() []string {
 	}
 	if m.totp_secret != nil {
 		fields = append(fields, usercredentials.FieldTotpSecret)
+	}
+	if m.totp_verified != nil {
+		fields = append(fields, usercredentials.FieldTotpVerified)
 	}
 	if m.mfa_enabled != nil {
 		fields = append(fields, usercredentials.FieldMfaEnabled)
@@ -58088,6 +58128,8 @@ func (m *UserCredentialsMutation) Field(name string) (ent.Value, bool) {
 		return m.PasswordHash()
 	case usercredentials.FieldTotpSecret:
 		return m.TotpSecret()
+	case usercredentials.FieldTotpVerified:
+		return m.TotpVerified()
 	case usercredentials.FieldMfaEnabled:
 		return m.MfaEnabled()
 	case usercredentials.FieldMfaMethod:
@@ -58119,6 +58161,8 @@ func (m *UserCredentialsMutation) OldField(ctx context.Context, name string) (en
 		return m.OldPasswordHash(ctx)
 	case usercredentials.FieldTotpSecret:
 		return m.OldTotpSecret(ctx)
+	case usercredentials.FieldTotpVerified:
+		return m.OldTotpVerified(ctx)
 	case usercredentials.FieldMfaEnabled:
 		return m.OldMfaEnabled(ctx)
 	case usercredentials.FieldMfaMethod:
@@ -58174,6 +58218,13 @@ func (m *UserCredentialsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTotpSecret(v)
+		return nil
+	case usercredentials.FieldTotpVerified:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotpVerified(v)
 		return nil
 	case usercredentials.FieldMfaEnabled:
 		v, ok := value.(bool)
@@ -58295,6 +58346,9 @@ func (m *UserCredentialsMutation) ResetField(name string) error {
 		return nil
 	case usercredentials.FieldTotpSecret:
 		m.ResetTotpSecret()
+		return nil
+	case usercredentials.FieldTotpVerified:
+		m.ResetTotpVerified()
 		return nil
 	case usercredentials.FieldMfaEnabled:
 		m.ResetMfaEnabled()

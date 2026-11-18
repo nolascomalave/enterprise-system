@@ -27,7 +27,7 @@ func NewAccountHandler(uc AccountUseCase) *AccountHandler {
 
 // ChangePassword godoc
 // @Summary      Change the authenticated user's password
-// @Description  Requires the current password. Revokes all other sessions and pending reset tokens.
+// @Description  Requires the current password. When MFA is enabled, otp_code is required. Revokes all other sessions and pending reset tokens.
 // @Tags         Account
 // @Accept       json
 // @Produce      json
@@ -54,6 +54,7 @@ func (h *AccountHandler) ChangePassword(c *gin.Context) {
 		TenantID: sessionContext.TenantID, PartyID: sessionContext.UserID,
 		SessionID:       sessionContext.SessionID,
 		CurrentPassword: request.CurrentPassword, NewPassword: request.NewPassword,
+		OTPCode: request.OTPCode,
 	})
 	if err != nil {
 		c.Error(err)
