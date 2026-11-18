@@ -82,9 +82,14 @@ func TotpSecret(v string) predicate.UserCredentials {
 	return predicate.UserCredentials(sql.FieldEQ(FieldTotpSecret, v))
 }
 
-// TotpEnabled applies equality check predicate on the "totp_enabled" field. It's identical to TotpEnabledEQ.
-func TotpEnabled(v bool) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldEQ(FieldTotpEnabled, v))
+// TotpVerified applies equality check predicate on the "totp_verified" field. It's identical to TotpVerifiedEQ.
+func TotpVerified(v bool) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldEQ(FieldTotpVerified, v))
+}
+
+// MfaEnabled applies equality check predicate on the "mfa_enabled" field. It's identical to MfaEnabledEQ.
+func MfaEnabled(v bool) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldEQ(FieldMfaEnabled, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -302,14 +307,44 @@ func TotpSecretContainsFold(v string) predicate.UserCredentials {
 	return predicate.UserCredentials(sql.FieldContainsFold(FieldTotpSecret, v))
 }
 
-// TotpEnabledEQ applies the EQ predicate on the "totp_enabled" field.
-func TotpEnabledEQ(v bool) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldEQ(FieldTotpEnabled, v))
+// TotpVerifiedEQ applies the EQ predicate on the "totp_verified" field.
+func TotpVerifiedEQ(v bool) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldEQ(FieldTotpVerified, v))
 }
 
-// TotpEnabledNEQ applies the NEQ predicate on the "totp_enabled" field.
-func TotpEnabledNEQ(v bool) predicate.UserCredentials {
-	return predicate.UserCredentials(sql.FieldNEQ(FieldTotpEnabled, v))
+// TotpVerifiedNEQ applies the NEQ predicate on the "totp_verified" field.
+func TotpVerifiedNEQ(v bool) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldNEQ(FieldTotpVerified, v))
+}
+
+// MfaEnabledEQ applies the EQ predicate on the "mfa_enabled" field.
+func MfaEnabledEQ(v bool) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldEQ(FieldMfaEnabled, v))
+}
+
+// MfaEnabledNEQ applies the NEQ predicate on the "mfa_enabled" field.
+func MfaEnabledNEQ(v bool) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldNEQ(FieldMfaEnabled, v))
+}
+
+// MfaMethodEQ applies the EQ predicate on the "mfa_method" field.
+func MfaMethodEQ(v MfaMethod) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldEQ(FieldMfaMethod, v))
+}
+
+// MfaMethodNEQ applies the NEQ predicate on the "mfa_method" field.
+func MfaMethodNEQ(v MfaMethod) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldNEQ(FieldMfaMethod, v))
+}
+
+// MfaMethodIn applies the In predicate on the "mfa_method" field.
+func MfaMethodIn(vs ...MfaMethod) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldIn(FieldMfaMethod, vs...))
+}
+
+// MfaMethodNotIn applies the NotIn predicate on the "mfa_method" field.
+func MfaMethodNotIn(vs ...MfaMethod) predicate.UserCredentials {
+	return predicate.UserCredentials(sql.FieldNotIn(FieldMfaMethod, vs...))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

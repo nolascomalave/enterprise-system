@@ -231,6 +231,7 @@ var (
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"EMAIL", "PHONE", "MOBILE", "FAX", "WEBSITE"}},
 		{Name: "value", Type: field.TypeString, Collation: "unaccent_case_insensitive"},
+		{Name: "can_receive_security_code", Type: field.TypeBool, Default: false},
 	}
 	// ContactMechanismsTable holds the schema information for the "contact_mechanisms" table.
 	ContactMechanismsTable = &schema.Table{
@@ -2776,7 +2777,9 @@ var (
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
 		{Name: "password_hash", Type: field.TypeString},
 		{Name: "totp_secret", Type: field.TypeString, Nullable: true},
-		{Name: "totp_enabled", Type: field.TypeBool, Default: false},
+		{Name: "totp_verified", Type: field.TypeBool, Default: false},
+		{Name: "mfa_enabled", Type: field.TypeBool, Default: false},
+		{Name: "mfa_method", Type: field.TypeEnum, Enums: []string{"NONE", "TOTP", "EMAIL_OTP"}, Default: "NONE"},
 		{Name: "backup_codes_hash", Type: field.TypeJSON},
 		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
 		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
@@ -2793,19 +2796,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "user_credentials_parties_credentials",
-				Columns:    []*schema.Column{UserCredentialsColumns[8]},
+				Columns:    []*schema.Column{UserCredentialsColumns[10]},
 				RefColumns: []*schema.Column{PartiesColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "user_credentials_party_contact_mechanisms_credentials",
-				Columns:    []*schema.Column{UserCredentialsColumns[9]},
+				Columns:    []*schema.Column{UserCredentialsColumns[11]},
 				RefColumns: []*schema.Column{PartyContactMechanismsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
 			{
 				Symbol:     "user_credentials_subscriptions_user_credentials",
-				Columns:    []*schema.Column{UserCredentialsColumns[10]},
+				Columns:    []*schema.Column{UserCredentialsColumns[12]},
 				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},
@@ -2814,7 +2817,7 @@ var (
 			{
 				Name:    "usercredentials_party_contact_mechanism_id",
 				Unique:  true,
-				Columns: []*schema.Column{UserCredentialsColumns[9]},
+				Columns: []*schema.Column{UserCredentialsColumns[11]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},
@@ -2822,7 +2825,7 @@ var (
 			{
 				Name:    "usercredentials_tenant_id_party_id",
 				Unique:  true,
-				Columns: []*schema.Column{UserCredentialsColumns[10], UserCredentialsColumns[8]},
+				Columns: []*schema.Column{UserCredentialsColumns[12], UserCredentialsColumns[10]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "deleted_at IS NULL",
 				},

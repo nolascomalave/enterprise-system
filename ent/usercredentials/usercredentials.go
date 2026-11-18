@@ -3,6 +3,7 @@
 package usercredentials
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -25,8 +26,12 @@ const (
 	FieldPasswordHash = "password_hash"
 	// FieldTotpSecret holds the string denoting the totp_secret field in the database.
 	FieldTotpSecret = "totp_secret"
-	// FieldTotpEnabled holds the string denoting the totp_enabled field in the database.
-	FieldTotpEnabled = "totp_enabled"
+	// FieldTotpVerified holds the string denoting the totp_verified field in the database.
+	FieldTotpVerified = "totp_verified"
+	// FieldMfaEnabled holds the string denoting the mfa_enabled field in the database.
+	FieldMfaEnabled = "mfa_enabled"
+	// FieldMfaMethod holds the string denoting the mfa_method field in the database.
+	FieldMfaMethod = "mfa_method"
 	// FieldBackupCodesHash holds the string denoting the backup_codes_hash field in the database.
 	FieldBackupCodesHash = "backup_codes_hash"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -83,7 +88,9 @@ var Columns = []string{
 	FieldPartyContactMechanismID,
 	FieldPasswordHash,
 	FieldTotpSecret,
-	FieldTotpEnabled,
+	FieldTotpVerified,
+	FieldMfaEnabled,
+	FieldMfaMethod,
 	FieldBackupCodesHash,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -103,8 +110,10 @@ func ValidColumn(column string) bool {
 var (
 	// PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
 	PasswordHashValidator func(string) error
-	// DefaultTotpEnabled holds the default value on creation for the "totp_enabled" field.
-	DefaultTotpEnabled bool
+	// DefaultTotpVerified holds the default value on creation for the "totp_verified" field.
+	DefaultTotpVerified bool
+	// DefaultMfaEnabled holds the default value on creation for the "mfa_enabled" field.
+	DefaultMfaEnabled bool
 	// DefaultBackupCodesHash holds the default value on creation for the "backup_codes_hash" field.
 	DefaultBackupCodesHash []string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -116,6 +125,33 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// MfaMethod defines the type for the "mfa_method" enum field.
+type MfaMethod string
+
+// MfaMethodNONE is the default value of the MfaMethod enum.
+const DefaultMfaMethod = MfaMethodNONE
+
+// MfaMethod values.
+const (
+	MfaMethodNONE      MfaMethod = "NONE"
+	MfaMethodTOTP      MfaMethod = "TOTP"
+	MfaMethodEMAIL_OTP MfaMethod = "EMAIL_OTP"
+)
+
+func (mm MfaMethod) String() string {
+	return string(mm)
+}
+
+// MfaMethodValidator is a validator for the "mfa_method" field enum values. It is called by the builders before save.
+func MfaMethodValidator(mm MfaMethod) error {
+	switch mm {
+	case MfaMethodNONE, MfaMethodTOTP, MfaMethodEMAIL_OTP:
+		return nil
+	default:
+		return fmt.Errorf("usercredentials: invalid enum value for mfa_method field: %q", mm)
+	}
+}
 
 // OrderOption defines the ordering options for the UserCredentials queries.
 type OrderOption func(*sql.Selector)
@@ -150,9 +186,19 @@ func ByTotpSecret(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTotpSecret, opts...).ToFunc()
 }
 
-// ByTotpEnabled orders the results by the totp_enabled field.
-func ByTotpEnabled(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTotpEnabled, opts...).ToFunc()
+// ByTotpVerified orders the results by the totp_verified field.
+func ByTotpVerified(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTotpVerified, opts...).ToFunc()
+}
+
+// ByMfaEnabled orders the results by the mfa_enabled field.
+func ByMfaEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMfaEnabled, opts...).ToFunc()
+}
+
+// ByMfaMethod orders the results by the mfa_method field.
+func ByMfaMethod(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMfaMethod, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

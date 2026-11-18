@@ -19,6 +19,8 @@ const (
 	FieldType = "type"
 	// FieldValue holds the string denoting the value field in the database.
 	FieldValue = "value"
+	// FieldCanReceiveSecurityCode holds the string denoting the can_receive_security_code field in the database.
+	FieldCanReceiveSecurityCode = "can_receive_security_code"
 	// EdgePartyContactMechanisms holds the string denoting the party_contact_mechanisms edge name in mutations.
 	EdgePartyContactMechanisms = "party_contact_mechanisms"
 	// EdgeDepartmentContactMechanisms holds the string denoting the department_contact_mechanisms edge name in mutations.
@@ -46,6 +48,7 @@ var Columns = []string{
 	FieldID,
 	FieldType,
 	FieldValue,
+	FieldCanReceiveSecurityCode,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -61,6 +64,8 @@ func ValidColumn(column string) bool {
 var (
 	// ValueValidator is a validator for the "value" field. It is called by the builders before save.
 	ValueValidator func(string) error
+	// DefaultCanReceiveSecurityCode holds the default value on creation for the "can_receive_security_code" field.
+	DefaultCanReceiveSecurityCode bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -107,6 +112,11 @@ func ByType(opts ...sql.OrderTermOption) OrderOption {
 // ByValue orders the results by the value field.
 func ByValue(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldValue, opts...).ToFunc()
+}
+
+// ByCanReceiveSecurityCode orders the results by the can_receive_security_code field.
+func ByCanReceiveSecurityCode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCanReceiveSecurityCode, opts...).ToFunc()
 }
 
 // ByPartyContactMechanismsCount orders the results by party_contact_mechanisms count.

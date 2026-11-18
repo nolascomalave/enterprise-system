@@ -115,6 +115,15 @@ func main() {
 		txManager, binder, time.Now,
 	)
 	accountService.SetSessionBlocklist(sessionBlocklist)
+	otpManager := cache.NewOTPManager(redisClient)
+	mfaService := usecase.NewMFAService(
+		credentialRepo, partyContactRepo, otpManager,
+		emailinfra.NewEmailSecurityCodeSender(os.Stdout),
+		txManager, time.Now,
+	)
+	authService.SetEmailOTPFlow(mfaService, otpManager)
+	mfaService.SetTOTPManager(tokenManager)
+	accountService.SetSecurityCodes(otpManager)
 	onboardingService := usecase.NewRegisterTenantService(
 		tokenManager,
 		txManager,
@@ -174,6 +183,7 @@ func main() {
 		PartyUseCase:              partyService,
 		AuthUseCase:               authService,
 		AccountUseCase:            accountService,
+		MFAUseCase:                mfaService,
 		OnboardingUseCase:         onboardingService,
 		OrgStructureUseCase:       orgService,
 		MergePartiesUseCase:       mergeService,

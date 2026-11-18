@@ -111,16 +111,44 @@ func (_u *UserCredentialsUpdate) ClearTotpSecret() *UserCredentialsUpdate {
 	return _u
 }
 
-// SetTotpEnabled sets the "totp_enabled" field.
-func (_u *UserCredentialsUpdate) SetTotpEnabled(v bool) *UserCredentialsUpdate {
-	_u.mutation.SetTotpEnabled(v)
+// SetTotpVerified sets the "totp_verified" field.
+func (_u *UserCredentialsUpdate) SetTotpVerified(v bool) *UserCredentialsUpdate {
+	_u.mutation.SetTotpVerified(v)
 	return _u
 }
 
-// SetNillableTotpEnabled sets the "totp_enabled" field if the given value is not nil.
-func (_u *UserCredentialsUpdate) SetNillableTotpEnabled(v *bool) *UserCredentialsUpdate {
+// SetNillableTotpVerified sets the "totp_verified" field if the given value is not nil.
+func (_u *UserCredentialsUpdate) SetNillableTotpVerified(v *bool) *UserCredentialsUpdate {
 	if v != nil {
-		_u.SetTotpEnabled(*v)
+		_u.SetTotpVerified(*v)
+	}
+	return _u
+}
+
+// SetMfaEnabled sets the "mfa_enabled" field.
+func (_u *UserCredentialsUpdate) SetMfaEnabled(v bool) *UserCredentialsUpdate {
+	_u.mutation.SetMfaEnabled(v)
+	return _u
+}
+
+// SetNillableMfaEnabled sets the "mfa_enabled" field if the given value is not nil.
+func (_u *UserCredentialsUpdate) SetNillableMfaEnabled(v *bool) *UserCredentialsUpdate {
+	if v != nil {
+		_u.SetMfaEnabled(*v)
+	}
+	return _u
+}
+
+// SetMfaMethod sets the "mfa_method" field.
+func (_u *UserCredentialsUpdate) SetMfaMethod(v usercredentials.MfaMethod) *UserCredentialsUpdate {
+	_u.mutation.SetMfaMethod(v)
+	return _u
+}
+
+// SetNillableMfaMethod sets the "mfa_method" field if the given value is not nil.
+func (_u *UserCredentialsUpdate) SetNillableMfaMethod(v *usercredentials.MfaMethod) *UserCredentialsUpdate {
+	if v != nil {
+		_u.SetMfaMethod(*v)
 	}
 	return _u
 }
@@ -280,6 +308,11 @@ func (_u *UserCredentialsUpdate) check() error {
 			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.password_hash": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.MfaMethod(); ok {
+		if err := usercredentials.MfaMethodValidator(v); err != nil {
+			return &ValidationError{Name: "mfa_method", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.mfa_method": %w`, err)}
+		}
+	}
 	if _u.mutation.TenantCleared() && len(_u.mutation.TenantIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UserCredentials.tenant"`)
 	}
@@ -313,8 +346,14 @@ func (_u *UserCredentialsUpdate) sqlSave(ctx context.Context) (_node int, err er
 	if _u.mutation.TotpSecretCleared() {
 		_spec.ClearField(usercredentials.FieldTotpSecret, field.TypeString)
 	}
-	if value, ok := _u.mutation.TotpEnabled(); ok {
-		_spec.SetField(usercredentials.FieldTotpEnabled, field.TypeBool, value)
+	if value, ok := _u.mutation.TotpVerified(); ok {
+		_spec.SetField(usercredentials.FieldTotpVerified, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MfaEnabled(); ok {
+		_spec.SetField(usercredentials.FieldMfaEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MfaMethod(); ok {
+		_spec.SetField(usercredentials.FieldMfaMethod, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.BackupCodesHash(); ok {
 		_spec.SetField(usercredentials.FieldBackupCodesHash, field.TypeJSON, value)
@@ -572,16 +611,44 @@ func (_u *UserCredentialsUpdateOne) ClearTotpSecret() *UserCredentialsUpdateOne 
 	return _u
 }
 
-// SetTotpEnabled sets the "totp_enabled" field.
-func (_u *UserCredentialsUpdateOne) SetTotpEnabled(v bool) *UserCredentialsUpdateOne {
-	_u.mutation.SetTotpEnabled(v)
+// SetTotpVerified sets the "totp_verified" field.
+func (_u *UserCredentialsUpdateOne) SetTotpVerified(v bool) *UserCredentialsUpdateOne {
+	_u.mutation.SetTotpVerified(v)
 	return _u
 }
 
-// SetNillableTotpEnabled sets the "totp_enabled" field if the given value is not nil.
-func (_u *UserCredentialsUpdateOne) SetNillableTotpEnabled(v *bool) *UserCredentialsUpdateOne {
+// SetNillableTotpVerified sets the "totp_verified" field if the given value is not nil.
+func (_u *UserCredentialsUpdateOne) SetNillableTotpVerified(v *bool) *UserCredentialsUpdateOne {
 	if v != nil {
-		_u.SetTotpEnabled(*v)
+		_u.SetTotpVerified(*v)
+	}
+	return _u
+}
+
+// SetMfaEnabled sets the "mfa_enabled" field.
+func (_u *UserCredentialsUpdateOne) SetMfaEnabled(v bool) *UserCredentialsUpdateOne {
+	_u.mutation.SetMfaEnabled(v)
+	return _u
+}
+
+// SetNillableMfaEnabled sets the "mfa_enabled" field if the given value is not nil.
+func (_u *UserCredentialsUpdateOne) SetNillableMfaEnabled(v *bool) *UserCredentialsUpdateOne {
+	if v != nil {
+		_u.SetMfaEnabled(*v)
+	}
+	return _u
+}
+
+// SetMfaMethod sets the "mfa_method" field.
+func (_u *UserCredentialsUpdateOne) SetMfaMethod(v usercredentials.MfaMethod) *UserCredentialsUpdateOne {
+	_u.mutation.SetMfaMethod(v)
+	return _u
+}
+
+// SetNillableMfaMethod sets the "mfa_method" field if the given value is not nil.
+func (_u *UserCredentialsUpdateOne) SetNillableMfaMethod(v *usercredentials.MfaMethod) *UserCredentialsUpdateOne {
+	if v != nil {
+		_u.SetMfaMethod(*v)
 	}
 	return _u
 }
@@ -754,6 +821,11 @@ func (_u *UserCredentialsUpdateOne) check() error {
 			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.password_hash": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.MfaMethod(); ok {
+		if err := usercredentials.MfaMethodValidator(v); err != nil {
+			return &ValidationError{Name: "mfa_method", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.mfa_method": %w`, err)}
+		}
+	}
 	if _u.mutation.TenantCleared() && len(_u.mutation.TenantIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "UserCredentials.tenant"`)
 	}
@@ -804,8 +876,14 @@ func (_u *UserCredentialsUpdateOne) sqlSave(ctx context.Context) (_node *UserCre
 	if _u.mutation.TotpSecretCleared() {
 		_spec.ClearField(usercredentials.FieldTotpSecret, field.TypeString)
 	}
-	if value, ok := _u.mutation.TotpEnabled(); ok {
-		_spec.SetField(usercredentials.FieldTotpEnabled, field.TypeBool, value)
+	if value, ok := _u.mutation.TotpVerified(); ok {
+		_spec.SetField(usercredentials.FieldTotpVerified, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MfaEnabled(); ok {
+		_spec.SetField(usercredentials.FieldMfaEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.MfaMethod(); ok {
+		_spec.SetField(usercredentials.FieldMfaMethod, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.BackupCodesHash(); ok {
 		_spec.SetField(usercredentials.FieldBackupCodesHash, field.TypeJSON, value)

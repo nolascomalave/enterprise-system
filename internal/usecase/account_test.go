@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"enterprise-system/internal/auth"
+	"enterprise-system/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -356,4 +357,79 @@ func TestResetPasswordRejectsConcurrentModification(t *testing.T) {
 	})
 
 	require.ErrorIs(t, err, auth.ErrConcurrentModification)
+}
+
+func TestChangePasswordRequiresOTPIfMFAEnabled(t *testing.T) {
+	manager := accountTestManager(t)
+	creds := accountTestCreds(t, manager)
+	creds.MFAEnabled = true
+	creds.MFAMethod = domain.MFAMethodEmailOTP
+	credRepo := &fakeCredentialRepo{credentials: creds}
+	sessionRepo := newFakeSessionRepo()
+	service := newAccountTestService(manager, credRepo, sessionRepo,
+		&fakeResetRepo{}, &fakeEmailSender{}, &fakeBinder{})
+	codes := &fakeSecurityCodeManager{}
+	service.SetSecurityCodes(codes)
+
+	err := service.ChangePassword(context.Background(), ChangePasswordInput{
+		TenantID: creds.TenantID, PartyID: creds.PartyID, SessionID: uuid.New(),
+		CurrentPassword: "current-password", NewPassword: "new-password-123",
+	})
+
+	require.ErrorIs(t, err, domain.ErrOTPRequired)
+	assert.Equal(t, 0, codes.verifyCalls)
+	assert.True(t, manager.VerifyPassword(credRepo.credentials.PasswordHash, "current-password"))
+
+	err = service.ChangePassword(context.Background(), ChangePasswordInput{
+		TenantID: creds.TenantID, PartyID: creds.PartyID, SessionID: uuid.New(),
+		CurrentPassword: "current-password", NewPassword: "new-password-123",
+		OTPCode: "123456",
+	})
+
+	require.NoError(t, err)
+	require.Equal(t, 1, codes.verifyCalls)
+	assert.Equal(t, creds.PartyID, codes.verifiedUser)
+	assert.Equal(t, SecurityActionChangePassword, codes.verifiedAction)
+	assert.Equal(t, "123456", codes.verifiedCode)
+	assert.True(t, manager.VerifyPassword(credRepo.credentials.PasswordHash, "new-password-123"))
+}
+
+func TestChangePasswordRejectsInvalidOTPWhenMFAEnabled(t *testing.T) {
+	manager := accountTestManager(t)
+	creds := accountTestCreds(t, manager)
+	creds.MFAEnabled = true
+	creds.MFAMethod = domain.MFAMethodEmailOTP
+	credRepo := &fakeCredentialRepo{credentials: creds}
+	service := newAccountTestService(manager, credRepo, newFakeSessionRepo(),
+		&fakeResetRepo{}, &fakeEmailSender{}, &fakeBinder{})
+	codes := &fakeSecurityCodeManager{verifyErr: domain.ErrInvalidSecurityCode}
+	service.SetSecurityCodes(codes)
+
+	err := service.ChangePassword(context.Background(), ChangePasswordInput{
+		TenantID: creds.TenantID, PartyID: creds.PartyID, SessionID: uuid.New(),
+		CurrentPassword: "current-password", NewPassword: "new-password-123",
+		OTPCode: "000000",
+	})
+
+	require.ErrorIs(t, err, domain.ErrInvalidSecurityCode)
+	assert.True(t, manager.VerifyPassword(credRepo.credentials.PasswordHash, "current-password"))
+}
+
+func TestChangePasswordIgnoresOTPWhenMFADisabled(t *testing.T) {
+	manager := accountTestManager(t)
+	creds := accountTestCreds(t, manager)
+	credRepo := &fakeCredentialRepo{credentials: creds}
+	service := newAccountTestService(manager, credRepo, newFakeSessionRepo(),
+		&fakeResetRepo{}, &fakeEmailSender{}, &fakeBinder{})
+	codes := &fakeSecurityCodeManager{verifyErr: domain.ErrInvalidSecurityCode}
+	service.SetSecurityCodes(codes)
+
+	err := service.ChangePassword(context.Background(), ChangePasswordInput{
+		TenantID: creds.TenantID, PartyID: creds.PartyID, SessionID: uuid.New(),
+		CurrentPassword: "current-password", NewPassword: "new-password-123",
+		OTPCode: "ignored",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, 0, codes.verifyCalls)
 }

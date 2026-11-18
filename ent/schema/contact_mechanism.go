@@ -33,6 +33,8 @@ func (ContactMechanism) Fields() []ent.Field {
 		field.String("value").
 			NotEmpty().
 			Annotations(entsql.Annotation{Collation: "unaccent_case_insensitive"}),
+		field.Bool("can_receive_security_code").
+			Default(false),
 	}
 }
 

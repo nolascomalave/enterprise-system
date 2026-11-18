@@ -4446,6 +4446,7 @@ type ContactMechanismMutation struct {
 	id                                   *uuid.UUID
 	_type                                *contactmechanism.Type
 	value                                *string
+	can_receive_security_code            *bool
 	clearedFields                        map[string]struct{}
 	party_contact_mechanisms             map[uuid.UUID]struct{}
 	removedparty_contact_mechanisms      map[uuid.UUID]struct{}
@@ -4634,6 +4635,42 @@ func (m *ContactMechanismMutation) ResetValue() {
 	m.value = nil
 }
 
+// SetCanReceiveSecurityCode sets the "can_receive_security_code" field.
+func (m *ContactMechanismMutation) SetCanReceiveSecurityCode(b bool) {
+	m.can_receive_security_code = &b
+}
+
+// CanReceiveSecurityCode returns the value of the "can_receive_security_code" field in the mutation.
+func (m *ContactMechanismMutation) CanReceiveSecurityCode() (r bool, exists bool) {
+	v := m.can_receive_security_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCanReceiveSecurityCode returns the old "can_receive_security_code" field's value of the ContactMechanism entity.
+// If the ContactMechanism object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ContactMechanismMutation) OldCanReceiveSecurityCode(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCanReceiveSecurityCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCanReceiveSecurityCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCanReceiveSecurityCode: %w", err)
+	}
+	return oldValue.CanReceiveSecurityCode, nil
+}
+
+// ResetCanReceiveSecurityCode resets all changes to the "can_receive_security_code" field.
+func (m *ContactMechanismMutation) ResetCanReceiveSecurityCode() {
+	m.can_receive_security_code = nil
+}
+
 // AddPartyContactMechanismIDs adds the "party_contact_mechanisms" edge to the PartyContactMechanism entity by ids.
 func (m *ContactMechanismMutation) AddPartyContactMechanismIDs(ids ...uuid.UUID) {
 	if m.party_contact_mechanisms == nil {
@@ -4776,12 +4813,15 @@ func (m *ContactMechanismMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ContactMechanismMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m._type != nil {
 		fields = append(fields, contactmechanism.FieldType)
 	}
 	if m.value != nil {
 		fields = append(fields, contactmechanism.FieldValue)
+	}
+	if m.can_receive_security_code != nil {
+		fields = append(fields, contactmechanism.FieldCanReceiveSecurityCode)
 	}
 	return fields
 }
@@ -4795,6 +4835,8 @@ func (m *ContactMechanismMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case contactmechanism.FieldValue:
 		return m.Value()
+	case contactmechanism.FieldCanReceiveSecurityCode:
+		return m.CanReceiveSecurityCode()
 	}
 	return nil, false
 }
@@ -4808,6 +4850,8 @@ func (m *ContactMechanismMutation) OldField(ctx context.Context, name string) (e
 		return m.OldType(ctx)
 	case contactmechanism.FieldValue:
 		return m.OldValue(ctx)
+	case contactmechanism.FieldCanReceiveSecurityCode:
+		return m.OldCanReceiveSecurityCode(ctx)
 	}
 	return nil, fmt.Errorf("unknown ContactMechanism field %s", name)
 }
@@ -4830,6 +4874,13 @@ func (m *ContactMechanismMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetValue(v)
+		return nil
+	case contactmechanism.FieldCanReceiveSecurityCode:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCanReceiveSecurityCode(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ContactMechanism field %s", name)
@@ -4885,6 +4936,9 @@ func (m *ContactMechanismMutation) ResetField(name string) error {
 		return nil
 	case contactmechanism.FieldValue:
 		m.ResetValue()
+		return nil
+	case contactmechanism.FieldCanReceiveSecurityCode:
+		m.ResetCanReceiveSecurityCode()
 		return nil
 	}
 	return fmt.Errorf("unknown ContactMechanism field %s", name)
@@ -57250,7 +57304,9 @@ type UserCredentialsMutation struct {
 	id                             *uuid.UUID
 	password_hash                  *string
 	totp_secret                    *string
-	totp_enabled                   *bool
+	totp_verified                  *bool
+	mfa_enabled                    *bool
+	mfa_method                     *usercredentials.MfaMethod
 	backup_codes_hash              *[]string
 	appendbackup_codes_hash        []string
 	created_at                     *time.Time
@@ -57568,40 +57624,112 @@ func (m *UserCredentialsMutation) ResetTotpSecret() {
 	delete(m.clearedFields, usercredentials.FieldTotpSecret)
 }
 
-// SetTotpEnabled sets the "totp_enabled" field.
-func (m *UserCredentialsMutation) SetTotpEnabled(b bool) {
-	m.totp_enabled = &b
+// SetTotpVerified sets the "totp_verified" field.
+func (m *UserCredentialsMutation) SetTotpVerified(b bool) {
+	m.totp_verified = &b
 }
 
-// TotpEnabled returns the value of the "totp_enabled" field in the mutation.
-func (m *UserCredentialsMutation) TotpEnabled() (r bool, exists bool) {
-	v := m.totp_enabled
+// TotpVerified returns the value of the "totp_verified" field in the mutation.
+func (m *UserCredentialsMutation) TotpVerified() (r bool, exists bool) {
+	v := m.totp_verified
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTotpEnabled returns the old "totp_enabled" field's value of the UserCredentials entity.
+// OldTotpVerified returns the old "totp_verified" field's value of the UserCredentials entity.
 // If the UserCredentials object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserCredentialsMutation) OldTotpEnabled(ctx context.Context) (v bool, err error) {
+func (m *UserCredentialsMutation) OldTotpVerified(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTotpEnabled is only allowed on UpdateOne operations")
+		return v, errors.New("OldTotpVerified is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTotpEnabled requires an ID field in the mutation")
+		return v, errors.New("OldTotpVerified requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTotpEnabled: %w", err)
+		return v, fmt.Errorf("querying old value for OldTotpVerified: %w", err)
 	}
-	return oldValue.TotpEnabled, nil
+	return oldValue.TotpVerified, nil
 }
 
-// ResetTotpEnabled resets all changes to the "totp_enabled" field.
-func (m *UserCredentialsMutation) ResetTotpEnabled() {
-	m.totp_enabled = nil
+// ResetTotpVerified resets all changes to the "totp_verified" field.
+func (m *UserCredentialsMutation) ResetTotpVerified() {
+	m.totp_verified = nil
+}
+
+// SetMfaEnabled sets the "mfa_enabled" field.
+func (m *UserCredentialsMutation) SetMfaEnabled(b bool) {
+	m.mfa_enabled = &b
+}
+
+// MfaEnabled returns the value of the "mfa_enabled" field in the mutation.
+func (m *UserCredentialsMutation) MfaEnabled() (r bool, exists bool) {
+	v := m.mfa_enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMfaEnabled returns the old "mfa_enabled" field's value of the UserCredentials entity.
+// If the UserCredentials object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserCredentialsMutation) OldMfaEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMfaEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMfaEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMfaEnabled: %w", err)
+	}
+	return oldValue.MfaEnabled, nil
+}
+
+// ResetMfaEnabled resets all changes to the "mfa_enabled" field.
+func (m *UserCredentialsMutation) ResetMfaEnabled() {
+	m.mfa_enabled = nil
+}
+
+// SetMfaMethod sets the "mfa_method" field.
+func (m *UserCredentialsMutation) SetMfaMethod(um usercredentials.MfaMethod) {
+	m.mfa_method = &um
+}
+
+// MfaMethod returns the value of the "mfa_method" field in the mutation.
+func (m *UserCredentialsMutation) MfaMethod() (r usercredentials.MfaMethod, exists bool) {
+	v := m.mfa_method
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMfaMethod returns the old "mfa_method" field's value of the UserCredentials entity.
+// If the UserCredentials object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserCredentialsMutation) OldMfaMethod(ctx context.Context) (v usercredentials.MfaMethod, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMfaMethod is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMfaMethod requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMfaMethod: %w", err)
+	}
+	return oldValue.MfaMethod, nil
+}
+
+// ResetMfaMethod resets all changes to the "mfa_method" field.
+func (m *UserCredentialsMutation) ResetMfaMethod() {
+	m.mfa_method = nil
 }
 
 // SetBackupCodesHash sets the "backup_codes_hash" field.
@@ -57945,7 +58073,7 @@ func (m *UserCredentialsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserCredentialsMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 12)
 	if m.tenant != nil {
 		fields = append(fields, usercredentials.FieldTenantID)
 	}
@@ -57961,8 +58089,14 @@ func (m *UserCredentialsMutation) Fields() []string {
 	if m.totp_secret != nil {
 		fields = append(fields, usercredentials.FieldTotpSecret)
 	}
-	if m.totp_enabled != nil {
-		fields = append(fields, usercredentials.FieldTotpEnabled)
+	if m.totp_verified != nil {
+		fields = append(fields, usercredentials.FieldTotpVerified)
+	}
+	if m.mfa_enabled != nil {
+		fields = append(fields, usercredentials.FieldMfaEnabled)
+	}
+	if m.mfa_method != nil {
+		fields = append(fields, usercredentials.FieldMfaMethod)
 	}
 	if m.backup_codes_hash != nil {
 		fields = append(fields, usercredentials.FieldBackupCodesHash)
@@ -57994,8 +58128,12 @@ func (m *UserCredentialsMutation) Field(name string) (ent.Value, bool) {
 		return m.PasswordHash()
 	case usercredentials.FieldTotpSecret:
 		return m.TotpSecret()
-	case usercredentials.FieldTotpEnabled:
-		return m.TotpEnabled()
+	case usercredentials.FieldTotpVerified:
+		return m.TotpVerified()
+	case usercredentials.FieldMfaEnabled:
+		return m.MfaEnabled()
+	case usercredentials.FieldMfaMethod:
+		return m.MfaMethod()
 	case usercredentials.FieldBackupCodesHash:
 		return m.BackupCodesHash()
 	case usercredentials.FieldCreatedAt:
@@ -58023,8 +58161,12 @@ func (m *UserCredentialsMutation) OldField(ctx context.Context, name string) (en
 		return m.OldPasswordHash(ctx)
 	case usercredentials.FieldTotpSecret:
 		return m.OldTotpSecret(ctx)
-	case usercredentials.FieldTotpEnabled:
-		return m.OldTotpEnabled(ctx)
+	case usercredentials.FieldTotpVerified:
+		return m.OldTotpVerified(ctx)
+	case usercredentials.FieldMfaEnabled:
+		return m.OldMfaEnabled(ctx)
+	case usercredentials.FieldMfaMethod:
+		return m.OldMfaMethod(ctx)
 	case usercredentials.FieldBackupCodesHash:
 		return m.OldBackupCodesHash(ctx)
 	case usercredentials.FieldCreatedAt:
@@ -58077,12 +58219,26 @@ func (m *UserCredentialsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTotpSecret(v)
 		return nil
-	case usercredentials.FieldTotpEnabled:
+	case usercredentials.FieldTotpVerified:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTotpEnabled(v)
+		m.SetTotpVerified(v)
+		return nil
+	case usercredentials.FieldMfaEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMfaEnabled(v)
+		return nil
+	case usercredentials.FieldMfaMethod:
+		v, ok := value.(usercredentials.MfaMethod)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMfaMethod(v)
 		return nil
 	case usercredentials.FieldBackupCodesHash:
 		v, ok := value.([]string)
@@ -58191,8 +58347,14 @@ func (m *UserCredentialsMutation) ResetField(name string) error {
 	case usercredentials.FieldTotpSecret:
 		m.ResetTotpSecret()
 		return nil
-	case usercredentials.FieldTotpEnabled:
-		m.ResetTotpEnabled()
+	case usercredentials.FieldTotpVerified:
+		m.ResetTotpVerified()
+		return nil
+	case usercredentials.FieldMfaEnabled:
+		m.ResetMfaEnabled()
+		return nil
+	case usercredentials.FieldMfaMethod:
+		m.ResetMfaMethod()
 		return nil
 	case usercredentials.FieldBackupCodesHash:
 		m.ResetBackupCodesHash()

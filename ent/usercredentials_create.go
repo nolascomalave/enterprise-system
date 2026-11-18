@@ -66,16 +66,44 @@ func (_c *UserCredentialsCreate) SetNillableTotpSecret(v *string) *UserCredentia
 	return _c
 }
 
-// SetTotpEnabled sets the "totp_enabled" field.
-func (_c *UserCredentialsCreate) SetTotpEnabled(v bool) *UserCredentialsCreate {
-	_c.mutation.SetTotpEnabled(v)
+// SetTotpVerified sets the "totp_verified" field.
+func (_c *UserCredentialsCreate) SetTotpVerified(v bool) *UserCredentialsCreate {
+	_c.mutation.SetTotpVerified(v)
 	return _c
 }
 
-// SetNillableTotpEnabled sets the "totp_enabled" field if the given value is not nil.
-func (_c *UserCredentialsCreate) SetNillableTotpEnabled(v *bool) *UserCredentialsCreate {
+// SetNillableTotpVerified sets the "totp_verified" field if the given value is not nil.
+func (_c *UserCredentialsCreate) SetNillableTotpVerified(v *bool) *UserCredentialsCreate {
 	if v != nil {
-		_c.SetTotpEnabled(*v)
+		_c.SetTotpVerified(*v)
+	}
+	return _c
+}
+
+// SetMfaEnabled sets the "mfa_enabled" field.
+func (_c *UserCredentialsCreate) SetMfaEnabled(v bool) *UserCredentialsCreate {
+	_c.mutation.SetMfaEnabled(v)
+	return _c
+}
+
+// SetNillableMfaEnabled sets the "mfa_enabled" field if the given value is not nil.
+func (_c *UserCredentialsCreate) SetNillableMfaEnabled(v *bool) *UserCredentialsCreate {
+	if v != nil {
+		_c.SetMfaEnabled(*v)
+	}
+	return _c
+}
+
+// SetMfaMethod sets the "mfa_method" field.
+func (_c *UserCredentialsCreate) SetMfaMethod(v usercredentials.MfaMethod) *UserCredentialsCreate {
+	_c.mutation.SetMfaMethod(v)
+	return _c
+}
+
+// SetNillableMfaMethod sets the "mfa_method" field if the given value is not nil.
+func (_c *UserCredentialsCreate) SetNillableMfaMethod(v *usercredentials.MfaMethod) *UserCredentialsCreate {
+	if v != nil {
+		_c.SetMfaMethod(*v)
 	}
 	return _c
 }
@@ -207,9 +235,17 @@ func (_c *UserCredentialsCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *UserCredentialsCreate) defaults() {
-	if _, ok := _c.mutation.TotpEnabled(); !ok {
-		v := usercredentials.DefaultTotpEnabled
-		_c.mutation.SetTotpEnabled(v)
+	if _, ok := _c.mutation.TotpVerified(); !ok {
+		v := usercredentials.DefaultTotpVerified
+		_c.mutation.SetTotpVerified(v)
+	}
+	if _, ok := _c.mutation.MfaEnabled(); !ok {
+		v := usercredentials.DefaultMfaEnabled
+		_c.mutation.SetMfaEnabled(v)
+	}
+	if _, ok := _c.mutation.MfaMethod(); !ok {
+		v := usercredentials.DefaultMfaMethod
+		_c.mutation.SetMfaMethod(v)
 	}
 	if _, ok := _c.mutation.BackupCodesHash(); !ok {
 		v := usercredentials.DefaultBackupCodesHash
@@ -248,8 +284,19 @@ func (_c *UserCredentialsCreate) check() error {
 			return &ValidationError{Name: "password_hash", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.password_hash": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.TotpEnabled(); !ok {
-		return &ValidationError{Name: "totp_enabled", err: errors.New(`ent: missing required field "UserCredentials.totp_enabled"`)}
+	if _, ok := _c.mutation.TotpVerified(); !ok {
+		return &ValidationError{Name: "totp_verified", err: errors.New(`ent: missing required field "UserCredentials.totp_verified"`)}
+	}
+	if _, ok := _c.mutation.MfaEnabled(); !ok {
+		return &ValidationError{Name: "mfa_enabled", err: errors.New(`ent: missing required field "UserCredentials.mfa_enabled"`)}
+	}
+	if _, ok := _c.mutation.MfaMethod(); !ok {
+		return &ValidationError{Name: "mfa_method", err: errors.New(`ent: missing required field "UserCredentials.mfa_method"`)}
+	}
+	if v, ok := _c.mutation.MfaMethod(); ok {
+		if err := usercredentials.MfaMethodValidator(v); err != nil {
+			return &ValidationError{Name: "mfa_method", err: fmt.Errorf(`ent: validator failed for field "UserCredentials.mfa_method": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.BackupCodesHash(); !ok {
 		return &ValidationError{Name: "backup_codes_hash", err: errors.New(`ent: missing required field "UserCredentials.backup_codes_hash"`)}
@@ -308,9 +355,17 @@ func (_c *UserCredentialsCreate) createSpec() (*UserCredentials, *sqlgraph.Creat
 		_spec.SetField(usercredentials.FieldTotpSecret, field.TypeString, value)
 		_node.TotpSecret = value
 	}
-	if value, ok := _c.mutation.TotpEnabled(); ok {
-		_spec.SetField(usercredentials.FieldTotpEnabled, field.TypeBool, value)
-		_node.TotpEnabled = value
+	if value, ok := _c.mutation.TotpVerified(); ok {
+		_spec.SetField(usercredentials.FieldTotpVerified, field.TypeBool, value)
+		_node.TotpVerified = value
+	}
+	if value, ok := _c.mutation.MfaEnabled(); ok {
+		_spec.SetField(usercredentials.FieldMfaEnabled, field.TypeBool, value)
+		_node.MfaEnabled = value
+	}
+	if value, ok := _c.mutation.MfaMethod(); ok {
+		_spec.SetField(usercredentials.FieldMfaMethod, field.TypeEnum, value)
+		_node.MfaMethod = value
 	}
 	if value, ok := _c.mutation.BackupCodesHash(); ok {
 		_spec.SetField(usercredentials.FieldBackupCodesHash, field.TypeJSON, value)
@@ -517,15 +572,39 @@ func (u *UserCredentialsUpsert) ClearTotpSecret() *UserCredentialsUpsert {
 	return u
 }
 
-// SetTotpEnabled sets the "totp_enabled" field.
-func (u *UserCredentialsUpsert) SetTotpEnabled(v bool) *UserCredentialsUpsert {
-	u.Set(usercredentials.FieldTotpEnabled, v)
+// SetTotpVerified sets the "totp_verified" field.
+func (u *UserCredentialsUpsert) SetTotpVerified(v bool) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldTotpVerified, v)
 	return u
 }
 
-// UpdateTotpEnabled sets the "totp_enabled" field to the value that was provided on create.
-func (u *UserCredentialsUpsert) UpdateTotpEnabled() *UserCredentialsUpsert {
-	u.SetExcluded(usercredentials.FieldTotpEnabled)
+// UpdateTotpVerified sets the "totp_verified" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdateTotpVerified() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldTotpVerified)
+	return u
+}
+
+// SetMfaEnabled sets the "mfa_enabled" field.
+func (u *UserCredentialsUpsert) SetMfaEnabled(v bool) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldMfaEnabled, v)
+	return u
+}
+
+// UpdateMfaEnabled sets the "mfa_enabled" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdateMfaEnabled() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldMfaEnabled)
+	return u
+}
+
+// SetMfaMethod sets the "mfa_method" field.
+func (u *UserCredentialsUpsert) SetMfaMethod(v usercredentials.MfaMethod) *UserCredentialsUpsert {
+	u.Set(usercredentials.FieldMfaMethod, v)
+	return u
+}
+
+// UpdateMfaMethod sets the "mfa_method" field to the value that was provided on create.
+func (u *UserCredentialsUpsert) UpdateMfaMethod() *UserCredentialsUpsert {
+	u.SetExcluded(usercredentials.FieldMfaMethod)
 	return u
 }
 
@@ -699,17 +778,45 @@ func (u *UserCredentialsUpsertOne) ClearTotpSecret() *UserCredentialsUpsertOne {
 	})
 }
 
-// SetTotpEnabled sets the "totp_enabled" field.
-func (u *UserCredentialsUpsertOne) SetTotpEnabled(v bool) *UserCredentialsUpsertOne {
+// SetTotpVerified sets the "totp_verified" field.
+func (u *UserCredentialsUpsertOne) SetTotpVerified(v bool) *UserCredentialsUpsertOne {
 	return u.Update(func(s *UserCredentialsUpsert) {
-		s.SetTotpEnabled(v)
+		s.SetTotpVerified(v)
 	})
 }
 
-// UpdateTotpEnabled sets the "totp_enabled" field to the value that was provided on create.
-func (u *UserCredentialsUpsertOne) UpdateTotpEnabled() *UserCredentialsUpsertOne {
+// UpdateTotpVerified sets the "totp_verified" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdateTotpVerified() *UserCredentialsUpsertOne {
 	return u.Update(func(s *UserCredentialsUpsert) {
-		s.UpdateTotpEnabled()
+		s.UpdateTotpVerified()
+	})
+}
+
+// SetMfaEnabled sets the "mfa_enabled" field.
+func (u *UserCredentialsUpsertOne) SetMfaEnabled(v bool) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetMfaEnabled(v)
+	})
+}
+
+// UpdateMfaEnabled sets the "mfa_enabled" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdateMfaEnabled() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateMfaEnabled()
+	})
+}
+
+// SetMfaMethod sets the "mfa_method" field.
+func (u *UserCredentialsUpsertOne) SetMfaMethod(v usercredentials.MfaMethod) *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetMfaMethod(v)
+	})
+}
+
+// UpdateMfaMethod sets the "mfa_method" field to the value that was provided on create.
+func (u *UserCredentialsUpsertOne) UpdateMfaMethod() *UserCredentialsUpsertOne {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateMfaMethod()
 	})
 }
 
@@ -1057,17 +1164,45 @@ func (u *UserCredentialsUpsertBulk) ClearTotpSecret() *UserCredentialsUpsertBulk
 	})
 }
 
-// SetTotpEnabled sets the "totp_enabled" field.
-func (u *UserCredentialsUpsertBulk) SetTotpEnabled(v bool) *UserCredentialsUpsertBulk {
+// SetTotpVerified sets the "totp_verified" field.
+func (u *UserCredentialsUpsertBulk) SetTotpVerified(v bool) *UserCredentialsUpsertBulk {
 	return u.Update(func(s *UserCredentialsUpsert) {
-		s.SetTotpEnabled(v)
+		s.SetTotpVerified(v)
 	})
 }
 
-// UpdateTotpEnabled sets the "totp_enabled" field to the value that was provided on create.
-func (u *UserCredentialsUpsertBulk) UpdateTotpEnabled() *UserCredentialsUpsertBulk {
+// UpdateTotpVerified sets the "totp_verified" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdateTotpVerified() *UserCredentialsUpsertBulk {
 	return u.Update(func(s *UserCredentialsUpsert) {
-		s.UpdateTotpEnabled()
+		s.UpdateTotpVerified()
+	})
+}
+
+// SetMfaEnabled sets the "mfa_enabled" field.
+func (u *UserCredentialsUpsertBulk) SetMfaEnabled(v bool) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetMfaEnabled(v)
+	})
+}
+
+// UpdateMfaEnabled sets the "mfa_enabled" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdateMfaEnabled() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateMfaEnabled()
+	})
+}
+
+// SetMfaMethod sets the "mfa_method" field.
+func (u *UserCredentialsUpsertBulk) SetMfaMethod(v usercredentials.MfaMethod) *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.SetMfaMethod(v)
+	})
+}
+
+// UpdateMfaMethod sets the "mfa_method" field to the value that was provided on create.
+func (u *UserCredentialsUpsertBulk) UpdateMfaMethod() *UserCredentialsUpsertBulk {
+	return u.Update(func(s *UserCredentialsUpsert) {
+		s.UpdateMfaMethod()
 	})
 }
 

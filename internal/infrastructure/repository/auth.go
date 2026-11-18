@@ -9,6 +9,7 @@ import (
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/internal/auth"
+	"enterprise-system/internal/domain"
 	"github.com/google/uuid"
 )
 
@@ -67,6 +68,99 @@ func (r *CredentialRepository) GetByPartyID(ctx context.Context, tenantID, party
 		return nil, auth.ErrNotFound
 	}
 	return result, err
+}
+
+func (r *CredentialRepository) UpdateTOTPSecret(
+	ctx context.Context,
+	tenantID, partyID uuid.UUID,
+	secret string,
+	at time.Time,
+) error {
+	var affected int
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		var err error
+		affected, err = client.UserCredentials.Update().
+			Where(
+				usercredentials.TenantID(tenantID),
+				usercredentials.PartyID(partyID),
+				usercredentials.DeletedAtIsNil(),
+			).
+			SetTotpSecret(secret).
+			SetTotpVerified(false).
+			SetUpdatedAt(at).
+			Save(ctx)
+		return repoError(err)
+	})
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return auth.ErrNotFound
+	}
+	return nil
+}
+
+func (r *CredentialRepository) ActivateTOTP(
+	ctx context.Context,
+	tenantID, partyID uuid.UUID,
+	backupCodesHash []string,
+	at time.Time,
+) error {
+	var affected int
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		var err error
+		affected, err = client.UserCredentials.Update().
+			Where(
+				usercredentials.TenantID(tenantID),
+				usercredentials.PartyID(partyID),
+				usercredentials.DeletedAtIsNil(),
+			).
+			SetMfaEnabled(true).
+			SetMfaMethod(usercredentials.MfaMethodTOTP).
+			SetTotpVerified(true).
+			SetBackupCodesHash(backupCodesHash).
+			SetUpdatedAt(at).
+			Save(ctx)
+		return repoError(err)
+	})
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return auth.ErrNotFound
+	}
+	return nil
+}
+
+func (r *CredentialRepository) UpdateMFAPreferences(
+	ctx context.Context,
+	tenantID, partyID uuid.UUID,
+	enabled bool,
+	method domain.MFAMethod,
+	at time.Time,
+) error {
+	var affected int
+	err := withAuthTx(ctx, r.client, func(client *ent.Client) error {
+		var err error
+		affected, err = client.UserCredentials.Update().
+			Where(
+				usercredentials.TenantID(tenantID),
+				usercredentials.PartyID(partyID),
+				usercredentials.DeletedAtIsNil(),
+			).
+			SetMfaEnabled(enabled).
+			SetMfaMethod(usercredentials.MfaMethod(method)).
+			SetUpdatedAt(at).
+			Save(ctx)
+		return repoError(err)
+	})
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return auth.ErrNotFound
+	}
+	return nil
 }
 
 func (r *CredentialRepository) UpdatePasswordIfCurrent(
@@ -263,8 +357,10 @@ func toAuthCredentials(e *ent.UserCredentials) *auth.Credentials {
 		ID: e.ID, TenantID: e.TenantID, PartyID: e.PartyID,
 		PartyContactMechanismID: e.PartyContactMechanismID,
 		PasswordHash:            e.PasswordHash, TOTPSecret: e.TotpSecret,
-		TOTPEnabled: e.TotpEnabled, BackupCodesHash: e.BackupCodesHash,
-		CreatedAt: e.CreatedAt, UpdatedAt: e.UpdatedAt, DeletedAt: e.DeletedAt,
+		TOTPVerified: e.TotpVerified,
+		MFAEnabled:   e.MfaEnabled, MFAMethod: domain.MFAMethod(e.MfaMethod),
+		BackupCodesHash: e.BackupCodesHash,
+		CreatedAt:       e.CreatedAt, UpdatedAt: e.UpdatedAt, DeletedAt: e.DeletedAt,
 	}
 }
 

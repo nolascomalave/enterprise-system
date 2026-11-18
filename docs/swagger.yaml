@@ -133,6 +133,8 @@ definitions:
       new_password:
         minLength: 8
         type: string
+      otp_code:
+        type: string
     required:
     - current_password
     - new_password
@@ -928,6 +930,13 @@ definitions:
       reason:
         type: string
     type: object
+  enterprise-system_internal_delivery_http_dto.RequestSecurityCodeRequest:
+    properties:
+      action:
+        type: string
+    required:
+    - action
+    type: object
   enterprise-system_internal_delivery_http_dto.ResetPasswordRequest:
     properties:
       new_password:
@@ -938,6 +947,37 @@ definitions:
     required:
     - new_password
     - token
+    type: object
+  enterprise-system_internal_delivery_http_dto.TOTPSetupEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TOTPSetupResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.TOTPSetupResponse:
+    properties:
+      otpauth_url:
+        type: string
+      secret:
+        type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.TOTPVerifyEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TOTPVerifyResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.TOTPVerifyRequest:
+    properties:
+      code:
+        type: string
+    required:
+    - code
+    type: object
+  enterprise-system_internal_delivery_http_dto.TOTPVerifyResponse:
+    properties:
+      backup_codes:
+        items:
+          type: string
+        type: array
     type: object
   enterprise-system_internal_delivery_http_dto.TenantRelationshipEnvelope:
     properties:
@@ -987,6 +1027,15 @@ definitions:
     - code
     - job_family_id
     - title
+    type: object
+  enterprise-system_internal_delivery_http_dto.UpdateMFAPreferencesRequest:
+    properties:
+      enabled:
+        type: boolean
+      method:
+        type: string
+      otp_code:
+        type: string
     type: object
   enterprise-system_internal_delivery_http_dto.UpdatePartyNameValidityRequest:
     properties:
@@ -1088,8 +1137,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Requires the current password. Revokes all other sessions and pending
-        reset tokens.
+      description: Requires the current password. When MFA is enabled, otp_code is
+        required. Revokes all other sessions and pending reset tokens.
       parameters:
       - description: Current and new password
         in: body
@@ -1190,6 +1239,39 @@ paths:
       summary: Logout
       tags:
       - Auth
+  /auth/mfa-preferences:
+    put:
+      consumes:
+      - application/json
+      description: Enables or disables MFA. Changing or disabling an active MFA configuration
+        requires otp_code, requested with action DISABLE_MFA (to disable) or ENABLE_MFA
+        (to change method). Enabling requires a contact that can receive security
+        codes.
+      parameters:
+      - description: MFA preferences
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.UpdateMFAPreferencesRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update MFA preferences
+      tags:
+      - MFA
   /auth/refresh:
     post:
       description: Reads the HttpOnly refresh cookie, revokes the old session and
@@ -1212,6 +1294,39 @@ paths:
       summary: Rotate the refresh token
       tags:
       - Auth
+  /auth/request-otp:
+    post:
+      consumes:
+      - application/json
+      description: Sends a one-time security code to the authenticated user's primary
+        contact mechanism.
+      parameters:
+      - description: Security code action
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.RequestSecurityCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.MessageEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Request a security code
+      tags:
+      - MFA
   /auth/reset-password:
     post:
       consumes:
@@ -1245,6 +1360,64 @@ paths:
       summary: Reset a password with a one-time token
       tags:
       - Account
+  /auth/totp/setup:
+    post:
+      description: Generates a TOTP secret and returns the otpauth URL for the authenticator
+        app. MFA is not enabled until the code is verified.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TOTPSetupEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Start TOTP enrolment
+      tags:
+      - MFA
+  /auth/totp/verify:
+    post:
+      consumes:
+      - application/json
+      description: Validates a code against the pending TOTP secret, enables TOTP
+        and returns 8 one-time backup codes. The plaintext backup codes are shown
+        only in this response.
+      parameters:
+      - description: TOTP code
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TOTPVerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.TOTPVerifyEnvelope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Verify TOTP enrolment
+      tags:
+      - MFA
   /client-applications:
     post:
       consumes:
