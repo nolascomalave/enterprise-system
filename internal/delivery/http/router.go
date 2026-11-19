@@ -156,6 +156,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.POST("/departments/:id/groups", orgHandler.AssignDepartmentToGroup)
 		protected.POST("/departments/:id/contacts", departmentMDMHandler.AddContact)
 		protected.POST("/departments/:id/addresses", departmentMDMHandler.AddAddress)
+		protected.GET("/corporate-groups", orgHandler.ListCorporateGroups)
 		protected.POST("/corporate-groups", orgHandler.CreateCorporateGroup)
 		protected.POST("/employees", orgHandler.CreateEmployee)
 		protected.GET("/employees", orgHandler.ListEmployees)

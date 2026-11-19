@@ -120,6 +120,10 @@ type CorporateGroupEnvelope struct {
 	Data CorporateGroupResponse `json:"data"`
 }
 
+type CorporateGroupListEnvelope struct {
+	Data []CorporateGroupResponse `json:"data"`
+}
+
 type EmployeeEnvelope struct {
 	Data EmployeeResponse `json:"data"`
 }
@@ -171,6 +175,14 @@ func NewCorporateGroupResponse(group *domain.CorporateGroup) CorporateGroupRespo
 		Name: group.Name, Description: group.Description,
 		CreatedAt: group.CreatedAt, UpdatedAt: group.UpdatedAt, DeletedAt: group.DeletedAt,
 	}
+}
+
+func NewCorporateGroupListResponse(groups []*domain.CorporateGroup) []CorporateGroupResponse {
+	result := make([]CorporateGroupResponse, 0, len(groups))
+	for _, group := range groups {
+		result = append(result, NewCorporateGroupResponse(group))
+	}
+	return result
 }
 
 func NewDepartmentListResponse(departments []*domain.Department) []DepartmentResponse {

@@ -32,6 +32,7 @@ var rbacRouteFunctions = map[string]string{
 	"GET /api/v1/rbac/my-menu":        "rbac:read",
 
 	"POST /api/v1/auth/change-password": "account:write",
+	"GET /api/v1/corporate-groups":      "org:read",
 	"POST /api/v1/corporate-groups":     "org:write",
 
 	"POST /api/v1/tenant-relationships/initiate":       "tenant_relationship:write",

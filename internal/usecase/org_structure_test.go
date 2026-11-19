@@ -22,6 +22,7 @@ type fakeOrgRepo struct {
 	departmentTranslations map[uuid.UUID]map[string]string
 	groupAssignments       int
 	getGroupErr            error
+	listGroupsErr          error
 	createJfErr            error
 	updateJfErr            error
 	getJfErr               error
@@ -423,6 +424,17 @@ func (r *fakeOrgRepo) CreateCorporateGroup(ctx context.Context, group *domain.Co
 	return nil
 }
 
+func (r *fakeOrgRepo) ListCorporateGroups(ctx context.Context) ([]*domain.CorporateGroup, error) {
+	if r.listGroupsErr != nil {
+		return nil, r.listGroupsErr
+	}
+	result := make([]*domain.CorporateGroup, 0, len(r.corporateGroups))
+	for _, group := range r.corporateGroups {
+		result = append(result, group)
+	}
+	return result, nil
+}
+
 func (r *fakeOrgRepo) GetCorporateGroup(ctx context.Context, id uuid.UUID) (*domain.CorporateGroup, error) {
 	if r.getGroupErr != nil {
 		return nil, r.getGroupErr
@@ -546,4 +558,38 @@ func (r *fakeOrgRepo) GetDepartmentTranslation(ctx context.Context, departmentID
 		}
 	}
 	return "", domain.ErrTranslationNotFound
+}
+
+func TestOrgStructureListCorporateGroups(t *testing.T) {
+	repo := newFakeOrgRepo()
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
+	tenantID := testTenantID()
+
+	first, err := uc.CreateCorporateGroup(context.Background(), CreateCorporateGroupInput{
+		TenantID: tenantID, Name: "Holding Norte",
+	})
+	require.NoError(t, err)
+	second, err := uc.CreateCorporateGroup(context.Background(), CreateCorporateGroupInput{
+		TenantID: tenantID, Name: "Holding Sur",
+	})
+	require.NoError(t, err)
+
+	groups, err := uc.ListCorporateGroups(context.Background())
+
+	require.NoError(t, err)
+	require.Len(t, groups, 2)
+	ids := map[uuid.UUID]bool{groups[0].ID: true, groups[1].ID: true}
+	assert.True(t, ids[first.ID])
+	assert.True(t, ids[second.ID])
+}
+
+func TestOrgStructureListCorporateGroupsPropagatesError(t *testing.T) {
+	repo := newFakeOrgRepo()
+	repo.listGroupsErr = errors.New("database down")
+	uc := NewOrgStructure(repo, newFakeTxManager(), orgTestNow)
+
+	_, err := uc.ListCorporateGroups(context.Background())
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "database down")
 }

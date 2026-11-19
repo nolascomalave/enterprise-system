@@ -28,6 +28,7 @@ type OrgStructureRepository interface {
 
 	CreateCorporateGroup(ctx context.Context, group *CorporateGroup) error
 	GetCorporateGroup(ctx context.Context, id uuid.UUID) (*CorporateGroup, error)
+	ListCorporateGroups(ctx context.Context) ([]*CorporateGroup, error)
 	AssignDepartmentToGroup(ctx context.Context, tenantID, departmentID, corporateGroupID uuid.UUID) error
 
 	CreateEmployee(ctx context.Context, employee *Employee) error

@@ -28,6 +28,7 @@ type fakeOrgUseCase struct {
 	groupInput  usecase.CreateCorporateGroupInput
 	assignInput usecase.AssignDepartmentToGroupInput
 	group       *domain.CorporateGroup
+	groups      []*domain.CorporateGroup
 	assignErr   error
 	empInput    usecase.CreateEmployeeInput
 	err         error
@@ -295,6 +296,13 @@ func (f *fakeOrgUseCase) CreateCorporateGroup(ctx context.Context, in usecase.Cr
 	return f.group, nil
 }
 
+func (f *fakeOrgUseCase) ListCorporateGroups(ctx context.Context) ([]*domain.CorporateGroup, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.groups, nil
+}
+
 func (f *fakeOrgUseCase) AssignDepartmentToGroup(ctx context.Context, in usecase.AssignDepartmentToGroupInput) error {
 	f.assignInput = in
 	return f.assignErr
@@ -340,4 +348,30 @@ func TestAssignDepartmentToGroupRejectsForeignGroup(t *testing.T) {
 		[]byte(`{"corporate_group_id":"`+uuid.New().String()+`"}`), token)
 
 	assert.Equal(t, http.StatusConflict, recorder.Code)
+}
+
+func TestListCorporateGroups(t *testing.T) {
+	now := time.Date(2026, 11, 19, 12, 0, 0, 0, time.UTC)
+	tenantID := uuid.New()
+	uc := &fakeOrgUseCase{groups: []*domain.CorporateGroup{
+		{ID: uuid.New(), TenantID: tenantID, Name: "Holding Norte", CreatedAt: now, UpdatedAt: now},
+		{ID: uuid.New(), TenantID: tenantID, Name: "Holding Sur", CreatedAt: now, UpdatedAt: now},
+	}}
+	router, token, _ := orgTestRouter(t, uc, &fakeMergeUseCase{})
+
+	recorder := requestWithToken(router, http.MethodGet, "/api/v1/corporate-groups", nil, token)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	data := decodeBody(t, recorder)["data"].([]any)
+	require.Len(t, data, 2)
+	assert.Equal(t, "Holding Norte", data[0].(map[string]any)["name"])
+}
+
+func TestListCorporateGroupsMapsUseCaseError(t *testing.T) {
+	uc := &fakeOrgUseCase{err: errors.New("database down")}
+	router, token, _ := orgTestRouter(t, uc, &fakeMergeUseCase{})
+
+	recorder := requestWithToken(router, http.MethodGet, "/api/v1/corporate-groups", nil, token)
+
+	assert.Equal(t, http.StatusInternalServerError, recorder.Code)
 }

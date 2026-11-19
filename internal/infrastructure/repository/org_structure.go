@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"enterprise-system/ent"
+	"enterprise-system/ent/corporategroup"
 	"enterprise-system/ent/department"
 	"enterprise-system/ent/departmenttranslation"
 	"enterprise-system/ent/employee"
@@ -310,6 +311,25 @@ func (r *OrgStructureRepository) GetCorporateGroup(ctx context.Context, id uuid.
 	if ent.IsNotFound(err) {
 		return nil, domain.ErrCorporateGroupNotFound
 	}
+	return result, err
+}
+
+func (r *OrgStructureRepository) ListCorporateGroups(ctx context.Context) ([]*domain.CorporateGroup, error) {
+	var result []*domain.CorporateGroup
+	err := r.withClient(ctx, func(client *ent.Client) error {
+		rows, err := client.CorporateGroup.Query().
+			Where(corporategroup.DeletedAtIsNil()).
+			Order(ent.Asc(corporategroup.FieldName)).
+			All(ctx)
+		if err != nil {
+			return repoError(err)
+		}
+		result = make([]*domain.CorporateGroup, 0, len(rows))
+		for _, row := range rows {
+			result = append(result, toDomainCorporateGroup(row))
+		}
+		return nil
+	})
 	return result, err
 }
 

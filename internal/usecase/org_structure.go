@@ -302,6 +302,12 @@ func (s *OrgStructure) CreateCorporateGroup(ctx context.Context, in CreateCorpor
 	return group, nil
 }
 
+func (s *OrgStructure) ListCorporateGroups(ctx context.Context) ([]*domain.CorporateGroup, error) {
+	return readWithinTransaction(ctx, s.tx, func(ctx context.Context) ([]*domain.CorporateGroup, error) {
+		return s.repo.ListCorporateGroups(ctx)
+	})
+}
+
 // AssignDepartmentToGroup verifies both entities belong to the tenant before
 // creating the link. RLS already hides other tenants' rows; the explicit
 // checks are defense in depth and keep the use case safe with any repository

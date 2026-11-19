@@ -24,6 +24,7 @@ type OrgStructureUseCase interface {
 	ListDepartments(ctx context.Context) ([]*domain.Department, error)
 
 	CreateCorporateGroup(ctx context.Context, in usecase.CreateCorporateGroupInput) (*domain.CorporateGroup, error)
+	ListCorporateGroups(ctx context.Context) ([]*domain.CorporateGroup, error)
 	AssignDepartmentToGroup(ctx context.Context, in usecase.AssignDepartmentToGroupInput) error
 
 	CreateEmployee(ctx context.Context, in usecase.CreateEmployeeInput) (*domain.Employee, error)
@@ -282,6 +283,30 @@ func (h *OrgHandler) CreateCorporateGroup(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"data": dto.NewCorporateGroupResponse(group)})
+}
+
+// ListCorporateGroups godoc
+// @Summary      List corporate groups
+// @Description  Returns all active corporate groups for the current tenant.
+// @Tags         Corporate Groups
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200 {object} dto.CorporateGroupListEnvelope
+// @Failure      401 {object} dto.ErrorResponse
+// @Failure      500 {object} dto.ErrorResponse
+// @Router       /corporate-groups [get]
+func (h *OrgHandler) ListCorporateGroups(c *gin.Context) {
+	if _, ok := h.session(c); !ok {
+		return
+	}
+	groups, err := h.uc.ListCorporateGroups(c.Request.Context())
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, dto.CorporateGroupListEnvelope{
+		Data: dto.NewCorporateGroupListResponse(groups),
+	})
 }
 
 // AssignDepartmentToGroup godoc

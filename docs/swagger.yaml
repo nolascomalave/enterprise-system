@@ -177,6 +177,13 @@ definitions:
       data:
         $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CorporateGroupResponse'
     type: object
+  enterprise-system_internal_delivery_http_dto.CorporateGroupListEnvelope:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CorporateGroupResponse'
+        type: array
+    type: object
   enterprise-system_internal_delivery_http_dto.CorporateGroupResponse:
     properties:
       created_at:
@@ -1496,6 +1503,28 @@ paths:
       tags:
       - OAuth
   /corporate-groups:
+    get:
+      description: Returns all active corporate groups for the current tenant.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CorporateGroupListEnvelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List corporate groups
+      tags:
+      - Corporate Groups
     post:
       consumes:
       - application/json

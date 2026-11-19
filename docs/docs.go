@@ -612,6 +612,41 @@ const docTemplate = `{
             }
         },
         "/corporate-groups": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns all active corporate groups for the current tenant.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Corporate Groups"
+                ],
+                "summary": "List corporate groups",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CorporateGroupListEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -2896,6 +2931,17 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CorporateGroupResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.CorporateGroupListEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.CorporateGroupResponse"
+                    }
                 }
             }
         },

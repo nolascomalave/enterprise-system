@@ -1,6 +1,7 @@
 package http
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -30,4 +31,10 @@ func splitRoute(route string) (string, string) {
 		}
 	}
 	return route, ""
+}
+
+func TestCorporateGroupReadRouteUsesOrgRead(t *testing.T) {
+	function, ok := requiredRBACFunction(http.MethodGet, "/api/v1/corporate-groups")
+	require.True(t, ok)
+	require.Equal(t, "org:read", function)
 }
