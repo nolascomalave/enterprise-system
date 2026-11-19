@@ -176,6 +176,9 @@ func main() {
 	preferencesService := usecase.NewPreferencesService(
 		repository.NewUserPreferencesRepository(client), txManager, time.Now,
 	)
+	dashboardService := usecase.NewDashboardService(
+		repository.NewDashboardRepository(client), txManager, time.Now,
+	)
 
 	allowedOrigins := splitCSV(os.Getenv("CORS_ALLOWED_ORIGINS"))
 	if len(allowedOrigins) == 0 {
@@ -196,10 +199,12 @@ func main() {
 		IdentityUseCase:           identityService,
 		DepartmentMDMUseCase:      departmentMDMService,
 		OAuthUseCase:              clientApplicationService,
+		ClientApplicationsUseCase: clientApplicationService,
 		CatalogUseCase:            catalogService,
 		RBACUseCase:               rbacService,
 		TenantRelationshipUseCase: tenantRelationshipService,
 		PreferencesUseCase:        preferencesService,
+		DashboardUseCase:          dashboardService,
 		PlatformAdminKey:          platformAdminKey,
 		TokenManager:              tokenManager,
 		CookieSecure:              os.Getenv("COOKIE_SECURE") != "false",

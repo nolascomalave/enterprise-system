@@ -30,6 +30,8 @@ type Dependencies struct {
 	RBACUseCase               RBACUseCase
 	TenantRelationshipUseCase TenantRelationshipUseCase
 	PreferencesUseCase        PreferencesUseCase
+	DashboardUseCase          DashboardUseCase
+	ClientApplicationsUseCase ClientApplicationsUseCase
 	PlatformAdminKey          string
 	TokenManager              *auth.Manager
 	SessionBlocklist          auth.SessionBlocklist
@@ -101,6 +103,8 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	rbacHandler := NewRBACHandler(deps.RBACUseCase)
 	tenantRelationshipHandler := NewTenantRelationshipHandler(deps.TenantRelationshipUseCase)
 	preferencesHandler := NewPreferencesHandler(deps.PreferencesUseCase)
+	dashboardHandler := NewDashboardHandler(deps.DashboardUseCase)
+	clientApplicationsHandler := NewClientApplicationsHandler(deps.ClientApplicationsUseCase)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -167,6 +171,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.PUT("/parties/:id/names/:name_id/validity", partyNameHandler.UpdateValidity)
 		protected.POST("/parties/:id/nationalities", identityHandler.AddNationality)
 		protected.POST("/parties/:id/identity-documents", identityHandler.AddIdentityDocument)
+		protected.GET("/client-applications", clientApplicationsHandler.List)
 		protected.POST("/client-applications", oauthHandler.CreateClientApplication)
 		protected.GET("/platform/status", oauthHandler.PlatformStatus)
 		protected.GET("/rbac/my-permissions", rbacHandler.MyPermissions)
@@ -178,6 +183,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.POST("/tenant-relationships/:id/cancel", tenantRelationshipHandler.Cancel)
 		protected.POST("/tenant-relationships/:id/revoke", tenantRelationshipHandler.Revoke)
 		protected.POST("/auth/change-password", accountHandler.ChangePassword)
+		protected.GET("/dashboard/summary", dashboardHandler.GetSummary)
 		protected.GET("/users/me/preferences", preferencesHandler.Get)
 		protected.PUT("/users/me/preferences", preferencesHandler.Update)
 	}

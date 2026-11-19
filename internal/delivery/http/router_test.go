@@ -342,3 +342,42 @@ func TestPreferencesRoutesUseRBACAndAppClientContext(t *testing.T) {
 	assert.Equal(t, appID, prefs.updateInput[2])
 	assert.Equal(t, "light", prefs.updatePrefs["theme"])
 }
+
+func TestDashboardSummaryRouteUsesRBAC(t *testing.T) {
+	manager := testAuthManager(t)
+	tenantID := uuid.New()
+	dashboard := &fakeDashboardUseCase{summary: &domain.DashboardSummary{TotalParties: 3}}
+	rbac := &fakeRBACUseCase{universe: &domain.PermissionUniverse{
+		Functions: []string{"dashboard:read"},
+	}}
+	router := NewRouter(Dependencies{
+		DashboardUseCase: dashboard, RBACUseCase: rbac, TokenManager: manager,
+	})
+	token := accessToken(t, manager, tenantID, uuid.New(), uuid.New())
+
+	recorder := requestWithTokenAndApp(router, http.MethodGet, "/api/v1/dashboard/summary",
+		nil, token, uuid.New().String())
+	require.Equal(t, http.StatusOK, recorder.Code)
+	assert.True(t, dashboard.tenantSeen)
+	assert.Equal(t, tenantID, dashboard.tenantID)
+}
+
+func TestClientApplicationsListRouteUsesRBAC(t *testing.T) {
+	manager := testAuthManager(t)
+	tenantID := uuid.New()
+	apps := &fakeClientApplicationsUseCase{apps: []*domain.ClientApplication{{
+		ID: uuid.New(), TenantID: &tenantID, Name: "Web", ClientID: "web", IsActive: true,
+	}}}
+	rbac := &fakeRBACUseCase{universe: &domain.PermissionUniverse{
+		Functions: []string{"settings:read"},
+	}}
+	router := NewRouter(Dependencies{
+		ClientApplicationsUseCase: apps, RBACUseCase: rbac, TokenManager: manager,
+	})
+	token := accessToken(t, manager, tenantID, uuid.New(), uuid.New())
+
+	recorder := requestWithTokenAndApp(router, http.MethodGet, "/api/v1/client-applications",
+		nil, token, uuid.New().String())
+	require.Equal(t, http.StatusOK, recorder.Code)
+	assert.Equal(t, tenantID, apps.tenantID)
+}

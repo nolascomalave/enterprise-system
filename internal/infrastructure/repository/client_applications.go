@@ -46,6 +46,61 @@ func (r *ClientApplicationRepository) Create(ctx context.Context, application *d
 	})
 }
 
+func (r *ClientApplicationRepository) ListByTenant(ctx context.Context, tenantID uuid.UUID) ([]*domain.ClientApplication, error) {
+	var result []*domain.ClientApplication
+	err := execute(ctx, r.client, func(client *ent.Client) error {
+		rows, err := client.QueryContext(ctx, `
+			SELECT id, tenant_id, name, client_id, client_secret_hash, scopes,
+			       client_type, application_scope, is_active, created_at, updated_at, deleted_at
+			  FROM global.client_applications
+			 WHERE tenant_id = $1 AND deleted_at IS NULL
+			 ORDER BY created_at DESC`, tenantID)
+		if err != nil {
+			return repoError(err)
+		}
+		defer rows.Close()
+		result = make([]*domain.ClientApplication, 0)
+		for rows.Next() {
+			application, err := scanClientApplication(rows)
+			if err != nil {
+				return repoError(err)
+			}
+			result = append(result, application)
+		}
+		return rows.Err()
+	})
+	return result, err
+}
+
+type clientApplicationScanner interface {
+	Scan(dest ...any) error
+}
+
+func scanClientApplication(row clientApplicationScanner) (*domain.ClientApplication, error) {
+	var scopes pq.StringArray
+	var tenant sql.NullString
+	var clientType, applicationScope string
+	application := &domain.ClientApplication{}
+	if err := row.Scan(
+		&application.ID, &tenant, &application.Name, &application.ClientID,
+		&application.ClientSecretHash, &scopes, &clientType, &applicationScope,
+		&application.IsActive, &application.CreatedAt, &application.UpdatedAt, &application.DeletedAt,
+	); err != nil {
+		return nil, err
+	}
+	application.Scopes = []string(scopes)
+	application.ClientType = domain.ClientType(clientType)
+	application.ApplicationScope = domain.ApplicationScope(applicationScope)
+	if tenant.Valid {
+		parsed, err := uuid.Parse(tenant.String)
+		if err != nil {
+			return nil, err
+		}
+		application.TenantID = &parsed
+	}
+	return application, nil
+}
+
 func (r *ClientApplicationRepository) FindByClientID(ctx context.Context, clientID string) (*domain.ClientApplication, error) {
 	var result *domain.ClientApplication
 	err := execute(ctx, r.client, func(client *ent.Client) error {
@@ -61,27 +116,11 @@ func (r *ClientApplicationRepository) FindByClientID(ctx context.Context, client
 		if !rows.Next() {
 			return sql.ErrNoRows
 		}
-		var scopes pq.StringArray
-		var tenant sql.NullString
-		var clientType, applicationScope string
-		result = &domain.ClientApplication{}
-		if err := rows.Scan(
-			&result.ID, &tenant, &result.Name, &result.ClientID,
-			&result.ClientSecretHash, &scopes, &clientType, &applicationScope,
-			&result.IsActive, &result.CreatedAt, &result.UpdatedAt, &result.DeletedAt,
-		); err != nil {
+		application, err := scanClientApplication(rows)
+		if err != nil {
 			return repoError(err)
 		}
-		result.Scopes = []string(scopes)
-		result.ClientType = domain.ClientType(clientType)
-		result.ApplicationScope = domain.ApplicationScope(applicationScope)
-		if tenant.Valid {
-			parsed, err := uuid.Parse(tenant.String)
-			if err != nil {
-				return repoError(err)
-			}
-			result.TenantID = &parsed
-		}
+		result = application
 		return rows.Err()
 	})
 	if errors.Is(err, sql.ErrNoRows) {

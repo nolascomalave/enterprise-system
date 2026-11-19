@@ -496,6 +496,41 @@ const docTemplate = `{
             }
         },
         "/client-applications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the client applications owned by the current tenant. Inactive applications are included; deleted ones are excluded.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth"
+                ],
+                "summary": "List tenant client applications",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ClientApplicationListEnvelope"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -686,6 +721,43 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboard/summary": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns active party, employee and department counts plus the five most recent active parties.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Get the tenant dashboard summary",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.DashboardSummaryEnvelope"
                         }
                     },
                     "401": {
@@ -2994,6 +3066,43 @@ const docTemplate = `{
                 }
             }
         },
+        "enterprise-system_internal_delivery_http_dto.ClientApplicationListEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ClientApplicationListItemResponse"
+                    }
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.ClientApplicationListItemResponse": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.ClientCredentialsRequest": {
             "type": "object",
             "required": [
@@ -3324,6 +3433,51 @@ const docTemplate = `{
                 },
                 "tenant_id": {
                     "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.DashboardRecentPartyResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "party_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.DashboardSummaryEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.DashboardSummaryResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.DashboardSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "recent_parties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.DashboardRecentPartyResponse"
+                    }
+                },
+                "total_departments": {
+                    "type": "integer"
+                },
+                "total_employees": {
+                    "type": "integer"
+                },
+                "total_parties": {
+                    "type": "integer"
                 }
             }
         },

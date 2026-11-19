@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 type fakeClientApplicationRepo struct {
 	applications map[string]*domain.ClientApplication
 	createErr    error
+	listErr      error
+	listedTenant uuid.UUID
 }
 
 func newFakeClientApplicationRepo() *fakeClientApplicationRepo {
@@ -27,6 +30,20 @@ func (r *fakeClientApplicationRepo) Create(ctx context.Context, application *dom
 	}
 	r.applications[application.ClientID] = application
 	return nil
+}
+
+func (r *fakeClientApplicationRepo) ListByTenant(ctx context.Context, tenantID uuid.UUID) ([]*domain.ClientApplication, error) {
+	r.listedTenant = tenantID
+	if r.listErr != nil {
+		return nil, r.listErr
+	}
+	result := make([]*domain.ClientApplication, 0, len(r.applications))
+	for _, application := range r.applications {
+		if application.TenantID != nil && *application.TenantID == tenantID {
+			result = append(result, application)
+		}
+	}
+	return result, nil
 }
 
 func (r *fakeClientApplicationRepo) FindByClientID(ctx context.Context, clientID string) (*domain.ClientApplication, error) {
@@ -215,4 +232,42 @@ func TestPlatformScopesRejectedForThirdParty(t *testing.T) {
 	})
 
 	require.ErrorIs(t, err, domain.ErrInvalidClientApplication)
+}
+
+func TestListClientApplicationsFiltersByTenant(t *testing.T) {
+	repo := newFakeClientApplicationRepo()
+	service := NewClientApplicationService(repo, clientApplicationTestManager(t), newFakeTxManager(), time.Now)
+	tenantA, tenantB := uuid.New(), uuid.New()
+	repo.applications["app-a"] = &domain.ClientApplication{
+		ID: uuid.New(), TenantID: ptrUUID(tenantA), Name: "App A", ClientID: "app-a", IsActive: true,
+	}
+	repo.applications["app-b"] = &domain.ClientApplication{
+		ID: uuid.New(), TenantID: ptrUUID(tenantB), Name: "App B", ClientID: "app-b", IsActive: true,
+	}
+
+	apps, err := service.ListClientApplications(context.Background(), tenantA)
+
+	require.NoError(t, err)
+	require.Len(t, apps, 1)
+	assert.Equal(t, "App A", apps[0].Name)
+	assert.Equal(t, tenantA, repo.listedTenant)
+}
+
+func TestListClientApplicationsRequiresTenant(t *testing.T) {
+	service := NewClientApplicationService(newFakeClientApplicationRepo(), clientApplicationTestManager(t), newFakeTxManager(), time.Now)
+
+	_, err := service.ListClientApplications(context.Background(), uuid.Nil)
+
+	require.ErrorIs(t, err, domain.ErrInvalidClientApplication)
+}
+
+func TestListClientApplicationsPropagatesRepositoryError(t *testing.T) {
+	repo := newFakeClientApplicationRepo()
+	repo.listErr = errors.New("database down")
+	service := NewClientApplicationService(repo, clientApplicationTestManager(t), newFakeTxManager(), time.Now)
+
+	_, err := service.ListClientApplications(context.Background(), uuid.New())
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "database down")
 }

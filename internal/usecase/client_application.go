@@ -122,6 +122,20 @@ func (s *ClientApplicationService) Create(ctx context.Context, in CreateClientAp
 	return &CreatedClientApplication{Application: application, ClientSecret: clientSecret}, nil
 }
 
+// ListClientApplications returns the tenant-owned client applications,
+// including inactive ones, newest first.
+func (s *ClientApplicationService) ListClientApplications(ctx context.Context, tenantID uuid.UUID) ([]*domain.ClientApplication, error) {
+	if s == nil || s.repo == nil || s.tx == nil {
+		return nil, errors.New("client applications: nil dependencies")
+	}
+	if tenantID == uuid.Nil {
+		return nil, validationError("invalid_tenant", "tenant_id is required", domain.ErrInvalidClientApplication)
+	}
+	return readWithinTransaction(ctx, s.tx, func(ctx context.Context) ([]*domain.ClientApplication, error) {
+		return s.repo.ListByTenant(ctx, tenantID)
+	})
+}
+
 func (s *ClientApplicationService) IssueToken(ctx context.Context, clientID, clientSecret string) (*ClientToken, error) {
 	if s == nil || s.repo == nil || s.manager == nil {
 		return nil, errors.New("client applications: nil dependencies")

@@ -144,6 +144,30 @@ definitions:
       data:
         $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.CreatedClientApplicationResponse'
     type: object
+  enterprise-system_internal_delivery_http_dto.ClientApplicationListEnvelope:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ClientApplicationListItemResponse'
+        type: array
+    type: object
+  enterprise-system_internal_delivery_http_dto.ClientApplicationListItemResponse:
+    properties:
+      client_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      scopes:
+        items:
+          type: string
+        type: array
+    type: object
   enterprise-system_internal_delivery_http_dto.ClientCredentialsRequest:
     properties:
       client_id:
@@ -365,6 +389,35 @@ definitions:
         type: array
       tenant_id:
         type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.DashboardRecentPartyResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      party_type:
+        type: string
+    type: object
+  enterprise-system_internal_delivery_http_dto.DashboardSummaryEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.DashboardSummaryResponse'
+    type: object
+  enterprise-system_internal_delivery_http_dto.DashboardSummaryResponse:
+    properties:
+      recent_parties:
+        items:
+          $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.DashboardRecentPartyResponse'
+        type: array
+      total_departments:
+        type: integer
+      total_employees:
+        type: integer
+      total_parties:
+        type: integer
     type: object
   enterprise-system_internal_delivery_http_dto.DepartmentAddressEnvelope:
     properties:
@@ -1445,6 +1498,29 @@ paths:
       tags:
       - MFA
   /client-applications:
+    get:
+      description: Returns the client applications owned by the current tenant. Inactive
+        applications are included; deleted ones are excluded.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ClientApplicationListEnvelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List tenant client applications
+      tags:
+      - OAuth
     post:
       consumes:
       - application/json
@@ -1580,6 +1656,30 @@ paths:
       summary: Create a corporate group
       tags:
       - Corporate Groups
+  /dashboard/summary:
+    get:
+      description: Returns active party, employee and department counts plus the five
+        most recent active parties.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.DashboardSummaryEnvelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the tenant dashboard summary
+      tags:
+      - Dashboard
   /departments:
     get:
       produces:

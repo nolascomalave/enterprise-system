@@ -48,3 +48,15 @@ func TestPreferencesRoutesUseReadWriteFunctions(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "preferences:write", putFunction)
 }
+
+func TestDashboardSummaryRouteUsesDashboardRead(t *testing.T) {
+	function, ok := requiredRBACFunction(http.MethodGet, "/api/v1/dashboard/summary")
+	require.True(t, ok)
+	require.Equal(t, "dashboard:read", function)
+}
+
+func TestClientApplicationsListRouteUsesSettingsRead(t *testing.T) {
+	function, ok := requiredRBACFunction(http.MethodGet, "/api/v1/client-applications")
+	require.True(t, ok)
+	require.Equal(t, "settings:read", function)
+}

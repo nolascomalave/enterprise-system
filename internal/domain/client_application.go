@@ -49,4 +49,5 @@ type ClientApplication struct {
 type ClientApplicationRepository interface {
 	Create(ctx context.Context, application *ClientApplication) error
 	FindByClientID(ctx context.Context, clientID string) (*ClientApplication, error)
+	ListByTenant(ctx context.Context, tenantID uuid.UUID) ([]*ClientApplication, error)
 }

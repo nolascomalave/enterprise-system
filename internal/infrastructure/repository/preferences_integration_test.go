@@ -29,7 +29,7 @@ type preferencesFixture struct {
 	appID    uuid.UUID
 }
 
-func openPreferencesTestClient(t *testing.T) (*ent.Client, *transaction.Manager) {
+func openRepositoryIntegrationClient(t *testing.T) (*ent.Client, *transaction.Manager) {
 	t.Helper()
 	dsn := os.Getenv("TEST_DATABASE_URL")
 	if dsn == "" {
@@ -115,7 +115,7 @@ func preferenceCount(t *testing.T, tx *ent.Tx, ctx context.Context, query string
 }
 
 func TestUserPreferencesUpsertOverwritesJSONB(t *testing.T) {
-	client, manager := openPreferencesTestClient(t)
+	client, manager := openRepositoryIntegrationClient(t)
 	fx := newPreferencesFixture()
 	ctx := enttenant.WithSessionContext(context.Background(), enttenant.SessionContext{TenantID: fx.tenantID, UserID: fx.partyA})
 	repo := repository.NewUserPreferencesRepository(client)
@@ -153,7 +153,7 @@ func TestUserPreferencesUpsertOverwritesJSONB(t *testing.T) {
 }
 
 func TestUserPreferencesRLSIsolatesUsers(t *testing.T) {
-	_, manager := openPreferencesTestClient(t)
+	_, manager := openRepositoryIntegrationClient(t)
 	fx := newPreferencesFixture()
 	ctxA := enttenant.WithSessionContext(context.Background(), enttenant.SessionContext{TenantID: fx.tenantID, UserID: fx.partyA})
 

@@ -22,7 +22,9 @@ VALUES
   ('tenant_relationship:write', 'Gestionar relaciones entre tenants', 'Permite gestionar relaciones holding/subsidiary', 'TENANT'),
   ('account:write',     'Gestionar cuenta',         'Permite modificar la propia cuenta de usuario', 'TENANT'),
   ('preferences:read',  'Leer preferencias de usuario',   'Permite consultar las preferencias de UI del propio usuario', 'TENANT'),
-  ('preferences:write', 'Gestionar preferencias de usuario', 'Permite actualizar las preferencias de UI del propio usuario', 'TENANT')
+  ('preferences:write', 'Gestionar preferencias de usuario', 'Permite actualizar las preferencias de UI del propio usuario', 'TENANT'),
+  ('dashboard:read',    'Leer dashboard',      'Permite consultar el resumen y los indicadores del dashboard', 'TENANT'),
+  ('settings:read',     'Leer configuración',  'Permite consultar la configuración y las aplicaciones cliente del tenant', 'TENANT')
 ON CONFLICT (code) WHERE deleted_at IS NULL DO UPDATE SET
   name = EXCLUDED.name,
   description = EXCLUDED.description,
