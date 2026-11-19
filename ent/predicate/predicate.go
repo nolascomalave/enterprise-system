@@ -177,6 +177,9 @@ type TenantRole func(*sql.Selector)
 // TenantTransfer is the predicate function for tenanttransfer builders.
 type TenantTransfer func(*sql.Selector)
 
+// UserAppPreference is the predicate function for userapppreference builders.
+type UserAppPreference func(*sql.Selector)
+
 // UserCredentials is the predicate function for usercredentials builders.
 type UserCredentials func(*sql.Selector)
 

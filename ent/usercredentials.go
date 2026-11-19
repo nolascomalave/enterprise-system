@@ -62,9 +62,11 @@ type UserCredentialsEdges struct {
 	PartyContactMechanism *PartyContactMechanism `json:"party_contact_mechanism,omitempty"`
 	// UserRoleAssignments holds the value of the user_role_assignments edge.
 	UserRoleAssignments []*UserRoleAssignment `json:"user_role_assignments,omitempty"`
+	// AppPreferences holds the value of the app_preferences edge.
+	AppPreferences []*UserAppPreference `json:"app_preferences,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -107,6 +109,15 @@ func (e UserCredentialsEdges) UserRoleAssignmentsOrErr() ([]*UserRoleAssignment,
 		return e.UserRoleAssignments, nil
 	}
 	return nil, &NotLoadedError{edge: "user_role_assignments"}
+}
+
+// AppPreferencesOrErr returns the AppPreferences value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserCredentialsEdges) AppPreferencesOrErr() ([]*UserAppPreference, error) {
+	if e.loadedTypes[4] {
+		return e.AppPreferences, nil
+	}
+	return nil, &NotLoadedError{edge: "app_preferences"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -251,6 +262,11 @@ func (_m *UserCredentials) QueryPartyContactMechanism() *PartyContactMechanismQu
 // QueryUserRoleAssignments queries the "user_role_assignments" edge of the UserCredentials entity.
 func (_m *UserCredentials) QueryUserRoleAssignments() *UserRoleAssignmentQuery {
 	return NewUserCredentialsClient(_m.config).QueryUserRoleAssignments(_m)
+}
+
+// QueryAppPreferences queries the "app_preferences" edge of the UserCredentials entity.
+func (_m *UserCredentials) QueryAppPreferences() *UserAppPreferenceQuery {
+	return NewUserCredentialsClient(_m.config).QueryAppPreferences(_m)
 }
 
 // Update returns a builder for updating this UserCredentials.

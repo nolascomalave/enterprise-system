@@ -48,6 +48,7 @@ import (
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/tenantrole"
+	"enterprise-system/ent/userapppreference"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 	"errors"
@@ -589,6 +590,21 @@ func (_u *SubscriptionUpdate) AddClientApplications(v ...*ClientApplication) *Su
 		ids[i] = v[i].ID
 	}
 	return _u.AddClientApplicationIDs(ids...)
+}
+
+// AddUserAppPreferenceIDs adds the "user_app_preferences" edge to the UserAppPreference entity by IDs.
+func (_u *SubscriptionUpdate) AddUserAppPreferenceIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.AddUserAppPreferenceIDs(ids...)
+	return _u
+}
+
+// AddUserAppPreferences adds the "user_app_preferences" edges to the UserAppPreference entity.
+func (_u *SubscriptionUpdate) AddUserAppPreferences(v ...*UserAppPreference) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserAppPreferenceIDs(ids...)
 }
 
 // AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by IDs.
@@ -1419,6 +1435,27 @@ func (_u *SubscriptionUpdate) RemoveClientApplications(v ...*ClientApplication) 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveClientApplicationIDs(ids...)
+}
+
+// ClearUserAppPreferences clears all "user_app_preferences" edges to the UserAppPreference entity.
+func (_u *SubscriptionUpdate) ClearUserAppPreferences() *SubscriptionUpdate {
+	_u.mutation.ClearUserAppPreferences()
+	return _u
+}
+
+// RemoveUserAppPreferenceIDs removes the "user_app_preferences" edge to UserAppPreference entities by IDs.
+func (_u *SubscriptionUpdate) RemoveUserAppPreferenceIDs(ids ...uuid.UUID) *SubscriptionUpdate {
+	_u.mutation.RemoveUserAppPreferenceIDs(ids...)
+	return _u
+}
+
+// RemoveUserAppPreferences removes "user_app_preferences" edges to UserAppPreference entities.
+func (_u *SubscriptionUpdate) RemoveUserAppPreferences(v ...*UserAppPreference) *SubscriptionUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserAppPreferenceIDs(ids...)
 }
 
 // ClearDepartmentTranslations clears all "department_translations" edges to the DepartmentTranslation entity.
@@ -3220,6 +3257,54 @@ func (_u *SubscriptionUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.UserAppPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserAppPreferencesTable,
+			Columns: []string{subscription.UserAppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUserAppPreferencesIDs(); len(nodes) > 0 && !_u.mutation.UserAppPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserAppPreferencesTable,
+			Columns: []string{subscription.UserAppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserAppPreferencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserAppPreferencesTable,
+			Columns: []string{subscription.UserAppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.DepartmentTranslationsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -4384,6 +4469,21 @@ func (_u *SubscriptionUpdateOne) AddClientApplications(v ...*ClientApplication) 
 	return _u.AddClientApplicationIDs(ids...)
 }
 
+// AddUserAppPreferenceIDs adds the "user_app_preferences" edge to the UserAppPreference entity by IDs.
+func (_u *SubscriptionUpdateOne) AddUserAppPreferenceIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.AddUserAppPreferenceIDs(ids...)
+	return _u
+}
+
+// AddUserAppPreferences adds the "user_app_preferences" edges to the UserAppPreference entity.
+func (_u *SubscriptionUpdateOne) AddUserAppPreferences(v ...*UserAppPreference) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserAppPreferenceIDs(ids...)
+}
+
 // AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by IDs.
 func (_u *SubscriptionUpdateOne) AddDepartmentTranslationIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
 	_u.mutation.AddDepartmentTranslationIDs(ids...)
@@ -5212,6 +5312,27 @@ func (_u *SubscriptionUpdateOne) RemoveClientApplications(v ...*ClientApplicatio
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveClientApplicationIDs(ids...)
+}
+
+// ClearUserAppPreferences clears all "user_app_preferences" edges to the UserAppPreference entity.
+func (_u *SubscriptionUpdateOne) ClearUserAppPreferences() *SubscriptionUpdateOne {
+	_u.mutation.ClearUserAppPreferences()
+	return _u
+}
+
+// RemoveUserAppPreferenceIDs removes the "user_app_preferences" edge to UserAppPreference entities by IDs.
+func (_u *SubscriptionUpdateOne) RemoveUserAppPreferenceIDs(ids ...uuid.UUID) *SubscriptionUpdateOne {
+	_u.mutation.RemoveUserAppPreferenceIDs(ids...)
+	return _u
+}
+
+// RemoveUserAppPreferences removes "user_app_preferences" edges to UserAppPreference entities.
+func (_u *SubscriptionUpdateOne) RemoveUserAppPreferences(v ...*UserAppPreference) *SubscriptionUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserAppPreferenceIDs(ids...)
 }
 
 // ClearDepartmentTranslations clears all "department_translations" edges to the DepartmentTranslation entity.
@@ -7038,6 +7159,54 @@ func (_u *SubscriptionUpdateOne) sqlSave(ctx context.Context) (_node *Subscripti
 			},
 		}
 		edge.Schema = _u.schemaConfig.ClientApplication
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.UserAppPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserAppPreferencesTable,
+			Columns: []string{subscription.UserAppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUserAppPreferencesIDs(); len(nodes) > 0 && !_u.mutation.UserAppPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserAppPreferencesTable,
+			Columns: []string{subscription.UserAppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserAppPreferencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserAppPreferencesTable,
+			Columns: []string{subscription.UserAppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

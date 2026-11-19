@@ -82,6 +82,8 @@ func (UserCredentials) Edges() []ent.Edge {
 			Required(),
 		edge.To("user_role_assignments", UserRoleAssignment.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("app_preferences", UserAppPreference.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

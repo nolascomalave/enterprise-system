@@ -64,6 +64,7 @@ type SchemaConfig struct {
 	TenantRelationshipInvite           string // TenantRelationshipInvite table.
 	TenantRole                         string // TenantRole table.
 	TenantTransfer                     string // TenantTransfer table.
+	UserAppPreference                  string // UserAppPreference table.
 	UserCredentials                    string // UserCredentials table.
 	UserRoleAssignment                 string // UserRoleAssignment table.
 }

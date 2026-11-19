@@ -9,6 +9,7 @@ import (
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/userapppreference"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 	"errors"
@@ -221,6 +222,21 @@ func (_u *UserCredentialsUpdate) AddUserRoleAssignments(v ...*UserRoleAssignment
 	return _u.AddUserRoleAssignmentIDs(ids...)
 }
 
+// AddAppPreferenceIDs adds the "app_preferences" edge to the UserAppPreference entity by IDs.
+func (_u *UserCredentialsUpdate) AddAppPreferenceIDs(ids ...uuid.UUID) *UserCredentialsUpdate {
+	_u.mutation.AddAppPreferenceIDs(ids...)
+	return _u
+}
+
+// AddAppPreferences adds the "app_preferences" edges to the UserAppPreference entity.
+func (_u *UserCredentialsUpdate) AddAppPreferences(v ...*UserAppPreference) *UserCredentialsUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAppPreferenceIDs(ids...)
+}
+
 // Mutation returns the UserCredentialsMutation object of the builder.
 func (_u *UserCredentialsUpdate) Mutation() *UserCredentialsMutation {
 	return _u.mutation
@@ -263,6 +279,27 @@ func (_u *UserCredentialsUpdate) RemoveUserRoleAssignments(v ...*UserRoleAssignm
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUserRoleAssignmentIDs(ids...)
+}
+
+// ClearAppPreferences clears all "app_preferences" edges to the UserAppPreference entity.
+func (_u *UserCredentialsUpdate) ClearAppPreferences() *UserCredentialsUpdate {
+	_u.mutation.ClearAppPreferences()
+	return _u
+}
+
+// RemoveAppPreferenceIDs removes the "app_preferences" edge to UserAppPreference entities by IDs.
+func (_u *UserCredentialsUpdate) RemoveAppPreferenceIDs(ids ...uuid.UUID) *UserCredentialsUpdate {
+	_u.mutation.RemoveAppPreferenceIDs(ids...)
+	return _u
+}
+
+// RemoveAppPreferences removes "app_preferences" edges to UserAppPreference entities.
+func (_u *UserCredentialsUpdate) RemoveAppPreferences(v ...*UserAppPreference) *UserCredentialsUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAppPreferenceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -513,6 +550,54 @@ func (_u *UserCredentialsUpdate) sqlSave(ctx context.Context) (_node int, err er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.AppPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.AppPreferencesTable,
+			Columns: []string{usercredentials.AppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAppPreferencesIDs(); len(nodes) > 0 && !_u.mutation.AppPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.AppPreferencesTable,
+			Columns: []string{usercredentials.AppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AppPreferencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.AppPreferencesTable,
+			Columns: []string{usercredentials.AppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	_spec.Node.Schema = _u.schemaConfig.UserCredentials
 	ctx = internal.NewSchemaConfigContext(ctx, _u.schemaConfig)
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
@@ -721,6 +806,21 @@ func (_u *UserCredentialsUpdateOne) AddUserRoleAssignments(v ...*UserRoleAssignm
 	return _u.AddUserRoleAssignmentIDs(ids...)
 }
 
+// AddAppPreferenceIDs adds the "app_preferences" edge to the UserAppPreference entity by IDs.
+func (_u *UserCredentialsUpdateOne) AddAppPreferenceIDs(ids ...uuid.UUID) *UserCredentialsUpdateOne {
+	_u.mutation.AddAppPreferenceIDs(ids...)
+	return _u
+}
+
+// AddAppPreferences adds the "app_preferences" edges to the UserAppPreference entity.
+func (_u *UserCredentialsUpdateOne) AddAppPreferences(v ...*UserAppPreference) *UserCredentialsUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddAppPreferenceIDs(ids...)
+}
+
 // Mutation returns the UserCredentialsMutation object of the builder.
 func (_u *UserCredentialsUpdateOne) Mutation() *UserCredentialsMutation {
 	return _u.mutation
@@ -763,6 +863,27 @@ func (_u *UserCredentialsUpdateOne) RemoveUserRoleAssignments(v ...*UserRoleAssi
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUserRoleAssignmentIDs(ids...)
+}
+
+// ClearAppPreferences clears all "app_preferences" edges to the UserAppPreference entity.
+func (_u *UserCredentialsUpdateOne) ClearAppPreferences() *UserCredentialsUpdateOne {
+	_u.mutation.ClearAppPreferences()
+	return _u
+}
+
+// RemoveAppPreferenceIDs removes the "app_preferences" edge to UserAppPreference entities by IDs.
+func (_u *UserCredentialsUpdateOne) RemoveAppPreferenceIDs(ids ...uuid.UUID) *UserCredentialsUpdateOne {
+	_u.mutation.RemoveAppPreferenceIDs(ids...)
+	return _u
+}
+
+// RemoveAppPreferences removes "app_preferences" edges to UserAppPreference entities.
+func (_u *UserCredentialsUpdateOne) RemoveAppPreferences(v ...*UserAppPreference) *UserCredentialsUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveAppPreferenceIDs(ids...)
 }
 
 // Where appends a list predicates to the UserCredentialsUpdate builder.
@@ -1038,6 +1159,54 @@ func (_u *UserCredentialsUpdateOne) sqlSave(ctx context.Context) (_node *UserCre
 			},
 		}
 		edge.Schema = _u.schemaConfig.UserRoleAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.AppPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.AppPreferencesTable,
+			Columns: []string{usercredentials.AppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedAppPreferencesIDs(); len(nodes) > 0 && !_u.mutation.AppPreferencesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.AppPreferencesTable,
+			Columns: []string{usercredentials.AppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.AppPreferencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.AppPreferencesTable,
+			Columns: []string{usercredentials.AppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _u.schemaConfig.UserAppPreference
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

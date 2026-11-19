@@ -7,6 +7,7 @@ import (
 	"enterprise-system/ent/clientapplication"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/tenantrole"
+	"enterprise-system/ent/userapppreference"
 	"errors"
 	"fmt"
 	"time"
@@ -180,6 +181,21 @@ func (_c *ClientApplicationCreate) AddTenantRoles(v ...*TenantRole) *ClientAppli
 		ids[i] = v[i].ID
 	}
 	return _c.AddTenantRoleIDs(ids...)
+}
+
+// AddUserPreferenceIDs adds the "user_preferences" edge to the UserAppPreference entity by IDs.
+func (_c *ClientApplicationCreate) AddUserPreferenceIDs(ids ...uuid.UUID) *ClientApplicationCreate {
+	_c.mutation.AddUserPreferenceIDs(ids...)
+	return _c
+}
+
+// AddUserPreferences adds the "user_preferences" edges to the UserAppPreference entity.
+func (_c *ClientApplicationCreate) AddUserPreferences(v ...*UserAppPreference) *ClientApplicationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUserPreferenceIDs(ids...)
 }
 
 // Mutation returns the ClientApplicationMutation object of the builder.
@@ -398,6 +414,23 @@ func (_c *ClientApplicationCreate) createSpec() (*ClientApplication, *sqlgraph.C
 			},
 		}
 		edge.Schema = _c.schemaConfig.TenantRole
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UserPreferencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   clientapplication.UserPreferencesTable,
+			Columns: []string{clientapplication.UserPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.UserAppPreference
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

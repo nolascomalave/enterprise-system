@@ -62,6 +62,7 @@ import (
 	"enterprise-system/ent/tenantrelationshipinvite"
 	"enterprise-system/ent/tenantrole"
 	"enterprise-system/ent/tenanttransfer"
+	"enterprise-system/ent/userapppreference"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 	"enterprise-system/internal/domain"
@@ -141,6 +142,7 @@ const (
 	TypeTenantRelationshipInvite           = "TenantRelationshipInvite"
 	TypeTenantRole                         = "TenantRole"
 	TypeTenantTransfer                     = "TenantTransfer"
+	TypeUserAppPreference                  = "UserAppPreference"
 	TypeUserCredentials                    = "UserCredentials"
 	TypeUserRoleAssignment                 = "UserRoleAssignment"
 )
@@ -3373,29 +3375,32 @@ func (m *AttachedDocumentMutation) ResetEdge(name string) error {
 // ClientApplicationMutation represents an operation that mutates the ClientApplication nodes in the graph.
 type ClientApplicationMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	name                *string
-	client_id           *string
-	client_secret_hash  *string
-	scopes              *[]string
-	appendscopes        []string
-	client_type         *clientapplication.ClientType
-	application_scope   *clientapplication.ApplicationScope
-	is_active           *bool
-	created_at          *time.Time
-	updated_at          *time.Time
-	deleted_at          *time.Time
-	clearedFields       map[string]struct{}
-	tenant              *uuid.UUID
-	clearedtenant       bool
-	tenant_roles        map[uuid.UUID]struct{}
-	removedtenant_roles map[uuid.UUID]struct{}
-	clearedtenant_roles bool
-	done                bool
-	oldValue            func(context.Context) (*ClientApplication, error)
-	predicates          []predicate.ClientApplication
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	name                    *string
+	client_id               *string
+	client_secret_hash      *string
+	scopes                  *[]string
+	appendscopes            []string
+	client_type             *clientapplication.ClientType
+	application_scope       *clientapplication.ApplicationScope
+	is_active               *bool
+	created_at              *time.Time
+	updated_at              *time.Time
+	deleted_at              *time.Time
+	clearedFields           map[string]struct{}
+	tenant                  *uuid.UUID
+	clearedtenant           bool
+	tenant_roles            map[uuid.UUID]struct{}
+	removedtenant_roles     map[uuid.UUID]struct{}
+	clearedtenant_roles     bool
+	user_preferences        map[uuid.UUID]struct{}
+	removeduser_preferences map[uuid.UUID]struct{}
+	cleareduser_preferences bool
+	done                    bool
+	oldValue                func(context.Context) (*ClientApplication, error)
+	predicates              []predicate.ClientApplication
 }
 
 var _ ent.Mutation = (*ClientApplicationMutation)(nil)
@@ -4020,6 +4025,60 @@ func (m *ClientApplicationMutation) ResetTenantRoles() {
 	m.removedtenant_roles = nil
 }
 
+// AddUserPreferenceIDs adds the "user_preferences" edge to the UserAppPreference entity by ids.
+func (m *ClientApplicationMutation) AddUserPreferenceIDs(ids ...uuid.UUID) {
+	if m.user_preferences == nil {
+		m.user_preferences = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.user_preferences[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUserPreferences clears the "user_preferences" edge to the UserAppPreference entity.
+func (m *ClientApplicationMutation) ClearUserPreferences() {
+	m.cleareduser_preferences = true
+}
+
+// UserPreferencesCleared reports if the "user_preferences" edge to the UserAppPreference entity was cleared.
+func (m *ClientApplicationMutation) UserPreferencesCleared() bool {
+	return m.cleareduser_preferences
+}
+
+// RemoveUserPreferenceIDs removes the "user_preferences" edge to the UserAppPreference entity by IDs.
+func (m *ClientApplicationMutation) RemoveUserPreferenceIDs(ids ...uuid.UUID) {
+	if m.removeduser_preferences == nil {
+		m.removeduser_preferences = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.user_preferences, ids[i])
+		m.removeduser_preferences[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUserPreferences returns the removed IDs of the "user_preferences" edge to the UserAppPreference entity.
+func (m *ClientApplicationMutation) RemovedUserPreferencesIDs() (ids []uuid.UUID) {
+	for id := range m.removeduser_preferences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UserPreferencesIDs returns the "user_preferences" edge IDs in the mutation.
+func (m *ClientApplicationMutation) UserPreferencesIDs() (ids []uuid.UUID) {
+	for id := range m.user_preferences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUserPreferences resets all changes to the "user_preferences" edge.
+func (m *ClientApplicationMutation) ResetUserPreferences() {
+	m.user_preferences = nil
+	m.cleareduser_preferences = false
+	m.removeduser_preferences = nil
+}
+
 // Where appends a list predicates to the ClientApplicationMutation builder.
 func (m *ClientApplicationMutation) Where(ps ...predicate.ClientApplication) {
 	m.predicates = append(m.predicates, ps...)
@@ -4338,12 +4397,15 @@ func (m *ClientApplicationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ClientApplicationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.tenant != nil {
 		edges = append(edges, clientapplication.EdgeTenant)
 	}
 	if m.tenant_roles != nil {
 		edges = append(edges, clientapplication.EdgeTenantRoles)
+	}
+	if m.user_preferences != nil {
+		edges = append(edges, clientapplication.EdgeUserPreferences)
 	}
 	return edges
 }
@@ -4362,15 +4424,24 @@ func (m *ClientApplicationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case clientapplication.EdgeUserPreferences:
+		ids := make([]ent.Value, 0, len(m.user_preferences))
+		for id := range m.user_preferences {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ClientApplicationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedtenant_roles != nil {
 		edges = append(edges, clientapplication.EdgeTenantRoles)
+	}
+	if m.removeduser_preferences != nil {
+		edges = append(edges, clientapplication.EdgeUserPreferences)
 	}
 	return edges
 }
@@ -4385,18 +4456,27 @@ func (m *ClientApplicationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case clientapplication.EdgeUserPreferences:
+		ids := make([]ent.Value, 0, len(m.removeduser_preferences))
+		for id := range m.removeduser_preferences {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ClientApplicationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedtenant {
 		edges = append(edges, clientapplication.EdgeTenant)
 	}
 	if m.clearedtenant_roles {
 		edges = append(edges, clientapplication.EdgeTenantRoles)
+	}
+	if m.cleareduser_preferences {
+		edges = append(edges, clientapplication.EdgeUserPreferences)
 	}
 	return edges
 }
@@ -4409,6 +4489,8 @@ func (m *ClientApplicationMutation) EdgeCleared(name string) bool {
 		return m.clearedtenant
 	case clientapplication.EdgeTenantRoles:
 		return m.clearedtenant_roles
+	case clientapplication.EdgeUserPreferences:
+		return m.cleareduser_preferences
 	}
 	return false
 }
@@ -4433,6 +4515,9 @@ func (m *ClientApplicationMutation) ResetEdge(name string) error {
 		return nil
 	case clientapplication.EdgeTenantRoles:
 		m.ResetTenantRoles()
+		return nil
+	case clientapplication.EdgeUserPreferences:
+		m.ResetUserPreferences()
 		return nil
 	}
 	return fmt.Errorf("unknown ClientApplication edge %s", name)
@@ -48208,6 +48293,9 @@ type SubscriptionMutation struct {
 	client_applications                            map[uuid.UUID]struct{}
 	removedclient_applications                     map[uuid.UUID]struct{}
 	clearedclient_applications                     bool
+	user_app_preferences                           map[uuid.UUID]struct{}
+	removeduser_app_preferences                    map[uuid.UUID]struct{}
+	cleareduser_app_preferences                    bool
 	department_translations                        map[uuid.UUID]struct{}
 	removeddepartment_translations                 map[uuid.UUID]struct{}
 	cleareddepartment_translations                 bool
@@ -50205,6 +50293,60 @@ func (m *SubscriptionMutation) ResetClientApplications() {
 	m.removedclient_applications = nil
 }
 
+// AddUserAppPreferenceIDs adds the "user_app_preferences" edge to the UserAppPreference entity by ids.
+func (m *SubscriptionMutation) AddUserAppPreferenceIDs(ids ...uuid.UUID) {
+	if m.user_app_preferences == nil {
+		m.user_app_preferences = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.user_app_preferences[ids[i]] = struct{}{}
+	}
+}
+
+// ClearUserAppPreferences clears the "user_app_preferences" edge to the UserAppPreference entity.
+func (m *SubscriptionMutation) ClearUserAppPreferences() {
+	m.cleareduser_app_preferences = true
+}
+
+// UserAppPreferencesCleared reports if the "user_app_preferences" edge to the UserAppPreference entity was cleared.
+func (m *SubscriptionMutation) UserAppPreferencesCleared() bool {
+	return m.cleareduser_app_preferences
+}
+
+// RemoveUserAppPreferenceIDs removes the "user_app_preferences" edge to the UserAppPreference entity by IDs.
+func (m *SubscriptionMutation) RemoveUserAppPreferenceIDs(ids ...uuid.UUID) {
+	if m.removeduser_app_preferences == nil {
+		m.removeduser_app_preferences = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.user_app_preferences, ids[i])
+		m.removeduser_app_preferences[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedUserAppPreferences returns the removed IDs of the "user_app_preferences" edge to the UserAppPreference entity.
+func (m *SubscriptionMutation) RemovedUserAppPreferencesIDs() (ids []uuid.UUID) {
+	for id := range m.removeduser_app_preferences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// UserAppPreferencesIDs returns the "user_app_preferences" edge IDs in the mutation.
+func (m *SubscriptionMutation) UserAppPreferencesIDs() (ids []uuid.UUID) {
+	for id := range m.user_app_preferences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetUserAppPreferences resets all changes to the "user_app_preferences" edge.
+func (m *SubscriptionMutation) ResetUserAppPreferences() {
+	m.user_app_preferences = nil
+	m.cleareduser_app_preferences = false
+	m.removeduser_app_preferences = nil
+}
+
 // AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by ids.
 func (m *SubscriptionMutation) AddDepartmentTranslationIDs(ids ...uuid.UUID) {
 	if m.department_translations == nil {
@@ -51134,7 +51276,7 @@ func (m *SubscriptionMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SubscriptionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 43)
+	edges := make([]string, 0, 44)
 	if m.parties != nil {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -51224,6 +51366,9 @@ func (m *SubscriptionMutation) AddedEdges() []string {
 	}
 	if m.client_applications != nil {
 		edges = append(edges, subscription.EdgeClientApplications)
+	}
+	if m.user_app_preferences != nil {
+		edges = append(edges, subscription.EdgeUserAppPreferences)
 	}
 	if m.department_translations != nil {
 		edges = append(edges, subscription.EdgeDepartmentTranslations)
@@ -51451,6 +51596,12 @@ func (m *SubscriptionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case subscription.EdgeUserAppPreferences:
+		ids := make([]ent.Value, 0, len(m.user_app_preferences))
+		for id := range m.user_app_preferences {
+			ids = append(ids, id)
+		}
+		return ids
 	case subscription.EdgeDepartmentTranslations:
 		ids := make([]ent.Value, 0, len(m.department_translations))
 		for id := range m.department_translations {
@@ -51535,7 +51686,7 @@ func (m *SubscriptionMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SubscriptionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 43)
+	edges := make([]string, 0, 44)
 	if m.removedparties != nil {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -51625,6 +51776,9 @@ func (m *SubscriptionMutation) RemovedEdges() []string {
 	}
 	if m.removedclient_applications != nil {
 		edges = append(edges, subscription.EdgeClientApplications)
+	}
+	if m.removeduser_app_preferences != nil {
+		edges = append(edges, subscription.EdgeUserAppPreferences)
 	}
 	if m.removeddepartment_translations != nil {
 		edges = append(edges, subscription.EdgeDepartmentTranslations)
@@ -51852,6 +52006,12 @@ func (m *SubscriptionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case subscription.EdgeUserAppPreferences:
+		ids := make([]ent.Value, 0, len(m.removeduser_app_preferences))
+		for id := range m.removeduser_app_preferences {
+			ids = append(ids, id)
+		}
+		return ids
 	case subscription.EdgeDepartmentTranslations:
 		ids := make([]ent.Value, 0, len(m.removeddepartment_translations))
 		for id := range m.removeddepartment_translations {
@@ -51936,7 +52096,7 @@ func (m *SubscriptionMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SubscriptionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 43)
+	edges := make([]string, 0, 44)
 	if m.clearedparties {
 		edges = append(edges, subscription.EdgeParties)
 	}
@@ -52026,6 +52186,9 @@ func (m *SubscriptionMutation) ClearedEdges() []string {
 	}
 	if m.clearedclient_applications {
 		edges = append(edges, subscription.EdgeClientApplications)
+	}
+	if m.cleareduser_app_preferences {
+		edges = append(edges, subscription.EdgeUserAppPreferences)
 	}
 	if m.cleareddepartment_translations {
 		edges = append(edges, subscription.EdgeDepartmentTranslations)
@@ -52133,6 +52296,8 @@ func (m *SubscriptionMutation) EdgeCleared(name string) bool {
 		return m.cleareddepartment_address_validities
 	case subscription.EdgeClientApplications:
 		return m.clearedclient_applications
+	case subscription.EdgeUserAppPreferences:
+		return m.cleareduser_app_preferences
 	case subscription.EdgeDepartmentTranslations:
 		return m.cleareddepartment_translations
 	case subscription.EdgeMenuCategories:
@@ -52264,6 +52429,9 @@ func (m *SubscriptionMutation) ResetEdge(name string) error {
 		return nil
 	case subscription.EdgeClientApplications:
 		m.ResetClientApplications()
+		return nil
+	case subscription.EdgeUserAppPreferences:
+		m.ResetUserAppPreferences()
 		return nil
 	case subscription.EdgeDepartmentTranslations:
 		m.ResetDepartmentTranslations()
@@ -57296,6 +57464,830 @@ func (m *TenantTransferMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown TenantTransfer edge %s", name)
 }
 
+// UserAppPreferenceMutation represents an operation that mutates the UserAppPreference nodes in the graph.
+type UserAppPreferenceMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	preferences               *map[string]interface{}
+	created_at                *time.Time
+	updated_at                *time.Time
+	deleted_at                *time.Time
+	clearedFields             map[string]struct{}
+	tenant                    *uuid.UUID
+	clearedtenant             bool
+	user_credentials          *uuid.UUID
+	cleareduser_credentials   bool
+	client_application        *uuid.UUID
+	clearedclient_application bool
+	done                      bool
+	oldValue                  func(context.Context) (*UserAppPreference, error)
+	predicates                []predicate.UserAppPreference
+}
+
+var _ ent.Mutation = (*UserAppPreferenceMutation)(nil)
+
+// userapppreferenceOption allows management of the mutation configuration using functional options.
+type userapppreferenceOption func(*UserAppPreferenceMutation)
+
+// newUserAppPreferenceMutation creates new mutation for the UserAppPreference entity.
+func newUserAppPreferenceMutation(c config, op Op, opts ...userapppreferenceOption) *UserAppPreferenceMutation {
+	m := &UserAppPreferenceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUserAppPreference,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUserAppPreferenceID sets the ID field of the mutation.
+func withUserAppPreferenceID(id uuid.UUID) userapppreferenceOption {
+	return func(m *UserAppPreferenceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UserAppPreference
+		)
+		m.oldValue = func(ctx context.Context) (*UserAppPreference, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UserAppPreference.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUserAppPreference sets the old UserAppPreference of the mutation.
+func withUserAppPreference(node *UserAppPreference) userapppreferenceOption {
+	return func(m *UserAppPreferenceMutation) {
+		m.oldValue = func(context.Context) (*UserAppPreference, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UserAppPreferenceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UserAppPreferenceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of UserAppPreference entities.
+func (m *UserAppPreferenceMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UserAppPreferenceMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UserAppPreferenceMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UserAppPreference.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTenantID sets the "tenant_id" field.
+func (m *UserAppPreferenceMutation) SetTenantID(u uuid.UUID) {
+	m.tenant = &u
+}
+
+// TenantID returns the value of the "tenant_id" field in the mutation.
+func (m *UserAppPreferenceMutation) TenantID() (r uuid.UUID, exists bool) {
+	v := m.tenant
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTenantID returns the old "tenant_id" field's value of the UserAppPreference entity.
+// If the UserAppPreference object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserAppPreferenceMutation) OldTenantID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTenantID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+	}
+	return oldValue.TenantID, nil
+}
+
+// ResetTenantID resets all changes to the "tenant_id" field.
+func (m *UserAppPreferenceMutation) ResetTenantID() {
+	m.tenant = nil
+}
+
+// SetUserCredentialsID sets the "user_credentials_id" field.
+func (m *UserAppPreferenceMutation) SetUserCredentialsID(u uuid.UUID) {
+	m.user_credentials = &u
+}
+
+// UserCredentialsID returns the value of the "user_credentials_id" field in the mutation.
+func (m *UserAppPreferenceMutation) UserCredentialsID() (r uuid.UUID, exists bool) {
+	v := m.user_credentials
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserCredentialsID returns the old "user_credentials_id" field's value of the UserAppPreference entity.
+// If the UserAppPreference object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserAppPreferenceMutation) OldUserCredentialsID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserCredentialsID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserCredentialsID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserCredentialsID: %w", err)
+	}
+	return oldValue.UserCredentialsID, nil
+}
+
+// ResetUserCredentialsID resets all changes to the "user_credentials_id" field.
+func (m *UserAppPreferenceMutation) ResetUserCredentialsID() {
+	m.user_credentials = nil
+}
+
+// SetClientApplicationID sets the "client_application_id" field.
+func (m *UserAppPreferenceMutation) SetClientApplicationID(u uuid.UUID) {
+	m.client_application = &u
+}
+
+// ClientApplicationID returns the value of the "client_application_id" field in the mutation.
+func (m *UserAppPreferenceMutation) ClientApplicationID() (r uuid.UUID, exists bool) {
+	v := m.client_application
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClientApplicationID returns the old "client_application_id" field's value of the UserAppPreference entity.
+// If the UserAppPreference object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserAppPreferenceMutation) OldClientApplicationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClientApplicationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClientApplicationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClientApplicationID: %w", err)
+	}
+	return oldValue.ClientApplicationID, nil
+}
+
+// ResetClientApplicationID resets all changes to the "client_application_id" field.
+func (m *UserAppPreferenceMutation) ResetClientApplicationID() {
+	m.client_application = nil
+}
+
+// SetPreferences sets the "preferences" field.
+func (m *UserAppPreferenceMutation) SetPreferences(value map[string]interface{}) {
+	m.preferences = &value
+}
+
+// Preferences returns the value of the "preferences" field in the mutation.
+func (m *UserAppPreferenceMutation) Preferences() (r map[string]interface{}, exists bool) {
+	v := m.preferences
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreferences returns the old "preferences" field's value of the UserAppPreference entity.
+// If the UserAppPreference object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserAppPreferenceMutation) OldPreferences(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreferences is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreferences requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreferences: %w", err)
+	}
+	return oldValue.Preferences, nil
+}
+
+// ResetPreferences resets all changes to the "preferences" field.
+func (m *UserAppPreferenceMutation) ResetPreferences() {
+	m.preferences = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *UserAppPreferenceMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *UserAppPreferenceMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the UserAppPreference entity.
+// If the UserAppPreference object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserAppPreferenceMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *UserAppPreferenceMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *UserAppPreferenceMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *UserAppPreferenceMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the UserAppPreference entity.
+// If the UserAppPreference object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserAppPreferenceMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *UserAppPreferenceMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *UserAppPreferenceMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *UserAppPreferenceMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the UserAppPreference entity.
+// If the UserAppPreference object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserAppPreferenceMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *UserAppPreferenceMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[userapppreference.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *UserAppPreferenceMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[userapppreference.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *UserAppPreferenceMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, userapppreference.FieldDeletedAt)
+}
+
+// ClearTenant clears the "tenant" edge to the Subscription entity.
+func (m *UserAppPreferenceMutation) ClearTenant() {
+	m.clearedtenant = true
+	m.clearedFields[userapppreference.FieldTenantID] = struct{}{}
+}
+
+// TenantCleared reports if the "tenant" edge to the Subscription entity was cleared.
+func (m *UserAppPreferenceMutation) TenantCleared() bool {
+	return m.clearedtenant
+}
+
+// TenantIDs returns the "tenant" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TenantID instead. It exists only for internal usage by the builders.
+func (m *UserAppPreferenceMutation) TenantIDs() (ids []uuid.UUID) {
+	if id := m.tenant; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTenant resets all changes to the "tenant" edge.
+func (m *UserAppPreferenceMutation) ResetTenant() {
+	m.tenant = nil
+	m.clearedtenant = false
+}
+
+// ClearUserCredentials clears the "user_credentials" edge to the UserCredentials entity.
+func (m *UserAppPreferenceMutation) ClearUserCredentials() {
+	m.cleareduser_credentials = true
+	m.clearedFields[userapppreference.FieldUserCredentialsID] = struct{}{}
+}
+
+// UserCredentialsCleared reports if the "user_credentials" edge to the UserCredentials entity was cleared.
+func (m *UserAppPreferenceMutation) UserCredentialsCleared() bool {
+	return m.cleareduser_credentials
+}
+
+// UserCredentialsIDs returns the "user_credentials" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserCredentialsID instead. It exists only for internal usage by the builders.
+func (m *UserAppPreferenceMutation) UserCredentialsIDs() (ids []uuid.UUID) {
+	if id := m.user_credentials; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUserCredentials resets all changes to the "user_credentials" edge.
+func (m *UserAppPreferenceMutation) ResetUserCredentials() {
+	m.user_credentials = nil
+	m.cleareduser_credentials = false
+}
+
+// ClearClientApplication clears the "client_application" edge to the ClientApplication entity.
+func (m *UserAppPreferenceMutation) ClearClientApplication() {
+	m.clearedclient_application = true
+	m.clearedFields[userapppreference.FieldClientApplicationID] = struct{}{}
+}
+
+// ClientApplicationCleared reports if the "client_application" edge to the ClientApplication entity was cleared.
+func (m *UserAppPreferenceMutation) ClientApplicationCleared() bool {
+	return m.clearedclient_application
+}
+
+// ClientApplicationIDs returns the "client_application" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ClientApplicationID instead. It exists only for internal usage by the builders.
+func (m *UserAppPreferenceMutation) ClientApplicationIDs() (ids []uuid.UUID) {
+	if id := m.client_application; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetClientApplication resets all changes to the "client_application" edge.
+func (m *UserAppPreferenceMutation) ResetClientApplication() {
+	m.client_application = nil
+	m.clearedclient_application = false
+}
+
+// Where appends a list predicates to the UserAppPreferenceMutation builder.
+func (m *UserAppPreferenceMutation) Where(ps ...predicate.UserAppPreference) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UserAppPreferenceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserAppPreferenceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UserAppPreference, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UserAppPreferenceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserAppPreferenceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UserAppPreference).
+func (m *UserAppPreferenceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UserAppPreferenceMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.tenant != nil {
+		fields = append(fields, userapppreference.FieldTenantID)
+	}
+	if m.user_credentials != nil {
+		fields = append(fields, userapppreference.FieldUserCredentialsID)
+	}
+	if m.client_application != nil {
+		fields = append(fields, userapppreference.FieldClientApplicationID)
+	}
+	if m.preferences != nil {
+		fields = append(fields, userapppreference.FieldPreferences)
+	}
+	if m.created_at != nil {
+		fields = append(fields, userapppreference.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, userapppreference.FieldUpdatedAt)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, userapppreference.FieldDeletedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UserAppPreferenceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case userapppreference.FieldTenantID:
+		return m.TenantID()
+	case userapppreference.FieldUserCredentialsID:
+		return m.UserCredentialsID()
+	case userapppreference.FieldClientApplicationID:
+		return m.ClientApplicationID()
+	case userapppreference.FieldPreferences:
+		return m.Preferences()
+	case userapppreference.FieldCreatedAt:
+		return m.CreatedAt()
+	case userapppreference.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case userapppreference.FieldDeletedAt:
+		return m.DeletedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UserAppPreferenceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case userapppreference.FieldTenantID:
+		return m.OldTenantID(ctx)
+	case userapppreference.FieldUserCredentialsID:
+		return m.OldUserCredentialsID(ctx)
+	case userapppreference.FieldClientApplicationID:
+		return m.OldClientApplicationID(ctx)
+	case userapppreference.FieldPreferences:
+		return m.OldPreferences(ctx)
+	case userapppreference.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case userapppreference.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case userapppreference.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown UserAppPreference field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserAppPreferenceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case userapppreference.FieldTenantID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTenantID(v)
+		return nil
+	case userapppreference.FieldUserCredentialsID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserCredentialsID(v)
+		return nil
+	case userapppreference.FieldClientApplicationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClientApplicationID(v)
+		return nil
+	case userapppreference.FieldPreferences:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreferences(v)
+		return nil
+	case userapppreference.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case userapppreference.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case userapppreference.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserAppPreference field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UserAppPreferenceMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UserAppPreferenceMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserAppPreferenceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown UserAppPreference numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UserAppPreferenceMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(userapppreference.FieldDeletedAt) {
+		fields = append(fields, userapppreference.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UserAppPreferenceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UserAppPreferenceMutation) ClearField(name string) error {
+	switch name {
+	case userapppreference.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown UserAppPreference nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UserAppPreferenceMutation) ResetField(name string) error {
+	switch name {
+	case userapppreference.FieldTenantID:
+		m.ResetTenantID()
+		return nil
+	case userapppreference.FieldUserCredentialsID:
+		m.ResetUserCredentialsID()
+		return nil
+	case userapppreference.FieldClientApplicationID:
+		m.ResetClientApplicationID()
+		return nil
+	case userapppreference.FieldPreferences:
+		m.ResetPreferences()
+		return nil
+	case userapppreference.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case userapppreference.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case userapppreference.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown UserAppPreference field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UserAppPreferenceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.tenant != nil {
+		edges = append(edges, userapppreference.EdgeTenant)
+	}
+	if m.user_credentials != nil {
+		edges = append(edges, userapppreference.EdgeUserCredentials)
+	}
+	if m.client_application != nil {
+		edges = append(edges, userapppreference.EdgeClientApplication)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UserAppPreferenceMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case userapppreference.EdgeTenant:
+		if id := m.tenant; id != nil {
+			return []ent.Value{*id}
+		}
+	case userapppreference.EdgeUserCredentials:
+		if id := m.user_credentials; id != nil {
+			return []ent.Value{*id}
+		}
+	case userapppreference.EdgeClientApplication:
+		if id := m.client_application; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UserAppPreferenceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UserAppPreferenceMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UserAppPreferenceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedtenant {
+		edges = append(edges, userapppreference.EdgeTenant)
+	}
+	if m.cleareduser_credentials {
+		edges = append(edges, userapppreference.EdgeUserCredentials)
+	}
+	if m.clearedclient_application {
+		edges = append(edges, userapppreference.EdgeClientApplication)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UserAppPreferenceMutation) EdgeCleared(name string) bool {
+	switch name {
+	case userapppreference.EdgeTenant:
+		return m.clearedtenant
+	case userapppreference.EdgeUserCredentials:
+		return m.cleareduser_credentials
+	case userapppreference.EdgeClientApplication:
+		return m.clearedclient_application
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UserAppPreferenceMutation) ClearEdge(name string) error {
+	switch name {
+	case userapppreference.EdgeTenant:
+		m.ClearTenant()
+		return nil
+	case userapppreference.EdgeUserCredentials:
+		m.ClearUserCredentials()
+		return nil
+	case userapppreference.EdgeClientApplication:
+		m.ClearClientApplication()
+		return nil
+	}
+	return fmt.Errorf("unknown UserAppPreference unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UserAppPreferenceMutation) ResetEdge(name string) error {
+	switch name {
+	case userapppreference.EdgeTenant:
+		m.ResetTenant()
+		return nil
+	case userapppreference.EdgeUserCredentials:
+		m.ResetUserCredentials()
+		return nil
+	case userapppreference.EdgeClientApplication:
+		m.ResetClientApplication()
+		return nil
+	}
+	return fmt.Errorf("unknown UserAppPreference edge %s", name)
+}
+
 // UserCredentialsMutation represents an operation that mutates the UserCredentials nodes in the graph.
 type UserCredentialsMutation struct {
 	config
@@ -57322,6 +58314,9 @@ type UserCredentialsMutation struct {
 	user_role_assignments          map[uuid.UUID]struct{}
 	removeduser_role_assignments   map[uuid.UUID]struct{}
 	cleareduser_role_assignments   bool
+	app_preferences                map[uuid.UUID]struct{}
+	removedapp_preferences         map[uuid.UUID]struct{}
+	clearedapp_preferences         bool
 	done                           bool
 	oldValue                       func(context.Context) (*UserCredentials, error)
 	predicates                     []predicate.UserCredentials
@@ -58039,6 +59034,60 @@ func (m *UserCredentialsMutation) ResetUserRoleAssignments() {
 	m.removeduser_role_assignments = nil
 }
 
+// AddAppPreferenceIDs adds the "app_preferences" edge to the UserAppPreference entity by ids.
+func (m *UserCredentialsMutation) AddAppPreferenceIDs(ids ...uuid.UUID) {
+	if m.app_preferences == nil {
+		m.app_preferences = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.app_preferences[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAppPreferences clears the "app_preferences" edge to the UserAppPreference entity.
+func (m *UserCredentialsMutation) ClearAppPreferences() {
+	m.clearedapp_preferences = true
+}
+
+// AppPreferencesCleared reports if the "app_preferences" edge to the UserAppPreference entity was cleared.
+func (m *UserCredentialsMutation) AppPreferencesCleared() bool {
+	return m.clearedapp_preferences
+}
+
+// RemoveAppPreferenceIDs removes the "app_preferences" edge to the UserAppPreference entity by IDs.
+func (m *UserCredentialsMutation) RemoveAppPreferenceIDs(ids ...uuid.UUID) {
+	if m.removedapp_preferences == nil {
+		m.removedapp_preferences = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.app_preferences, ids[i])
+		m.removedapp_preferences[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAppPreferences returns the removed IDs of the "app_preferences" edge to the UserAppPreference entity.
+func (m *UserCredentialsMutation) RemovedAppPreferencesIDs() (ids []uuid.UUID) {
+	for id := range m.removedapp_preferences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AppPreferencesIDs returns the "app_preferences" edge IDs in the mutation.
+func (m *UserCredentialsMutation) AppPreferencesIDs() (ids []uuid.UUID) {
+	for id := range m.app_preferences {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAppPreferences resets all changes to the "app_preferences" edge.
+func (m *UserCredentialsMutation) ResetAppPreferences() {
+	m.app_preferences = nil
+	m.clearedapp_preferences = false
+	m.removedapp_preferences = nil
+}
+
 // Where appends a list predicates to the UserCredentialsMutation builder.
 func (m *UserCredentialsMutation) Where(ps ...predicate.UserCredentials) {
 	m.predicates = append(m.predicates, ps...)
@@ -58374,7 +59423,7 @@ func (m *UserCredentialsMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserCredentialsMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.tenant != nil {
 		edges = append(edges, usercredentials.EdgeTenant)
 	}
@@ -58386,6 +59435,9 @@ func (m *UserCredentialsMutation) AddedEdges() []string {
 	}
 	if m.user_role_assignments != nil {
 		edges = append(edges, usercredentials.EdgeUserRoleAssignments)
+	}
+	if m.app_preferences != nil {
+		edges = append(edges, usercredentials.EdgeAppPreferences)
 	}
 	return edges
 }
@@ -58412,15 +59464,24 @@ func (m *UserCredentialsMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case usercredentials.EdgeAppPreferences:
+		ids := make([]ent.Value, 0, len(m.app_preferences))
+		for id := range m.app_preferences {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserCredentialsMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removeduser_role_assignments != nil {
 		edges = append(edges, usercredentials.EdgeUserRoleAssignments)
+	}
+	if m.removedapp_preferences != nil {
+		edges = append(edges, usercredentials.EdgeAppPreferences)
 	}
 	return edges
 }
@@ -58435,13 +59496,19 @@ func (m *UserCredentialsMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case usercredentials.EdgeAppPreferences:
+		ids := make([]ent.Value, 0, len(m.removedapp_preferences))
+		for id := range m.removedapp_preferences {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserCredentialsMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedtenant {
 		edges = append(edges, usercredentials.EdgeTenant)
 	}
@@ -58453,6 +59520,9 @@ func (m *UserCredentialsMutation) ClearedEdges() []string {
 	}
 	if m.cleareduser_role_assignments {
 		edges = append(edges, usercredentials.EdgeUserRoleAssignments)
+	}
+	if m.clearedapp_preferences {
+		edges = append(edges, usercredentials.EdgeAppPreferences)
 	}
 	return edges
 }
@@ -58469,6 +59539,8 @@ func (m *UserCredentialsMutation) EdgeCleared(name string) bool {
 		return m.clearedparty_contact_mechanism
 	case usercredentials.EdgeUserRoleAssignments:
 		return m.cleareduser_role_assignments
+	case usercredentials.EdgeAppPreferences:
+		return m.clearedapp_preferences
 	}
 	return false
 }
@@ -58505,6 +59577,9 @@ func (m *UserCredentialsMutation) ResetEdge(name string) error {
 		return nil
 	case usercredentials.EdgeUserRoleAssignments:
 		m.ResetUserRoleAssignments()
+		return nil
+	case usercredentials.EdgeAppPreferences:
+		m.ResetAppPreferences()
 		return nil
 	}
 	return fmt.Errorf("unknown UserCredentials edge %s", name)

@@ -2772,6 +2772,66 @@ var (
 			},
 		},
 	}
+	// UserAppPreferencesColumns holds the columns for the "user_app_preferences" table.
+	UserAppPreferencesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
+		{Name: "preferences", Type: field.TypeJSON},
+		{Name: "created_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "updated_at", Type: field.TypeTime, Default: schema.Expr("now()")},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "client_application_id", Type: field.TypeUUID},
+		{Name: "tenant_id", Type: field.TypeUUID},
+		{Name: "user_credentials_id", Type: field.TypeUUID},
+	}
+	// UserAppPreferencesTable holds the schema information for the "user_app_preferences" table.
+	UserAppPreferencesTable = &schema.Table{
+		Name:       "user_app_preferences",
+		Columns:    UserAppPreferencesColumns,
+		PrimaryKey: []*schema.Column{UserAppPreferencesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_app_preferences_client_applications_user_preferences",
+				Columns:    []*schema.Column{UserAppPreferencesColumns[5]},
+				RefColumns: []*schema.Column{ClientApplicationsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "user_app_preferences_subscriptions_user_app_preferences",
+				Columns:    []*schema.Column{UserAppPreferencesColumns[6]},
+				RefColumns: []*schema.Column{SubscriptionsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "user_app_preferences_user_credentials_app_preferences",
+				Columns:    []*schema.Column{UserAppPreferencesColumns[7]},
+				RefColumns: []*schema.Column{UserCredentialsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "userapppreference_tenant_id_user_credentials_id_client_application_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserAppPreferencesColumns[6], UserAppPreferencesColumns[7], UserAppPreferencesColumns[5]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "deleted_at IS NULL",
+				},
+			},
+			{
+				Name:    "userapppreference_tenant_id_user_credentials_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserAppPreferencesColumns[6], UserAppPreferencesColumns[7]},
+			},
+			{
+				Name:    "userapppreference_preferences",
+				Unique:  false,
+				Columns: []*schema.Column{UserAppPreferencesColumns[1]},
+				Annotation: &entsql.IndexAnnotation{
+					Type: "GIN",
+				},
+			},
+		},
+	}
 	// UserCredentialsColumns holds the columns for the "user_credentials" table.
 	UserCredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Default: schema.Expr("uuidv7()")},
@@ -2935,6 +2995,7 @@ var (
 		TenantRelationshipInvitesTable,
 		TenantRolesTable,
 		TenantTransfersTable,
+		UserAppPreferencesTable,
 		UserCredentialsTable,
 		UserRoleAssignmentsTable,
 	}
@@ -3231,6 +3292,12 @@ func init() {
 	TenantTransfersTable.ForeignKeys[0].RefTable = TenantRelationshipsTable
 	TenantTransfersTable.Annotation = &entsql.Annotation{
 		Table: "tenant_transfers",
+	}
+	UserAppPreferencesTable.ForeignKeys[0].RefTable = ClientApplicationsTable
+	UserAppPreferencesTable.ForeignKeys[1].RefTable = SubscriptionsTable
+	UserAppPreferencesTable.ForeignKeys[2].RefTable = UserCredentialsTable
+	UserAppPreferencesTable.Annotation = &entsql.Annotation{
+		Table: "user_app_preferences",
 	}
 	UserCredentialsTable.ForeignKeys[0].RefTable = PartiesTable
 	UserCredentialsTable.ForeignKeys[1].RefTable = PartyContactMechanismsTable

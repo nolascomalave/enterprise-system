@@ -61,6 +61,7 @@ import (
 	"enterprise-system/ent/tenantrelationshipinvite"
 	"enterprise-system/ent/tenantrole"
 	"enterprise-system/ent/tenanttransfer"
+	"enterprise-system/ent/userapppreference"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 	"errors"
@@ -188,6 +189,7 @@ func checkColumn(t, c string) error {
 			tenantrelationshipinvite.Table:           tenantrelationshipinvite.ValidColumn,
 			tenantrole.Table:                         tenantrole.ValidColumn,
 			tenanttransfer.Table:                     tenanttransfer.ValidColumn,
+			userapppreference.Table:                  userapppreference.ValidColumn,
 			usercredentials.Table:                    usercredentials.ValidColumn,
 			userroleassignment.Table:                 userroleassignment.ValidColumn,
 		})

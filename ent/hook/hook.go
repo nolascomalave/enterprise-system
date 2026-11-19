@@ -692,6 +692,18 @@ func (f TenantTransferFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TenantTransferMutation", m)
 }
 
+// The UserAppPreferenceFunc type is an adapter to allow the use of ordinary
+// function as UserAppPreference mutator.
+type UserAppPreferenceFunc func(context.Context, *ent.UserAppPreferenceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserAppPreferenceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserAppPreferenceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserAppPreferenceMutation", m)
+}
+
 // The UserCredentialsFunc type is an adapter to allow the use of ordinary
 // function as UserCredentials mutator.
 type UserCredentialsFunc func(context.Context, *ent.UserCredentialsMutation) (ent.Value, error)

@@ -173,6 +173,9 @@ func main() {
 	tenantRelationshipService := usecase.NewTenantRelationshipService(
 		repository.NewTenantRelationshipRepository(client), txManager, time.Now,
 	)
+	preferencesService := usecase.NewPreferencesService(
+		repository.NewUserPreferencesRepository(client), txManager, time.Now,
+	)
 
 	allowedOrigins := splitCSV(os.Getenv("CORS_ALLOWED_ORIGINS"))
 	if len(allowedOrigins) == 0 {
@@ -196,6 +199,7 @@ func main() {
 		CatalogUseCase:            catalogService,
 		RBACUseCase:               rbacService,
 		TenantRelationshipUseCase: tenantRelationshipService,
+		PreferencesUseCase:        preferencesService,
 		PlatformAdminKey:          platformAdminKey,
 		TokenManager:              tokenManager,
 		CookieSecure:              os.Getenv("COOKIE_SECURE") != "false",

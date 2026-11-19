@@ -1232,6 +1232,35 @@ func HasClientApplicationsWith(preds ...predicate.ClientApplication) predicate.S
 	})
 }
 
+// HasUserAppPreferences applies the HasEdge predicate on the "user_app_preferences" edge.
+func HasUserAppPreferences() predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserAppPreferencesTable, UserAppPreferencesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserAppPreferencesWith applies the HasEdge predicate on the "user_app_preferences" edge with a given conditions (other predicates).
+func HasUserAppPreferencesWith(preds ...predicate.UserAppPreference) predicate.Subscription {
+	return predicate.Subscription(func(s *sql.Selector) {
+		step := newUserAppPreferencesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasDepartmentTranslations applies the HasEdge predicate on the "department_translations" edge.
 func HasDepartmentTranslations() predicate.Subscription {
 	return predicate.Subscription(func(s *sql.Selector) {

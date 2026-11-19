@@ -15,6 +15,18 @@ import (
 )
 
 type permissionContextKey struct{}
+type appClientIDContextKey struct{}
+
+// WithAppClientID stores the validated client application ID for downstream handlers.
+func WithAppClientID(ctx context.Context, appClientID uuid.UUID) context.Context {
+	return context.WithValue(ctx, appClientIDContextKey{}, appClientID)
+}
+
+// AppClientIDFromContext returns the client application validated by RBACMiddleware.
+func AppClientIDFromContext(ctx context.Context) (uuid.UUID, bool) {
+	id, ok := ctx.Value(appClientIDContextKey{}).(uuid.UUID)
+	return id, ok
+}
 
 // WithPermissionUniverse injects a resolved permission universe into the context.
 func WithPermissionUniverse(ctx context.Context, universe *domain.PermissionUniverse) context.Context {
@@ -96,7 +108,7 @@ func RBACMiddleware(uc RBACUseCase) gin.HandlerFunc {
 			return
 		}
 
-		ctx := WithPermissionUniverse(c.Request.Context(), universe)
+		ctx := WithPermissionUniverse(WithAppClientID(c.Request.Context(), appClientID), universe)
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}

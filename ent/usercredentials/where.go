@@ -593,6 +593,35 @@ func HasUserRoleAssignmentsWith(preds ...predicate.UserRoleAssignment) predicate
 	})
 }
 
+// HasAppPreferences applies the HasEdge predicate on the "app_preferences" edge.
+func HasAppPreferences() predicate.UserCredentials {
+	return predicate.UserCredentials(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AppPreferencesTable, AppPreferencesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAppPreferencesWith applies the HasEdge predicate on the "app_preferences" edge with a given conditions (other predicates).
+func HasAppPreferencesWith(preds ...predicate.UserAppPreference) predicate.UserCredentials {
+	return predicate.UserCredentials(func(s *sql.Selector) {
+		step := newAppPreferencesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.UserCredentials) predicate.UserCredentials {
 	return predicate.UserCredentials(sql.AndPredicates(predicates...))

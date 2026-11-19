@@ -10,6 +10,7 @@ import (
 	"enterprise-system/ent/predicate"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/tenantrole"
+	"enterprise-system/ent/userapppreference"
 	"fmt"
 	"math"
 
@@ -24,13 +25,14 @@ import (
 // ClientApplicationQuery is the builder for querying ClientApplication entities.
 type ClientApplicationQuery struct {
 	config
-	ctx             *QueryContext
-	order           []clientapplication.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.ClientApplication
-	withTenant      *SubscriptionQuery
-	withTenantRoles *TenantRoleQuery
-	modifiers       []func(*sql.Selector)
+	ctx                 *QueryContext
+	order               []clientapplication.OrderOption
+	inters              []Interceptor
+	predicates          []predicate.ClientApplication
+	withTenant          *SubscriptionQuery
+	withTenantRoles     *TenantRoleQuery
+	withUserPreferences *UserAppPreferenceQuery
+	modifiers           []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -111,6 +113,31 @@ func (_q *ClientApplicationQuery) QueryTenantRoles() *TenantRoleQuery {
 		schemaConfig := _q.schemaConfig
 		step.To.Schema = schemaConfig.TenantRole
 		step.Edge.Schema = schemaConfig.TenantRole
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUserPreferences chains the current query on the "user_preferences" edge.
+func (_q *ClientApplicationQuery) QueryUserPreferences() *UserAppPreferenceQuery {
+	query := (&UserAppPreferenceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clientapplication.Table, clientapplication.FieldID, selector),
+			sqlgraph.To(userapppreference.Table, userapppreference.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clientapplication.UserPreferencesTable, clientapplication.UserPreferencesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
 	}
@@ -304,13 +331,14 @@ func (_q *ClientApplicationQuery) Clone() *ClientApplicationQuery {
 		return nil
 	}
 	return &ClientApplicationQuery{
-		config:          _q.config,
-		ctx:             _q.ctx.Clone(),
-		order:           append([]clientapplication.OrderOption{}, _q.order...),
-		inters:          append([]Interceptor{}, _q.inters...),
-		predicates:      append([]predicate.ClientApplication{}, _q.predicates...),
-		withTenant:      _q.withTenant.Clone(),
-		withTenantRoles: _q.withTenantRoles.Clone(),
+		config:              _q.config,
+		ctx:                 _q.ctx.Clone(),
+		order:               append([]clientapplication.OrderOption{}, _q.order...),
+		inters:              append([]Interceptor{}, _q.inters...),
+		predicates:          append([]predicate.ClientApplication{}, _q.predicates...),
+		withTenant:          _q.withTenant.Clone(),
+		withTenantRoles:     _q.withTenantRoles.Clone(),
+		withUserPreferences: _q.withUserPreferences.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -336,6 +364,17 @@ func (_q *ClientApplicationQuery) WithTenantRoles(opts ...func(*TenantRoleQuery)
 		opt(query)
 	}
 	_q.withTenantRoles = query
+	return _q
+}
+
+// WithUserPreferences tells the query-builder to eager-load the nodes that are connected to
+// the "user_preferences" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *ClientApplicationQuery) WithUserPreferences(opts ...func(*UserAppPreferenceQuery)) *ClientApplicationQuery {
+	query := (&UserAppPreferenceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUserPreferences = query
 	return _q
 }
 
@@ -417,9 +456,10 @@ func (_q *ClientApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*ClientApplication{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withTenant != nil,
 			_q.withTenantRoles != nil,
+			_q.withUserPreferences != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -455,6 +495,15 @@ func (_q *ClientApplicationQuery) sqlAll(ctx context.Context, hooks ...queryHook
 		if err := _q.loadTenantRoles(ctx, query, nodes,
 			func(n *ClientApplication) { n.Edges.TenantRoles = []*TenantRole{} },
 			func(n *ClientApplication, e *TenantRole) { n.Edges.TenantRoles = append(n.Edges.TenantRoles, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUserPreferences; query != nil {
+		if err := _q.loadUserPreferences(ctx, query, nodes,
+			func(n *ClientApplication) { n.Edges.UserPreferences = []*UserAppPreference{} },
+			func(n *ClientApplication, e *UserAppPreference) {
+				n.Edges.UserPreferences = append(n.Edges.UserPreferences, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -521,6 +570,36 @@ func (_q *ClientApplicationQuery) loadTenantRoles(ctx context.Context, query *Te
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "client_application_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *ClientApplicationQuery) loadUserPreferences(ctx context.Context, query *UserAppPreferenceQuery, nodes []*ClientApplication, init func(*ClientApplication), assign func(*ClientApplication, *UserAppPreference)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*ClientApplication)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userapppreference.FieldClientApplicationID)
+	}
+	query.Where(predicate.UserAppPreference(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(clientapplication.UserPreferencesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ClientApplicationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "client_application_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

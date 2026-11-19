@@ -54,9 +54,11 @@ type ClientApplicationEdges struct {
 	Tenant *Subscription `json:"tenant,omitempty"`
 	// TenantRoles holds the value of the tenant_roles edge.
 	TenantRoles []*TenantRole `json:"tenant_roles,omitempty"`
+	// UserPreferences holds the value of the user_preferences edge.
+	UserPreferences []*UserAppPreference `json:"user_preferences,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // TenantOrErr returns the Tenant value or an error if the edge
@@ -77,6 +79,15 @@ func (e ClientApplicationEdges) TenantRolesOrErr() ([]*TenantRole, error) {
 		return e.TenantRoles, nil
 	}
 	return nil, &NotLoadedError{edge: "tenant_roles"}
+}
+
+// UserPreferencesOrErr returns the UserPreferences value or an error if the edge
+// was not loaded in eager-loading.
+func (e ClientApplicationEdges) UserPreferencesOrErr() ([]*UserAppPreference, error) {
+	if e.loadedTypes[2] {
+		return e.UserPreferences, nil
+	}
+	return nil, &NotLoadedError{edge: "user_preferences"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -208,6 +219,11 @@ func (_m *ClientApplication) QueryTenant() *SubscriptionQuery {
 // QueryTenantRoles queries the "tenant_roles" edge of the ClientApplication entity.
 func (_m *ClientApplication) QueryTenantRoles() *TenantRoleQuery {
 	return NewClientApplicationClient(_m.config).QueryTenantRoles(_m)
+}
+
+// QueryUserPreferences queries the "user_preferences" edge of the ClientApplication entity.
+func (_m *ClientApplication) QueryUserPreferences() *UserAppPreferenceQuery {
+	return NewClientApplicationClient(_m.config).QueryUserPreferences(_m)
 }
 
 // Update returns a builder for updating this ClientApplication.

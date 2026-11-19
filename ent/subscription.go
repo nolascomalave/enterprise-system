@@ -99,6 +99,8 @@ type SubscriptionEdges struct {
 	DepartmentAddressValidities []*DepartmentAddressValidity `json:"department_address_validities,omitempty"`
 	// ClientApplications holds the value of the client_applications edge.
 	ClientApplications []*ClientApplication `json:"client_applications,omitempty"`
+	// UserAppPreferences holds the value of the user_app_preferences edge.
+	UserAppPreferences []*UserAppPreference `json:"user_app_preferences,omitempty"`
 	// DepartmentTranslations holds the value of the department_translations edge.
 	DepartmentTranslations []*DepartmentTranslation `json:"department_translations,omitempty"`
 	// MenuCategories holds the value of the menu_categories edge.
@@ -127,7 +129,7 @@ type SubscriptionEdges struct {
 	EmployeeMenuOptionOverrides []*EmployeeMenuOptionOverride `json:"employee_menu_option_overrides,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [43]bool
+	loadedTypes [44]bool
 }
 
 // PartiesOrErr returns the Parties value or an error if the edge
@@ -400,10 +402,19 @@ func (e SubscriptionEdges) ClientApplicationsOrErr() ([]*ClientApplication, erro
 	return nil, &NotLoadedError{edge: "client_applications"}
 }
 
+// UserAppPreferencesOrErr returns the UserAppPreferences value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubscriptionEdges) UserAppPreferencesOrErr() ([]*UserAppPreference, error) {
+	if e.loadedTypes[30] {
+		return e.UserAppPreferences, nil
+	}
+	return nil, &NotLoadedError{edge: "user_app_preferences"}
+}
+
 // DepartmentTranslationsOrErr returns the DepartmentTranslations value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) DepartmentTranslationsOrErr() ([]*DepartmentTranslation, error) {
-	if e.loadedTypes[30] {
+	if e.loadedTypes[31] {
 		return e.DepartmentTranslations, nil
 	}
 	return nil, &NotLoadedError{edge: "department_translations"}
@@ -412,7 +423,7 @@ func (e SubscriptionEdges) DepartmentTranslationsOrErr() ([]*DepartmentTranslati
 // MenuCategoriesOrErr returns the MenuCategories value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) MenuCategoriesOrErr() ([]*MenuCategory, error) {
-	if e.loadedTypes[31] {
+	if e.loadedTypes[32] {
 		return e.MenuCategories, nil
 	}
 	return nil, &NotLoadedError{edge: "menu_categories"}
@@ -421,7 +432,7 @@ func (e SubscriptionEdges) MenuCategoriesOrErr() ([]*MenuCategory, error) {
 // MenuOptionsOrErr returns the MenuOptions value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) MenuOptionsOrErr() ([]*MenuOption, error) {
-	if e.loadedTypes[32] {
+	if e.loadedTypes[33] {
 		return e.MenuOptions, nil
 	}
 	return nil, &NotLoadedError{edge: "menu_options"}
@@ -430,7 +441,7 @@ func (e SubscriptionEdges) MenuOptionsOrErr() ([]*MenuOption, error) {
 // MenuOptionFunctionsOrErr returns the MenuOptionFunctions value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) MenuOptionFunctionsOrErr() ([]*MenuOptionFunction, error) {
-	if e.loadedTypes[33] {
+	if e.loadedTypes[34] {
 		return e.MenuOptionFunctions, nil
 	}
 	return nil, &NotLoadedError{edge: "menu_option_functions"}
@@ -439,7 +450,7 @@ func (e SubscriptionEdges) MenuOptionFunctionsOrErr() ([]*MenuOptionFunction, er
 // MenuOptionCategoriesOrErr returns the MenuOptionCategories value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) MenuOptionCategoriesOrErr() ([]*MenuOptionCategory, error) {
-	if e.loadedTypes[34] {
+	if e.loadedTypes[35] {
 		return e.MenuOptionCategories, nil
 	}
 	return nil, &NotLoadedError{edge: "menu_option_categories"}
@@ -448,7 +459,7 @@ func (e SubscriptionEdges) MenuOptionCategoriesOrErr() ([]*MenuOptionCategory, e
 // TenantRolesOrErr returns the TenantRoles value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) TenantRolesOrErr() ([]*TenantRole, error) {
-	if e.loadedTypes[35] {
+	if e.loadedTypes[36] {
 		return e.TenantRoles, nil
 	}
 	return nil, &NotLoadedError{edge: "tenant_roles"}
@@ -457,7 +468,7 @@ func (e SubscriptionEdges) TenantRolesOrErr() ([]*TenantRole, error) {
 // RoleMenuOptionsOrErr returns the RoleMenuOptions value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) RoleMenuOptionsOrErr() ([]*RoleMenuOption, error) {
-	if e.loadedTypes[36] {
+	if e.loadedTypes[37] {
 		return e.RoleMenuOptions, nil
 	}
 	return nil, &NotLoadedError{edge: "role_menu_options"}
@@ -466,7 +477,7 @@ func (e SubscriptionEdges) RoleMenuOptionsOrErr() ([]*RoleMenuOption, error) {
 // UserRoleAssignmentsOrErr returns the UserRoleAssignments value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) UserRoleAssignmentsOrErr() ([]*UserRoleAssignment, error) {
-	if e.loadedTypes[37] {
+	if e.loadedTypes[38] {
 		return e.UserRoleAssignments, nil
 	}
 	return nil, &NotLoadedError{edge: "user_role_assignments"}
@@ -475,7 +486,7 @@ func (e SubscriptionEdges) UserRoleAssignmentsOrErr() ([]*UserRoleAssignment, er
 // DepartmentMenuOptionsOrErr returns the DepartmentMenuOptions value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) DepartmentMenuOptionsOrErr() ([]*DepartmentMenuOption, error) {
-	if e.loadedTypes[38] {
+	if e.loadedTypes[39] {
 		return e.DepartmentMenuOptions, nil
 	}
 	return nil, &NotLoadedError{edge: "department_menu_options"}
@@ -484,7 +495,7 @@ func (e SubscriptionEdges) DepartmentMenuOptionsOrErr() ([]*DepartmentMenuOption
 // DepartmentMenuOptionValiditiesOrErr returns the DepartmentMenuOptionValidities value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) DepartmentMenuOptionValiditiesOrErr() ([]*DepartmentMenuOptionValidity, error) {
-	if e.loadedTypes[39] {
+	if e.loadedTypes[40] {
 		return e.DepartmentMenuOptionValidities, nil
 	}
 	return nil, &NotLoadedError{edge: "department_menu_option_validities"}
@@ -493,7 +504,7 @@ func (e SubscriptionEdges) DepartmentMenuOptionValiditiesOrErr() ([]*DepartmentM
 // PositionMenuOptionsOrErr returns the PositionMenuOptions value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) PositionMenuOptionsOrErr() ([]*PositionMenuOption, error) {
-	if e.loadedTypes[40] {
+	if e.loadedTypes[41] {
 		return e.PositionMenuOptions, nil
 	}
 	return nil, &NotLoadedError{edge: "position_menu_options"}
@@ -502,7 +513,7 @@ func (e SubscriptionEdges) PositionMenuOptionsOrErr() ([]*PositionMenuOption, er
 // PositionMenuOptionValiditiesOrErr returns the PositionMenuOptionValidities value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) PositionMenuOptionValiditiesOrErr() ([]*PositionMenuOptionValidity, error) {
-	if e.loadedTypes[41] {
+	if e.loadedTypes[42] {
 		return e.PositionMenuOptionValidities, nil
 	}
 	return nil, &NotLoadedError{edge: "position_menu_option_validities"}
@@ -511,7 +522,7 @@ func (e SubscriptionEdges) PositionMenuOptionValiditiesOrErr() ([]*PositionMenuO
 // EmployeeMenuOptionOverridesOrErr returns the EmployeeMenuOptionOverrides value or an error if the edge
 // was not loaded in eager-loading.
 func (e SubscriptionEdges) EmployeeMenuOptionOverridesOrErr() ([]*EmployeeMenuOptionOverride, error) {
-	if e.loadedTypes[42] {
+	if e.loadedTypes[43] {
 		return e.EmployeeMenuOptionOverrides, nil
 	}
 	return nil, &NotLoadedError{edge: "employee_menu_option_overrides"}
@@ -747,6 +758,11 @@ func (_m *Subscription) QueryDepartmentAddressValidities() *DepartmentAddressVal
 // QueryClientApplications queries the "client_applications" edge of the Subscription entity.
 func (_m *Subscription) QueryClientApplications() *ClientApplicationQuery {
 	return NewSubscriptionClient(_m.config).QueryClientApplications(_m)
+}
+
+// QueryUserAppPreferences queries the "user_app_preferences" edge of the Subscription entity.
+func (_m *Subscription) QueryUserAppPreferences() *UserAppPreferenceQuery {
+	return NewSubscriptionClient(_m.config).QueryUserAppPreferences(_m)
 }
 
 // QueryDepartmentTranslations queries the "department_translations" edge of the Subscription entity.

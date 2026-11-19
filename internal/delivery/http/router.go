@@ -29,6 +29,7 @@ type Dependencies struct {
 	CatalogUseCase            CatalogUseCase
 	RBACUseCase               RBACUseCase
 	TenantRelationshipUseCase TenantRelationshipUseCase
+	PreferencesUseCase        PreferencesUseCase
 	PlatformAdminKey          string
 	TokenManager              *auth.Manager
 	SessionBlocklist          auth.SessionBlocklist
@@ -99,6 +100,7 @@ func NewRouter(deps Dependencies) *gin.Engine {
 	catalogHandler := NewCatalogHandler(deps.CatalogUseCase)
 	rbacHandler := NewRBACHandler(deps.RBACUseCase)
 	tenantRelationshipHandler := NewTenantRelationshipHandler(deps.TenantRelationshipUseCase)
+	preferencesHandler := NewPreferencesHandler(deps.PreferencesUseCase)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -176,6 +178,8 @@ func NewRouter(deps Dependencies) *gin.Engine {
 		protected.POST("/tenant-relationships/:id/cancel", tenantRelationshipHandler.Cancel)
 		protected.POST("/tenant-relationships/:id/revoke", tenantRelationshipHandler.Revoke)
 		protected.POST("/auth/change-password", accountHandler.ChangePassword)
+		protected.GET("/users/me/preferences", preferencesHandler.Get)
+		protected.PUT("/users/me/preferences", preferencesHandler.Update)
 	}
 
 	return router

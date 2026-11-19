@@ -7,6 +7,7 @@ import (
 	"enterprise-system/ent/party"
 	"enterprise-system/ent/partycontactmechanism"
 	"enterprise-system/ent/subscription"
+	"enterprise-system/ent/userapppreference"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 	"errors"
@@ -198,6 +199,21 @@ func (_c *UserCredentialsCreate) AddUserRoleAssignments(v ...*UserRoleAssignment
 		ids[i] = v[i].ID
 	}
 	return _c.AddUserRoleAssignmentIDs(ids...)
+}
+
+// AddAppPreferenceIDs adds the "app_preferences" edge to the UserAppPreference entity by IDs.
+func (_c *UserCredentialsCreate) AddAppPreferenceIDs(ids ...uuid.UUID) *UserCredentialsCreate {
+	_c.mutation.AddAppPreferenceIDs(ids...)
+	return _c
+}
+
+// AddAppPreferences adds the "app_preferences" edges to the UserAppPreference entity.
+func (_c *UserCredentialsCreate) AddAppPreferences(v ...*UserAppPreference) *UserCredentialsCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddAppPreferenceIDs(ids...)
 }
 
 // Mutation returns the UserCredentialsMutation object of the builder.
@@ -449,6 +465,23 @@ func (_c *UserCredentialsCreate) createSpec() (*UserCredentials, *sqlgraph.Creat
 			},
 		}
 		edge.Schema = _c.schemaConfig.UserRoleAssignment
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.AppPreferencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   usercredentials.AppPreferencesTable,
+			Columns: []string{usercredentials.AppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.UserAppPreference
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

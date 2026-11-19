@@ -128,6 +128,8 @@ type Tx struct {
 	TenantRole *TenantRoleClient
 	// TenantTransfer is the client for interacting with the TenantTransfer builders.
 	TenantTransfer *TenantTransferClient
+	// UserAppPreference is the client for interacting with the UserAppPreference builders.
+	UserAppPreference *UserAppPreferenceClient
 	// UserCredentials is the client for interacting with the UserCredentials builders.
 	UserCredentials *UserCredentialsClient
 	// UserRoleAssignment is the client for interacting with the UserRoleAssignment builders.
@@ -320,6 +322,7 @@ func (tx *Tx) init() {
 	tx.TenantRelationshipInvite = NewTenantRelationshipInviteClient(tx.config)
 	tx.TenantRole = NewTenantRoleClient(tx.config)
 	tx.TenantTransfer = NewTenantTransferClient(tx.config)
+	tx.UserAppPreference = NewUserAppPreferenceClient(tx.config)
 	tx.UserCredentials = NewUserCredentialsClient(tx.config)
 	tx.UserRoleAssignment = NewUserRoleAssignmentClient(tx.config)
 }

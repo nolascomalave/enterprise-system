@@ -560,6 +560,35 @@ func HasTenantRolesWith(preds ...predicate.TenantRole) predicate.ClientApplicati
 	})
 }
 
+// HasUserPreferences applies the HasEdge predicate on the "user_preferences" edge.
+func HasUserPreferences() predicate.ClientApplication {
+	return predicate.ClientApplication(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UserPreferencesTable, UserPreferencesColumn),
+		)
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserPreferencesWith applies the HasEdge predicate on the "user_preferences" edge with a given conditions (other predicates).
+func HasUserPreferencesWith(preds ...predicate.UserAppPreference) predicate.ClientApplication {
+	return predicate.ClientApplication(func(s *sql.Selector) {
+		step := newUserPreferencesStep()
+		schemaConfig := internal.SchemaConfigFromContext(s.Context())
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ClientApplication) predicate.ClientApplication {
 	return predicate.ClientApplication(sql.AndPredicates(predicates...))

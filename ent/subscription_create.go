@@ -46,6 +46,7 @@ import (
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/tenantrole"
+	"enterprise-system/ent/userapppreference"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 	"errors"
@@ -597,6 +598,21 @@ func (_c *SubscriptionCreate) AddClientApplications(v ...*ClientApplication) *Su
 		ids[i] = v[i].ID
 	}
 	return _c.AddClientApplicationIDs(ids...)
+}
+
+// AddUserAppPreferenceIDs adds the "user_app_preferences" edge to the UserAppPreference entity by IDs.
+func (_c *SubscriptionCreate) AddUserAppPreferenceIDs(ids ...uuid.UUID) *SubscriptionCreate {
+	_c.mutation.AddUserAppPreferenceIDs(ids...)
+	return _c
+}
+
+// AddUserAppPreferences adds the "user_app_preferences" edges to the UserAppPreference entity.
+func (_c *SubscriptionCreate) AddUserAppPreferences(v ...*UserAppPreference) *SubscriptionCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUserAppPreferenceIDs(ids...)
 }
 
 // AddDepartmentTranslationIDs adds the "department_translations" edge to the DepartmentTranslation entity by IDs.
@@ -1439,6 +1455,23 @@ func (_c *SubscriptionCreate) createSpec() (*Subscription, *sqlgraph.CreateSpec)
 			},
 		}
 		edge.Schema = _c.schemaConfig.ClientApplication
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.UserAppPreferencesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   subscription.UserAppPreferencesTable,
+			Columns: []string{subscription.UserAppPreferencesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userapppreference.FieldID, field.TypeUUID),
+			},
+		}
+		edge.Schema = _c.schemaConfig.UserAppPreference
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}

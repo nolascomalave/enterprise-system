@@ -68,6 +68,7 @@ import (
 	"enterprise-system/ent/tenantrelationshipinvite"
 	"enterprise-system/ent/tenantrole"
 	"enterprise-system/ent/tenanttransfer"
+	"enterprise-system/ent/userapppreference"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 
@@ -200,6 +201,8 @@ type Client struct {
 	TenantRole *TenantRoleClient
 	// TenantTransfer is the client for interacting with the TenantTransfer builders.
 	TenantTransfer *TenantTransferClient
+	// UserAppPreference is the client for interacting with the UserAppPreference builders.
+	UserAppPreference *UserAppPreferenceClient
 	// UserCredentials is the client for interacting with the UserCredentials builders.
 	UserCredentials *UserCredentialsClient
 	// UserRoleAssignment is the client for interacting with the UserRoleAssignment builders.
@@ -272,6 +275,7 @@ func (c *Client) init() {
 	c.TenantRelationshipInvite = NewTenantRelationshipInviteClient(c.config)
 	c.TenantRole = NewTenantRoleClient(c.config)
 	c.TenantTransfer = NewTenantTransferClient(c.config)
+	c.UserAppPreference = NewUserAppPreferenceClient(c.config)
 	c.UserCredentials = NewUserCredentialsClient(c.config)
 	c.UserRoleAssignment = NewUserRoleAssignmentClient(c.config)
 }
@@ -426,6 +430,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		TenantRelationshipInvite:           NewTenantRelationshipInviteClient(cfg),
 		TenantRole:                         NewTenantRoleClient(cfg),
 		TenantTransfer:                     NewTenantTransferClient(cfg),
+		UserAppPreference:                  NewUserAppPreferenceClient(cfg),
 		UserCredentials:                    NewUserCredentialsClient(cfg),
 		UserRoleAssignment:                 NewUserRoleAssignmentClient(cfg),
 	}, nil
@@ -504,6 +509,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		TenantRelationshipInvite:           NewTenantRelationshipInviteClient(cfg),
 		TenantRole:                         NewTenantRoleClient(cfg),
 		TenantTransfer:                     NewTenantTransferClient(cfg),
+		UserAppPreference:                  NewUserAppPreferenceClient(cfg),
 		UserCredentials:                    NewUserCredentialsClient(cfg),
 		UserRoleAssignment:                 NewUserRoleAssignmentClient(cfg),
 	}, nil
@@ -552,7 +558,8 @@ func (c *Client) Use(hooks ...Hook) {
 		c.PersonProfile, c.PositionMenuOption, c.PositionMenuOptionValidity,
 		c.RoleMenuOption, c.RoleType, c.RoleTypeTranslation, c.Session, c.Subscription,
 		c.SystemFunction, c.TenantRelationship, c.TenantRelationshipInvite,
-		c.TenantRole, c.TenantTransfer, c.UserCredentials, c.UserRoleAssignment,
+		c.TenantRole, c.TenantTransfer, c.UserAppPreference, c.UserCredentials,
+		c.UserRoleAssignment,
 	} {
 		n.Use(hooks...)
 	}
@@ -579,7 +586,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.PersonProfile, c.PositionMenuOption, c.PositionMenuOptionValidity,
 		c.RoleMenuOption, c.RoleType, c.RoleTypeTranslation, c.Session, c.Subscription,
 		c.SystemFunction, c.TenantRelationship, c.TenantRelationshipInvite,
-		c.TenantRole, c.TenantTransfer, c.UserCredentials, c.UserRoleAssignment,
+		c.TenantRole, c.TenantTransfer, c.UserAppPreference, c.UserCredentials,
+		c.UserRoleAssignment,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -702,6 +710,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.TenantRole.mutate(ctx, m)
 	case *TenantTransferMutation:
 		return c.TenantTransfer.mutate(ctx, m)
+	case *UserAppPreferenceMutation:
+		return c.UserAppPreference.mutate(ctx, m)
 	case *UserCredentialsMutation:
 		return c.UserCredentials.mutate(ctx, m)
 	case *UserRoleAssignmentMutation:
@@ -1402,6 +1412,25 @@ func (c *ClientApplicationClient) QueryTenantRoles(_m *ClientApplication) *Tenan
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.TenantRole
 		step.Edge.Schema = schemaConfig.TenantRole
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserPreferences queries the user_preferences edge of a ClientApplication.
+func (c *ClientApplicationClient) QueryUserPreferences(_m *ClientApplication) *UserAppPreferenceQuery {
+	query := (&UserAppPreferenceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(clientapplication.Table, clientapplication.FieldID, id),
+			sqlgraph.To(userapppreference.Table, userapppreference.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, clientapplication.UserPreferencesTable, clientapplication.UserPreferencesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -11744,6 +11773,25 @@ func (c *SubscriptionClient) QueryClientApplications(_m *Subscription) *ClientAp
 	return query
 }
 
+// QueryUserAppPreferences queries the user_app_preferences edge of a Subscription.
+func (c *SubscriptionClient) QueryUserAppPreferences(_m *Subscription) *UserAppPreferenceQuery {
+	query := (&UserAppPreferenceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, id),
+			sqlgraph.To(userapppreference.Table, userapppreference.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.UserAppPreferencesTable, subscription.UserAppPreferencesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryDepartmentTranslations queries the department_translations edge of a Subscription.
 func (c *SubscriptionClient) QueryDepartmentTranslations(_m *Subscription) *DepartmentTranslationQuery {
 	query := (&DepartmentTranslationClient{config: c.config}).Query()
@@ -12890,6 +12938,196 @@ func (c *TenantTransferClient) mutate(ctx context.Context, m *TenantTransferMuta
 	}
 }
 
+// UserAppPreferenceClient is a client for the UserAppPreference schema.
+type UserAppPreferenceClient struct {
+	config
+}
+
+// NewUserAppPreferenceClient returns a client for the UserAppPreference from the given config.
+func NewUserAppPreferenceClient(c config) *UserAppPreferenceClient {
+	return &UserAppPreferenceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `userapppreference.Hooks(f(g(h())))`.
+func (c *UserAppPreferenceClient) Use(hooks ...Hook) {
+	c.hooks.UserAppPreference = append(c.hooks.UserAppPreference, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userapppreference.Intercept(f(g(h())))`.
+func (c *UserAppPreferenceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserAppPreference = append(c.inters.UserAppPreference, interceptors...)
+}
+
+// Create returns a builder for creating a UserAppPreference entity.
+func (c *UserAppPreferenceClient) Create() *UserAppPreferenceCreate {
+	mutation := newUserAppPreferenceMutation(c.config, OpCreate)
+	return &UserAppPreferenceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserAppPreference entities.
+func (c *UserAppPreferenceClient) CreateBulk(builders ...*UserAppPreferenceCreate) *UserAppPreferenceCreateBulk {
+	return &UserAppPreferenceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserAppPreferenceClient) MapCreateBulk(slice any, setFunc func(*UserAppPreferenceCreate, int)) *UserAppPreferenceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserAppPreferenceCreateBulk{err: fmt.Errorf("calling to UserAppPreferenceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserAppPreferenceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserAppPreferenceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserAppPreference.
+func (c *UserAppPreferenceClient) Update() *UserAppPreferenceUpdate {
+	mutation := newUserAppPreferenceMutation(c.config, OpUpdate)
+	return &UserAppPreferenceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserAppPreferenceClient) UpdateOne(_m *UserAppPreference) *UserAppPreferenceUpdateOne {
+	mutation := newUserAppPreferenceMutation(c.config, OpUpdateOne, withUserAppPreference(_m))
+	return &UserAppPreferenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserAppPreferenceClient) UpdateOneID(id uuid.UUID) *UserAppPreferenceUpdateOne {
+	mutation := newUserAppPreferenceMutation(c.config, OpUpdateOne, withUserAppPreferenceID(id))
+	return &UserAppPreferenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserAppPreference.
+func (c *UserAppPreferenceClient) Delete() *UserAppPreferenceDelete {
+	mutation := newUserAppPreferenceMutation(c.config, OpDelete)
+	return &UserAppPreferenceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserAppPreferenceClient) DeleteOne(_m *UserAppPreference) *UserAppPreferenceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserAppPreferenceClient) DeleteOneID(id uuid.UUID) *UserAppPreferenceDeleteOne {
+	builder := c.Delete().Where(userapppreference.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserAppPreferenceDeleteOne{builder}
+}
+
+// Query returns a query builder for UserAppPreference.
+func (c *UserAppPreferenceClient) Query() *UserAppPreferenceQuery {
+	return &UserAppPreferenceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserAppPreference},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserAppPreference entity by its id.
+func (c *UserAppPreferenceClient) Get(ctx context.Context, id uuid.UUID) (*UserAppPreference, error) {
+	return c.Query().Where(userapppreference.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserAppPreferenceClient) GetX(ctx context.Context, id uuid.UUID) *UserAppPreference {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTenant queries the tenant edge of a UserAppPreference.
+func (c *UserAppPreferenceClient) QueryTenant(_m *UserAppPreference) *SubscriptionQuery {
+	query := (&SubscriptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userapppreference.Table, userapppreference.FieldID, id),
+			sqlgraph.To(subscription.Table, subscription.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userapppreference.TenantTable, userapppreference.TenantColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.Subscription
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUserCredentials queries the user_credentials edge of a UserAppPreference.
+func (c *UserAppPreferenceClient) QueryUserCredentials(_m *UserAppPreference) *UserCredentialsQuery {
+	query := (&UserCredentialsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userapppreference.Table, userapppreference.FieldID, id),
+			sqlgraph.To(usercredentials.Table, usercredentials.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userapppreference.UserCredentialsTable, userapppreference.UserCredentialsColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.UserCredentials
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryClientApplication queries the client_application edge of a UserAppPreference.
+func (c *UserAppPreferenceClient) QueryClientApplication(_m *UserAppPreference) *ClientApplicationQuery {
+	query := (&ClientApplicationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userapppreference.Table, userapppreference.FieldID, id),
+			sqlgraph.To(clientapplication.Table, clientapplication.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userapppreference.ClientApplicationTable, userapppreference.ClientApplicationColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.ClientApplication
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserAppPreferenceClient) Hooks() []Hook {
+	return c.hooks.UserAppPreference
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserAppPreferenceClient) Interceptors() []Interceptor {
+	return c.inters.UserAppPreference
+}
+
+func (c *UserAppPreferenceClient) mutate(ctx context.Context, m *UserAppPreferenceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserAppPreferenceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserAppPreferenceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserAppPreferenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserAppPreferenceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserAppPreference mutation op: %q", m.Op())
+	}
+}
+
 // UserCredentialsClient is a client for the UserCredentials schema.
 type UserCredentialsClient struct {
 	config
@@ -13068,6 +13306,25 @@ func (c *UserCredentialsClient) QueryUserRoleAssignments(_m *UserCredentials) *U
 		schemaConfig := _m.schemaConfig
 		step.To.Schema = schemaConfig.UserRoleAssignment
 		step.Edge.Schema = schemaConfig.UserRoleAssignment
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAppPreferences queries the app_preferences edge of a UserCredentials.
+func (c *UserCredentialsClient) QueryAppPreferences(_m *UserCredentials) *UserAppPreferenceQuery {
+	query := (&UserAppPreferenceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(usercredentials.Table, usercredentials.FieldID, id),
+			sqlgraph.To(userapppreference.Table, userapppreference.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, usercredentials.AppPreferencesTable, usercredentials.AppPreferencesColumn),
+		)
+		schemaConfig := _m.schemaConfig
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
 	}
@@ -13307,8 +13564,8 @@ type (
 		PartyNationality, PartyRole, PasswordResetToken, PersonProfile,
 		PositionMenuOption, PositionMenuOptionValidity, RoleMenuOption, RoleType,
 		RoleTypeTranslation, Session, Subscription, SystemFunction, TenantRelationship,
-		TenantRelationshipInvite, TenantRole, TenantTransfer, UserCredentials,
-		UserRoleAssignment []ent.Hook
+		TenantRelationshipInvite, TenantRole, TenantTransfer, UserAppPreference,
+		UserCredentials, UserRoleAssignment []ent.Hook
 	}
 	inters struct {
 		Address, AddressValidity, AttachedDocument, ClientApplication, ContactMechanism,
@@ -13326,8 +13583,8 @@ type (
 		PartyNationality, PartyRole, PasswordResetToken, PersonProfile,
 		PositionMenuOption, PositionMenuOptionValidity, RoleMenuOption, RoleType,
 		RoleTypeTranslation, Session, Subscription, SystemFunction, TenantRelationship,
-		TenantRelationshipInvite, TenantRole, TenantTransfer, UserCredentials,
-		UserRoleAssignment []ent.Interceptor
+		TenantRelationshipInvite, TenantRole, TenantTransfer, UserAppPreference,
+		UserCredentials, UserRoleAssignment []ent.Interceptor
 	}
 )
 
@@ -13391,6 +13648,7 @@ var (
 		TenantRelationshipInvite:           tableSchemas[0],
 		TenantRole:                         tableSchemas[1],
 		TenantTransfer:                     tableSchemas[0],
+		UserAppPreference:                  tableSchemas[1],
 		UserCredentials:                    tableSchemas[1],
 		UserRoleAssignment:                 tableSchemas[1],
 	}

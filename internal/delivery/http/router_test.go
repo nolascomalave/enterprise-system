@@ -315,3 +315,30 @@ func TestMFARoutesUseJWTOWithoutRBACScope(t *testing.T) {
 	require.Equal(t, 1, mfa.verifyCalls)
 	assert.Equal(t, "123456", mfa.verifyCode)
 }
+
+func TestPreferencesRoutesUseRBACAndAppClientContext(t *testing.T) {
+	manager := testAuthManager(t)
+	tenantID, userID, appID := uuid.New(), uuid.New(), uuid.New()
+	prefs := &fakePreferencesUseCase{getResult: &domain.UserPreferences{
+		TenantID: tenantID, ClientApplicationID: appID,
+		Preferences: map[string]any{"theme": "dark"},
+	}}
+	rbac := &fakeRBACUseCase{universe: &domain.PermissionUniverse{
+		Functions: []string{"preferences:read", "preferences:write"},
+	}}
+	router := NewRouter(Dependencies{
+		PreferencesUseCase: prefs, RBACUseCase: rbac, TokenManager: manager,
+	})
+	token := accessToken(t, manager, tenantID, userID, uuid.New())
+
+	recorder := requestWithTokenAndApp(router, http.MethodGet, "/api/v1/users/me/preferences",
+		nil, token, appID.String())
+	require.Equal(t, http.StatusOK, recorder.Code)
+	assert.Equal(t, appID, prefs.getInput[2])
+
+	recorder = requestWithTokenAndApp(router, http.MethodPut, "/api/v1/users/me/preferences",
+		[]byte(`{"preferences":{"theme":"light"}}`), token, appID.String())
+	require.Equal(t, http.StatusNoContent, recorder.Code)
+	assert.Equal(t, appID, prefs.updateInput[2])
+	assert.Equal(t, "light", prefs.updatePrefs["theme"])
+}

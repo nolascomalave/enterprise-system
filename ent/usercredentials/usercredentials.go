@@ -48,6 +48,8 @@ const (
 	EdgePartyContactMechanism = "party_contact_mechanism"
 	// EdgeUserRoleAssignments holds the string denoting the user_role_assignments edge name in mutations.
 	EdgeUserRoleAssignments = "user_role_assignments"
+	// EdgeAppPreferences holds the string denoting the app_preferences edge name in mutations.
+	EdgeAppPreferences = "app_preferences"
 	// Table holds the table name of the usercredentials in the database.
 	Table = "user_credentials"
 	// TenantTable is the table that holds the tenant relation/edge.
@@ -78,6 +80,13 @@ const (
 	UserRoleAssignmentsInverseTable = "user_role_assignments"
 	// UserRoleAssignmentsColumn is the table column denoting the user_role_assignments relation/edge.
 	UserRoleAssignmentsColumn = "user_credentials_id"
+	// AppPreferencesTable is the table that holds the app_preferences relation/edge.
+	AppPreferencesTable = "user_app_preferences"
+	// AppPreferencesInverseTable is the table name for the UserAppPreference entity.
+	// It exists in this package in order to avoid circular dependency with the "userapppreference" package.
+	AppPreferencesInverseTable = "user_app_preferences"
+	// AppPreferencesColumn is the table column denoting the app_preferences relation/edge.
+	AppPreferencesColumn = "user_credentials_id"
 )
 
 // Columns holds all SQL columns for usercredentials fields.
@@ -250,6 +259,20 @@ func ByUserRoleAssignments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newUserRoleAssignmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAppPreferencesCount orders the results by app_preferences count.
+func ByAppPreferencesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAppPreferencesStep(), opts...)
+	}
+}
+
+// ByAppPreferences orders the results by app_preferences terms.
+func ByAppPreferences(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAppPreferencesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTenantStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -276,5 +299,12 @@ func newUserRoleAssignmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserRoleAssignmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, UserRoleAssignmentsTable, UserRoleAssignmentsColumn),
+	)
+}
+func newAppPreferencesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AppPreferencesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AppPreferencesTable, AppPreferencesColumn),
 	)
 }

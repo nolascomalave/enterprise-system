@@ -49,6 +49,7 @@ import (
 	"enterprise-system/ent/session"
 	"enterprise-system/ent/subscription"
 	"enterprise-system/ent/tenantrole"
+	"enterprise-system/ent/userapppreference"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 	"fmt"
@@ -99,6 +100,7 @@ type SubscriptionQuery struct {
 	withDepartmentAddresses                  *DepartmentAddressQuery
 	withDepartmentAddressValidities          *DepartmentAddressValidityQuery
 	withClientApplications                   *ClientApplicationQuery
+	withUserAppPreferences                   *UserAppPreferenceQuery
 	withDepartmentTranslations               *DepartmentTranslationQuery
 	withMenuCategories                       *MenuCategoryQuery
 	withMenuOptions                          *MenuOptionQuery
@@ -899,6 +901,31 @@ func (_q *SubscriptionQuery) QueryClientApplications() *ClientApplicationQuery {
 	return query
 }
 
+// QueryUserAppPreferences chains the current query on the "user_app_preferences" edge.
+func (_q *SubscriptionQuery) QueryUserAppPreferences() *UserAppPreferenceQuery {
+	query := (&UserAppPreferenceClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subscription.Table, subscription.FieldID, selector),
+			sqlgraph.To(userapppreference.Table, userapppreference.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, subscription.UserAppPreferencesTable, subscription.UserAppPreferencesColumn),
+		)
+		schemaConfig := _q.schemaConfig
+		step.To.Schema = schemaConfig.UserAppPreference
+		step.Edge.Schema = schemaConfig.UserAppPreference
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryDepartmentTranslations chains the current query on the "department_translations" edge.
 func (_q *SubscriptionQuery) QueryDepartmentTranslations() *DepartmentTranslationQuery {
 	query := (&DepartmentTranslationClient{config: _q.config}).Query()
@@ -1446,6 +1473,7 @@ func (_q *SubscriptionQuery) Clone() *SubscriptionQuery {
 		withDepartmentAddresses:                  _q.withDepartmentAddresses.Clone(),
 		withDepartmentAddressValidities:          _q.withDepartmentAddressValidities.Clone(),
 		withClientApplications:                   _q.withClientApplications.Clone(),
+		withUserAppPreferences:                   _q.withUserAppPreferences.Clone(),
 		withDepartmentTranslations:               _q.withDepartmentTranslations.Clone(),
 		withMenuCategories:                       _q.withMenuCategories.Clone(),
 		withMenuOptions:                          _q.withMenuOptions.Clone(),
@@ -1795,6 +1823,17 @@ func (_q *SubscriptionQuery) WithClientApplications(opts ...func(*ClientApplicat
 	return _q
 }
 
+// WithUserAppPreferences tells the query-builder to eager-load the nodes that are connected to
+// the "user_app_preferences" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *SubscriptionQuery) WithUserAppPreferences(opts ...func(*UserAppPreferenceQuery)) *SubscriptionQuery {
+	query := (&UserAppPreferenceClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withUserAppPreferences = query
+	return _q
+}
+
 // WithDepartmentTranslations tells the query-builder to eager-load the nodes that are connected to
 // the "department_translations" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *SubscriptionQuery) WithDepartmentTranslations(opts ...func(*DepartmentTranslationQuery)) *SubscriptionQuery {
@@ -2016,7 +2055,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Subscription{}
 		_spec       = _q.querySpec()
-		loadedTypes = [43]bool{
+		loadedTypes = [44]bool{
 			_q.withParties != nil,
 			_q.withPersonProfiles != nil,
 			_q.withOrganizationProfiles != nil,
@@ -2047,6 +2086,7 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			_q.withDepartmentAddresses != nil,
 			_q.withDepartmentAddressValidities != nil,
 			_q.withClientApplications != nil,
+			_q.withUserAppPreferences != nil,
 			_q.withDepartmentTranslations != nil,
 			_q.withMenuCategories != nil,
 			_q.withMenuOptions != nil,
@@ -2329,6 +2369,15 @@ func (_q *SubscriptionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 			func(n *Subscription) { n.Edges.ClientApplications = []*ClientApplication{} },
 			func(n *Subscription, e *ClientApplication) {
 				n.Edges.ClientApplications = append(n.Edges.ClientApplications, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withUserAppPreferences; query != nil {
+		if err := _q.loadUserAppPreferences(ctx, query, nodes,
+			func(n *Subscription) { n.Edges.UserAppPreferences = []*UserAppPreference{} },
+			func(n *Subscription, e *UserAppPreference) {
+				n.Edges.UserAppPreferences = append(n.Edges.UserAppPreferences, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -3346,6 +3395,36 @@ func (_q *SubscriptionQuery) loadClientApplications(ctx context.Context, query *
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *SubscriptionQuery) loadUserAppPreferences(ctx context.Context, query *UserAppPreferenceQuery, nodes []*Subscription, init func(*Subscription), assign func(*Subscription, *UserAppPreference)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Subscription)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(userapppreference.FieldTenantID)
+	}
+	query.Where(predicate.UserAppPreference(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subscription.UserAppPreferencesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TenantID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "tenant_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

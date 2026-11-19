@@ -61,6 +61,7 @@ import (
 	"enterprise-system/ent/tenantrelationshipinvite"
 	"enterprise-system/ent/tenantrole"
 	"enterprise-system/ent/tenanttransfer"
+	"enterprise-system/ent/userapppreference"
 	"enterprise-system/ent/usercredentials"
 	"enterprise-system/ent/userroleassignment"
 	"time"
@@ -1326,6 +1327,26 @@ func init() {
 	tenanttransferDescID := tenanttransferFields[0].Descriptor()
 	// tenanttransfer.DefaultID holds the default value on creation for the id field.
 	tenanttransfer.DefaultID = tenanttransferDescID.Default.(func() uuid.UUID)
+	userapppreferenceFields := schema.UserAppPreference{}.Fields()
+	_ = userapppreferenceFields
+	// userapppreferenceDescPreferences is the schema descriptor for preferences field.
+	userapppreferenceDescPreferences := userapppreferenceFields[4].Descriptor()
+	// userapppreference.DefaultPreferences holds the default value on creation for the preferences field.
+	userapppreference.DefaultPreferences = userapppreferenceDescPreferences.Default.(map[string]interface{})
+	// userapppreferenceDescCreatedAt is the schema descriptor for created_at field.
+	userapppreferenceDescCreatedAt := userapppreferenceFields[5].Descriptor()
+	// userapppreference.DefaultCreatedAt holds the default value on creation for the created_at field.
+	userapppreference.DefaultCreatedAt = userapppreferenceDescCreatedAt.Default.(func() time.Time)
+	// userapppreferenceDescUpdatedAt is the schema descriptor for updated_at field.
+	userapppreferenceDescUpdatedAt := userapppreferenceFields[6].Descriptor()
+	// userapppreference.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	userapppreference.DefaultUpdatedAt = userapppreferenceDescUpdatedAt.Default.(func() time.Time)
+	// userapppreference.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	userapppreference.UpdateDefaultUpdatedAt = userapppreferenceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// userapppreferenceDescID is the schema descriptor for id field.
+	userapppreferenceDescID := userapppreferenceFields[0].Descriptor()
+	// userapppreference.DefaultID holds the default value on creation for the id field.
+	userapppreference.DefaultID = userapppreferenceDescID.Default.(func() uuid.UUID)
 	usercredentialsFields := schema.UserCredentials{}.Fields()
 	_ = usercredentialsFields
 	// usercredentialsDescPasswordHash is the schema descriptor for password_hash field.

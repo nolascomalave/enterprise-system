@@ -38,3 +38,13 @@ func TestCorporateGroupReadRouteUsesOrgRead(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "org:read", function)
 }
+
+func TestPreferencesRoutesUseReadWriteFunctions(t *testing.T) {
+	getFunction, ok := requiredRBACFunction(http.MethodGet, "/api/v1/users/me/preferences")
+	require.True(t, ok)
+	require.Equal(t, "preferences:read", getFunction)
+
+	putFunction, ok := requiredRBACFunction(http.MethodPut, "/api/v1/users/me/preferences")
+	require.True(t, ok)
+	require.Equal(t, "preferences:write", putFunction)
+}

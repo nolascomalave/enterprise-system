@@ -117,6 +117,8 @@ func (Subscription) Edges() []ent.Edge {
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("client_applications", ClientApplication.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("user_app_preferences", UserAppPreference.Type).
+			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("department_translations", DepartmentTranslation.Type).
 			Annotations(entsql.OnDelete(entsql.Restrict)),
 		edge.To("menu_categories", MenuCategory.Type).

@@ -88,6 +88,8 @@ const (
 	EdgeDepartmentAddressValidities = "department_address_validities"
 	// EdgeClientApplications holds the string denoting the client_applications edge name in mutations.
 	EdgeClientApplications = "client_applications"
+	// EdgeUserAppPreferences holds the string denoting the user_app_preferences edge name in mutations.
+	EdgeUserAppPreferences = "user_app_preferences"
 	// EdgeDepartmentTranslations holds the string denoting the department_translations edge name in mutations.
 	EdgeDepartmentTranslations = "department_translations"
 	// EdgeMenuCategories holds the string denoting the menu_categories edge name in mutations.
@@ -328,6 +330,13 @@ const (
 	ClientApplicationsInverseTable = "client_applications"
 	// ClientApplicationsColumn is the table column denoting the client_applications relation/edge.
 	ClientApplicationsColumn = "tenant_id"
+	// UserAppPreferencesTable is the table that holds the user_app_preferences relation/edge.
+	UserAppPreferencesTable = "user_app_preferences"
+	// UserAppPreferencesInverseTable is the table name for the UserAppPreference entity.
+	// It exists in this package in order to avoid circular dependency with the "userapppreference" package.
+	UserAppPreferencesInverseTable = "user_app_preferences"
+	// UserAppPreferencesColumn is the table column denoting the user_app_preferences relation/edge.
+	UserAppPreferencesColumn = "tenant_id"
 	// DepartmentTranslationsTable is the table that holds the department_translations relation/edge.
 	DepartmentTranslationsTable = "department_translations"
 	// DepartmentTranslationsInverseTable is the table name for the DepartmentTranslation entity.
@@ -942,6 +951,20 @@ func ByClientApplications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 	}
 }
 
+// ByUserAppPreferencesCount orders the results by user_app_preferences count.
+func ByUserAppPreferencesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUserAppPreferencesStep(), opts...)
+	}
+}
+
+// ByUserAppPreferences orders the results by user_app_preferences terms.
+func ByUserAppPreferences(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserAppPreferencesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByDepartmentTranslationsCount orders the results by department_translations count.
 func ByDepartmentTranslationsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1331,6 +1354,13 @@ func newClientApplicationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ClientApplicationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ClientApplicationsTable, ClientApplicationsColumn),
+	)
+}
+func newUserAppPreferencesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserAppPreferencesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UserAppPreferencesTable, UserAppPreferencesColumn),
 	)
 }
 func newDepartmentTranslationsStep() *sqlgraph.Step {

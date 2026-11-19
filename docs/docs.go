@@ -2662,6 +2662,117 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/me/preferences": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the preferences for the authenticated user and the X-App-Client-ID application. Defaults are returned without persistence when none exist.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Preferences"
+                ],
+                "summary": "Get the current user's UI preferences",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client application UUID",
+                        "name": "X-App-Client-ID",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PreferencesEnvelope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Replaces the preferences JSON object for the authenticated user and the X-App-Client-ID application.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Preferences"
+                ],
+                "summary": "Update the current user's UI preferences",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Client application UUID",
+                        "name": "X-App-Client-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Preferences object",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.UpdatePreferencesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -4021,6 +4132,23 @@ const docTemplate = `{
                 }
             }
         },
+        "enterprise-system_internal_delivery_http_dto.PreferencesEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/enterprise-system_internal_delivery_http_dto.PreferencesResponse"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.PreferencesResponse": {
+            "type": "object",
+            "properties": {
+                "preferences": {
+                    "type": "object",
+                    "additionalProperties": {}
+                }
+            }
+        },
         "enterprise-system_internal_delivery_http_dto.RegisterTenantEnvelope": {
             "type": "object",
             "properties": {
@@ -4265,6 +4393,18 @@ const docTemplate = `{
                 },
                 "ordering": {
                     "type": "integer"
+                }
+            }
+        },
+        "enterprise-system_internal_delivery_http_dto.UpdatePreferencesRequest": {
+            "type": "object",
+            "required": [
+                "preferences"
+            ],
+            "properties": {
+                "preferences": {
+                    "type": "object",
+                    "additionalProperties": {}
                 }
             }
         },
